@@ -4,7 +4,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status
 
-This repository is empty: no idea, stack or code has been chosen yet. Once a stack exists, add its build, lint, test and run commands, plus the architecture overview, to this file.
+**Shelfie** (idea A in docs/IDEAS.md): snap a photo of a price list → Claude reads it → PayPal catalog → a per-shop MCP "agent door" any AI assistant can order through → PayPal Orders v2 (approve + capture) → seller dashboard with AI briefs and tracking.
+Spec: `docs/superpowers/specs/2026-11-06-shelfie-design.md`. Plan: `docs/superpowers/plans/2026-11-06-shelfie.md`. Progress: `docs/PROGRESS.md`. Decisions: `docs/DECISIONS.md`. Rubric (never edit): `docs/JUDGING.md`.
+
+## Commands
+
+```bash
+npm install                 # Node >= 22
+cp .env.example .env        # fill PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY, ANTHROPIC_API_KEY
+npm run dev                 # http://localhost:3000
+npm run build && npm start  # production
+npm test                    # unit tests (Vitest), no network
+npm run test:sandbox        # real PayPal sandbox calls (needs .env)
+npm run test:ai             # real Claude extraction on public/samples (needs ANTHROPIC_API_KEY)
+npm run typecheck && npm run lint
+npm run e2e                 # Playwright (starts the app)
+npm run seed                # publish the demo shop
+```
+
+## Architecture
+
+- **Next.js 16 App Router + TypeScript**, one web service (Render-ready). `cacheComponents` is off: every page reads per-request SQLite/cookies. Route handlers that touch SQLite/sharp/PayPal use `export const runtime = 'nodejs'`. In Next 16, `params`/`searchParams`/`cookies()` are async (await them); read `node_modules/next/dist/docs/` before using an unfamiliar API.
+- **SQLite** via `better-sqlite3` (`src/lib/db`, schema in `schema.sql`, plain-function repos in `src/lib/db/repos`). Money is integer cents (`src/lib/domain/money.ts`).
+- **Domain contracts** in `src/lib/domain/types.ts` and `src/lib/paypal/types.ts` (`PayPalPort`; `createFakePayPal()` for tests).
+- **PayPal**: our typed REST client for money paths (orders, capture, catalog publish, webhook verify) with per-call `PayPal-Request-Id`; `@paypal/agent-toolkit` for seller-side tools (brief agent reads `get_order`/`get_shipment_tracking`; tracking via `create_shipment_tracking`). Sandbox only.
+- **Claude** via `@anthropic-ai/sdk`, model `claude-sonnet-5-5`: `messages.parse` + `zodOutputFormat` for menu extraction; beta `toolRunner` for the brief agent and the in-app buyer console. Never send `temperature`, forced `tool_choice`, or `thinking: disabled`.
+- **MCP agent door**: `POST /s/[slug]/mcp`, stateless `WebStandardStreamableHTTPServerTransport`, fresh `McpServer` per request.
+- **Orders**: pure state machine + compare-and-set writes; paid via return URL, webhook (deployed only) or the 15 s poller.
+- **Seller auth**: per-shop httpOnly cookie with an owner token (hash stored), `src/lib/auth/owner.ts`.
+- **Tests** live in `tests/` (unit), `tests/sandbox` and `tests/ai-live` (network), `e2e/` (Playwright).
 
 ## Context: PayPal AI Hackathon
 

@@ -1,0 +1,102 @@
+import type { Db } from '@/lib/db';
+import { now } from '@/lib/db';
+import { newId } from '@/lib/domain/ids';
+import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVariants, Variant } from '@/lib/domain/types';
+
+interface ItemRow {
+  id: string; shop_id: string; section: string | null; name: string; description: string | null; source_text: string;
+  confidence: Confidence; issues_json: string; issue_detail: string | null; kind: ItemKind; status: ItemStatus;
+  sold_out: number; sort: number; paypal_product_id: string | null; published_at: string | null; updated_at: string;
+}
+interface VariantRow { id: string; item_id: string; label: string | null; price_cents: number | null; sort: number }
+
+const toVariant = (v: VariantRow): Variant => ({ id: v.id, itemId: v.item_id, label: v.label, priceCents: v.price_cents, sort: v.sort });
+
+function withVariants(db: Db, rows: ItemRow[]): ItemWithVariants[] {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const vs = db
+    .prepare(`SELECT * FROM variants WHERE item_id IN (${ids.map(() => '?').join(',')}) ORDER BY sort`)
+    .all(...ids) as VariantRow[];
+  return rows.map((r) => ({
+    id: r.id, shopId: r.shop_id, section: r.section, name: r.name, description: r.description, sourceText: r.source_text,
+    confidence: r.confidence, issues: JSON.parse(r.issues_json) as IssueCode[], issueDetail: r.issue_detail, kind: r.kind,
+    status: r.status, soldOut: r.sold_out === 1, sort: r.sort, paypalProductId: r.paypal_product_id,
+    publishedAt: r.published_at, updatedAt: r.updated_at,
+    variants: vs.filter((v) => v.item_id === r.id).map(toVariant),
+  }));
+}
+
+/** Replaces every unpublished item of the shop with a new draft list (published items are kept). */
+export function replaceDrafts(db: Db, shopId: string, drafts: DraftItem[]): ItemWithVariants[] {
+  const ts = now();
+  const tx = db.transaction(() => {
+    db.prepare('DELETE FROM items WHERE shop_id = ? AND paypal_product_id IS NULL').run(shopId);
+    const insItem = db.prepare(
+      `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, sort, updated_at)
+       VALUES (@id, @shopId, @section, @name, @description, @sourceText, @confidence, @issues, @issueDetail, @kind, @status, @sort, @ts)`,
+    );
+    const insVar = db.prepare('INSERT INTO variants (id, item_id, label, price_cents, sort) VALUES (?, ?, ?, ?, ?)');
+    drafts.forEach((d, i) => {
+      const id = newId('itm', 12);
+      insItem.run({
+        id, shopId, section: d.section, name: d.name, description: d.description, sourceText: d.sourceText,
+        confidence: d.confidence, issues: JSON.stringify(d.issues), issueDetail: d.issueDetail, kind: d.kind,
+        status: d.status, sort: i, ts,
+      });
+      d.variants.forEach((v, j) => insVar.run(newId('var', 12), id, v.label, v.priceCents, j));
+    });
+  });
+  tx();
+  return listWithVariants(db, shopId);
+}
+
+export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemStatus[] } = {}): ItemWithVariants[] {
+  const rows = opts.status?.length
+    ? (db.prepare(`SELECT * FROM items WHERE shop_id = ? AND status IN (${opts.status.map(() => '?').join(',')}) ORDER BY sort`).all(shopId, ...opts.status) as ItemRow[])
+    : (db.prepare('SELECT * FROM items WHERE shop_id = ? ORDER BY sort').all(shopId) as ItemRow[]);
+  return withVariants(db, rows);
+}
+
+/** Item scoped to its shop: never returns another shop's item. */
+export function byIdForShop(db: Db, shopId: string, itemId: string): ItemWithVariants | null {
+  const r = db.prepare('SELECT * FROM items WHERE id = ? AND shop_id = ?').get(itemId, shopId) as ItemRow | undefined;
+  return r ? withVariants(db, [r])[0] : null;
+}
+
+export type ItemPatch = Partial<Pick<ItemWithVariants, 'section' | 'name' | 'description' | 'issues' | 'issueDetail' | 'kind' | 'status' | 'soldOut' | 'sort' | 'publishedAt'>>;
+
+const COLS: Record<keyof ItemPatch, string> = {
+  section: 'section', name: 'name', description: 'description', issues: 'issues_json', issueDetail: 'issue_detail',
+  kind: 'kind', status: 'status', soldOut: 'sold_out', sort: 'sort', publishedAt: 'published_at',
+};
+
+export function update(db: Db, id: string, patch: ItemPatch): void {
+  const entries = Object.entries(patch).filter(([, v]) => v !== undefined) as [keyof ItemPatch, unknown][];
+  if (!entries.length) return;
+  const sets = entries.map(([k]) => `${COLS[k]} = @${k}`).join(', ');
+  const params = Object.fromEntries(
+    entries.map(([k, v]) => [k, k === 'issues' ? JSON.stringify(v) : k === 'soldOut' ? (v ? 1 : 0) : v]),
+  );
+  db.prepare(`UPDATE items SET ${sets}, updated_at = @ts WHERE id = @id`).run({ ...params, id, ts: now() });
+}
+
+export function updateVariant(db: Db, variantId: string, patch: { label?: string | null; priceCents?: number | null }): void {
+  if (patch.label !== undefined) db.prepare('UPDATE variants SET label = ? WHERE id = ?').run(patch.label, variantId);
+  if (patch.priceCents !== undefined) db.prepare('UPDATE variants SET price_cents = ? WHERE id = ?').run(patch.priceCents, variantId);
+}
+
+/** Replaces an item's variants (used when the seller merges or edits options). */
+export function setVariants(db: Db, itemId: string, variants: { label: string | null; priceCents: number | null }[]): void {
+  const tx = db.transaction(() => {
+    db.prepare('DELETE FROM variants WHERE item_id = ?').run(itemId);
+    const ins = db.prepare('INSERT INTO variants (id, item_id, label, price_cents, sort) VALUES (?, ?, ?, ?, ?)');
+    variants.forEach((v, j) => ins.run(newId('var', 12), itemId, v.label, v.priceCents, j));
+  });
+  tx();
+}
+
+export function setPayPalProductId(db: Db, id: string, paypalProductId: string): void {
+  db.prepare(`UPDATE items SET paypal_product_id = ?, status = 'live', published_at = ?, updated_at = ? WHERE id = ?`)
+    .run(paypalProductId, now(), now(), id);
+}
