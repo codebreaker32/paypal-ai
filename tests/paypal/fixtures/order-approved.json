@@ -1,0 +1,12 @@
+{
+  "_note": "HAND-WRITTEN from PayPal's documented Orders v2 response shape, not recorded from the sandbox (approving needs a buyer login).",
+  "status": 200,
+  "body": {
+    "id": "5L661201XF603611H",
+    "status": "APPROVED",
+    "payer": { "name": { "given_name": "Test", "surname": "Buyer" }, "email_address": "buyer@example.com" },
+    "purchase_units": [
+      { "reference_id": "default", "custom_id": "ord_fixture", "invoice_id": "SHF-FIXTURE", "amount": { "currency_code": "USD", "value": "9.00" } }
+    ]
+  }
+}

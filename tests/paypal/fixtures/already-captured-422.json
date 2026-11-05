@@ -1,0 +1,10 @@
+{
+  "_note": "HAND-WRITTEN from PayPal's documented error shape (ORDER_ALREADY_CAPTURED), not recorded from the sandbox.",
+  "status": 422,
+  "body": {
+    "name": "UNPROCESSABLE_ENTITY",
+    "details": [{ "issue": "ORDER_ALREADY_CAPTURED", "description": "Order already captured.If 'intent=CAPTURE' only one capture per order is allowed." }],
+    "message": "The requested action could not be performed, semantically incorrect, or failed business validation.",
+    "debug_id": "fixture"
+  }
+}
