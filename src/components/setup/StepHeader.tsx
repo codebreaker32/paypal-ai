@@ -33,7 +33,7 @@ export function StepHeader({
             >
               <span
                 className={cx(
-                  'inline-flex size-6 items-center justify-center rounded-full border type-price',
+                  'inline-flex size-6 items-center justify-center rounded-sm border type-price font-semibold',
                   done && 'border-ok bg-ok-soft text-ok',
                   current && 'border-ink bg-ink text-surface',
                   !done && !current && 'border-control',

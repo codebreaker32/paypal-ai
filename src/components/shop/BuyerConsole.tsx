@@ -179,7 +179,7 @@ async function* readNdjson(body: ReadableStream<Uint8Array>): AsyncGenerator<Con
 
 function UserBubble({ text }: { text: string }) {
   return (
-    <p className="ml-auto max-w-[85%] rounded-lg rounded-br-xs bg-ink px-3.5 py-2.5 text-sm leading-5 whitespace-pre-wrap text-surface [overflow-wrap:anywhere]">
+    <p className="ml-auto max-w-[85%] rounded-md rounded-br-xs bg-ink px-3.5 py-2.5 text-sm leading-5 whitespace-pre-wrap text-surface [overflow-wrap:anywhere]">
       {text}
     </p>
   );
@@ -188,7 +188,7 @@ function UserBubble({ text }: { text: string }) {
 function AssistantSays({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-soft">
+      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-sm bg-accent-soft text-accent-ink">
         <Icon icon={Bot} size="sm" label="Assistant" />
       </span>
       <RichText text={text} className="min-w-0 flex-1 pt-1 text-sm leading-6 [overflow-wrap:anywhere]" />
@@ -212,13 +212,17 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
   const view = approvalCard(entry);
   const settled = view.approve ? null : SETTLED[view.label];
   return (
-    <div className="flex flex-col gap-2.5 rounded-md border border-line-strong bg-surface-raised p-3 shadow-xs">
+    <div className="flex flex-col gap-2.5 rounded-md border border-line-strong border-t-4 border-t-ink bg-surface-raised p-3 shadow-xs">
       <div className="flex items-baseline justify-between gap-3">
         <span className="flex min-w-0 flex-col">
           <span className="text-sm font-semibold">{shopName}</span>
-          {entry.orderNumber && <span className="type-meta type-price text-ink-muted">Order {entry.orderNumber}</span>}
+          {entry.orderNumber && (
+            <span className="type-meta text-ink-muted">
+              Order <span className="type-ref">{entry.orderNumber}</span>
+            </span>
+          )}
         </span>
-        <span className="type-price text-lg font-semibold">{total}</span>
+        <span className="type-amount rule-total text-xl">{total}</span>
       </div>
       {view.approve ? (
         <>

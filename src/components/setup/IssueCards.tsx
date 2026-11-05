@@ -61,7 +61,7 @@ function CardShell({
   children: ReactNode;
 }) {
   return (
-    <Card as="article" aria-labelledby={`${id}-name`} className="flex flex-col gap-4 animate-fade-in">
+    <Card as="article" aria-labelledby={`${id}-name`} className="flex flex-col gap-4 border-l-4 border-l-warn animate-fade-in">
       <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-col">
           <h3 id={`${id}-name`} tabIndex={-1} className="type-heading [overflow-wrap:anywhere] focus:outline-none focus-visible:outline-2">
@@ -82,13 +82,13 @@ function CardShell({
 function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boolean }) {
   return (
     <div className="flex flex-col gap-2">
-      <div className="rounded-md bg-surface-sunken px-3.5 py-2.5">
+      <div className="rounded-md border border-line bg-surface-sunken px-3.5 py-2.5">
         <p className="type-meta text-ink-muted">We read</p>
-        <p className="[overflow-wrap:anywhere]">“{item.sourceText}”</p>
+        <p className="font-mono text-sm leading-6 [overflow-wrap:anywhere]">“{item.sourceText}”</p>
         {showPrice && (
-          <p className="mt-1.5 flex items-baseline gap-2 border-t border-line-strong pt-1.5">
+          <p className="mt-2 flex items-baseline justify-between gap-2 border-t border-line-strong pt-2">
             <span className="type-meta text-ink-muted">Price</span>
-            <span className="type-price font-semibold">{priceSummary(item)}</span>
+            <span className="type-amount text-lg">{priceSummary(item)}</span>
           </p>
         )}
       </div>

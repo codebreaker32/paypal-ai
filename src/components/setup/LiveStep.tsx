@@ -161,7 +161,7 @@ export function LiveStep(p: LiveProps) {
           <p className="text-ink-soft">
             Give this link to any AI assistant. It can read your menu and place orders for people, who then pay on PayPal.
           </p>
-          <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" primary />
+          <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" primary mono />
         </LinkCard>
 
         <Card as="section" aria-labelledby="try-title" tone="sunken" className="flex flex-col gap-4 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
@@ -181,7 +181,7 @@ export function LiveStep(p: LiveProps) {
         <div className="flex flex-col gap-4 lg:col-span-7 lg:col-start-1 lg:row-span-2 lg:row-start-2">
           <LinkCard icon={Store} title="Shop link">
             <p className="text-ink-soft">Your menu for people to read, with a button to order through an assistant.</p>
-            <CopyRow value={p.shopUrl} label="Shop link" />
+            <CopyRow value={p.shopUrl} label="Shop link" mono />
             <Link
               href={`/s/${p.slug}`}
               className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"

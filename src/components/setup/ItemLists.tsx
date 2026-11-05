@@ -39,16 +39,14 @@ function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpda
   return (
     <li className="py-3 first:pt-0 last:pb-0">
       <div className="flex min-h-tap items-center gap-3">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="font-semibold [overflow-wrap:anywhere]">{item.name}</span>
-          <span className={cx('type-price text-sm', isPriced(item) ? 'text-ink-soft' : 'text-warn')}>
-            {isPriced(item) ? priceSummary(item) : (
-              <span className="inline-flex items-center gap-1">
-                <Icon icon={TriangleAlert} size="sm" /> Needs a price
-              </span>
-            )}
-          </span>
-        </div>
+        <span className="min-w-0 flex-1 font-semibold [overflow-wrap:anywhere]">{item.name}</span>
+        <span className={cx('type-price shrink-0 text-right font-semibold', isPriced(item) ? 'text-ink' : 'text-warn')}>
+          {isPriced(item) ? priceSummary(item) : (
+            <span className="inline-flex items-center gap-1 text-sm">
+              <Icon icon={TriangleAlert} size="sm" /> Needs a price
+            </span>
+          )}
+        </span>
         {inPayPal ? (
           <Badge tone="ok" icon={CircleCheck}>
             In PayPal
@@ -101,8 +99,8 @@ export function ReadyList({ items, onUpdate }: { items: ItemWithVariants[]; onUp
   return (
     <div className="flex flex-col gap-6">
       {bySection(items).map((g) => (
-        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-3">
-          {g.section && <h3 className="type-label text-ink-soft">{g.section}</h3>}
+        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-2">
+          {g.section && <h3 className="border-b border-line-strong pb-1.5 type-stamp text-ink-muted">{g.section}</h3>}
           <ul className="flex flex-col divide-y divide-line">
             {g.items.map((it) => (
               <ReadyRow key={it.id} item={it} onUpdate={onUpdate} />

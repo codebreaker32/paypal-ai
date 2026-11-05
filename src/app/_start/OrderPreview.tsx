@@ -37,15 +37,19 @@ function PaymentReceived({ className }: { className?: string }) {
   return (
     <Card
       padding="none"
-      className={cx('relative items-center gap-3 p-3 pr-4 animate-rise-in [animation-delay:600ms]', className)}
+      className={cx(
+        'relative items-center gap-3 border-l-4 border-l-accent p-3 pr-4 shadow-md animate-rise-in [animation-delay:600ms]',
+        className,
+      )}
     >
-      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-ok-soft text-ok">
+      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-ok-soft text-ok">
         <Icon icon={CircleCheck} />
       </span>
-      <span className="flex flex-1 flex-col">
-        <span className="font-semibold">Payment received</span>
-        <span className="type-meta type-price text-ink-muted">{formatUSD(TOTAL_CENTS)} · pickup Saturday</span>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-semibold whitespace-nowrap">Payment received</span>
+        <span className="type-meta text-ink-muted">Pickup Saturday</span>
       </span>
+      <span className="type-amount text-xl text-ok">{formatUSD(TOTAL_CENTS)}</span>
     </Card>
   );
 }
@@ -94,18 +98,18 @@ export function OrderPreview() {
 
             <div className="flex flex-col gap-2 text-sm leading-5">
               <p>Here’s the order. Prices come from the shop:</p>
-              <dl className="type-price flex flex-col gap-1 rounded-md bg-surface-sunken px-3 py-2.5">
+              <dl className="type-price flex flex-col rounded-md border border-line bg-surface px-3 py-1">
                 {LINES.map((l) => (
-                  <div key={l.name} className="flex justify-between gap-3">
+                  <div key={l.name} className="flex justify-between gap-3 border-b border-line py-1.5">
                     <dt>
-                      {l.qty} × {l.name}
+                      <span className="inline-block min-w-6 font-semibold text-ink-soft">{l.qty} ×</span> {l.name}
                     </dt>
                     <dd>{formatUSD(l.qty * l.unitCents)}</dd>
                   </div>
                 ))}
-                <div className="mt-1 flex justify-between gap-3 border-t border-line-strong pt-1.5 font-semibold">
+                <div className="flex items-baseline justify-between gap-3 py-2 font-semibold">
                   <dt>Total, pickup at 14 Alder St</dt>
-                  <dd>{formatUSD(TOTAL_CENTS)}</dd>
+                  <dd className="rule-total">{formatUSD(TOTAL_CENTS)}</dd>
                 </div>
               </dl>
               <p className="flex items-start gap-1.5 text-warn">
@@ -117,13 +121,15 @@ export function OrderPreview() {
 
             <BuyerSays>Yes, go ahead.</BuyerSays>
 
-            <div className="flex flex-col gap-2.5 rounded-md border border-line-strong p-3">
+            <div className="flex flex-col gap-2.5 rounded-md border border-line-strong border-t-4 border-t-ink p-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="flex flex-col">
                   <span className="text-sm font-semibold">Marigold Bakehouse</span>
-                  <span className="type-meta type-price text-ink-muted">Order {ORDER_REF}</span>
+                  <span className="type-meta text-ink-muted">
+                    Order <span className="type-ref">{ORDER_REF}</span>
+                  </span>
                 </span>
-                <span className="type-price text-lg font-semibold">{formatUSD(TOTAL_CENTS)}</span>
+                <span className="type-amount rule-total text-xl">{formatUSD(TOTAL_CENTS)}</span>
               </div>
               {/* A picture of the approval button the buyer sees; not a control on this page. */}
               <span className={cx(buttonClasses({ variant: 'paypal', fullWidth: true }), 'pointer-events-none')}>

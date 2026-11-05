@@ -62,7 +62,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
   return (
     <div className="flex flex-col gap-8">
       <div aria-live="polite" className="flex flex-col items-start gap-4">
-        <span className={cx('inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
+        <span className={cx('inline-flex size-12 items-center justify-center rounded-md', TONE[view.tone])}>
           <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
         </span>
         <h1 className="type-display">{view.title}</h1>
@@ -88,35 +88,37 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
         {open && <p className="type-meta text-ink-muted">This page updates by itself.</p>}
       </div>
 
-      <Card as="section" aria-labelledby="receipt-title" className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+      <Card as="section" aria-labelledby="receipt-title" padding="none" className="flex flex-col overflow-hidden">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-(--card-pad) py-3 sm:px-(--card-pad-lg)">
           <h2 id="receipt-title" className="type-heading">
             {order.shopName}
           </h2>
-          <span className="type-meta type-price text-ink-muted">Order {order.number}</span>
+          <span className="type-meta text-ink-muted">
+            Order <span className="type-ref text-ink">{order.number}</span>
+          </span>
         </div>
-        <dl className="type-price flex flex-col gap-1.5 rounded-md bg-surface-sunken px-3.5 py-3 text-sm">
+        <dl className="type-price flex flex-col px-(--card-pad) pt-1 pb-(--card-pad) text-sm sm:px-(--card-pad-lg) sm:pb-(--card-pad-lg)">
           {order.lines.map((l, i) => (
-            <div key={i} className="flex justify-between gap-4">
+            <div key={i} className="flex justify-between gap-4 border-b border-line py-2.5">
               <dt className="min-w-0 [overflow-wrap:anywhere]">
-                {l.qty} × {l.name}
+                <span className="inline-block min-w-7 font-semibold text-ink-soft">{l.qty} ×</span> {l.name}
                 {l.label ? ` (${l.label})` : ''}
               </dt>
               <dd className="shrink-0">{formatUSD(l.unitCents * l.qty)}</dd>
             </div>
           ))}
           {order.shippingCents > 0 && (
-            <div className="flex justify-between gap-4 text-ink-soft">
+            <div className="flex justify-between gap-4 border-b border-line py-2.5 text-ink-soft">
               <dt>Shipping</dt>
               <dd>{formatUSD(order.shippingCents)}</dd>
             </div>
           )}
-          <div className="mt-1 flex justify-between gap-4 border-t border-line-strong pt-2 text-base font-semibold">
-            <dt>Total</dt>
-            <dd>{formatUSD(order.totalCents)}</dd>
+          <div className="flex items-baseline justify-between gap-4 pt-3">
+            <dt className="type-label">Total</dt>
+            <dd className="type-amount rule-total pb-0.5 text-2xl">{formatUSD(order.totalCents)}</dd>
           </div>
         </dl>
-        <p className="type-meta text-ink-muted">
+        <p className="border-t border-line bg-surface-sunken px-(--card-pad) py-3 type-meta text-ink-soft sm:px-(--card-pad-lg)">
           {order.fulfillment === 'shipping'
             ? 'Shipping to the address on your PayPal account.'
             : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
