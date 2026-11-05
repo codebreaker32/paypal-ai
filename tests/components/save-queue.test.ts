@@ -13,7 +13,7 @@ function setup(saveItems: (u: ItemUpdate[]) => Promise<unknown>) {
   return { q, save, states, onRejected, last: () => states.at(-1) };
 }
 
-const refused = () => new ApiError('ITEM_LIVE', '"Focaccia" is already in PayPal. You can mark it sold out or remove it.', 409);
+const refused = () => new ApiError(409, 'ITEM_LIVE', '"Focaccia" is already in PayPal. You can mark it sold out or remove it.');
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 describe('createSaveQueue', () => {
@@ -70,7 +70,7 @@ describe('createSaveQueue', () => {
   it('a retryable failure keeps the edits for Retry and does not reload the screen', async () => {
     let n = 0;
     const { q, save, last, onRejected } = setup(async () => {
-      if (++n === 1) throw new ApiError('NETWORK', "We couldn't reach Shelfie.", 0);
+      if (++n === 1) throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
     });
     q.queueItem({ itemId: 'a', name: 'Rye' });
     await expect(q.flush()).rejects.toBeInstanceOf(ApiError);
@@ -107,7 +107,7 @@ describe('createSaveQueue', () => {
   it('a retryable item failure keeps the edits for Retry while the shop patch is still sent', async () => {
     const saveShop = vi.fn(async () => {});
     const saveItems = vi.fn(async (): Promise<void> => {
-      throw new ApiError('NETWORK', "We couldn't reach Shelfie.", 0);
+      throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
     });
     const q = createSaveQueue({ saveItems, saveShop, onState: () => {} });
     q.queueItem({ itemId: 'a', name: 'Rye' });
