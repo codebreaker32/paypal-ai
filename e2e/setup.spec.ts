@@ -56,8 +56,7 @@ test('a seller turns the Marigold sample into a live PayPal shop', async ({ page
   // Reading
   await expect(page.getByRole('heading', { level: 1, name: 'Reading your menu…' })).toBeVisible();
   await expect(page.getByRole('img', { name: /Your menu photo/ })).toBeVisible();
-  await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
-  await shoot(page, 'reading');
+  // (Reading screenshots come from e2e/setup-review.spec.ts, where the reading is held open.)
 
   // Review
   const readingStarted = Date.now();

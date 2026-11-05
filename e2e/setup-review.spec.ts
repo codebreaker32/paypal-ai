@@ -8,6 +8,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { getDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
+import * as extractions from '@/lib/db/repos/extractions';
 import { recordedReading } from '@/lib/ai/samples';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { runReading } from '@/lib/catalog/setup';
@@ -188,4 +189,23 @@ test('a partly failed publish shows the live shop with Retry for the rest', asyn
   await expect(page.getByRole('button', { name: 'Retry 1' })).toBeVisible();
   await settle(page);
   await shoot(page, 'live-partial');
+});
+
+test('the reading screen: the photo with a scan and plain status lines, and a refresh keeps watching', async ({ page }) => {
+  test.setTimeout(120_000);
+  const res = await page.request.post('/api/shops', { data: { sample: 'marigold-bakehouse' } });
+  const { shopId } = (await res.json()) as { shopId: string };
+  // A reading that is already running (as after a refresh mid-run): the page must only watch it.
+  const run = extractions.start(getDb(), shopId, 'claude-sonnet-5-5');
+  await page.goto(`/shops/${shopId}/setup`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Reading your menu…' })).toBeVisible();
+  await expect(page.getByText('This usually takes about 10 seconds.')).toBeVisible();
+  await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
+  await page.evaluate(() => document.fonts.ready);
+  await shoot(page, 'reading');
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: 'Reading your menu…' })).toBeVisible();
+  // Still exactly one reading: the refresh did not start another.
+  expect(extractions.latest(getDb(), shopId)!.id).toBe(run);
+  extractions.fail(getDb(), run, 'AI_ERROR: e2e done');
 });

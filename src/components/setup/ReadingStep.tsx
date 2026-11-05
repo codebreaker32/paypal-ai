@@ -8,7 +8,6 @@ import { Icon } from '@/components/ui/Icon';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
-import styles from './setup.module.css';
 
 const LINES = [
   'Looking at your photo',
@@ -44,6 +43,20 @@ export function ReadingStep({
   const router = useRouter();
   const [line, setLine] = useState(0);
   const [slow, setSlow] = useState(false);
+  // The scan: a band sweeping down the photo, slow and calm. Off entirely with reduced motion.
+  const scan = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    const el = scan.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const sweep = el.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(84%)' }], {
+      duration: 2800,
+      iterations: Infinity,
+      direction: 'alternate',
+      easing: 'cubic-bezier(0.65, 0, 0.35, 1)',
+    });
+    return () => sweep.cancel();
+  }, []);
+
   // One request per mount, shared if React runs the effect twice.
   const request = useRef<Promise<ExtractResult> | null>(null);
   // A retaken photo is still uploading: show the local copy, not the old page.
@@ -129,7 +142,10 @@ export function ReadingStep({
           sizes="(min-width: 1024px) 34vw, 100vw"
           className="mx-auto aspect-[4/5] w-full max-w-md lg:max-w-none"
         >
-          <span className={styles.scan} aria-hidden="true" />
+          <span ref={scan} aria-hidden="true" className="pointer-events-none absolute inset-0 motion-reduce:hidden">
+            <span className="absolute inset-x-0 top-[calc(8%-3rem)] h-12 bg-[linear-gradient(to_bottom,transparent,color-mix(in_srgb,var(--color-accent)_18%,transparent))]" />
+            <span className="absolute inset-x-0 top-[8%] h-0.5 bg-accent shadow-xs" />
+          </span>
         </MenuPhoto>
         {photoCount > 1 && <p className="mt-3 type-meta text-ink-muted">Reading all {photoCount} pages together.</p>}
       </div>
