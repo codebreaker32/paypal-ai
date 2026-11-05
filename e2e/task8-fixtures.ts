@@ -1,7 +1,7 @@
 // LABELLED TEST FIXTURES for the Task 8 dashboard e2e and screenshots. Not product data.
 // Writes a shop and orders in every dashboard state straight into the e2e SQLite file through the repos, so the UI
-// states can be shown without PayPal. PayPal ids here are fake ("E2E…"). The dev server must use the same
-// DATABASE_PATH (data/e2e-task8.db).
+// states can be shown without PayPal. PayPal ids here are fake ("E2E…"). The server must use the same
+// DATABASE_PATH (data/e2e.db; playwright.config.ts sets it for both).
 import path from 'node:path';
 import type { BrowserContext } from '@playwright/test';
 import { getDb } from '@/lib/db';
@@ -11,14 +11,14 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import type { DraftItem, EventSource, Order, OrderBrief, OrderLine, OrderStatus, Shop, ShipTo } from '@/lib/domain/types';
 
-export const E2E_DB = 'data/e2e-task8.db';
+export const E2E_DB = 'data/e2e.db';
 /** Same as OWNER_COOKIE_PREFIX in src/lib/auth/owner.ts (not imported: it pulls in next/headers). */
 const ownerCookieName = (shopId: string) => `shelfie_owner_${shopId}`;
 
 function db() {
   process.env.DATABASE_PATH ??= E2E_DB;
   if (path.resolve(process.env.DATABASE_PATH) !== path.resolve(E2E_DB)) {
-    throw new Error(`task8 fixtures write only to ${E2E_DB}; DATABASE_PATH is ${process.env.DATABASE_PATH}`);
+    throw new Error(`e2e fixtures write only to ${E2E_DB}; DATABASE_PATH is ${process.env.DATABASE_PATH}`);
   }
   return getDb();
 }
@@ -45,6 +45,8 @@ export function createFixtureShop(name = 'Marigold Bakehouse'): FixtureShop {
     shippingFeeCents: 800,
     pickupNotes: 'Saturday 8 to 12 at the Mueller farmers market, stall 14.',
   });
+  // marigold-bakehouse belongs to the demo shop (scripts/seed-demo.ts) that e2e/shop.spec.ts and the Start page use.
+  if (shop.slug === 'marigold-bakehouse') shopsRepo.setSlug(db(), shop.id, `${name} fixture`);
   const created = itemsRepo.replaceDrafts(db(), shop.id, [
     draft('Almond croissant', 'Pastries', [475], 'Flaky, with almond cream. Contains nuts.'),
     draft('Butter croissant', 'Pastries', [425]),
@@ -65,13 +67,21 @@ export function createFixtureShop(name = 'Marigold Bakehouse'): FixtureShop {
   }
   itemsRepo.update(db(), created.find((i) => i.name === 'Seeded rye')!.id, { soldOut: true });
   const live = shopsRepo.publish(db(), shop.id);
-  const items = Object.fromEntries(
+  return { shop: live, ownerToken, items: itemsOf(live) };
+}
+
+function itemsOf(shop: Shop): FixtureShop['items'] {
+  return Object.fromEntries(
     itemsRepo.listWithVariants(db(), shop.id).map((i) => [
       i.name,
       { id: i.id, variantId: i.variants[0].id, label: i.variants[0].label, priceCents: i.variants[0].priceCents ?? 0, paypalProductId: i.paypalProductId },
     ]),
   );
-  return { shop: live, ownerToken, items };
+}
+
+/** An existing shop (the seeded demo shop, say) as a fixture shop, so fixture orders can be added to it. */
+export function fixtureFromShop(shop: Shop, ownerToken: string): FixtureShop {
+  return { shop, ownerToken, items: itemsOf(shop) };
 }
 
 interface OrderSpec {

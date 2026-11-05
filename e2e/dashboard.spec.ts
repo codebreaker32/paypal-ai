@@ -1,15 +1,13 @@
 // Seller dashboard and order detail (Task 8). Data comes from labelled test fixtures written straight to
-// data/e2e-task8.db (see e2e/task8-fixtures.ts). Task 6's PATCH routes (pause, sold out) are mocked here.
+// data/e2e.db (see e2e/task8-fixtures.ts). The PATCH routes (pause, sold out) are mocked here.
+// Screenshots of these screens come from e2e/screenshots.spec.ts.
 //
-// Run (the server must use the same database):
-//   rm -f data/e2e-task8.db*; E2E_PORT=3103 APP_URL=http://localhost:3103 DATABASE_PATH=data/e2e-task8.db SHELFIE_TEST=1 \
-//     npx playwright test e2e/dashboard.spec.ts
+// Run: E2E_PORT=3111 npx playwright test e2e/dashboard.spec.ts
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { DESKTOP, PHONE, settle } from './helpers';
+import { DESKTOP, PHONE } from './helpers';
 import { addFixtureOrder, createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 
-const OUT = 'docs/judge/screenshots/task8';
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
 const APP_URL = process.env.APP_URL ?? BASE;
@@ -265,58 +263,4 @@ test.describe('order detail', () => {
     await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Tracking added: USPS 9400111899223197428490');
     await a11y(page);
   });
-});
-
-// ---- screenshots: docs/judge/screenshots/task8/ ---------------------------------------------------------------
-
-test.describe('screenshots', () => {
-  test.beforeEach(async ({ context }) => {
-    await signInAsOwner(context, full, BASE);
-  });
-
-  for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
-    test(`screens at ${label} px`, async ({ page, context }) => {
-      await page.setViewportSize(viewport);
-      const shot = async (name: string) => {
-        await settle(page);
-        await page.screenshot({ path: `${OUT}/${name}-${label}.png`, fullPage: true, animations: 'disabled' });
-      };
-
-      await page.goto(dashboard(full));
-      await expect(group(page, /To prepare/).getByRole('listitem').first()).toBeVisible();
-      await shot('dashboard-orders');
-      await page.locator('details[data-group="waiting"] summary').click();
-      await expect(page.locator('details[data-group="waiting"]')).toHaveAttribute('open', '');
-      await shot('dashboard-orders-waiting-open');
-
-      await page.goto(dashboard(full, '?tab=menu'));
-      await expect(page.locator('[data-item="Seeded rye"]')).toBeVisible();
-      await shot('dashboard-menu');
-
-      await page.goto(dashboard(full, '?tab=share'));
-      await expect(page.getByTestId('share-door-url')).toBeVisible();
-      await shot('dashboard-share');
-
-      await page.goto(detail(full, orders.nutOrder.id));
-      await expect(page.getByTestId('brief-headline')).toBeVisible();
-      await shot('order-paid-shipping');
-
-      await page.goto(detail(full, orders.shipped.id));
-      await expect(page.getByText('Sent to PayPal').first()).toBeVisible();
-      await shot('order-fulfilled-tracking');
-
-      await page.goto(detail(full, orders.writing.id));
-      await expect(page.getByText('Writing the brief…')).toBeVisible();
-      await shot('order-brief-writing');
-
-      await page.goto(detail(full, orders.pickupTemplate.id));
-      await expect(page.getByText('Basic summary')).toBeVisible();
-      await shot('order-template-brief');
-
-      await signInAsOwner(context, empty, BASE);
-      await page.goto(dashboard(empty));
-      await expect(page.getByRole('heading', { name: 'No orders yet' })).toBeVisible();
-      await shot('dashboard-empty');
-    });
-  }
 });

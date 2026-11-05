@@ -1,12 +1,9 @@
-// Shop page, buyer console and receipt: behaviour and accessibility, plus screenshots (docs/judge/screenshots/task7/)
-// when SHELFIE_SCREENSHOTS=1. The console's stream is replayed from a real recorded run
+// Shop page, buyer console and receipt: behaviour and accessibility (screenshots: e2e/screenshots.spec.ts).
+// The console's stream is replayed from a real recorded run
 // (e2e/fixtures/console-turns.json), so no Claude or PayPal calls happen here. Orders for the receipt states are
 // written straight to SQLite and removed afterwards.
 //
-// Run against an already running app (recommended, it shares the database):
-//   E2E_PORT=<port> E2E_REUSE_SERVER=1 npx playwright test e2e/shop.spec.ts
-// Refresh the committed screenshots:
-//   SHELFIE_SCREENSHOTS=1 E2E_PORT=<port> E2E_REUSE_SERVER=1 npx playwright test e2e/shop.spec.ts
+// Run: E2E_PORT=3111 npx playwright test e2e/shop.spec.ts
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import fs from 'node:fs';
@@ -22,7 +19,6 @@ import { createFakePayPal } from '../src/lib/paypal/fake';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
 import { DESKTOP, PHONE, settle } from './helpers';
 
-const OUT = 'docs/judge/screenshots/task7';
 const SLUG = DEMO_SHOP.slug;
 const FIXTURE = JSON.parse(fs.readFileSync(path.join(__dirname, 'fixtures', 'console-turns.json'), 'utf8')) as {
   prompts: string[];
@@ -189,12 +185,6 @@ async function smallTargets(page: Page, scope = 'main') {
   );
 }
 
-/** Screenshots are committed, so only SHELFIE_SCREENSHOTS=1 rewrites them; a normal run never touches the PNGs. */
-const SHOTS = process.env.SHELFIE_SCREENSHOTS === '1';
-const shoot = async (page: Page, name: string, fullPage = true) => {
-  if (SHOTS) await page.screenshot({ path: `${OUT}/${name}.png`, fullPage, animations: 'disabled' });
-};
-
 // ---- shop page -----------------------------------------------------------------------------------------
 
 for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
@@ -218,7 +208,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByText(/claude mcp add --transport http marigold-bakehouse /)).toBeVisible();
       await expectAccessible(page);
       if (label === '390') expect(await smallTargets(page)).toEqual([]);
-      await shoot(page, `shop-${label}`);
     });
 
     test('opens the console with starter prompts made from the menu', async ({ page }) => {
@@ -228,7 +217,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(region.getByRole('button', { name: /^Two .+, shipped to me$/ })).toBeVisible();
       await expect(region.getByRole('list', { name: 'Try asking' }).getByRole('button')).toHaveCount(3);
       await expectAccessible(page);
-      await shoot(page, `console-empty-${label}`, false);
     });
 
     test('replays a real order conversation: Activity, read-back, approval card', async ({ page }) => {
@@ -267,10 +255,8 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       if (phone) expect(await smallTargets(page, 'dialog[open]')).toEqual([]);
       await approve.scrollIntoViewIfNeeded();
       await settle(page);
-      await shoot(page, `console-conversation-${label}`, false);
       // The first turn: the door calls, then the read-back with the shipping fee and total.
       await region.locator('.overflow-y-auto').first().evaluate((el) => (el.scrollTop = 0));
-      await shoot(page, `console-read-back-${label}`, false);
 
       await create.click();
       await expect(region.locator('details[open]').getByText('MCP request')).toBeVisible();
@@ -281,7 +267,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
         const box = el.closest('.overflow-y-auto');
         if (box) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - 8;
       });
-      await shoot(page, `console-activity-${label}`, false);
     });
   });
 }
@@ -353,7 +338,6 @@ test.describe('console states', () => {
     await expect(page.getByRole('listitem').filter({ hasText: 'Market fish' })).toContainText('Ask in person');
     await expect(page.getByRole('listitem').filter({ hasText: 'Iced tea' })).toContainText(/L\s*\$4\.50/);
     await expectAccessible(page);
-    await shoot(page, 'shop-paused-390');
   });
 
   test('draft and unknown shops are 404', async ({ page }) => {
@@ -377,7 +361,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByText(`Order ${fx.awaiting.number}`)).toBeVisible();
       await expect(page.getByRole('link', { name: 'Back to the assistant' })).toHaveAttribute('href', `/s/${SLUG}?assistant=1`);
       await expectAccessible(page);
-      await shoot(page, `receipt-awaiting-${label}`);
     });
 
     test('paid', async ({ page }) => {
@@ -388,7 +371,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByRole('link', { name: /PayPal/ })).toHaveCount(0);
       await expect(page.getByRole('link', { name: 'Back to shop' })).toHaveAttribute('href', `/s/${SLUG}`);
       await expectAccessible(page);
-      await shoot(page, `receipt-paid-${label}`);
     });
 
     test('cancelled', async ({ page }) => {
@@ -397,7 +379,6 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByRole('heading', { level: 1, name: 'Order cancelled' })).toBeVisible();
       await expect(page.getByText(/Pickup: Sat & Sun pickup/)).toBeVisible();
       await expectAccessible(page);
-      await shoot(page, `receipt-cancelled-${label}`);
     });
   });
 }
@@ -410,7 +391,6 @@ test.describe('receipt behaviour', () => {
     expect(res?.status()).toBe(404);
     await expect(page.getByRole('heading', { level: 1, name: "We couldn't find that order" })).toBeVisible();
     await settle(page);
-    await shoot(page, 'receipt-unknown-390');
   });
 
   test('re-reads the order every 3 s and shows Paid when it lands', async ({ page }) => {
@@ -430,7 +410,6 @@ test.describe('receipt behaviour', () => {
     await expect(page.getByRole('link', { name: /PayPal/ })).toHaveCount(0);
     await expect(page.getByText('This page updates by itself.')).toHaveCount(0);
     await expectAccessible(page);
-    await shoot(page, 'receipt-capture-refused-390');
     await page.waitForTimeout(3500);
     expect(reads).toEqual([]);
   });
@@ -468,6 +447,5 @@ test.describe('receipt behaviour', () => {
     await expectAccessible(page);
     await again.getByRole('link', { name: 'Paid · View receipt' }).scrollIntoViewIfNeeded();
     await settle(page);
-    await shoot(page, 'console-paid-1440', false);
   });
 });

@@ -1,7 +1,8 @@
 // The review screen's one-thumb fixes, the retake and failed screens, without calling Claude:
 // the reading is written straight into the app's database with runReading() and a crafted model
 // output (Marigold plus a cross-page duplicate and a missing price). Nothing is published.
-// Run: E2E_PORT=3101 npx playwright test e2e/setup-review.spec.ts
+// Screenshots of these screens come from e2e/screenshots.spec.ts.
+// Run: E2E_PORT=3111 npx playwright test e2e/setup-review.spec.ts
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -13,9 +14,7 @@ import { recordedReading } from '@/lib/ai/samples';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { runReading } from '@/lib/catalog/setup';
 import { itemsToPublish, publishShop } from '@/lib/catalog/publish';
-import { DESKTOP, PHONE, settle } from './helpers';
-
-const OUT = 'docs/judge/screenshots/task6';
+import { PHONE, settle } from './helpers';
 
 function crafted(): MenuExtraction {
   const raw = recordedReading('marigold-bakehouse');
@@ -41,18 +40,6 @@ async function shopWithReading(page: Page, raw: MenuExtraction | Error): Promise
 
 const card = (page: Page, name: string) => page.locator('article').filter({ has: page.getByRole('heading', { name, exact: true }) });
 
-async function shoot(page: Page, name: string) {
-  for (const [label, size] of [['390', PHONE], ['1440', DESKTOP]] as const) {
-    await page.setViewportSize(size);
-    await page.waitForFunction(() => Array.from(document.images).filter((i) => i.checkVisibility()).every((i) => i.complete && i.naturalWidth > 0));
-    const unstick = await page.addStyleTag({ content: '[data-publish-bar] { position: static !important; }' });
-    await page.screenshot({ path: `${OUT}/${name}-${label}.png`, fullPage: true, animations: 'disabled' });
-    await unstick.evaluate((el) => (el as Element).remove());
-  }
-  await page.setViewportSize(PHONE);
-}
-
-test.beforeAll(() => fs.mkdirSync(path.resolve(OUT), { recursive: true }));
 test.use({ viewport: PHONE });
 
 test('every kind of flagged card can be fixed with a tap or two, and edits autosave', async ({ page }) => {
@@ -98,7 +85,6 @@ test('every kind of flagged card can be fixed with a tap or two, and edits autos
   await expect(page.getByRole('heading', { name: 'Ask in person' })).toBeVisible();
   await expect(page.getByText('11 items · 1 needs you')).toBeVisible();
   await expect(publish).toHaveText('Publish 9 items to PayPal');
-  await shoot(page, 'review-after-fixes');
 
   // A skipped line becomes an item, with the price found in it.
   await page.getByText('Lines we skipped').click();
@@ -156,7 +142,6 @@ test('a photo that is not a menu shows the retake screen with its tip', async ({
   await expect(page.getByText(/Point the camera at your price list/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retake photo' })).toBeVisible();
   await settle(page);
-  await shoot(page, 'retake');
 });
 
 test('a reading that fails says so and offers Try again', async ({ page }) => {
@@ -166,7 +151,6 @@ test('a reading that fails says so and offers Try again', async ({ page }) => {
   await expect(page.getByText(/took too long/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
   await settle(page);
-  await shoot(page, 'failed');
 });
 
 test('a partly failed publish shows the live shop with Retry for the rest', async ({ page }) => {
@@ -188,7 +172,6 @@ test('a partly failed publish shows the live shop with Retry for the rest', asyn
   await expect(page.getByText(/Country sourdough loaf is ready but PayPal didn’t take it/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retry 1' })).toBeVisible();
   await settle(page);
-  await shoot(page, 'live-partial');
 });
 
 test('a save the server refuses re-syncs the review with the database and keeps the message', async ({ page }) => {
@@ -238,7 +221,6 @@ test('the reading screen: the photo with a scan and plain status lines, and a re
   await expect(page.getByText('This usually takes about 10 seconds.')).toBeVisible();
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
   await page.evaluate(() => document.fonts.ready);
-  await shoot(page, 'reading');
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Reading your menu…' })).toBeVisible();
   // Still exactly one reading: the refresh did not start another.
