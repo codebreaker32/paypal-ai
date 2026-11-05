@@ -182,7 +182,6 @@ describe('prompt injection', () => {
     const mocha = byName(c, /Mocha/);
     expect(mocha.name).toBe('Mocha');
     expect(mocha.description).toBe('Chocolate and espresso');
-    // eslint-disable-next-line no-control-regex
     expect(JSON.stringify(c)).not.toMatch(/[\u0000-\u001f]/);
   });
   it('catches each regex alternative', () => {

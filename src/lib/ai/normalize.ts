@@ -36,7 +36,6 @@ export function retakeTipFor(problems: Problem[]): string {
 }
 
 // Control characters, plus zero-width and bidi override characters used to hide text.
-// eslint-disable-next-line no-control-regex
 const CONTROL_RE = /[\u0000-\u0008\u000B-\u001F\u007F​-‏‪-‮⁦-⁩]/g;
 
 function clean(s: string): string {
