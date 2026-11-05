@@ -10,7 +10,11 @@ import path from 'node:path';
 import Database from 'better-sqlite3';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3109';
-const DB_PATH = process.env.DATABASE_PATH ?? 'data/shelfie.db';
+const DB_PATH = process.env.DATABASE_PATH;
+if (!DB_PATH) {
+  console.error('Set DATABASE_PATH to the same SQLite file the running app uses (see usage at the top of this file).');
+  process.exit(1);
+}
 const RUNS = Number(process.argv[2] ?? 2);
 const SAMPLES = ['marigold-bakehouse.jpg', 'tia-lupe-chalkboard.jpg', 'ravi-bike-repair.jpg'];
 const FILL_PRICE_CENTS = 500;

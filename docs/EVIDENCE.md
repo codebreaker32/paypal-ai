@@ -36,15 +36,17 @@ All sources were fetched on 2026-11-05.
 
 Model `claude-sonnet-5-5`, real PayPal sandbox Catalog, production build (`next build` + `next start`), 2 runs per sample (6 runs total). Machine time only: a seller's own review time is extra.
 
-| Photo | Run | Items read | Flagged | Reading | Published to PayPal | Publish | Total | Shop |
-|---|---|---|---|---|---|---|---|---|
-| marigold-bakehouse.jpg | 1 | 10 | 4 | 9.4 s | 9 | 3.7 s | 13.5 s | live |
-| marigold-bakehouse.jpg | 2 | 10 | 4 | 9.1 s | 9 | 2.9 s | 12.1 s | live |
-| tia-lupe-chalkboard.jpg | 1 | 11 | 1 | 9.2 s | 10 | 2.5 s | 11.9 s | live |
-| tia-lupe-chalkboard.jpg | 2 | 11 | 1 | 8.9 s | 10 | 1.9 s | 10.9 s | live |
-| ravi-bike-repair.jpg | 1 | 7 | 2 | 6.5 s | 7 | 1.5 s | 8.1 s | live |
-| ravi-bike-repair.jpg | 2 | 7 | 2 | 6.5 s | 7 | 2.4 s | 8.9 s | live |
+| Photo | Run | Items read | Flagged | Removed (duplicates) | In person only | Reading | Published to PayPal | Publish | Total | Shop |
+|---|---|---|---|---|---|---|---|---|---|---|
+| marigold-bakehouse.jpg | 1 | 10 | 4 | 0 | 1 | 9.4 s | 9 | 3.7 s | 13.5 s | live |
+| marigold-bakehouse.jpg | 2 | 10 | 4 | 0 | 1 | 9.1 s | 9 | 2.9 s | 12.1 s | live |
+| tia-lupe-chalkboard.jpg | 1 | 11 | 1 | 0 | 1 | 9.2 s | 10 | 2.5 s | 11.9 s | live |
+| tia-lupe-chalkboard.jpg | 2 | 11 | 1 | 0 | 1 | 8.9 s | 10 | 1.9 s | 10.9 s | live |
+| ravi-bike-repair.jpg | 1 | 7 | 2 | 0 | 0 | 6.5 s | 7 | 1.5 s | 8.1 s | live |
+| ravi-bike-repair.jpg | 2 | 7 | 2 | 0 | 0 | 6.5 s | 7 | 2.4 s | 8.9 s | live |
 
-Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publishing 1.5 to 3.7 s. Items read minus items published is the number left off PayPal (read as in-person only): the seasonal fruit galette on Marigold and the agua fresca del día on Tía Lupe.
+Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publishing 1.5 to 3.7 s. Removed and in-person counts come from the run databases (item status after publish): no duplicates were removed in any run, and one item per Marigold and Tía Lupe menu was in person only (items read = published + in person only + removed).
 
 How it was measured: `scripts/measure-photo-to-live.ts` uploads each photo to `POST /api/shops` (not the recorded sample path), runs `POST /extract` (real Claude), resolves every flagged item through `PATCH /items` the way a seller would (fills a missing or market price with $5.00, keeps the first of any duplicate pair, confirms CHECK items), then `POST /publish` and waits for the shop to go `live`. Total includes shop creation and the resolving call, which take well under a second. The app ran with a throwaway `DATABASE_PATH` under `data/measure/`.
+
+The six runs created 52 real sandbox Catalog products (9+9+10+10+7+7). A seller's own prices replace the $5.00 fill used here for missing or market prices; prices stay in Shelfie and are not sent to PayPal's catalog.
