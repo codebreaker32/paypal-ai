@@ -53,6 +53,8 @@ describe('POST /api/assistant/[slug] and a browser that goes away', () => {
     const reader = res.body!.getReader();
     expect(new TextDecoder().decode((await reader.read()).value)).toBe('{"type":"session","id":"asst_route"}\n');
     const turn = seen.at(-1)!;
+    // The door keys the console's create_order calls by this buyer's IP (sent with the console secret).
+    expect(turn.buyerIp).toBe('198.51.100.20');
     expect(turn.signal?.aborted).toBe(false);
     closed.abort();
     expect(turn.signal?.aborted).toBe(true);

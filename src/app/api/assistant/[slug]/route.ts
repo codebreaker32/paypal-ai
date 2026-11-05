@@ -34,7 +34,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const shop = shopsRepo.bySlug(getDb(), slug);
   if (!shop || shop.status === 'draft') return jsonError(404, 'SHOP_NOT_FOUND', 'There is no shop at this address.');
 
-  if (!allow(`assistant:${clientIp(req)}`, CONSOLE_RATE.limit, CONSOLE_RATE.windowMs)) {
+  const buyerIp = clientIp(req);
+  if (!allow(`assistant:${buyerIp}`, CONSOLE_RATE.limit, CONSOLE_RATE.windowMs)) {
     return jsonError(429, 'RATE_LIMITED', "You've sent a lot of messages in the last hour. Try again later.");
   }
 
@@ -51,6 +52,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     sessionId: body.data.sessionId ?? null,
     userText: body.data.text,
     mcpUrl,
+    buyerIp,
     signal: gone.signal,
   });
   return new Response(ndjson(events, stop), {

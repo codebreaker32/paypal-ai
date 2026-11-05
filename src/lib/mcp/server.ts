@@ -1,6 +1,7 @@
 // The agent door: one fresh McpServer per request over a stateless Streamable HTTP transport (spec §10).
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
+import { doorRateIdentity } from '@/lib/agent/console-key';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { clientIp } from '@/lib/http/client-ip';
 import type { OrderDeps } from '@/lib/orders/service';
@@ -31,7 +32,8 @@ export async function handleMcpRequest(req: Request, slug: string, deps: OrderDe
   const url = new URL(req.url);
   const server = createShopServer(shop.id, {
     ...deps,
-    clientIp: clientIp(req),
+    // The buyer console (proven by its secret) is keyed by its buyer's IP, everyone else by the request IP.
+    clientIp: doorRateIdentity(req, clientIp(req)),
     agentName: label(url.searchParams.get('agent')) ?? label(req.headers.get('user-agent')),
   });
   const transport = new WebStandardStreamableHTTPServerTransport({
