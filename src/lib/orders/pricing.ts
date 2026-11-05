@@ -3,9 +3,15 @@ import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import { formatUSD, toPayPalValue } from '@/lib/domain/money';
 import type { Fulfillment, ItemKind, ItemWithVariants, OrderLine, Shop, Variant } from '@/lib/domain/types';
+import { sanitizeLabel } from '@/lib/text';
 import { OrderError } from './errors';
 
 export const ORDER_LIMITS = { maxQtyPerLine: 20, maxLines: 15 } as const;
+
+/** Seller (and echoed agent) text inside error messages: one visible line, capped. */
+export const shopLabel = (shop: Shop) => sanitizeLabel(shop.name, 60) || 'This shop';
+const itemLabel = (item: ItemWithVariants) => sanitizeLabel(item.name, 80) || 'This item';
+const echo = (s: string) => sanitizeLabel(s, 64);
 
 export interface PriceLineInput {
   itemId: string;
@@ -64,7 +70,7 @@ export function priceOrder(
   if (shop.status !== 'live') {
     throw new OrderError(
       'SHOP_NOT_ACCEPTING_ORDERS',
-      `${shop.name} is not taking online orders right now.`,
+      `${shopLabel(shop)} is not taking online orders right now.`,
       'Tell the user the shop has paused online orders. They can try again later or order in person.',
     );
   }
@@ -97,7 +103,7 @@ export function priceOrder(
     if (!item || !isListed(item)) {
       throw new OrderError(
         'UNKNOWN_ITEM',
-        `This shop has no item with ID "${line.itemId}".`,
+        `This shop has no item with ID '${echo(line.itemId)}'.`,
         'Use an item_id exactly as returned by list_products.',
         { item_id: line.itemId, didYouMean: suggestItems(line.itemId, listedItems()) },
       );
@@ -106,7 +112,7 @@ export function priceOrder(
     if (reason) {
       throw new OrderError(
         'ITEM_UNAVAILABLE',
-        `${item.name} can't be ordered online. ${reason}`,
+        `${itemLabel(item)} can't be ordered online. ${reason}`,
         'Tell the user and offer something else from list_products.',
         { item_id: item.id, reason },
       );
@@ -118,7 +124,7 @@ export function priceOrder(
       if (!variant) {
         throw new OrderError(
           'OPTION_REQUIRED',
-          `"${line.optionId}" is not an option of ${item.name}.`,
+          `'${echo(line.optionId)}' is not an option of ${itemLabel(item)}.`,
           'Pass one of the listed option_id values for this item.',
           { item_id: item.id, options: optionViews(item) },
         );
@@ -128,7 +134,7 @@ export function priceOrder(
     } else {
       throw new OrderError(
         'OPTION_REQUIRED',
-        `${item.name} comes in ${options.length} options; choose one.`,
+        `${itemLabel(item)} comes in ${options.length} options; choose one.`,
         'Ask the user which option they want, then pass its option_id.',
         { item_id: item.id, options: optionViews(item) },
       );
@@ -151,7 +157,7 @@ export function priceOrder(
     if (modes.length > 1) {
       throw new OrderError(
         'FULFILLMENT_REQUIRED',
-        `${shop.name} offers pickup and shipping; choose one.`,
+        `${shopLabel(shop)} offers pickup and shipping; choose one.`,
         `Ask the user whether they want pickup or shipping (shipping adds ${formatUSD(shop.shippingFeeCents)}), then pass fulfillment.`,
         { modes },
       );
@@ -160,7 +166,7 @@ export function priceOrder(
   } else if (!modes.includes(mode)) {
     throw new OrderError(
       'FULFILLMENT_REQUIRED',
-      `${shop.name} does not offer ${mode}; it offers ${modes.join(' and ')} only.`,
+      `${shopLabel(shop)} does not offer ${mode}; it offers ${modes.join(' and ')} only.`,
       `Tell the user, then pass fulfillment: "${modes[0]}" if that works for them.`,
       { modes },
     );
@@ -172,7 +178,7 @@ export function priceOrder(
   if (totalCents > shop.orderCapCents) {
     throw new OrderError(
       'ORDER_TOO_LARGE',
-      `This order comes to ${formatUSD(totalCents)}; ${shop.name} takes online orders up to ${formatUSD(shop.orderCapCents)}.`,
+      `This order comes to ${formatUSD(totalCents)}; ${shopLabel(shop)} takes online orders up to ${formatUSD(shop.orderCapCents)}.`,
       'Reduce quantities or split the order. For bigger orders the user should contact the shop directly.',
       { total: toPayPalValue(totalCents), max_order: toPayPalValue(shop.orderCapCents) },
     );

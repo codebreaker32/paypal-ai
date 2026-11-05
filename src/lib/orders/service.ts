@@ -8,7 +8,7 @@ import { toPayPalValue } from '@/lib/domain/money';
 import type { EventSource, Fulfillment, Order, OrderEvent, ShipTo, Shop } from '@/lib/domain/types';
 import { PayPalApiError, type PayPalOrder, type PayPalPort } from '@/lib/paypal/types';
 import { OrderError } from './errors';
-import { priceOrder, type PriceLineInput, type PricedLine } from './pricing';
+import { priceOrder, shopLabel, type PriceLineInput, type PricedLine } from './pricing';
 import { InvalidTransition, isOpen, transition, type OrderEffect } from './state';
 
 export type OrderDeps = {
@@ -73,8 +73,12 @@ export function advanceOrder(
 const inflight = new Map<string, Promise<Order>>();
 
 /**
- * Prices the order from the database, creates the PayPal order (PayPal-Request-Id `ord-…`), stores the snapshot.
- * Idempotent per (shop, clientRequestId): a retry returns the existing order and makes no PayPal call.
+ * Prices the order from the database, creates the PayPal order (PayPal-Request-Id `ord-<orderId>`, spec §8), stores
+ * the snapshot. Idempotent per (shop, clientRequestId) through our database and an in-process in-flight map: a retry
+ * returns the stored order and makes no PayPal call. The PayPal request id is deliberately per attempt, not per key:
+ * if PayPal's response was lost, the retry gets a fresh PayPal order whose custom_id and return URL point at the row
+ * we actually store (the orphaned first order is never approved and lapses). It also keeps the header ASCII whatever
+ * characters the agent put in client_request_id.
  */
 export async function createOrderForShop(deps: OrderDeps, shop: Shop, input: CreateOrderInput): Promise<Order> {
   const key = clean(input.clientRequestId, 64);
@@ -96,7 +100,7 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   if (ordersRepo.countOpen(db, shop.id) >= MAX_OPEN_ORDERS_PER_SHOP) {
     throw new OrderError(
       'TOO_MANY_OPEN_ORDERS',
-      `${shop.name} already has ${MAX_OPEN_ORDERS_PER_SHOP} orders waiting for payment.`,
+      `${shopLabel(shop)} already has ${MAX_OPEN_ORDERS_PER_SHOP} orders waiting for payment.`,
       'Ask the user to pay or cancel an order they already started, or try again later. Unpaid orders expire after 60 minutes.',
       { max_open_orders: MAX_OPEN_ORDERS_PER_SHOP },
     );
@@ -106,7 +110,7 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
 
   const id = newId('ord');
   const number = orderNumber();
-  const requestId = key ? `ord-${shop.id}-${key}` : `ord-${id}`;
+  const requestId = `ord-${id}`;
   let created: Awaited<ReturnType<PayPalPort['createOrder']>>;
   try {
     created = await deps.paypal.createOrder(
@@ -123,7 +127,7 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
       requestId,
     );
   } catch (e) {
-    throw paypalUnavailable(e);
+    throw paypalUnavailable(e, 'create order');
   }
 
   const agentName = clean(input.agentName, 60);
@@ -174,16 +178,13 @@ function paypalItemName(l: PricedLine): string {
 
 /**
  * Reads the order from PayPal and moves ours forward: APPROVED → claim → capture; COMPLETED → reconcile;
- * not approved after 60 minutes → expired. Settled orders are not re-read (the call is logged and ignored).
+ * not approved after 60 minutes → expired. Settled orders are returned as they are: no PayPal call, no write.
  */
 export async function syncOrder(deps: OrderDeps, orderId: string, source: EventSource): Promise<Order> {
   const { db } = deps;
   const order = ordersRepo.byId(db, orderId);
   if (!order) throw orderNotFound(orderId);
-  if (!isOpen(order.status)) {
-    eventsRepo.add(db, order.id, 'sync', source, { ignored: true, status: order.status });
-    return order;
-  }
+  if (!isOpen(order.status)) return order;
   const nowMs = clock(deps);
   try {
     let pp: PayPalOrder | null;
@@ -192,7 +193,7 @@ export async function syncOrder(deps: OrderDeps, orderId: string, source: EventS
     } catch (e) {
       // PayPal drops orders that were never approved; treat a 404 as "not approved".
       if (e instanceof PayPalApiError && e.status === 404) pp = null;
-      else throw paypalUnavailable(e);
+      else throw paypalUnavailable(e, 'get order');
     }
     await reconcile(deps, order, pp, source, nowMs);
   } finally {
@@ -224,11 +225,16 @@ function expireIfDue(db: Db, order: Order, source: EventSource, nowMs: number, p
 async function approveAndCapture(deps: OrderDeps, order: Order, pp: PayPalOrder, source: EventSource, nowMs: number): Promise<Order> {
   const { db } = deps;
   if (order.status !== 'awaiting_approval' && order.status !== 'approved') return order;
-  const declines = declineCount(db, order.id);
+  const declines = countEvents(db, order.id, 'capture_declined');
   if (order.status === 'awaiting_approval' && declines > 0 && (source === 'poller' || source === 'mcp')) {
     // After a declined capture PayPal still says APPROVED until the buyer picks another funding source.
     // Only the buyer coming back (return URL) or PayPal's webhook triggers another capture, so the poller can't loop.
     return expireIfDue(db, order, source, nowMs, 'APPROVED');
+  }
+  if (order.status === 'approved' && (source === 'poller' || source === 'mcp') && lastCaptureFailure(db, order)) {
+    // PayPal refused this capture for a non-transient reason; repeating it every poll won't help. Only the buyer
+    // coming back (return URL) or a PayPal webhook tries again.
+    return order;
   }
   if (order.status === 'awaiting_approval') {
     order = advanceOrder(db, order, 'paypal_approved', source, { detail: { paypalStatus: 'APPROVED' } }).order;
@@ -241,7 +247,10 @@ async function approveAndCapture(deps: OrderDeps, order: Order, pp: PayPalOrder,
   if (!ordersRepo.claimCapture(db, order.id, nowMs)) return order; // another caller holds the capture claim
 
   const paypalId = order.paypalOrderId;
-  const requestId = declines > 0 ? `cap-${paypalId}-${declines}` : `cap-${paypalId}`;
+  // First attempt: `cap-<paypalOrderId>` (spec §8). After a declined or refused capture PayPal may replay its cached
+  // answer for a reused request id, so each later attempt gets `-N`. Transient errors keep the same id (idempotent retry).
+  const refused = declines + countEvents(db, order.id, 'capture_failed');
+  const requestId = refused > 0 ? `cap-${paypalId}-${refused}` : `cap-${paypalId}`;
   let captured: PayPalOrder;
   try {
     captured = await deps.paypal.captureOrder(paypalId, requestId);
@@ -251,23 +260,32 @@ async function approveAndCapture(deps: OrderDeps, order: Order, pp: PayPalOrder,
       try {
         fresh = await deps.paypal.getOrder(paypalId);
       } catch (err) {
-        throw paypalUnavailable(err);
+        throw paypalUnavailable(err, 'get order');
       }
       return settle(deps, order, fresh, source, nowMs, { reconciled: 'ORDER_ALREADY_CAPTURED' });
     }
-    if (e instanceof PayPalApiError && e.status === 422) {
-      // INSTRUMENT_DECLINED, ORDER_NOT_APPROVED and other buyer-side refusals: the buyer can re-approve with the same link.
+    if (e instanceof PayPalApiError && e.status === 422 && (e.issue === 'INSTRUMENT_DECLINED' || e.issue === 'ORDER_NOT_APPROVED')) {
+      // The buyer's funding source was declined (or PayPal says the order isn't approved): the buyer can approve
+      // again with the same link, so the order goes back to waiting for approval.
       return advanceOrder(db, order, 'capture_declined', source, {
         patch: { captureClaimedAt: null },
-        detail: { issue: e.issue ?? e.errorName, debugId: e.debugId },
+        detail: { issue: e.issue, debugId: e.debugId },
       }).order;
     }
-    // Network or 5xx: keep the claim; the next sync after 30 s retries with the same PayPal-Request-Id.
-    eventsRepo.add(db, order.id, 'capture_error', source, {
-      status: e instanceof PayPalApiError ? e.status : null,
-      issue: e instanceof PayPalApiError ? e.issue : null,
-    });
-    throw paypalUnavailable(e);
+    if (isTransient(e)) {
+      // Network, 429 or 5xx: keep the claim; the next sync after 30 s retries with the same PayPal-Request-Id.
+      eventsRepo.add(db, order.id, 'capture_error', source, {
+        status: e instanceof PayPalApiError ? e.status : null,
+        issue: e instanceof PayPalApiError ? e.issue : null,
+      });
+      throw paypalUnavailable(e, 'capture');
+    }
+    // Any other 4xx (incl. other 422 issues): not transient. Release the claim, record it, leave the order approved.
+    const err = e as PayPalApiError;
+    logPayPalRefusal('capture', err);
+    ordersRepo.update(db, order.id, { captureClaimedAt: null });
+    eventsRepo.add(db, order.id, 'capture_failed', source, { status: err.status, issue: err.issue ?? err.errorName, debugId: err.debugId });
+    return ordersRepo.byId(db, order.id)!;
   }
   return settle(deps, order, captured, source, nowMs, {});
 }
@@ -296,12 +314,26 @@ function settle(deps: OrderDeps, order: Order, pp: PayPalOrder, source: EventSou
     if (order.status !== 'approved') return order;
     return advanceOrder(db, order, 'capture_pending', source, { patch: { ...payerPatch(pp), captureId: cap.id }, detail }).order;
   }
-  // DECLINED / FAILED / anything else.
-  if (order.status === 'payment_pending') return advanceOrder(db, order, 'capture_denied', source, { detail }).order;
-  if (order.status === 'approved') {
-    return advanceOrder(db, order, 'capture_declined', source, { patch: { captureClaimedAt: null }, detail }).order;
+  // DECLINED / FAILED / anything else on an order PayPal already completed: final (coordinator ruling). Going back to
+  // awaiting_approval here would loop, because the next GET shows COMPLETED again. Only a 422 INSTRUMENT_DECLINED on
+  // our capture call sends the buyer back to approve.
+  if (order.status === 'approved' || order.status === 'payment_pending') {
+    return advanceOrder(db, order, 'capture_denied', source, { patch: { captureClaimedAt: null }, detail }).order;
   }
   return order;
+}
+
+/**
+ * The PayPal refusal behind an `approved` order whose capture PayPal rejected for a non-transient reason, or null.
+ * Used to stop automatic retries and to explain the state to the agent.
+ */
+export function lastCaptureFailure(db: Db, order: Order): { status: number | null; issue: string | null; debugId: string | null } | null {
+  if (order.status !== 'approved') return null;
+  const last = eventsRepo
+    .list(db, order.id)
+    .filter((e) => e.type === 'capture_failed' || e.type === 'capture_error' || e.type === 'paypal_approved')
+    .at(-1);
+  return last?.type === 'capture_failed' ? (last.detail as { status: number | null; issue: string | null; debugId: string | null }) : null;
 }
 
 function findMismatch(order: Order, pp: PayPalOrder): Record<string, unknown> | null {
@@ -333,8 +365,8 @@ function payerPatch(pp: PayPalOrder): Pick<ordersRepo.OrderPatch, 'payerName' | 
   return { payerName: payerName || undefined, payerEmail: pp.payer?.email_address ?? undefined, shipTo };
 }
 
-function declineCount(db: Db, orderId: string): number {
-  return eventsRepo.list(db, orderId).filter((e) => e.type === 'capture_declined' && !(e.detail as { ignored?: boolean } | null)?.ignored).length;
+function countEvents(db: Db, orderId: string, type: 'capture_declined' | 'capture_failed'): number {
+  return eventsRepo.list(db, orderId).filter((e) => e.type === type && !(e.detail as { ignored?: boolean } | null)?.ignored).length;
 }
 
 /** Effect `brief`: never lets the hook fail the sync (it may call Claude and PayPal). */
@@ -377,23 +409,41 @@ function orderNotFound(orderId: string): OrderError {
   return new OrderError('ORDER_NOT_FOUND', `No order with reference "${orderId.slice(0, 64)}".`, 'Use the order_ref returned by create_order.');
 }
 
-/** Maps a PayPal failure to PAYPAL_UNAVAILABLE: retryable for network, 429 and 5xx; not for other 4xx. */
-export function paypalUnavailable(e: unknown): OrderError {
+/** Network errors, 429 and 5xx: worth retrying. Every other PayPal error is a refusal. */
+function isTransient(e: unknown): boolean {
+  return !(e instanceof PayPalApiError) || e.status >= 500 || e.status === 429;
+}
+
+/** Server-side record of a PayPal refusal: status, PayPal's names and debug id only (never request data or credentials). */
+function logPayPalRefusal(op: string, e: PayPalApiError): void {
+  console.error(
+    `[shelfie] PayPal refused ${op}: HTTP ${e.status} ${e.errorName}` +
+      `${e.issue ? ` issue=${e.issue}` : ''}${e.debugId ? ` debug_id=${e.debugId}` : ''}`,
+  );
+}
+
+/**
+ * Maps a PayPal failure to PAYPAL_UNAVAILABLE. Network, 429 and 5xx: retryable, "could not be reached". Any other
+ * 4xx: logged with PayPal's debug id and reported as a refusal, not retryable.
+ */
+export function paypalUnavailable(e: unknown, op: string): OrderError {
   if (e instanceof OrderError) return e;
-  if (e instanceof PayPalApiError && e.status < 500 && e.status !== 429) {
+  if (!isTransient(e)) {
+    const err = e as PayPalApiError;
+    logPayPalRefusal(op, err);
     return new OrderError(
       'PAYPAL_UNAVAILABLE',
-      `PayPal turned the request down (${e.issue ?? e.errorName}).`,
-      'Tell the user PayPal could not set up this payment right now. Retrying the same request will not help.',
-      { paypal_issue: e.issue ?? e.errorName, debug_id: e.debugId },
+      `PayPal returned an error (${err.issue ?? err.errorName}).`,
+      'PayPal refused this request, so retrying it will not help. Tell the user, and suggest trying again later or contacting the shop.',
+      { paypal_issue: err.issue ?? err.errorName, debug_id: err.debugId },
       false,
     );
   }
-  console.warn(`[shelfie] PayPal unavailable: ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`);
+  console.warn(`[shelfie] PayPal unavailable during ${op}: ${e instanceof Error ? `${e.name}: ${e.message}` : String(e)}`);
   return new OrderError(
     'PAYPAL_UNAVAILABLE',
     'PayPal could not be reached.',
-    'Wait a few seconds and try again (for create_order, reuse the same client_request_id).',
+    'Wait a few seconds and try again. Reusing the same client_request_id is safe: it never creates a second order.',
     undefined,
     true,
   );

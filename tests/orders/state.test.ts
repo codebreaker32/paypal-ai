@@ -19,6 +19,8 @@ const ALLOWED: [OrderStatus | null, OrderEvent, OrderStatus, ('capture' | 'brief
   ['payment_pending', 'capture_completed', 'paid', ['brief']],
   ['payment_pending', 'capture_denied', 'failed', []],
   ['approved', 'capture_declined', 'awaiting_approval', []],
+  // Coordinator ruling (fix round 1): a COMPLETED PayPal order whose capture is DECLINED/FAILED is final.
+  ['approved', 'capture_denied', 'failed', []],
   ['approved', 'mismatch', 'failed', []],
   ['awaiting_approval', 'cancelled', 'cancelled', []],
   ['awaiting_approval', 'expired', 'expired', []],
