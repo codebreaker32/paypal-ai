@@ -31,3 +31,20 @@ All sources were fetched on 2026-11-05.
 | 4c | 25,418 registered cottage food producers in the 25 states sampled. No national count. | 2017 | https://ij.org/wp-content/uploads/2017/12/Cottage-Foods-Report-Sep-2018.pdf | Verified (primary) |
 | 5a | Sales venues: farmers markets 49%, home 33%, online/by phone 15%. n=775, phone survey, Mar–Apr 2017. | 2017 | same IJ report, Figure 9 | Verified (primary) |
 | 5b | Sellers take orders by DM or phone and lose money to no-shows. | — | — | Not found (no credible US source) |
+
+## Measured: photo → live shop (2026-11-06)
+
+Model `claude-sonnet-5-5`, real PayPal sandbox Catalog, production build (`next build` + `next start`), 2 runs per sample (6 runs total). Machine time only: a seller's own review time is extra.
+
+| Photo | Run | Items read | Flagged | Reading | Published to PayPal | Publish | Total | Shop |
+|---|---|---|---|---|---|---|---|---|
+| marigold-bakehouse.jpg | 1 | 10 | 4 | 9.4 s | 9 | 3.7 s | 13.5 s | live |
+| marigold-bakehouse.jpg | 2 | 10 | 4 | 9.1 s | 9 | 2.9 s | 12.1 s | live |
+| tia-lupe-chalkboard.jpg | 1 | 11 | 1 | 9.2 s | 10 | 2.5 s | 11.9 s | live |
+| tia-lupe-chalkboard.jpg | 2 | 11 | 1 | 8.9 s | 10 | 1.9 s | 10.9 s | live |
+| ravi-bike-repair.jpg | 1 | 7 | 2 | 6.5 s | 7 | 1.5 s | 8.1 s | live |
+| ravi-bike-repair.jpg | 2 | 7 | 2 | 6.5 s | 7 | 2.4 s | 8.9 s | live |
+
+Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publishing 1.5 to 3.7 s. Items read minus items published is the number left off PayPal (not priced for online sale), e.g. 1 item on the Marigold menu.
+
+How it was measured: `scripts/measure-photo-to-live.ts` uploads each photo to `POST /api/shops` (not the recorded sample path), runs `POST /extract` (real Claude), resolves every flagged item through `PATCH /items` the way a seller would (fills a missing or market price with $5.00, keeps the first of any duplicate pair, confirms CHECK items), then `POST /publish` and waits for the shop to go `live`. Total includes shop creation and the resolving call, which take well under a second. The app ran with a throwaway `DATABASE_PATH` under `data/measure/`.
