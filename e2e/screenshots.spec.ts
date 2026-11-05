@@ -9,6 +9,7 @@
 // (e2e/fixtures/console-turns.json). No Claude or PayPal calls happen here.
 //
 // Run: E2E_PORT=3111 npx playwright test e2e/screenshots.spec.ts   (or: npm run screenshots)
+// SCREENSHOTS_DIR=docs/judge/screenshots/round-2 writes a later round's set somewhere else (default: round-1).
 import fs from 'node:fs';
 import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
@@ -29,7 +30,9 @@ import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
 import { DESKTOP, PHONE, samplePhoto, settle } from './helpers';
 import { E2E_DB, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
-const OUT = path.resolve(__dirname, '..', 'docs', 'judge', 'screenshots', 'round-1');
+const OUT = process.env.SCREENSHOTS_DIR
+  ? path.resolve(process.env.SCREENSHOTS_DIR)
+  : path.resolve(__dirname, '..', 'docs', 'judge', 'screenshots', 'round-1');
 const AXE_FILE = path.join(OUT, 'axe-results.json');
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
