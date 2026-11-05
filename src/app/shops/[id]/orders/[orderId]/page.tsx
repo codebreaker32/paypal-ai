@@ -80,7 +80,7 @@ function ActionCard({ shop, order, trackers, className }: { shop: Shop; order: O
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="type-price min-w-0 font-mono text-sm [overflow-wrap:anywhere]">{t.trackingNumber}</span>
+                    <span className="type-ref min-w-0 text-sm [overflow-wrap:anywhere]">{t.trackingNumber}</span>
                     <CopyButton text={t.trackingNumber} what="tracking number" iconOnly />
                   </div>
                 </li>
@@ -189,31 +189,31 @@ function ItemsCard({ order, className }: { order: Order; className?: string }) {
   return (
     <Card as="section" aria-labelledby="items-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
       <SectionTitle id="items-title">Items</SectionTitle>
-      <dl className="type-price flex flex-col gap-3">
+      <dl className="type-price flex flex-col">
         {order.lines.map((l, i) => (
-          <div key={i} className="flex items-baseline justify-between gap-4">
+          <div key={i} className="flex items-baseline justify-between gap-4 border-b border-line py-2.5 first:pt-0">
             <dt className="flex flex-col">
               <span>
-                <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
+                <span className="inline-block min-w-7 font-semibold text-ink-soft">{l.qty} ×</span> {lineName(l)}
               </span>
-              <span className="type-meta text-ink-muted">{formatUSD(l.unitCents)} each</span>
+              <span className="pl-7 type-meta text-ink-muted">{formatUSD(l.unitCents)} each</span>
             </dt>
             <dd>{formatUSD(l.unitCents * l.qty)}</dd>
           </div>
         ))}
-        <div className="flex justify-between gap-4 border-t border-line pt-3 text-ink-soft">
+        <div className="flex justify-between gap-4 pt-3 pb-1 text-ink-soft">
           <dt>Items</dt>
           <dd>{formatUSD(order.itemsCents)}</dd>
         </div>
         {order.fulfillment === 'shipping' && (
-          <div className="flex justify-between gap-4 text-ink-soft">
+          <div className="flex justify-between gap-4 pb-1 text-ink-soft">
             <dt>Shipping</dt>
             <dd>{formatUSD(order.shippingCents)}</dd>
           </div>
         )}
-        <div className="flex justify-between gap-4 text-lg font-semibold">
-          <dt>Total</dt>
-          <dd>{formatUSD(order.totalCents)}</dd>
+        <div className="mt-2 flex items-baseline justify-between gap-4 border-t border-ink pt-3">
+          <dt className="type-label">Total</dt>
+          <dd className="type-amount rule-total pb-0.5 text-xl">{formatUSD(order.totalCents)}</dd>
         </div>
       </dl>
       <p className="type-meta text-ink-muted">Prices come from your menu. The assistant could only pick items and quantities.</p>
@@ -237,7 +237,7 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
         {entries.map((e, i) => (
           <li key={e.id} className="relative flex gap-3 pb-4 last:pb-0">
             {i < entries.length - 1 && <span aria-hidden="true" className="absolute top-4 bottom-0 left-[4.5px] w-px bg-line-strong" />}
-            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rounded-full', DOT[e.tone])} />
+            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rounded-xs', DOT[e.tone])} />
             <div className="flex flex-col">
               <span className="font-medium">{e.text}</span>
               <LocalTime iso={e.at} className="type-meta text-ink-muted" />
@@ -256,7 +256,7 @@ function PayPalCard({ order, className }: { order: Order; className?: string }) 
       <dd className="flex min-h-tap items-center justify-between gap-2">
         {value ? (
           <>
-            <span className="type-price font-mono text-sm [overflow-wrap:anywhere]" data-testid={what.replace(/\s+/g, '-')}>
+            <span className="type-ref text-sm [overflow-wrap:anywhere]" data-testid={what.replace(/\s+/g, '-')}>
               {value}
             </span>
             <CopyButton text={value} what={what} iconOnly />
@@ -302,16 +302,21 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
         Orders
       </Link>
 
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h1 className="type-title">
-            Order <span className="type-price">{order.number}</span>
-          </h1>
-          <OrderStatusBadge order={order} />
+      <header className="flex flex-col gap-4 border-b border-line-strong pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <h1 className="type-title">
+              Order <span className="type-ref font-semibold">{order.number}</span>
+            </h1>
+            <OrderStatusBadge order={order} />
+          </div>
+          <p className="text-ink-soft">
+            Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} />
+          </p>
         </div>
-        <p className="text-ink-soft">
-          <span className="type-price font-semibold text-ink">{formatUSD(order.totalCents)}</span> · placed by {agentLabel(order.agentName)} ·{' '}
-          <LocalTime iso={order.createdAt} />
+        <p className="flex flex-col sm:items-end">
+          <span className="type-stamp text-ink-muted">Total</span>
+          <span className="type-amount text-3xl">{formatUSD(order.totalCents)}</span>
         </p>
       </header>
 
