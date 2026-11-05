@@ -1,8 +1,11 @@
 # Progress
 
-_Last updated: 2026-11-06 04:57 IST (end of session 2)_
+_Last updated: 2026-11-06 05:10 IST (session 3)_
 
 ## Current phase
+**Session 3 (from 04:55 IST):** all of session 2's commits are on GitHub. Running in parallel: judge round 1 on main, plus the visual-direction round (worker A "Menu board" and worker B "Counter ledger", each in its own worktree, screenshots to `docs/judge/screenshots/direction-a|b/`).
+
+Session 2 ended with:
 The core flow is built, reviewed and verified end to end on the real sandbox. All of wave 3 is merged:
 - the capture gate;
 - the demo seed;
@@ -49,6 +52,6 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 4. A final whole-branch code review. Add the capture gate and `npm run screenshots` to the README.
 
 ## Needs from human
-- GitHub pushes were rejected from 04:52 IST with `remote: fatal error in commit_refs`, even for a ref that adds no new objects, so this is a GitHub-side failure. Local `main` holds the unpushed commits; the next session retries. If it keeps failing, check the repo on github.com (status, rulesets, storage).
+- (Resolved in session 3.) From 04:52 IST on 6 Nov, `git push` failed with `remote: fatal error in commit_refs`. The REST API still accepted writes, so `.scratch/api-push.py` (gitignored) rebuilt the 15 commits through the Git Data API with identical SHAs and moved `main`. Plain `git push` worked again from 05:05 IST. If it fails again, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main`.
 - Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
 - Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD` in `.env`. It contains `#`, and dotenv cuts the value there.

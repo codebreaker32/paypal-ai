@@ -111,6 +111,20 @@ npm run e2e            # Playwright; starts the app on port 3100 (set E2E_PORT t
 npm run typecheck && npm run lint
 ```
 
+Two Playwright specs are worth knowing by name:
+
+```bash
+# The capture gate: the whole money path against the real PayPal sandbox, no mocks. A new shop is read by
+# Claude and published to the PayPal catalog; an MCP client orders over the agent door; PayPal guest card
+# checkout approves; Shelfie captures; the receipt says Paid; PayPal reports the order COMPLETED; the
+# Claude brief is written; USPS tracking is added at PayPal; get_order_status reads it back. ~2 minutes.
+E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
+
+# Every screen at 390 px and 1440 px with an axe (WCAG 2.1 A/AA) check, into docs/judge/screenshots/round-1/
+# (SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
+npm run screenshots
+```
+
 ## Architecture
 
 ```
