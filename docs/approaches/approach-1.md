@@ -1,12 +1,12 @@
 # Approach 1: Shelfie, seller-first
 
-Shelfie is **the seller's app**. The hero is Rosa, a home baker with flour on one hand and her phone in the other. Every decision is tested against one question: does it get her from a photo to a paid order faster, with less worry? The MCP endpoint is presented to her as the shop's **agent door**, something she shares the way she shares her Instagram handle.
+Shelfie is **the seller's app**. Its hero is Rosa, a home baker with her phone in one hand. The test for every decision is whether it gets her from a photo to a paid order faster. The MCP endpoint is her shop's **agent door**, a link she shares like an Instagram handle.
 
 Rules for every screen:
 - **One thumb:** one primary action in a sticky bottom bar, touch targets of at least 48 px, designed at 390 px first.
-- **AI drafts, Rosa decides:** nothing goes live until she taps Publish, and nothing is charged until the buyer approves on PayPal.
-- **Never block her:** unsure items stay off the shop and everything else can go live.
-- **No jargon:** no "MCP", "JSON" or "capture" in the UI. The technical details sit behind a "How it works" disclosure.
+- **AI drafts, Rosa decides:** nothing is live until she publishes it, and nothing is charged until the buyer approves on PayPal.
+- **Never block her:** items she hasn't checked stay off the shop, and the rest can go live.
+- **No jargon:** no "MCP" or "capture" in the UI.
 
 ---
 
@@ -17,41 +17,37 @@ Rules for every screen:
 **Audience:** US sellers who work from a paper or chalkboard price list and have no website: home bakers taking weekend preorders, food trucks, market stalls, small cafés, and service price lists (salons, repair shops). Prices are in USD.
 
 **Problem and evidence (`docs/IDEAS.md`):**
-- PayPal's agentic strategy is about making merchants reachable by agents: ChatGPT checkout through the Agentic Commerce Protocol, "Agent Ready" and store sync (PayPal newsroom, Oct 2025), and Google's Universal Commerce Protocol (PayPal IR, 2026). **Verified.** Agent Ready and store sync start from an existing store, so a seller with no website has nothing to sync. *This is our inference; check the wording before the pitch says it.*
-- About 95% of merchants say they see AI-agent traffic, but only about 20% have catalogs agents can read. **Unverified: only secondary coverage exists.** Don't quote it until we find PayPal's primary source.
-- The Agent Toolkit has no buyer-safe ordering tool. Its `create_order` takes `itemCost` from the caller (we read `@paypal/agent-toolkit@1.11.0`). **Verified.**
-- Rosa's weekly pain: orders arrive as DMs, unpaid preorders turn into no-shows, and she retypes the same menu everywhere. **Persona assumption, with no statistic behind it.** Collect 2–3 real seller quotes if there's time, and keep invented numbers out of the video.
+- PayPal's agentic strategy is about making merchants reachable by agents: ChatGPT checkout through the Agentic Commerce Protocol, "Agent Ready" and store sync (Oct 2025), and Google's Universal Commerce Protocol (2026). **Verified.** Agent Ready and store sync start from an existing store, so a seller with no website has nothing to sync. *This is our inference; check the wording before the pitch says it.*
+- About 95% of merchants see AI-agent traffic, but only about 20% have catalogs agents can read. **Unverified (secondary coverage only); don't quote it** until we find PayPal's primary source.
+- The Agent Toolkit has no buyer-safe ordering tool: its `create_order` takes `itemCost` from the caller (`@paypal/agent-toolkit@1.11.0` source). **Verified.**
+- Rosa's pain: orders arrive as DMs, unpaid preorders become no-shows, and she retypes her menu everywhere. **This is a persona assumption with no statistic behind it.** Get 2–3 real seller quotes if possible.
 
 ---
 
 ## 2. User journeys
 
 **Seller (Rosa, about 4 minutes):**
-1. She taps **Snap your price list** and takes or chooses 1–4 photos.
-2. **Reading your menu…** Items appear one by one, grouped by section.
-3. The review screen says "14 items · 3 need you". She taps **Fix 3 things** and steps through them:
-   - Smudged price: "We read $4.50, right?" She taps Yes.
-   - "Tamales: market price": she sets today's price at $3.
-   - A duplicate across two pages: she taps Merge.
-4. She confirms the shop name the AI read and sets **Pickup**, with the note "Sat 9–12, 1402 E 6th St".
+1. **Snap your price list**: she takes or chooses 1–4 photos.
+2. **Reading your menu…**: items appear one by one, grouped by section.
+3. "14 items · 3 need you" → **Fix 3 things**:
+   - "We read $4.50, right?" → Yes.
+   - "Tamales: market price" → she sets today's price at $3.
+   - A duplicate across two pages → Merge.
+4. She confirms the shop name the AI read and sets **Pickup** with the note "Sat 9–12, 1402 E 6th St".
 5. **Publish 14 items** → "Adding to PayPal… 9/14" → **Your shop is live**.
-6. The Share screen shows:
-   - the shop link and QR code for people
-   - the agent door link for AI assistants
-   - **Try ordering as a customer**
-   - her private owner link, shown once
-7. Later, the Orders tab shows **New paid order #1042 · $54.00** with the brief "Sat 10am pickup · 6 Conchas, Tres Leches 8″ · NO NUTS (allergy)".
-8. She taps **Mark picked up**. For a shipped order she taps **Add tracking**, which sends the tracking number to PayPal.
+6. The Share screen shows the shop link and QR code, the agent door link, **Try ordering as a customer**, and her private owner link (shown once).
+7. Later: **New paid order #1042 · $54.00**, with the brief "Sat 10am pickup · 6 Conchas, Tres Leches 8″ · NO NUTS (allergy)".
+8. She taps **Mark picked up**. For shipped orders, **Add tracking** sends the tracking number to PayPal.
 
-**Buyer through their own agent (Maria, using Claude or ChatGPT connected to the door):**
-1. She writes: "Order 6 conchas and an 8-inch tres leches from Rosa's for Saturday, no nuts."
+**Buyer through their own agent (Maria, with Claude or ChatGPT connected to the door):**
+1. She asks: "Order 6 conchas and an 8-inch tres leches from Rosa's for Saturday, no nuts."
 2. The agent calls `get_shop_info` and `list_products`, then confirms the items and total with her.
-3. The agent calls `create_order` with item IDs and quantities only. Shelfie prices the order, creates a PayPal order and returns an `approval_url`.
-4. Maria opens the link and sees the exact items and total on PayPal → **Pay Now**.
-5. She lands on Shelfie's receipt page: "Confirming with PayPal…", then **Paid. Rosa has your order.**
-6. If the agent later calls `get_order_status`, it gets back `paid` (plus tracking, if shipped).
+3. The agent calls `create_order` with IDs and quantities only. Shelfie prices the order, creates the PayPal order and returns an `approval_url`.
+4. On PayPal, Maria sees the exact items and total and taps **Pay Now**.
+5. The receipt page says "Confirming with PayPal…", then **Paid. Rosa has your order.**
+6. `get_order_status` now returns `paid`, plus tracking if the order ships.
 
-**Buyer with no AI of their own:** **Order with an assistant** on Rosa's shop page opens Shelfie's built-in assistant. It is Claude, connected over HTTP to the same door, so the flow is identical. Rosa can take orders this week, and judges can see the agent part on localhost (§8).
+**Buyer with no AI of their own:** **Order with an assistant** on the shop page opens Shelfie's built-in Claude assistant. It uses the same door over HTTP, so Rosa can take orders this week, and judges see the agent part on localhost (§8).
 
 ---
 
@@ -71,7 +67,7 @@ Rules for every screen:
 | **Menu tab** | Edit after launch | **Save** | sold-out toggle; pause orders; price edits stay local, name edits also update PayPal |
 | **Order detail** `/shops/[id]/orders/[orderId]` | Everything about one order | depends on state | brief generating / ready / fallback; timeline; tracking form (sending / sent / error) |
 
-**Review screen.** Each card shows the item's name and its options with prices. It also shows the line as the AI read it ("We read: *Concha 4.5?*") and a **See photo** button that opens the original with pinch-zoom. Each issue has a one-thumb fix:
+**Review screen.** Each card shows the item's name and options with prices, the line as the AI read it ("We read: *Concha 4.5?*"), and **See photo**, which opens the original with pinch-zoom. Each issue has a one-thumb fix:
 
 | Issue | Trigger | Buttons | If ignored |
 |---|---|---|---|
@@ -83,12 +79,12 @@ Rules for every screen:
 | `UNREADABLE` | name missing | **Type name** · **Remove** | kept off |
 | `ODD_TEXT` (reads like instructions) | regex | **Remove** · **Keep** | removed |
 
-Size variants ("Half dozen $10 / Dozen $18") become options on one item. Lines that aren't items (phone number, hours, "Cash only", add-ons) go in a collapsed **Lines we skipped** list with a reason each, and each one has a **Make it an item** button.
+Size variants ("Half dozen $10 / Dozen $18") become options on one item. Lines that aren't items (phone number, hours, "Cash only", add-ons) go in a collapsed **Lines we skipped** list, each with its reason and a **Make it an item** button.
 
-**Visual language:** the paper and ink of a menu board.
-- Colours: paper `#FBF7F0`, ink `#1F1A17`, a tomato accent `#C2412D`, and sage / amber / brick for status.
+**Visual language:** menu-board paper and ink.
+- Colours: paper `#FBF7F0`, ink `#1F1A17`, tomato accent `#C2412D`.
 - Type: Fraunces for headings, Public Sans for the UI.
-- PayPal blue appears only on PayPal buttons, and all tokens are CSS variables.
+- PayPal blue appears only on PayPal buttons.
 
 ---
 
@@ -116,6 +112,7 @@ order_events(id, order_id, type, source['mcp'|'return_url'|'cancel_url'|'webhook
 order_briefs(order_id PK, brief_json, model, used_paypal_tools BOOL, input_hash, created_at)
 trackers(order_id, carrier, tracking_number, paypal_tracker_id, created_at, UNIQUE(order_id, tracking_number))
 webhook_events(id PK, event_type, resource_id, verified, received_at, processed_at)
+assistant_sessions(id, shop_id, ip_hash, messages_json /* append-only */, created_at, updated_at)
 ```
 
 **State machine.** This is a pure `transition(order, event) → {next, effects[]}`, and every write goes through it.
@@ -132,12 +129,11 @@ webhook_events(id PK, event_type, resource_id, verified, received_at, processed_
 | `PAID` | picked up / tracking added | `FULFILLED` | seller |
 
 Rules:
-- Expired and cancelled orders are **never captured**.
-- Duplicate events are logged and ignored.
-- **Capture claim:** `UPDATE orders SET capture_claimed_at=now WHERE id=? AND status='APPROVED' AND (capture_claimed_at IS NULL OR capture_claimed_at < now-30s)`. Only the caller whose update changes the row may capture.
-- **Poller:** started by `instrumentation.ts` in the Node runtime. Every 15 s it checks up to 10 non-terminal orders under 3 h old and runs the expiry sweep.
+- Expired and cancelled orders are **never captured**, and duplicate events are logged and ignored.
+- **Capture claim:** `UPDATE orders SET capture_claimed_at=now WHERE id=? AND status='APPROVED' AND (capture_claimed_at IS NULL OR capture_claimed_at < now-30s)`. Only the caller whose update changes the row captures.
+- **Poller:** `instrumentation.ts` (Node runtime) checks up to 10 non-terminal orders under 3 h old every 15 s and runs the expiry sweep.
 - **Poll on read:** the receipt, dashboard and `get_order_status` refresh any order not checked in the last 5 s.
-- Webhooks can't reach the dev VM, so polling is what makes localhost work; on Render, webhooks just make it faster.
+- Polling makes localhost work without webhooks; on Render, webhooks just make updates faster.
 
 ---
 
@@ -163,43 +159,32 @@ The order body is built only from database rows:
  "payment_source":{"paypal":{"experience_context":{"brand_name":"Rosa's Conchas","user_action":"PAY_NOW",
  "shipping_preference":"NO_SHIPPING","return_url":"{BASE}/api/paypal/return?o=ord_…","cancel_url":"{BASE}/api/paypal/cancel?o=ord_…"}}}}
 ```
-- Shipping shops use `GET_FROM_FILE`.
-- The sandbox probe already returned `PAYER_ACTION_REQUIRED` with a localhost `return_url`.
-- The unique `invoice_id` makes PayPal refuse to take payment twice for the same order.
+Shipping shops use `GET_FROM_FILE`. The sandbox probe already returned `PAYER_ACTION_REQUIRED` with a localhost `return_url`. A unique `invoice_id` makes PayPal refuse a second payment for the same order.
 
-**Why orders use REST.** The toolkit's `create_order` has no `sku`, `custom_id`, `invoice_id`, `brand_name` or `shipping_preference`. It can set `PayPal-Request-Id` only instance-wide, and it turns errors into `{error:{message}}` strings, losing PayPal's issue codes. Money-moving calls need all of these.
+**Why orders use REST.** The toolkit's `create_order` has no `sku`, `custom_id`, `invoice_id`, `brand_name` or `shipping_preference`. It sets `PayPal-Request-Id` only per instance and turns errors into strings, losing PayPal's issue codes. Money-moving calls need all of these.
 
-**Server-side pricing.** The MCP `create_order` schema is `.strict()` with no price field. Passing `price`, `amount` or `total` returns "Prices are set by the shop. Send item_id and quantity only." Each line is priced from `variants.price_cents` and stored as a snapshot in `order_items`. The buyer sees the itemised total on PayPal before paying. Before capture, Shelfie checks that PayPal's amount and `custom_id` match its own records.
+**Server-side pricing.** The MCP `create_order` schema is `.strict()` with no price field: sending `price`, `amount` or `total` returns "Prices are set by the shop. Send item_id and quantity only." Each line is priced from `variants.price_cents` and saved in `order_items`. The buyer sees the itemised total on PayPal before paying. Before capture, Shelfie checks that PayPal's amount and `custom_id` match.
 
 **Using the Agent Toolkit meaningfully.** The toolkit is Shelfie's **seller-side PayPal layer**, behind one allowlist: `{products:{create,update,list,show}, orders:{get}, shipment:{create,get}}`. It runs in two modes:
-- **Agent mode:** the order-brief agent (A2) calls the read-only `get_order` and `get_shipment_tracking` itself, so what it tells Rosa comes from PayPal's own record: payer, ship-to address, capture status and seller-protection eligibility.
+- **Agent mode:** the order-brief agent (A2) calls the read-only `get_order` and `get_shipment_tracking` itself. Its brief to Rosa rests on PayPal's record (payer, ship-to address, capture status and seller-protection eligibility), not on what the buyer's agent claimed.
 - **Direct mode:** Shelfie code runs the same zod-validated tools (`tool.execute`) to publish, poll and add tracking.
 
-Buyer agents **never** get toolkit tools, because the toolkit's `create_order` lets the caller choose `itemCost`. The agent door is the buyer-safe façade over it, which is a point to make in the pitch.
+Buyer agents **never** get toolkit tools, because its `create_order` lets the caller set `itemCost`. The agent door is the buyer-safe façade; say so in the pitch.
 
-**Toolkit quirks found by reading its source:**
-- It caches its OAuth token with no expiry, so the shared instance is rebuilt every 30 min.
+**Quirks found in the toolkit's source:**
+- It caches the OAuth token with no expiry, so the instance is rebuilt every 30 min.
 - Calls that need a request ID get a per-call instance with `context.request_id`.
-- Tool results are JSON strings; the wrapper parses them into typed results and errors.
+- Results are JSON strings, so the wrapper parses them.
 
 ---
 
 ## 6. AI usage
 
-All calls use `claude-sonnet-5-5` through `ai@4` and `@ai-sdk/anthropic@1`.
+All calls use `claude-sonnet-5-5` through the official `@anthropic-ai/sdk`. This follows `DECISIONS.md`: the `ai@4` stack was dropped after a spike showed `generateObject` returns a 400 on Sonnet 5.5, because forced `tool_choice` is rejected. There is no forced tool choice anywhere, and `max_tokens` is 16000, because adaptive thinking counts against it.
 
-**Compatibility shim (hour 0).** Two things in the old SDK clash with Sonnet 5.5:
-- `ai@4` sends `temperature: 0` by default.
-- `streamObject` forces `tool_choice: {type:"tool"}`.
-
-Anthropic's current reference says Sonnet 5.5 rejects both with a 400, so the provider is created with `createAnthropic({ fetch: compatFetch })`. The shim:
-- drops sampling parameters
-- rewrites a forced `tool_choice` to `auto` (the prompt names the one tool)
-- raises `max_tokens` to 16000, because adaptive thinking counts against it
-
-A smoke test proves the shim works before anything else is built.
-
-**A1. Menu reader** (`streamObject` → `useObject`; 90 s timeout; one retry)
+**A1. Menu reader** (`client.messages.stream` with `output_config.format = zodOutputFormat(MenuSchema)`; 90 s timeout; one retry)
+- **Streaming:** the server parses the streaming JSON text incrementally, pushes each completed item to the Reading screen over SSE, and validates `finalMessage()` against the zod schema.
+- **Fallback:** `messages.parse` with a "Reading…" screen. In the spike it returned 11/11 items correctly in 7.4 s.
 - **Input:** 1–4 JPEGs, resized on the device (EXIF rotation applied, about 1600 px on the long edge), labelled "Page n", all sent in one call so the model sees continued sections and duplicates together.
 - **Prompt rules:**
   - Copy text exactly as printed.
@@ -218,19 +203,20 @@ A smoke test proves the shim works before anything else is built.
   skipped_lines: { text: string, page: number, reason: 'header'|'contact'|'hours'|'policy'|'addon'|'illegible'|'other' }[] }
 ```
 - **`normalizeExtraction()`** (deterministic, TDD):
-  - Converts amounts to cents (`4.5`, `$4.50` and `4,50` all become 450) and flags $0 or anything over $1,000.
-  - Truncates names to 127 characters and descriptions to 256.
-  - Auto-merges exact duplicates and flags name-only duplicates.
-  - Maps `price_kind` to issue codes.
-  - Flags `ODD_TEXT` with `/ignore (all|previous)|instructions|system prompt|you are/i` and strips control characters.
-  - Routes `is_menu:false` to "not a menu" and `unreadable` to retake tips.
+  - Amounts become cents (`4.5`, `$4.50` and `4,50` all give 450); $0 and anything over $1,000 are flagged.
+  - Names are cut to 127 characters and descriptions to 256.
+  - Exact duplicates are merged; duplicates whose names match but prices differ are flagged.
+  - `price_kind` maps to an issue code.
+  - `ODD_TEXT` is flagged (`/ignore (all|previous)|instructions|system prompt|you are/i`) and control characters are stripped.
+  - `is_menu:false` gives "not a menu"; `unreadable` gives retake tips.
 - **Other messy cases:**
   - Handwriting: `confidence`, `source_text` and See photo.
-  - Dense menus: a closer second photo, with the duplicate merge absorbing the overlap.
+  - Dense menus: a closer second photo; the duplicate merge absorbs the overlap.
   - Non-English names: kept as printed.
 
 **A2. Order brief agent** (on `PAID`; regenerated when tracking is added)
-- `generateText`, `maxSteps: 4`. Tools: toolkit `get_order` and `get_shipment_tracking` (read only), plus a local `submit_brief`.
+- `client.beta.messages.toolRunner`, at most 4 iterations.
+- **Tools:** the toolkit's `get_order` and `get_shipment_tracking` (read only), converted from `getTools()` into `betaTool`s with `zod-to-json-schema`, plus a local `strict` tool, `submit_brief`. `tool_choice` stays `auto`; the prompt asks for `submit_brief` last, and code checks that it was called.
 - **Input:**
   - the order snapshot
   - the shop's pickup notes and lead time
@@ -246,15 +232,17 @@ A smoke test proves the shim works before anything else is built.
 - It has no write tools, so an injected note can't change anything.
 - If the agent fails or skips `get_order`, a template brief is used and labelled as such.
 
-**A3. Built-in buyer assistant** (`streamText`, `maxSteps: 6`, `useChat`)
-- **Tools:** loaded over a real HTTP round trip to the door: `experimental_createMCPClient({ name:'shelfie-assistant', transport: new StreamableHTTPClientTransport(new URL(`${INTERNAL_BASE_URL}/s/${slug}/mcp`)) })`.
+**A3. Built-in buyer assistant** (streaming `toolRunner`, at most 6 iterations per message)
+- **Tools:** an MCP SDK `Client` with `StreamableHTTPClientTransport(new URL(`${INTERNAL_BASE_URL}/s/${slug}/mcp`))` calls `listTools()`. Each tool becomes a `betaTool` (the MCP `inputSchema` is already JSON Schema) whose `run` calls `client.callTool`, so every call is a real HTTP round trip to the door.
+- **Why not Anthropic's MCP connector:** `mcp_servers` can't reach localhost, so the same path is used everywhere.
+- **Transcript:** kept server-side in `assistant_sessions`, append-only, so thinking blocks go back to the model unchanged.
+- **Streaming:** the route sends SSE events (`text`, `tool_call`, `tool_result`, `approval`, `done`) to a small client hook.
 - **System prompt:**
   - Act for the person chatting.
   - Use only the shop's tools and never invent items or prices.
   - Read the order back and ask before calling `create_order`.
 - **UI:** `approval_url` is rendered as a PayPal button card.
 - **Limits:** 20 messages per IP per hour; 200 per shop per day.
-- **Fallback:** if `ai@4`'s MCP client rejects the SDK transport, wrap the SDK `Client`'s tools with `tool()` + `jsonSchema()`.
 
 ---
 
@@ -271,24 +259,11 @@ A smoke test proves the shim works before anything else is built.
 | `create_order` | strict `{items:[{item_id, option_id?, quantity:int 1–20}] (1–15), buyer_name?: ≤60, buyer_note?: ≤280, agent_name?: ≤40, client_request_id?: ≤64}` | `{order_ref, order_number, status:'awaiting_approval', lines:[{name, option, quantity, unit_price, line_total}], total, currency, approval_url, expires_at, next_step:"Send your user this link. Nothing is charged until they approve on PayPal."}` |
 | `get_order_status` (readOnly) | `{order_ref}` | `{order_ref, status, total, paid_at, approval_url (while awaiting), tracking, message}` |
 
-**Errors** come back with `isError: true` and the body `{error:{code, message, retryable, details}}`:
-
-| Code | When |
-|---|---|
-| `SHOP_NOT_ACCEPTING_ORDERS` | shop is paused or still a draft |
-| `UNKNOWN_ITEM` | item ID not found |
-| `OPTION_REQUIRED` | item has options and none was chosen (lists them) |
-| `ITEM_UNAVAILABLE` | sold out or in person only |
-| `QUANTITY_LIMIT` | more than 20 of a line or more than 15 lines |
-| `ORDER_TOO_LARGE` | over the shop cap ($500 by default) |
-| `TOO_MANY_OPEN_ORDERS` | more than 10 unpaid orders for the shop |
-| `RATE_LIMITED` | more than 30 `create_order` calls per IP per hour |
-| `PAYPAL_UNAVAILABLE` | PayPal unreachable (retryable) |
-| `ORDER_NOT_FOUND` | unknown `order_ref` |
+**Errors** come back with `isError: true` and `{error:{code, message, retryable, details}}`. The codes are `SHOP_NOT_ACCEPTING_ORDERS`, `UNKNOWN_ITEM`, `OPTION_REQUIRED` (lists the options), `ITEM_UNAVAILABLE`, `QUANTITY_LIMIT`, `ORDER_TOO_LARGE` (over the shop cap, $500 by default), `TOO_MANY_OPEN_ORDERS` (more than 10 unpaid), `RATE_LIMITED` (more than 30 `create_order` calls per IP per hour), `PAYPAL_UNAVAILABLE` (retryable) and `ORDER_NOT_FOUND`.
 
 **Guardrails:**
 - No price inputs, plus the caps above.
-- `client_request_id` stops an agent's retries from creating duplicate PayPal orders.
+- `client_request_id` stops an agent that retries from creating duplicate PayPal orders.
 - Orders expire after 60 min.
 - `order_ref` is a random capability, so it can't be guessed.
 - Seller text is sanitised and length-capped.
@@ -299,15 +274,15 @@ A smoke test proves the shim works before anything else is built.
 
 ## 8. The agent part on localhost
 
-1. `npm run dev` → **Try a sample menu** (two photos ship in the repo: a handwritten bakery board and a two-page food-truck menu) → review → publish, using real sandbox calls.
-2. Share → **Try ordering as a customer**. The built-in assistant calls `http://localhost:3000/s/<slug>/mcp`, the same door any external agent uses. Its tool chips expand to the raw MCP request and response.
+1. `npm run dev` → **Try a sample menu** (the repo ships a handwritten bakery board and a two-page food-truck menu) → review → publish, with real sandbox calls.
+2. Share → **Try ordering as a customer**. The built-in assistant calls `http://localhost:3000/s/<slug>/mcp`, the same door external agents use. Its tool chips expand to the raw MCP request and response.
 3. Approve with the sandbox buyer from the README. PayPal redirects the browser back to localhost, so no public URL is needed. The receipt shows **Paid**, and the dashboard shows the order and its brief.
 4. The MCP Inspector (`npx @modelcontextprotocol/inspector`, Streamable HTTP) can call the same URL directly.
-5. External agents, with copyable steps for each on the Share screen (check the menu paths at build time):
+5. External agents (the Share screen has copyable steps; check menu paths at build time):
    - Claude Code: `claude mcp add --transport http rosas http://localhost:3000/s/<slug>/mcp`.
-   - Claude Desktop, locally: through `npx mcp-remote <url>`.
-   - Claude custom connectors and ChatGPT developer-mode connectors: need the deployed HTTPS Render URL.
-6. With no `ANTHROPIC_API_KEY`, `SHELFIE_RECORDED_AI=1` replays recorded AI output and labels it as recorded; PayPal calls stay real.
+   - Claude Desktop: through `npx mcp-remote <url>`.
+   - Claude custom connectors and ChatGPT developer mode: need the deployed HTTPS URL on Render.
+6. With no `ANTHROPIC_API_KEY`, `SHELFIE_RECORDED_AI=1` replays recorded AI output, labelled as recorded. PayPal calls stay real.
 
 ---
 
@@ -316,18 +291,13 @@ A smoke test proves the shim works before anything else is built.
 **Unit (Vitest, written test-first):**
 - `normalizeExtraction`: every issue code, cents parsing, column options, cross-page duplicates, truncation, `ODD_TEXT`, not-a-menu.
 - `priceOrder`: unknown, hidden, sold-out and in-person items; options; caps; cents; snapshots.
-- PayPal client (injected `fetch`):
-  - order body snapshot (`sku`, `invoice_id`, `shipping_preference` per mode)
-  - request-ID headers and the payer-action link
-  - 401 → refresh and retry once
-  - 422 issue-code mapping
-  - toolkit wrapper: string parsing, errors, TTL rebuild
+- PayPal client (injected `fetch`): order body snapshot (`sku`, `invoice_id`, `shipping_preference` per mode), request-ID headers, the payer-action link, 401 → refresh and retry once, 422 issue-code mapping, and the toolkit wrapper (string parsing, errors, TTL rebuild).
 - State machine: every allowed and forbidden transition as a table; a webhook arriving after the return URL; a two-caller capture-claim race on in-memory SQLite.
 - MCP:
   - `InMemoryTransport.createLinkedPair()` against `buildShopServer(shop, fakeGateway)`, covering schemas, `price` being rejected, error codes, idempotency and paused shops
   - one route test that sends a web `Request` (initialize, then `tools/list`)
 - Webhook: verification mocked, deduplication, re-fetch.
-- The `compatFetch` shim.
+- Toolkit → `betaTool` adapter: schema conversion and parsing of JSON-string results.
 
 **Sandbox integration (`npm run test:sandbox`, skipped without credentials):**
 - Create a product.
@@ -342,7 +312,7 @@ A smoke test proves the shim works before anything else is built.
 - `npm run seed:demo` creates one shop with orders in every state.
 - Screenshots at 390 and 1440 px of every screen and state in §3.
 - `@axe-core/playwright` on each page.
-- A full flow, with `MockLanguageModelV1` scripting the assistant's tool calls.
+- A full flow, with an injected fake Claude client replaying recorded assistant turns.
 
 ---
 
@@ -383,10 +353,10 @@ Use Shelfie's own assistant on screen, and keep third-party product logos out of
 
 | Risk | Mitigation |
 |---|---|
-| `ai@4` + Sonnet 5.5 return 400s | `compatFetch` shim + smoke test in hour 0 |
+| Sonnet 5.5 API rules (no forced `tool_choice`, thinking blocks returned unchanged) | Official SDK, `tool_choice: auto` + checks in code, append-only transcripts |
 | Capture unverified without a sandbox buyer | A human creates the account now; recorded-payload tests; live `ORDER_NOT_APPROVED` path |
 | Poor handwriting extraction | Confidence, `source_text`, See photo; 3 real photos tested by hour 2; manual **Add item** |
-| `ai@4` MCP client ↔ SDK transport mismatch | Wrapper fallback (A3) |
+| Streaming partial-JSON parsing is flaky | `messages.parse` fallback (A1) |
 | Toolkit token never refreshes | 30-min rebuild |
 | "Isn't this Agent Ready?" | Pitch to sellers with **no website** |
 | Spam through the public door | Caps, open-order limit, rate limits, expiry; unpaid orders cost nothing |
@@ -399,7 +369,7 @@ Use Shelfie's own assistant on screen, and keep third-party product logos out of
 
 | Time | E1 AI | E2 PayPal | E3 Orders + MCP | E4 Seller UI | E5 Buyer UI + dashboard |
 |---|---|---|---|---|---|
-| 0:00–0:45 | **All:** Next.js, Vitest, Playwright, SQLite schema, design tokens, shared types, `PayPalGateway` / `MenuReader` interfaces, `.env.example`, `compatFetch` smoke test | | | | |
+| 0:00–0:45 | **All:** Next.js, Vitest, Playwright, SQLite schema, design tokens, shared types, `PayPalGateway` / `MenuReader` interfaces, `.env.example`, smoke test of the toolkit → `betaTool` adapter | | | | |
 | 0:45–2:30 | `normalizeExtraction` (TDD), prompt, streaming route | REST orders + capture, toolkit wrapper (TDD), publish | `transition`, `priceOrder` (TDD), MCP tools with InMemory tests | Start, Reading, Review | Public shop, Receipt, dashboard on seed data |
 | 2:30–4:00 | Real photos; brief agent | Sandbox tests, poller, webhook, return/cancel | Route handler, assistant API | Publishing, Share, Menu tab | Assistant sheet, order detail, tracking form |
 | 4:00–5:00 | **All:** end-to-end on localhost against the real sandbox | | | | |
