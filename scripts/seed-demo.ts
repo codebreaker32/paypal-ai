@@ -29,6 +29,17 @@ export const DEMO_SHOP = {
 
 const FIXTURE = 'tests/ai/fixtures/marigold.json';
 const PHOTO = 'public/samples/marigold-bakehouse.jpg';
+/**
+ * The seed's marker: its shop's menu photo is stored as `<shopId>/demo-marigold-bakehouse.jpg`. Uploads and samples are
+ * stored as page-N.jpg, page-N-<stamp>.jpg or sample-<id>.jpg (src/lib/catalog/setup.ts), so no other shop has it.
+ */
+export const DEMO_PHOTO = 'demo-marigold-bakehouse.jpg';
+
+/** True for the shop this script created (or an older seed's, made before the marker: its about text and page-1.jpg). */
+function isSeedShop(shop: Shop): boolean {
+  const photo = shop.menuPhotoPaths[0];
+  return photo === `${shop.id}/${DEMO_PHOTO}` || (photo === `${shop.id}/page-1.jpg` && shop.about === DEMO_SHOP.about);
+}
 
 export interface SeedOptions {
   db: Db;
@@ -53,6 +64,13 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   const { db, uploadsDir } = opts;
   const log = opts.log ?? (() => {});
   let shop = shops.bySlug(db, DEMO_SHOP.slug);
+  // Never adopt, change or delete a shop the seed didn't make (one published before the slug was reserved).
+  if (shop && !isSeedShop(shop)) {
+    throw new Error(
+      `${DEMO_SHOP.slug} belongs to ${shop.name} (${shop.id}), which is not the demo shop: the seed didn't create it, so it leaves it alone. ` +
+        'Use a fresh DATABASE_PATH for the demo shop.',
+    );
+  }
 
   if (shop && opts.reset) {
     log(`Deleting ${shop.name} (${shop.id}) and its orders…`);
@@ -104,9 +122,9 @@ function resolveLikeASeller(db: Db, shopId: string): void {
   }
 }
 
-/** Copies the sample photo to `${UPLOADS_DIR}/<shopId>/page-1.jpg`; returns the path stored on the shop (relative to UPLOADS_DIR). */
+/** Copies the sample photo to `${UPLOADS_DIR}/<shopId>/demo-marigold-bakehouse.jpg`; returns the path stored on the shop (relative to UPLOADS_DIR). */
 function ensurePhoto(uploadsDir: string, shopId: string): string {
-  const rel = `${shopId}/page-1.jpg`;
+  const rel = `${shopId}/${DEMO_PHOTO}`;
   const dest = path.resolve(uploadsDir, rel);
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
