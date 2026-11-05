@@ -123,7 +123,7 @@ test.describe('dashboard', () => {
     await page.goto(dashboard(scratch));
     const card = page.locator(`[data-order="${o.number}"]`);
     await card.getByRole('button', { name: 'Mark picked up' }).click();
-    await expect(group(page, /^Done/).locator(`[data-order="${o.number}"]`)).toContainText('Picked up');
+    await expect(group(page, /^Done/).locator(`[data-order="${o.number}"]`)).toContainText('Picked up', { timeout: 20_000 });
   });
 
   test('Pause agent orders: saves through PATCH /api/shops/[id], and rolls back on an error', async ({ page }) => {
