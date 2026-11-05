@@ -5,6 +5,7 @@ import { doorRateIdentity } from '@/lib/agent/console-key';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { clientIp } from '@/lib/http/client-ip';
 import type { OrderDeps } from '@/lib/orders/service';
+import { agentFromUserAgent, agentLabel } from './agent-name';
 import { buildInstructions, sanitizeShopName } from './instructions';
 import { registerShopTools, type ShopServerDeps } from './tools';
 
@@ -34,7 +35,7 @@ export async function handleMcpRequest(req: Request, slug: string, deps: OrderDe
     ...deps,
     // The buyer console (proven by its secret) is keyed by its buyer's IP, everyone else by the request IP.
     clientIp: doorRateIdentity(req, clientIp(req)),
-    agentName: label(url.searchParams.get('agent')) ?? label(req.headers.get('user-agent')),
+    agentName: agentLabel(url.searchParams.get('agent')) ?? agentFromUserAgent(req.headers.get('user-agent')),
   });
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: undefined,
@@ -59,10 +60,4 @@ export function jsonRpcError(status: number, code: number, message: string, head
     status,
     headers: { 'content-type': 'application/json', ...headers },
   });
-}
-
-/** A short, printable label for the agent (query param or User-Agent), or null. */
-function label(raw: string | null): string | null {
-  const s = raw?.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
-  return s || null;
 }
