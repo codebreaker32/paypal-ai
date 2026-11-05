@@ -76,11 +76,42 @@ function batchError(result: unknown): string | null {
   return e.details?.[0]?.description ?? e.message ?? e.name ?? 'PayPal did not accept the tracking number.';
 }
 
+// One add-tracking at a time per order (in-process, on globalThis so every route bundle shares it): a double tap waits
+// for the first request, then sees its result instead of sending a second tracker to PayPal.
+const g = globalThis as unknown as { __shelfieTrackingLocks?: Map<string, Promise<void>> };
+const trackingLocks = (): Map<string, Promise<void>> => (g.__shelfieTrackingLocks ??= new Map());
+
+async function withOrderLock<T>(orderId: string, fn: () => Promise<T>): Promise<T> {
+  const locks = trackingLocks();
+  const run = (locks.get(orderId) ?? Promise.resolve()).then(fn);
+  const tail = run.then(
+    () => {},
+    () => {},
+  );
+  locks.set(orderId, tail);
+  try {
+    return await run;
+  } finally {
+    if (locks.get(orderId) === tail) locks.delete(orderId);
+  }
+}
+
 /**
  * Sends the tracking number to PayPal (toolkit create_shipment_tracking on the order's capture), stores the tracker,
- * marks the order fulfilled and logs `tracking_added`. Only for this shop's paid shipping orders.
+ * marks the order fulfilled and logs `tracking_added`. Only for this shop's paid shipping orders. Runs one at a time
+ * per order; if an earlier attempt stored this tracker but didn't mark the order fulfilled, a retry finishes that
+ * without calling PayPal again.
  */
 export async function addTracking(
+  deps: OrderDeps & { toolkit?: TrackingToolkitFactory },
+  shop: Shop,
+  orderId: string,
+  input: TrackingInput,
+): Promise<{ order: Order; trackers: Tracker[] }> {
+  return withOrderLock(orderId, () => addTrackingNow(deps, shop, orderId, input));
+}
+
+async function addTrackingNow(
   deps: OrderDeps & { toolkit?: TrackingToolkitFactory },
   shop: Shop,
   orderId: string,
@@ -92,8 +123,10 @@ export async function addTracking(
     throw new SellerActionError(409, 'PICKUP_ORDER', 'This is a pickup order. Mark it picked up instead.');
   }
   requirePaid(order);
-  if (ordersRepo.trackers(db, order.id).some((t) => t.trackingNumber === input.trackingNumber)) {
-    throw new SellerActionError(409, 'DUPLICATE_TRACKING', 'This tracking number is already on the order.');
+  const stored = ordersRepo.trackers(db, order.id).find((t) => t.trackingNumber === input.trackingNumber);
+  if (stored) {
+    // PayPal has it and so do we, but the order is still paid: an earlier attempt failed after storing the tracker.
+    return finishTracking(deps, order.id, stored.carrier, input);
   }
 
   let result: unknown;
@@ -115,16 +148,27 @@ export async function addTracking(
 
   const carrier = carrierLabel(input);
   ordersRepo.addTracker(db, { orderId: order.id, carrier, trackingNumber: input.trackingNumber, paypalStatus: 'SHIPPED' });
+  return finishTracking(deps, order.id, carrier, input);
+}
+
+/** Marks the order fulfilled and logs `tracking_added`, once the tracker is at PayPal and stored. */
+async function finishTracking(
+  deps: OrderDeps,
+  orderId: string,
+  carrier: string,
+  input: TrackingInput,
+): Promise<{ order: Order; trackers: Tracker[] }> {
+  const { db } = deps;
   try {
-    await markFulfilled(deps, order.id, 'seller');
+    await markFulfilled(deps, orderId, 'seller');
   } catch (e) {
     // Someone fulfilled it a moment ago; the tracker is at PayPal and stored either way.
     if (!(e instanceof InvalidTransition)) throw e;
   }
-  eventsRepo.add(db, order.id, 'tracking_added', 'seller', {
+  eventsRepo.add(db, orderId, 'tracking_added', 'seller', {
     carrier,
     paypalCarrier: input.carrier,
     trackingNumber: input.trackingNumber,
   });
-  return { order: ordersRepo.byId(db, order.id)!, trackers: ordersRepo.trackers(db, order.id) };
+  return { order: ordersRepo.byId(db, orderId)!, trackers: ordersRepo.trackers(db, orderId) };
 }

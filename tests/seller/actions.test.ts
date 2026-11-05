@@ -169,6 +169,46 @@ describe('addTracking', () => {
     await expect(addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, input)).rejects.toMatchObject({ status: 409, code: 'ALREADY_FULFILLED' });
     expect(tk.execute.create_shipment_tracking).toHaveBeenCalledTimes(1);
   });
+
+  it('a double tap sends one tracker to PayPal: the second waits, then finds the order fulfilled', async () => {
+    const o = placeOrder(db, s);
+    const tk = stubToolkit();
+    const input = { carrier: 'USPS' as const, trackingNumber: '9400111899223100000000', carrierName: null };
+    const [first, second] = await Promise.allSettled([
+      addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, input),
+      addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, input),
+    ]);
+    expect(first.status).toBe('fulfilled');
+    expect(second).toMatchObject({ status: 'rejected', reason: { status: 409, code: 'ALREADY_FULFILLED' } });
+    expect(tk.execute.create_shipment_tracking).toHaveBeenCalledTimes(1);
+    expect(orders.trackers(db, o.id)).toHaveLength(1);
+  });
+
+  it('a retry after the tracker was stored but fulfilling failed completes the order without calling PayPal again', async () => {
+    const o = placeOrder(db, s);
+    const tk = stubToolkit();
+    const input = { carrier: 'USPS' as const, trackingNumber: '9400111899223100000000', carrierName: null };
+    let fail = true;
+    const flaky: OrderDeps = {
+      ...deps,
+      now: () => {
+        if (fail) {
+          fail = false;
+          throw new Error('database is locked');
+        }
+        return Date.now();
+      },
+    };
+    await expect(addTracking({ ...flaky, toolkit: tk.factory }, s.shop, o.id, input)).rejects.toThrow('database is locked');
+    expect(orders.byId(db, o.id)!.status).toBe('paid');
+    expect(orders.trackers(db, o.id)).toHaveLength(1);
+
+    const r = await addTracking({ ...flaky, toolkit: tk.factory }, s.shop, o.id, input);
+    expect(r.order.status).toBe('fulfilled');
+    expect(r.trackers).toHaveLength(1);
+    expect(tk.execute.create_shipment_tracking).toHaveBeenCalledTimes(1);
+    expect(events.list(db, o.id).filter((e) => e.type === 'tracking_added')).toHaveLength(1);
+  });
 });
 
 describe('markPickedUp', () => {
