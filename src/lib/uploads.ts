@@ -92,12 +92,6 @@ export async function writeUpload(shopId: string, name: string, jpeg: Buffer): P
   return rel;
 }
 
-/** Normalises one uploaded photo and saves it as page n of the shop's menu. Returns the stored path. */
-export async function saveUpload(shopId: string, file: Blob | Buffer, page: number): Promise<string> {
-  const bytes = Buffer.isBuffer(file) ? file : await readFileLimited(file);
-  return writeUpload(shopId, `page-${page}.jpg`, await normalizePhoto(bytes));
-}
-
 export async function readUpload(relPath: string): Promise<Buffer> {
   return fs.readFile(uploadFilePath(relPath));
 }

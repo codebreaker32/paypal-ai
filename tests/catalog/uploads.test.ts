@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MAX_PHOTO_BYTES, UploadError, normalizePhoto, readUpload, saveUpload } from '@/lib/uploads';
+import { MAX_PHOTO_BYTES, UploadError, normalizePhoto, readFileLimited, readUpload, writeUpload } from '@/lib/uploads';
 
 const solid = (width: number, height: number) =>
   sharp({ create: { width, height, channels: 3, background: { r: 200, g: 150, b: 90 } } });
@@ -59,14 +59,16 @@ describe('uploads', () => {
     expect(await codeOf(normalizePhoto(Buffer.from('%PDF-1.4\n%âãÏÓ\n')))).toBe('BAD_IMAGE');
   });
 
-  it('rejects a photo over 15 MB before decoding it', async () => {
-    const big = new Blob([new Uint8Array(MAX_PHOTO_BYTES + 1)], { type: 'image/jpeg' });
-    expect(await codeOf(saveUpload('shp_x', big, 1))).toBe('PHOTO_TOO_LARGE');
+  it('rejects a photo over 15 MB before reading or decoding it', async () => {
+    const big = new Uint8Array(MAX_PHOTO_BYTES + 1);
+    expect(await codeOf(readFileLimited(new Blob([big], { type: 'image/jpeg' })))).toBe('PHOTO_TOO_LARGE');
+    expect(await codeOf(normalizePhoto(Buffer.from(big)))).toBe('PHOTO_TOO_LARGE');
+    expect(await codeOf(readFileLimited(new Blob([])))).toBe('BAD_IMAGE');
   });
 
-  it('saves page n under the shop folder and returns a path relative to UPLOADS_DIR', async () => {
+  it('writes a normalised page under the shop folder and returns a path relative to UPLOADS_DIR', async () => {
     const file = new Blob([new Uint8Array(await solid(50, 80).png().toBuffer())], { type: 'image/png' });
-    const rel = await saveUpload('shp_abc', file, 2);
+    const rel = await writeUpload('shp_abc', 'page-2.jpg', await normalizePhoto(await readFileLimited(file)));
     expect(rel).toBe('shp_abc/page-2.jpg');
     expect(fs.existsSync(path.join(dir, 'shp_abc', 'page-2.jpg'))).toBe(true);
     const back = await readUpload(rel);
