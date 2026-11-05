@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, expect, it } from 'vitest';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError } from '@/lib/paypal/types';

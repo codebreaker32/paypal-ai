@@ -49,19 +49,46 @@ export function createPayPalClient(opts: PayPalClientOptions): PayPalClient {
   const now = opts.now ?? Date.now;
   let cached: { token: string; expiresAt: number } | null = null;
 
-  async function getToken(force = false): Promise<string> {
-    if (!force && cached && now() < cached.expiresAt - TOKEN_SKEW_MS) return cached.token;
+  let inflight: Promise<string> | null = null;
+
+  async function fetchToken(): Promise<string> {
     const basic = Buffer.from(`${opts.clientId}:${opts.secret}`).toString('base64');
-    const res = await doFetch(`${opts.base}/v1/oauth2/token`, {
-      method: 'POST',
-      headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'grant_type=client_credentials',
+    for (let attempt = 0; ; attempt++) {
+      let status = 0;
+      let text = '';
+      try {
+        const res = await doFetch(`${opts.base}/v1/oauth2/token`, {
+          method: 'POST',
+          headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'grant_type=client_credentials',
+        });
+        status = res.status;
+        text = await res.text();
+        if (res.ok) {
+          const json = JSON.parse(text) as { access_token: string; expires_in: number };
+          cached = { token: json.access_token, expiresAt: now() + json.expires_in * 1000 };
+          return cached.token;
+        }
+      } catch (e) {
+        if (attempt >= RETRY_DELAYS_MS.length) throw e;
+        await sleep(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      if ((status === 429 || status >= 500) && attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt]);
+        continue;
+      }
+      throw toApiError(status, text);
+    }
+  }
+
+  /** Concurrent cold callers share one in-flight token request. */
+  function getToken(force = false): Promise<string> {
+    if (!force && cached && now() < cached.expiresAt - TOKEN_SKEW_MS) return Promise.resolve(cached.token);
+    inflight ??= fetchToken().finally(() => {
+      inflight = null;
     });
-    const text = await res.text();
-    if (!res.ok) throw toApiError(res.status, text);
-    const json = JSON.parse(text) as { access_token: string; expires_in: number };
-    cached = { token: json.access_token, expiresAt: now() + json.expires_in * 1000 };
-    return cached.token;
+    return inflight;
   }
 
   const request: Requester = async <T,>(method: string, path: string, o: RequestOptions = {}): Promise<T> => {

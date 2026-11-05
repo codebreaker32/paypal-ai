@@ -5,7 +5,7 @@ export * from './types';
 export { createPayPalClient, type PayPalClient } from './client';
 export { buildOrderBody } from './orders';
 export { categoryFor } from './categories';
-export { createSellerToolkit, scopeTool, ScopeError, ToolkitError } from './toolkit';
+// The seller toolkit is imported from '@/lib/paypal/toolkit' on purpose, so getPayPal() never loads it.
 
 let singleton: PayPalClient | null = null;
 

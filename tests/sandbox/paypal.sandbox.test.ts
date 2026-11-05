@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { createPayPalClient } from '@/lib/paypal/client';
 import { PayPalApiError } from '@/lib/paypal/types';
-import { createSellerToolkit } from '@/lib/paypal/toolkit';
+import { createSellerToolkit, ToolkitError } from '@/lib/paypal/toolkit';
 
 const have = !!process.env.PAYPAL_CLIENT_ID && !!process.env.PAYPAL_SECRET_KEY;
 
@@ -53,5 +53,11 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     const toolkit = createSellerToolkit({ orderIds: new Set([orderId]), productIds: new Set() });
     const viaToolkit = await toolkit.getOrder(orderId);
     expect(viaToolkit.id).toBe(orderId);
+  });
+
+  it('the toolkit reports a scoped but non-existent order as ToolkitError', async () => {
+    const ghost = 'ZZZZZZZZZZZZZZZZZ';
+    const toolkit = createSellerToolkit({ orderIds: new Set([ghost]), productIds: new Set() });
+    await expect(toolkit.getOrder(ghost)).rejects.toBeInstanceOf(ToolkitError);
   });
 });

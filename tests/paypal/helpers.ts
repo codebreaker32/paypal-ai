@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { createPayPalClient } from '@/lib/paypal/client';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function fixture(name: string): { status: number; body: any } {
   return JSON.parse(readFileSync(path.join(import.meta.dirname, 'fixtures', `${name}.json`), 'utf8'));
 }
@@ -11,6 +11,7 @@ export interface Call {
   url: string;
   method: string;
   headers: Record<string, string>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   body: any;
 }
 
@@ -26,6 +27,7 @@ export function scriptedFetch(routes: Record<string, Reply[]>) {
     const parsed = new URL(u);
     const key = Object.keys(routes).find((k) => k === `${method} ${parsed.pathname}`) ?? '';
     const raw = typeof init?.body === 'string' ? init.body : '';
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     let body: any = raw;
     try {
       body = raw ? JSON.parse(raw) : undefined;

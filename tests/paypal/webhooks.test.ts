@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, expect, it } from 'vitest';
 import { makeClient } from './helpers';
 

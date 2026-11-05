@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, expect, it } from 'vitest';
 import { buildOrderBody } from '@/lib/paypal/orders';
 import type { CreatePayPalOrderInput } from '@/lib/paypal/types';
@@ -53,6 +52,7 @@ describe('buildOrderBody', () => {
   });
 
   it('shipping order adds breakdown.shipping, includes it in the total and uses GET_FROM_FILE', () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = buildOrderBody({ ...base, fulfillment: 'shipping', shippingCents: 599 }) as any;
     const unit = body.purchase_units[0];
     expect(unit.amount.value).toBe('49.99');
@@ -62,12 +62,14 @@ describe('buildOrderBody', () => {
   });
 
   it('item_total is the sum of unit x qty', () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = buildOrderBody({ ...base, items: [{ name: 'A', unitCents: 333, qty: 3, sku: null, kind: 'PHYSICAL' }] }) as any;
     expect(body.purchase_units[0].amount.breakdown.item_total.value).toBe('9.99');
   });
 
   it('truncates long names, description and brand to 127 chars', () => {
     const long = 'x'.repeat(300);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
     const body = buildOrderBody({ ...base, shopName: long, items: [{ ...base.items[0], name: long }] }) as any;
     expect(body.purchase_units[0].items[0].name).toHaveLength(127);
     expect(body.purchase_units[0].description).toHaveLength(127);

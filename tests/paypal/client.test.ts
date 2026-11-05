@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { describe, expect, it } from 'vitest';
 import { PayPalApiError } from '@/lib/paypal/types';
 import { fixture, makeClient, tokenReply } from './helpers';
@@ -38,6 +37,22 @@ describe('token handling', () => {
     t = 41_000;
     await client.getOrder('A1');
     expect(calls.filter((c) => c.url.endsWith('/token'))).toHaveLength(2);
+  });
+
+  it('concurrent cold calls share one token request', async () => {
+    const { client, calls } = makeClient({ 'GET /v2/checkout/orders/A1': [{ status: 200, body: { id: 'A1' } }] });
+    await Promise.all([client.getOrder('A1'), client.getOrder('A1'), client.getOrder('A1')]);
+    expect(calls.filter((c) => c.url.endsWith('/v1/oauth2/token'))).toHaveLength(1);
+  });
+
+  it('retries a 503 on the token call', async () => {
+    const { client, calls, sleeps } = makeClient({
+      'POST /v1/oauth2/token': [{ status: 503, body: {} }, tokenReply()],
+      'GET /v2/checkout/orders/A1': [{ status: 200, body: { id: 'A1' } }],
+    });
+    expect((await client.getOrder('A1')).id).toBe('A1');
+    expect(calls.filter((c) => c.url.endsWith('/token'))).toHaveLength(2);
+    expect(sleeps).toHaveLength(1);
   });
 
   it('refreshes once and retries once after a 401', async () => {
