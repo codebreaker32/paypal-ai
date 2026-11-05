@@ -3,10 +3,13 @@ import { afterAll, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { publishShop, productFor } from '@/lib/catalog/publish';
 import { createTestDb } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
+import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal } from '@/lib/paypal/fake';
-import { DEMO_SHOP, seedDemoShop } from '../../scripts/seed-demo';
+import { PayPalApiError } from '@/lib/paypal/types';
+import { DEMO_PHOTO, DEMO_SHOP, seedDemoShop } from '../../scripts/seed-demo';
 
 const uploadsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shelfie-seed-'));
 afterAll(() => fs.rmSync(uploadsDir, { recursive: true, force: true }));
@@ -23,8 +26,9 @@ describe('seedDemoShop', () => {
       name: 'Marigold Bakehouse', slug: DEMO_SHOP.slug, status: 'live', kind: 'food', fulfillment: 'both', shippingFeeCents: 800,
       pickupNotes: 'Sat & Sun pickup · 14 Alder St · order by Fri 6pm',
     });
-    expect(r.shop.menuPhotoPaths).toEqual([`${r.shop.id}/page-1.jpg`]);
-    expect(fs.existsSync(path.join(uploadsDir, r.shop.id, 'page-1.jpg'))).toBe(true);
+    // The seed's own photo name is its marker: no upload or sample is ever stored under it.
+    expect(r.shop.menuPhotoPaths).toEqual([`${r.shop.id}/${DEMO_PHOTO}`]);
+    expect(fs.existsSync(path.join(uploadsDir, r.shop.id, DEMO_PHOTO))).toBe(true);
 
     const all = items.listWithVariants(db, r.shop.id);
     const live = all.filter((i) => i.status === 'live');
@@ -58,5 +62,57 @@ describe('seedDemoShop', () => {
     expect(r.shop.id).not.toBe(first.id);
     expect(r.shop.slug).toBe(DEMO_SHOP.slug);
     expect(fs.existsSync(path.join(uploadsDir, first.id))).toBe(false);
+  });
+
+  it('publishes through the same path as the setup flow (publishShop): the same product for each item', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const r = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    const sent = pp.calls.filter((c) => c.method === 'createProduct');
+    for (const item of items.listWithVariants(fresh, r.shop.id, { status: ['live'] })) {
+      const call = sent.find((c) => c.args[1] === `pub-${item.id}`);
+      expect(call?.args[0]).toEqual(productFor(item, r.shop));
+    }
+  });
+
+  it('reports an item PayPal turned down, and a re-run publishes only that item', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    pp.failNext('createProduct', new PayPalApiError(503, 'SERVICE_UNAVAILABLE', null, 'dbg', 'busy'));
+    const warn = console.warn;
+    console.warn = () => {};
+    const first = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir }).finally(() => (console.warn = warn));
+    expect(first.failed).toHaveLength(1);
+    expect(first.shop.status).toBe('live');
+
+    const again = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    expect(again).toMatchObject({ created: false, published: 1, failed: [] });
+  });
+
+  it("keeps its slug when a visitor's Marigold sample was published first", async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const visitor = shops.create(fresh, { name: 'draft abcd2345' }).shop.id;
+    shops.update(fresh, visitor, { name: 'Marigold Bakehouse' });
+    items.replaceDrafts(fresh, visitor, [
+      { section: 'Pastries', name: 'Bun', description: null, sourceText: 'Bun $3', confidence: 'high', kind: 'PHYSICAL', issues: [], issueDetail: null, status: 'draft', variants: [{ label: null, priceCents: 300 }] },
+    ]);
+    await publishShop({ db: fresh, paypal: pp }, visitor);
+    expect(shops.byId(fresh, visitor)!.slug).not.toBe(DEMO_SHOP.slug);
+
+    const r = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    expect(r.shop.slug).toBe(DEMO_SHOP.slug);
+  });
+
+  it("never adopts or deletes a shop it didn't create, even one holding the demo slug", async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    // A shop from before the slug was reserved: someone's published Marigold sample.
+    const theirs = shops.create(fresh, { name: 'Marigold Bakehouse' }).shop;
+    expect(theirs.slug).toBe(DEMO_SHOP.slug);
+    await expect(seedDemoShop({ db: fresh, paypal: pp, uploadsDir })).rejects.toThrow(/not the demo shop/);
+    await expect(seedDemoShop({ db: fresh, paypal: pp, uploadsDir, reset: true })).rejects.toThrow(/not the demo shop/);
+    expect(shops.byId(fresh, theirs.id)).toMatchObject({ slug: DEMO_SHOP.slug, menuPhotoPaths: [] });
+    expect(pp.calls).toHaveLength(0);
   });
 });

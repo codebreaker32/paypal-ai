@@ -3,7 +3,7 @@ import type Database from 'better-sqlite3';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
-import { canGoLive, publishShop, type PublishProgress } from '@/lib/catalog/publish';
+import { RESERVED_SLUG, canGoLive, publishShop, type PublishProgress } from '@/lib/catalog/publish';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import type { DraftItem } from '@/lib/domain/types';
@@ -276,5 +276,23 @@ describe('publishShop', () => {
     items.replaceDrafts(db, id, [draft('Bun', [300])]);
     await publishShop({ db, paypal }, id);
     expect(shops.byId(db, id)!.slug).toBe('rosa-2');
+  });
+
+  it("never gives a visitor's shop the demo shop's slug, even before the demo shop exists", async () => {
+    const fresh = createTestDb();
+    const visitor = () => {
+      const id = shops.create(fresh, { name: `draft ${Math.random().toString(36).slice(2, 10).padEnd(8, '0')}` }).shop.id;
+      shops.update(fresh, id, { name: 'Marigold Bakehouse' });
+      items.replaceDrafts(fresh, id, [draft('Bun', [300])]);
+      return id;
+    };
+    const first = visitor();
+    await publishShop({ db: fresh, paypal }, first);
+    expect(shops.byId(fresh, first)!.slug).toBe('marigold-bakehouse-2');
+    expect(shops.bySlug(fresh, RESERVED_SLUG)).toBeNull();
+
+    const second = visitor();
+    await publishShop({ db: fresh, paypal }, second);
+    expect(shops.byId(fresh, second)!.slug).toBe('marigold-bakehouse-3');
   });
 });
