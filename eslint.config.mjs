@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     ".scratch/**",
+    ".claude/**",
     ".superpowers/**",
     "public/samples/**",
     // Default ignores of eslint-config-next:
