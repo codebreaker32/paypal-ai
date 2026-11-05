@@ -1,0 +1,27 @@
+{
+  "is_menu": true,
+  "image_quality": "good",
+  "problems": [],
+  "retake_tip": null,
+  "warnings": [],
+  "shop": { "name": "Two Page Cafe", "about": null, "pickup_notes": null },
+  "kind": "food",
+  "items": [
+    { "section": "Drinks", "name": "Latte", "description": null, "source_text": "Latte 4.50", "page": 1,
+      "prices": [{ "label": null, "amount_cents": 450, "raw": "4.50" }], "price_kind": "fixed", "deal_text": null,
+      "confidence": "high", "note": null, "looks_like_instruction": false },
+    { "section": "Bakery", "name": "Muffin", "description": null, "source_text": "Muffin 3", "page": 1,
+      "prices": [{ "label": null, "amount_cents": 300, "raw": "3" }], "price_kind": "fixed", "deal_text": null,
+      "confidence": "high", "note": null, "looks_like_instruction": false },
+    { "section": "Bakery", "name": "muffin", "description": null, "source_text": "Muffin 3.00", "page": 2,
+      "prices": [{ "label": null, "amount_cents": 300, "raw": "3.00" }], "price_kind": "fixed", "deal_text": null,
+      "confidence": "high", "note": null, "looks_like_instruction": false },
+    { "section": "Drinks", "name": "Latte", "description": null, "source_text": "Latte 5.00", "page": 2,
+      "prices": [{ "label": null, "amount_cents": 500, "raw": "5.00" }], "price_kind": "fixed", "deal_text": null,
+      "confidence": "high", "note": null, "looks_like_instruction": false },
+    { "section": "Bakery", "name": "Scone", "description": null, "source_text": "Scone 3.50", "page": 2,
+      "prices": [{ "label": null, "amount_cents": 350, "raw": "3.50" }], "price_kind": "fixed", "deal_text": null,
+      "confidence": "high", "note": null, "looks_like_instruction": false }
+  ],
+  "skipped_lines": []
+}
