@@ -10,7 +10,8 @@
 import { ConfigError } from '@/lib/config';
 import * as shops from '@/lib/db/repos/shops';
 import { canGoLive, itemsToPublish, publishShop } from '@/lib/catalog/publish';
-import { jsonError, notFound, ownedShop } from '@/lib/catalog/http';
+import { notFound, ownedShop } from '@/lib/catalog/http';
+import { jsonError } from '@/lib/http/json-error';
 import type { OrderDeps } from '@/lib/orders/service';
 import { getOrderDeps } from '@/lib/services';
 
@@ -29,7 +30,7 @@ export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/pub
     deps = getOrderDeps();
   } catch (err) {
     if (err instanceof ConfigError) {
-      return jsonError('PAYPAL_NOT_CONFIGURED', 'Publishing needs PayPal sandbox keys. Add PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY to .env and restart.', 503);
+      return jsonError(503, 'PAYPAL_NOT_CONFIGURED', 'Publishing needs PayPal sandbox keys. Add PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY to .env and restart.');
     }
     throw err;
   }
@@ -37,9 +38,9 @@ export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/pub
 
   const todo = itemsToPublish(db, id);
   if (todo.length === 0 && !canGoLive(db, id)) {
-    return jsonError('NOTHING_TO_PUBLISH', 'Nothing is ready to publish. Give at least one item a price and clear its check.', 400);
+    return jsonError(400, 'NOTHING_TO_PUBLISH', 'Nothing is ready to publish. Give at least one item a price and clear its check.');
   }
-  if (running.has(id)) return jsonError('PUBLISH_RUNNING', 'Already adding your items to PayPal.', 409);
+  if (running.has(id)) return jsonError(409, 'PUBLISH_RUNNING', 'Already adding your items to PayPal.');
   running.add(id);
 
   const encoder = new TextEncoder();

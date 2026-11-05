@@ -14,7 +14,7 @@ import { formatUSD } from '@/lib/domain/money';
 import type { Order, OrderBrief, Shop } from '@/lib/domain/types';
 import { createSellerToolkit, type ShopScope } from '@/lib/paypal/toolkit';
 import { shopScope } from '@/lib/seller/scope';
-import { HEADLINE_MAX, shorten, templateBrief } from './template';
+import { BRIEF_RUN_TIMEOUT_MS, HEADLINE_MAX, shorten, templateBrief } from './template';
 
 export { HEADLINE_MAX, templateBrief };
 import { MODEL_ID, getAnthropic } from './anthropic';
@@ -36,7 +36,7 @@ export interface BriefDeps {
 }
 
 export const BRIEF_MAX_ITERATIONS = 4;
-const RUN_TIMEOUT_MS = 120_000;
+const RUN_TIMEOUT_MS = BRIEF_RUN_TIMEOUT_MS;
 
 // ---- submit_brief: strict JSON Schema that matches OrderBrief exactly --------------------------------------
 
@@ -130,6 +130,13 @@ const SYSTEM_PROMPT = [
 /** Escapes the characters that could close or forge the wrapper tags. */
 const escapeTagText = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/**
+ * JSON for inside a wrapper tag. JSON.stringify leaves `<`, `>` and `&` alone, so they become JSON Unicode escapes: a
+ * name like "</order>" can't close the wrapper, and the values still decode to the original text ("Bean & cheese").
+ */
+const tagJson = (value: unknown) =>
+  JSON.stringify(value, null, 2).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
+
 function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; section: string | null; notes: string }[]): string {
   const snapshot = {
     order_number: order.number,
@@ -165,15 +172,15 @@ function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; s
     `Write the prep brief for order ${order.number}. Its PayPal order id is ${order.paypalOrderId}: call get_order with it first, then submit_brief.`,
     '',
     '<order>',
-    JSON.stringify(snapshot, null, 2),
+    tagJson(snapshot),
     '</order>',
     '',
     '<shop>',
-    JSON.stringify(shopInfo, null, 2),
+    tagJson(shopInfo),
     '</shop>',
     '',
     "<item_notes source=\"the seller's menu\">",
-    JSON.stringify(itemNotes, null, 2),
+    tagJson(itemNotes),
     '</item_notes>',
     '',
     checks,

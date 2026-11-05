@@ -104,7 +104,10 @@ describe('setup routes', () => {
       seen = photos.length;
       return recordedReading('marigold-bakehouse');
     };
-    const res = await extractRoute.POST(new Request('http://x', { method: 'POST', body: form }), ctx(shopId));
+    const encoded = new Response(form);
+    const body = new Uint8Array(await encoded.arrayBuffer());
+    const headers = { 'content-type': encoded.headers.get('content-type')!, 'content-length': String(body.byteLength) };
+    const res = await extractRoute.POST(new Request('http://x', { method: 'POST', headers, body }), ctx(shopId));
     expect(res.status).toBe(200);
     expect(seen).toBe(1);
     expect(shops.byId(state.db, shopId)!.menuPhotoPaths[0]).toMatch(/\/page-1-[a-z0-9]+\.jpg$/);
@@ -119,6 +122,25 @@ describe('setup routes', () => {
     const res = await extractRoute.POST(req, ctx(shopId));
     expect(res.status).toBe(413);
     expect(((await res.json()) as { error: { code: string } }).error.code).toBe('PHOTO_TOO_LARGE');
+    expect(reads).toBe(0);
+  });
+
+  it('a retake without a Content-Length is refused with 411, before reading', async () => {
+    let read = false;
+    const body = new ReadableStream(
+      {
+        pull() {
+          read = true;
+          throw new Error('the body must not be read');
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const req = new Request('http://x', { method: 'POST', headers: { 'content-type': 'multipart/form-data; boundary=x' }, body, duplex: 'half' } as RequestInit);
+    const res = await extractRoute.POST(req, ctx(shopId));
+    expect(res.status).toBe(411);
+    expect(await res.json()).toEqual({ error: { code: 'LENGTH_REQUIRED', message: expect.any(String) } });
+    expect(read).toBe(false);
     expect(reads).toBe(0);
   });
 

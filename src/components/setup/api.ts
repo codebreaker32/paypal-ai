@@ -1,33 +1,8 @@
 // Browser-side calls for the setup screens. Every route answers errors as { error: { code, message } }.
 import type { ItemWithVariants, ShopFulfillment } from '@/lib/domain/types';
+import { ApiError, NETWORK_MESSAGE, call, errorFrom } from '@/lib/client/http';
 
-export class ApiError extends Error {
-  constructor(
-    public readonly code: string,
-    message: string,
-    public readonly status: number,
-  ) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
-
-const NETWORK = "We couldn't reach Shelfie. Check your connection and try again.";
-
-async function call<T>(url: string, init: RequestInit): Promise<{ status: number; body: T }> {
-  let res: Response;
-  try {
-    res = await fetch(url, { cache: 'no-store', ...init });
-  } catch {
-    throw new ApiError('NETWORK', NETWORK, 0);
-  }
-  const body = (await res.json().catch(() => null)) as (T & { error?: { code: string; message: string } }) | null;
-  if (!res.ok) {
-    const e = body?.error;
-    throw new ApiError(e?.code ?? 'SERVER_ERROR', e?.message ?? 'Something went wrong on our side. Try again in a moment.', res.status);
-  }
-  return { status: res.status, body: body as T };
-}
+export { ApiError };
 
 const json = (method: string, body: unknown): RequestInit => ({
   method,
@@ -121,11 +96,11 @@ export async function publish(shopId: string, onEvent: (e: PublishEvent) => void
   try {
     res = await fetch(`/api/shops/${shopId}/publish`, { method: 'POST', cache: 'no-store' });
   } catch {
-    throw new ApiError('NETWORK', NETWORK, 0);
+    throw new ApiError(0, 'NETWORK', NETWORK_MESSAGE);
   }
   if (!res.ok || !res.body) {
-    const body = (await res.json().catch(() => null)) as { error?: { code: string; message: string } } | null;
-    throw new ApiError(body?.error?.code ?? 'SERVER_ERROR', body?.error?.message ?? 'Publishing failed. Try again.', res.status);
+    const body = (await res.json().catch(() => null)) as { error?: { code?: string; message?: string } } | null;
+    throw errorFrom(res.status, body, { fallbackMessage: () => 'Publishing failed. Try again.' });
   }
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = '';

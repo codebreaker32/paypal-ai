@@ -11,6 +11,7 @@ import { getConfig } from '@/lib/config';
 import { getDb, type Db } from '@/lib/db';
 import * as assistantRepo from '@/lib/db/repos/assistant';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { consoleHeaders } from './console-key';
 import { sanitizeShopName } from '@/lib/mcp/instructions';
 
 /** What the console streams to the browser, one JSON object per line. */
@@ -54,19 +55,24 @@ export interface BuyerConsoleTurnInput {
   mcpUrl: string;
   /** Defaults to the app's Anthropic client (needs ANTHROPIC_API_KEY). */
   client?: Anthropic;
+  /** The buyer's IP as the console route saw it: the door rate-limits the console's create_order calls by it. */
+  buyerIp?: string;
   /** Defaults to the MCP SDK client over Streamable HTTP. */
-  mcpClientFactory?: (url: URL, signal?: AbortSignal) => Promise<McpToolClient>;
+  mcpClientFactory?: (url: URL, signal?: AbortSignal, buyerIp?: string) => Promise<McpToolClient>;
   /** Defaults to the app database. */
   db?: Db;
   /** The browser went away: stop the turn (no more Claude calls, no more tool calls). */
   signal?: AbortSignal;
 }
 
-/** Connects to the agent door the way any outside MCP client does: Streamable HTTP. */
-export async function connectAgentDoor(url: URL, signal?: AbortSignal): Promise<McpToolClient> {
+/**
+ * Connects to the agent door the way any outside MCP client does: Streamable HTTP. Every request carries the console
+ * secret and the buyer's IP, so the door's create_order limit applies per buyer, not to the server's own IP.
+ */
+export async function connectAgentDoor(url: URL, signal?: AbortSignal, buyerIp = 'unknown'): Promise<McpToolClient> {
   const client = new Client({ name: CONSOLE_AGENT_NAME, version: '1.0.0' });
   try {
-    await client.connect(new StreamableHTTPClientTransport(url), { signal });
+    await client.connect(new StreamableHTTPClientTransport(url, { requestInit: { headers: consoleHeaders(buyerIp) } }), { signal });
   } catch (e) {
     await client.close().catch(() => {});
     throw e;
@@ -126,7 +132,7 @@ export async function* runBuyerConsoleTurn(input: BuyerConsoleTurnInput): AsyncG
     let door: McpToolClient;
     let doorTools: Awaited<ReturnType<McpToolClient['listTools']>>['tools'];
     try {
-      door = await (input.mcpClientFactory ?? connectAgentDoor)(new URL(input.mcpUrl), signal);
+      door = await (input.mcpClientFactory ?? connectAgentDoor)(new URL(input.mcpUrl), signal, input.buyerIp);
     } catch (e) {
       if (signal.aborted) return;
       console.warn(`[shelfie] buyer console could not reach the agent door: ${e instanceof Error ? e.message : String(e)}`);

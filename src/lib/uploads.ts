@@ -17,14 +17,21 @@ const MAX_EDGE = 1600;
 // Formats a phone or a photo picker produces. SVG, PDF and the like are refused.
 const PHOTO_FORMATS = new Set(['jpeg', 'png', 'webp', 'heif', 'avif', 'tiff', 'gif']);
 
-export type UploadErrorCode = 'BAD_IMAGE' | 'PHOTO_TOO_LARGE' | 'TOO_MANY_PHOTOS' | 'NO_PHOTOS';
+export type UploadErrorCode = 'BAD_IMAGE' | 'PHOTO_TOO_LARGE' | 'TOO_MANY_PHOTOS' | 'NO_PHOTOS' | 'LENGTH_REQUIRED';
 
-const STATUS: Record<UploadErrorCode, number> = { BAD_IMAGE: 415, PHOTO_TOO_LARGE: 413, TOO_MANY_PHOTOS: 400, NO_PHOTOS: 400 };
+const STATUS: Record<UploadErrorCode, number> = {
+  BAD_IMAGE: 415,
+  PHOTO_TOO_LARGE: 413,
+  TOO_MANY_PHOTOS: 400,
+  NO_PHOTOS: 400,
+  LENGTH_REQUIRED: 411,
+};
 const MESSAGES: Record<UploadErrorCode, string> = {
   BAD_IMAGE: "We couldn't open that photo. Try a JPG or PNG.",
   PHOTO_TOO_LARGE: 'That photo is over 15 MB. Take it again or pick a smaller copy.',
   TOO_MANY_PHOTOS: `Shelfie reads up to ${MAX_PHOTOS} photos at a time.`,
   NO_PHOTOS: 'Add at least one photo of your price list.',
+  LENGTH_REQUIRED: "We couldn't tell how big that upload is. Try again from your browser.",
 };
 
 export class UploadError extends Error {
@@ -55,10 +62,16 @@ export async function normalizePhoto(input: Buffer): Promise<Buffer> {
 
 /**
  * Refuses an upload request whose Content-Length is over MAX_UPLOAD_BYTES, before any of the body is
- * read (req.formData() buffers it all). Browsers always send Content-Length for a form upload.
+ * read (req.formData() buffers it all). Browsers always send Content-Length for a form upload, so a
+ * multipart body without one (chunked, of unknown size) is refused with LENGTH_REQUIRED (411).
  */
 export function checkUploadSize(req: Request): void {
-  const declared = Number(req.headers.get('content-length') ?? 0);
+  const header = req.headers.get('content-length');
+  const multipart = (req.headers.get('content-type') ?? '').includes('multipart/form-data');
+  if (multipart && (header === null || header.trim() === '' || !Number.isFinite(Number(header)))) {
+    throw new UploadError('LENGTH_REQUIRED');
+  }
+  const declared = Number(header ?? 0);
   if (declared > MAX_UPLOAD_BYTES) {
     throw new UploadError('PHOTO_TOO_LARGE', `Those photos are over ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB together. Send fewer, or smaller copies.`);
   }

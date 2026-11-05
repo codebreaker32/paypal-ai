@@ -5,6 +5,7 @@ import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { clientIp } from '@/lib/http/client-ip';
+import { jsonError } from '@/lib/http/json-error';
 import { allow } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -34,7 +35,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
   const shop = shopsRepo.bySlug(getDb(), slug);
   if (!shop || shop.status === 'draft') return jsonError(404, 'SHOP_NOT_FOUND', 'There is no shop at this address.');
 
-  if (!allow(`assistant:${clientIp(req)}`, CONSOLE_RATE.limit, CONSOLE_RATE.windowMs)) {
+  const buyerIp = clientIp(req);
+  if (!allow(`assistant:${buyerIp}`, CONSOLE_RATE.limit, CONSOLE_RATE.windowMs)) {
     return jsonError(429, 'RATE_LIMITED', "You've sent a lot of messages in the last hour. Try again later.");
   }
 
@@ -51,6 +53,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
     sessionId: body.data.sessionId ?? null,
     userText: body.data.text,
     mcpUrl,
+    buyerIp,
     signal: gone.signal,
   });
   return new Response(ndjson(events, stop), {
@@ -93,8 +96,4 @@ function ndjson(events: AsyncGenerator<ConsoleEvent>, stop: () => void): Readabl
       await events.return(undefined).catch(() => {});
     },
   });
-}
-
-function jsonError(status: number, code: string, message: string): Response {
-  return Response.json({ error: { code, message } }, { status, headers: { 'cache-control': 'no-store' } });
 }

@@ -2,7 +2,8 @@
 import { getOwnedShop } from '@/lib/auth/owner';
 import { getOrderDeps } from '@/lib/services';
 import { markPickedUp, SellerActionError } from '@/lib/seller/actions';
-import { json, jsonError } from '@/lib/seller/http';
+import { jsonError } from '@/lib/http/json-error';
+import { json } from '@/lib/seller/http';
 
 export const runtime = 'nodejs';
 

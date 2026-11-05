@@ -299,10 +299,11 @@ describe('GET /s/[slug]/photo/[n]', () => {
     fs.writeFileSync(path.join(tmp, 'secret.txt'), 'not a photo');
     shops.update(getDb(), s.shop.id, {
       menuPhotoPaths: [
-        `${s.shop.id}/page-1.jpg`, // relative to UPLOADS_DIR
-        path.join(process.env.UPLOADS_DIR!, s.shop.id, 'page-2.jpg'), // absolute, inside UPLOADS_DIR
+        `${s.shop.id}/page-1.jpg`, // relative to UPLOADS_DIR: the only form writeUpload stores
+        `${s.shop.id}/page-2.jpg`,
         '../secret.txt', // outside UPLOADS_DIR: never served
-        path.relative(process.cwd(), path.join(process.env.UPLOADS_DIR!, s.shop.id, 'page-1.jpg')), // relative to the app folder
+        // Not a form the app stores, so not served: readUpload takes paths relative to UPLOADS_DIR only.
+        path.join(process.env.UPLOADS_DIR!, s.shop.id, 'page-2.jpg'), // absolute
       ],
     });
   });
@@ -312,10 +313,11 @@ describe('GET /s/[slug]/photo/[n]', () => {
     expect(res.status).toBe(200);
     expect(res.headers.get('content-type')).toBe('image/jpeg');
     expect(Buffer.from(await res.arrayBuffer()).equals(jpeg)).toBe(true);
-    for (const n of ['2', '4']) {
-      const res = await photoGET(get(`/s/${s.shop.slug}/photo/${n}`), photoCtx(s.shop.slug, n));
-      expect(res.status).toBe(200);
-    }
+    expect((await photoGET(get(`/s/${s.shop.slug}/photo/2`), photoCtx(s.shop.slug, '2'))).status).toBe(200);
+  });
+
+  it('serves only paths relative to the uploads folder, as the app stores them', async () => {
+    expect((await photoGET(get(`/s/${s.shop.slug}/photo/4`), photoCtx(s.shop.slug, '4'))).status).toBe(404);
   });
 
   it.each(['0', '5', 'abc', '1.5', '-1', '100'])('answers 404 for photo %s', async (n) => {

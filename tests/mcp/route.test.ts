@@ -78,7 +78,8 @@ describe('agent door route POST /s/[slug]/mcp', () => {
     const viaUa = await POST(rpc(s.shop.slug, { jsonrpc: '2.0', id: 4, method: 'tools/call', params: { name: 'create_order', arguments: args } },
       { headers: { 'user-agent': 'ExampleAgent/2.1' } }), ctx(s.shop.slug));
     const b = (await viaUa.json()).result;
-    expect(orders.byId(getDb(), b.structuredContent.order_ref)!.agentName).toBe('ExampleAgent/2.1');
+    // Never the raw User-Agent: an unknown client is "an AI assistant", known ones get their name.
+    expect(orders.byId(getDb(), b.structuredContent.order_ref)!.agentName).toBe('an AI assistant');
   });
 
   it('works end to end with the MCP SDK client over real HTTP', async () => {

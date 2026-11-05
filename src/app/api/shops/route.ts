@@ -8,7 +8,8 @@ import { setOwnerCookie } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import { isSampleId } from '@/lib/ai/samples';
 import { createShopFromPhotos, createShopFromSample, type CreatedShop } from '@/lib/catalog/setup';
-import { errorResponse, jsonError } from '@/lib/catalog/http';
+import { errorResponse } from '@/lib/catalog/http';
+import { jsonError } from '@/lib/http/json-error';
 import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
@@ -36,7 +37,7 @@ export async function POST(req: Request): Promise<Response> {
       created = await createShopFromPhotos(db, await photosFrom(req));
     } else if (type.includes('application/json')) {
       const body = (await req.json().catch(() => null)) as { sample?: unknown } | null;
-      if (!isSampleId(body?.sample)) return jsonError('UNKNOWN_SAMPLE', 'Pick one of the sample menus.', 400);
+      if (!isSampleId(body?.sample)) return jsonError(400, 'UNKNOWN_SAMPLE', 'Pick one of the sample menus.');
       created = await createShopFromSample(db, body.sample);
     } else {
       throw new UploadError('NO_PHOTOS');

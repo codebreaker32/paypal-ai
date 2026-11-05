@@ -5,8 +5,14 @@ import { lineName, whereLabel } from '@/lib/seller/view';
 
 export const HEADLINE_MAX = 90;
 
-/** A paid order with no brief after this long has lost its brief job (restart); show the template instead. */
-export const BRIEF_STALE_MS = 2 * 60_000;
+/** How long one brief agent run may take before it is aborted (brief.ts uses it; defined here so the two can't drift). */
+export const BRIEF_RUN_TIMEOUT_MS = 120_000;
+
+/**
+ * A paid order with no brief after this long has lost its brief job (restart); show the template instead. A minute
+ * above the run timeout, for the job's start (payment noticed by the poller) and its last write.
+ */
+export const BRIEF_STALE_MS = BRIEF_RUN_TIMEOUT_MS + 60_000;
 
 export function shorten(s: string, max = HEADLINE_MAX): string {
   const t = s.replace(/\s+/g, ' ').trim();

@@ -3,7 +3,8 @@
 import { getOwnedShop } from '@/lib/auth/owner';
 import { getOrderDeps } from '@/lib/services';
 import { addTracking, parseTrackingInput, SellerActionError } from '@/lib/seller/actions';
-import { json, jsonError, readJson } from '@/lib/seller/http';
+import { jsonError } from '@/lib/http/json-error';
+import { json, readJson } from '@/lib/seller/http';
 
 export const runtime = 'nodejs';
 
