@@ -121,6 +121,31 @@ describe('createSaveQueue', () => {
     expect(saveShop).toHaveBeenCalledTimes(1);
   });
 
+  it('the refusal message that stays up names only what was refused, not a retryable failure', async () => {
+    const states: SaveState[] = [];
+    let shopDown = true;
+    const q = createSaveQueue({
+      saveItems: async () => {
+        throw refused();
+      },
+      saveShop: async () => {
+        if (shopDown) throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
+      },
+      onState: (st) => states.push(st),
+    });
+    q.queueItem({ itemId: 'a', name: 'Focaccia Genovese' });
+    q.queueShop({ name: 'Marigold Bakehouse' });
+    await expect(q.flush()).rejects.toBeInstanceOf(ApiError);
+    expect(states.at(-1)).toMatchObject({ status: 'error', retryable: true });
+    // Retry sends the shop patch; what stays up is the item refusal alone.
+    shopDown = false;
+    await q.flush();
+    const last = states.at(-1) as Extract<SaveState, { status: 'error' }>;
+    expect(last).toMatchObject({ status: 'error', retryable: false });
+    expect(last.message).toContain(refused().message);
+    expect(last.message).not.toContain("couldn't reach");
+  });
+
   it('a new edit after a refusal clears the message', async () => {
     let n = 0;
     const { q, last } = setup(async () => {

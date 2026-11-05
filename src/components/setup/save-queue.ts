@@ -88,24 +88,25 @@ export function createSaveQueue(o: SaveQueueOptions): SaveQueue {
         return;
       }
       const messages: string[] = [];
+      const refusedMessages: string[] = [];
       let retryable = false;
-      let wasRefused = false;
       for (const f of failures) {
-        const canRetry = isRetryable(f.error);
         const text = f.error instanceof Error ? f.error.message : String(f.error);
         // With both kinds in one save, say which one failed.
-        messages.push(both ? `${f.label}: ${text}` : text);
-        if (canRetry) {
+        const labelled = both ? `${f.label}: ${text}` : text;
+        messages.push(labelled);
+        if (isRetryable(f.error)) {
           // Keep the changes so Retry sends them again.
           f.requeue();
           retryable = true;
         } else {
-          wasRefused = true;
+          refusedMessages.push(labelled);
           resync = true;
         }
       }
       const message = messages.join(' ');
-      if (wasRefused) refused = message;
+      // Only what the server refused stays up; a retryable failure is resent and clears itself.
+      if (refusedMessages.length) refused = refusedMessages.join(' ');
       set({ status: 'error', message, retryable });
       throw failures[0].error;
     });
