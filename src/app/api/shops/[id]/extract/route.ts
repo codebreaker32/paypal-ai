@@ -12,7 +12,7 @@ import { getDb } from '@/lib/db';
 import { extractMenu } from '@/lib/ai/extract';
 import { loadSetupView, runReading, setShopPhotos } from '@/lib/catalog/setup';
 import { errorResponse, jsonError, notFound, ownedShop } from '@/lib/catalog/http';
-import { MAX_PHOTOS, UploadError, readFileLimited } from '@/lib/uploads';
+import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -31,6 +31,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/extr
     if ((req.headers.get('content-type') ?? '').includes('multipart/form-data')) {
       const view = loadSetupView(db, shop);
       if (view.step === 'reading' && view.running) return Response.json({ reading: true }, { status: 202 });
+      checkUploadSize(req);
       const form = await req.formData().catch(() => null);
       const files = (form?.getAll('photos') ?? []).filter((f): f is File => typeof f !== 'string');
       if (files.length > MAX_PHOTOS) throw new UploadError('TOO_MANY_PHOTOS');

@@ -110,6 +110,18 @@ describe('setup routes', () => {
     expect(shops.byId(state.db, shopId)!.menuPhotoPaths[0]).toMatch(/\/page-1-[a-z0-9]+\.jpg$/);
   });
 
+  it('a retake over 4 × 15 MB (+ 1 MB) is refused from its Content-Length, before reading', async () => {
+    const req = new Request('http://x', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=x', 'content-length': String(4 * 15 * 1024 * 1024 + 1024 * 1024 + 1) },
+      body: 'not read',
+    });
+    const res = await extractRoute.POST(req, ctx(shopId));
+    expect(res.status).toBe(413);
+    expect(((await res.json()) as { error: { code: string } }).error.code).toBe('PHOTO_TOO_LARGE');
+    expect(reads).toBe(0);
+  });
+
   it('a failed reading is a 502 with a friendly message', async () => {
     state.extract = async () => {
       throw new Error('529 overloaded');

@@ -113,6 +113,36 @@ describe('POST /api/shops', () => {
     expect(state.jar.size).toBe(0);
   });
 
+  it('refuses an upload over 4 × 15 MB (+ 1 MB) from its Content-Length, before reading the body', async () => {
+    const limit = 4 * 15 * 1024 * 1024 + 1024 * 1024;
+    let read = false;
+    // highWaterMark 0: pull() runs only when someone reads the body.
+    const body = new ReadableStream(
+      {
+        pull() {
+          read = true;
+          throw new Error('the body must not be read');
+        },
+      },
+      { highWaterMark: 0 },
+    );
+    const req = new Request('http://localhost/api/shops', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=x', 'content-length': String(limit + 1) },
+      body,
+      duplex: 'half',
+    } as RequestInit);
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    expect(await errorCode(res)).toBe('PHOTO_TOO_LARGE');
+    expect(read).toBe(false);
+    expect(state.db.prepare('select count(*) as n from shops').get()).toEqual({ n: 0 });
+
+    // At the limit the request is read as usual.
+    const ok = multipart([{ blob: await jpeg(), name: 'a.jpg' }]);
+    expect((await POST(ok)).status).toBe(201);
+  });
+
   it('rejects an unknown sample and a body that is neither', async () => {
     const res = await POST(json({ sample: 'nope' }));
     expect(res.status).toBe(400);

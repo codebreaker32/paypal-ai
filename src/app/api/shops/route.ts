@@ -1,13 +1,15 @@
 // POST /api/shops: start a shop from 1-4 menu photos (multipart field "photos") or from a sample
 // menu (JSON { sample }). Answers 201 { shopId } and sets this browser's owner cookie.
-// Errors: NO_PHOTOS 400, TOO_MANY_PHOTOS 400, PHOTO_TOO_LARGE 413, BAD_IMAGE 415, UNKNOWN_SAMPLE 400.
+// Errors: NO_PHOTOS 400, TOO_MANY_PHOTOS 400, PHOTO_TOO_LARGE 413 (one photo over 15 MB, or a request
+// over 4 × 15 MB + 1 MB, refused from its Content-Length before the body is read), BAD_IMAGE 415,
+// UNKNOWN_SAMPLE 400.
 // Reading the menu happens next, on the setup page (POST /api/shops/[id]/extract).
 import { setOwnerCookie } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import { isSampleId } from '@/lib/ai/samples';
 import { createShopFromPhotos, createShopFromSample, type CreatedShop } from '@/lib/catalog/setup';
 import { errorResponse, jsonError } from '@/lib/catalog/http';
-import { MAX_PHOTOS, UploadError, readFileLimited } from '@/lib/uploads';
+import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
 
@@ -27,6 +29,7 @@ async function photosFrom(req: Request): Promise<Buffer[]> {
 export async function POST(req: Request): Promise<Response> {
   const type = req.headers.get('content-type') ?? '';
   try {
+    checkUploadSize(req);
     const db = getDb();
     let created: CreatedShop;
     if (type.includes('multipart/form-data')) {

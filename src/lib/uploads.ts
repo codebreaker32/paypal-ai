@@ -11,6 +11,8 @@ import { getConfig } from '@/lib/config';
 
 export const MAX_PHOTOS = 4;
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+/** The most one upload request may carry: every photo at the limit, plus 1 MB of form overhead. */
+export const MAX_UPLOAD_BYTES = MAX_PHOTOS * MAX_PHOTO_BYTES + 1024 * 1024;
 const MAX_EDGE = 1600;
 // Formats a phone or a photo picker produces. SVG, PDF and the like are refused.
 const PHOTO_FORMATS = new Set(['jpeg', 'png', 'webp', 'heif', 'avif', 'tiff', 'gif']);
@@ -48,6 +50,17 @@ export async function normalizePhoto(input: Buffer): Promise<Buffer> {
   } catch (err) {
     if (err instanceof UploadError) throw err;
     throw new UploadError('BAD_IMAGE');
+  }
+}
+
+/**
+ * Refuses an upload request whose Content-Length is over MAX_UPLOAD_BYTES, before any of the body is
+ * read (req.formData() buffers it all). Browsers always send Content-Length for a form upload.
+ */
+export function checkUploadSize(req: Request): void {
+  const declared = Number(req.headers.get('content-length') ?? 0);
+  if (declared > MAX_UPLOAD_BYTES) {
+    throw new UploadError('PHOTO_TOO_LARGE', `Those photos are over ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB together. Send fewer, or smaller copies.`);
   }
 }
 
