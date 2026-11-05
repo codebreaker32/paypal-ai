@@ -1,6 +1,6 @@
 // The buyer backed out on PayPal: GET /api/paypal/cancel?o=<orderId>. Cancel an order still waiting for approval
 // (a paid one is left alone), then show the receipt.
-import { ORDER_REF } from '@/app/o/[ref]/receipt-view';
+import { ORDER_REF } from '@/lib/orders/receipt';
 import { cancelOrder } from '@/lib/orders/service';
 import { getOrderDeps } from '@/lib/services';
 

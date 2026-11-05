@@ -2,6 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { clientIp } from '@/lib/http/client-ip';
 import type { OrderDeps } from '@/lib/orders/service';
 import { buildInstructions, sanitizeShopName } from './instructions';
 import { registerShopTools, type ShopServerDeps } from './tools';
@@ -56,12 +57,6 @@ export function jsonRpcError(status: number, code: number, message: string, head
     status,
     headers: { 'content-type': 'application/json', ...headers },
   });
-}
-
-/** Rate-limit key. The rightmost X-Forwarded-For entry is the address our hosting proxy saw; leftmost ones are client-supplied. */
-function clientIp(req: Request): string {
-  const forwarded = req.headers.get('x-forwarded-for')?.split(',').map((s) => s.trim()).filter(Boolean).at(-1);
-  return forwarded || req.headers.get('x-real-ip')?.trim() || 'local';
 }
 
 /** A short, printable label for the agent (query param or User-Agent), or null. */

@@ -2,7 +2,7 @@
 // an approved order whose capture PayPal refused), and when it keeps re-reading the order.
 import { describe, expect, it } from 'vitest';
 import { keepsPolling, statusView } from '@/app/o/[ref]/receipt-status';
-import type { ReceiptOrder } from '@/app/o/[ref]/receipt-types';
+import type { ReceiptOrder } from '@/lib/orders/receipt-types';
 import type { OrderStatus } from '@/lib/domain/types';
 
 const base: ReceiptOrder = {

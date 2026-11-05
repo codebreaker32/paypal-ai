@@ -1,4 +1,4 @@
-// Client-safe receipt types and constants (no database imports: the Receipt client component uses them).
+// Client-safe receipt types and constants (no database imports: the receipt's client component uses them).
 import type { Fulfillment, OrderStatus } from '@/lib/domain/types';
 
 export interface ReceiptLine {

@@ -5,7 +5,7 @@ import { getDb } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { Receipt } from './Receipt';
-import { receiptView } from './receipt-view';
+import { receiptView } from '@/lib/orders/receipt';
 
 export const metadata: Metadata = {
   title: 'Your order · Shelfie',

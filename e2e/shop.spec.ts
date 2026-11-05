@@ -1,9 +1,12 @@
-// Shop page, buyer console and receipt: behaviour, accessibility and screenshots (docs/judge/screenshots/task7/).
-// The console's stream is replayed from a real recorded run (e2e/fixtures/console-turns.json), so no Claude or PayPal
-// calls happen here. Orders for the receipt states are written straight to SQLite and removed afterwards.
+// Shop page, buyer console and receipt: behaviour and accessibility, plus screenshots (docs/judge/screenshots/task7/)
+// when SHELFIE_SCREENSHOTS=1. The console's stream is replayed from a real recorded run
+// (e2e/fixtures/console-turns.json), so no Claude or PayPal calls happen here. Orders for the receipt states are
+// written straight to SQLite and removed afterwards.
 //
 // Run against an already running app (recommended, it shares the database):
 //   E2E_PORT=<port> E2E_REUSE_SERVER=1 npx playwright test e2e/shop.spec.ts
+// Refresh the committed screenshots:
+//   SHELFIE_SCREENSHOTS=1 E2E_PORT=<port> E2E_REUSE_SERVER=1 npx playwright test e2e/shop.spec.ts
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import fs from 'node:fs';
@@ -127,11 +130,20 @@ test.afterAll(() => {
 const ndjson = (events: Record<string, unknown>[]) => events.map((e) => JSON.stringify(e)).join('\n') + '\n';
 
 /** Replays the recorded turns for POST /api/assistant/<slug>, one per request; returns the request bodies. */
-async function replayConsole(page: Page): Promise<unknown[]> {
+/**
+ * Replays the recorded turns for POST /api/assistant/<slug>, one per request; returns the request bodies. With `order`,
+ * the recorded approval points at that order instead, so the console can follow its real status.
+ */
+async function replayConsole(page: Page, order?: Order): Promise<unknown[]> {
   const bodies: unknown[] = [];
   await page.route(`**/api/assistant/${SLUG}`, async (route) => {
     bodies.push(route.request().postDataJSON());
-    const turn = FIXTURE.turns[Math.min(bodies.length - 1, FIXTURE.turns.length - 1)];
+    let turn = FIXTURE.turns[Math.min(bodies.length - 1, FIXTURE.turns.length - 1)];
+    if (order) {
+      turn = turn.map((e) =>
+        e.type === 'approval' ? { ...e, orderRef: order.id, orderNumber: order.number, approvalUrl: order.approvalUrl } : e,
+      );
+    }
     await route.fulfill({ status: 200, contentType: 'application/x-ndjson', body: ndjson(turn) });
   });
   return bodies;
@@ -177,7 +189,11 @@ async function smallTargets(page: Page, scope = 'main') {
   );
 }
 
-const shoot = (page: Page, name: string, fullPage = true) => page.screenshot({ path: `${OUT}/${name}.png`, fullPage, animations: 'disabled' });
+/** Screenshots are committed, so only SHELFIE_SCREENSHOTS=1 rewrites them; a normal run never touches the PNGs. */
+const SHOTS = process.env.SHELFIE_SCREENSHOTS === '1';
+const shoot = async (page: Page, name: string, fullPage = true) => {
+  if (SHOTS) await page.screenshot({ path: `${OUT}/${name}.png`, fullPage, animations: 'disabled' });
+};
 
 // ---- shop page -----------------------------------------------------------------------------------------
 
@@ -311,6 +327,23 @@ test.describe('console states', () => {
     await expect(region.getByRole('alert')).toHaveText(message);
   });
 
+  test('a full conversation offers a new one', async ({ page }) => {
+    const message = 'This conversation is full. Start a new one to keep ordering.';
+    await page.route(`**/api/assistant/${SLUG}`, (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/x-ndjson',
+        body: ndjson([{ type: 'session', id: 'asst_full' }, { type: 'error', message, code: 'CONVERSATION_FULL' }]),
+      }),
+    );
+    await page.goto(`/s/${SLUG}?assistant=1`);
+    const region = consoleRegion(page, false);
+    await region.getByRole('button', { name: /shipped to me$/ }).click();
+    await expect(region.getByRole('alert')).toHaveText(message);
+    await region.getByRole('button', { name: 'Start a new conversation' }).click();
+    await expect(region.getByRole('list', { name: 'Try asking' })).toBeVisible();
+  });
+
   test('a paused shop says so; sold-out and ask-in-person items are marked', async ({ page }) => {
     await page.setViewportSize(PHONE);
     await page.goto(`/s/${edgeShop.slug}`);
@@ -408,17 +441,33 @@ test.describe('receipt behaviour', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Order cancelled' })).toBeVisible();
   });
 
-  test('Back to the assistant brings the conversation back', async ({ page }) => {
+  test('Back to the assistant brings the conversation back, and the approval card follows the order to Paid', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
-    await replayConsole(page);
+    await replayConsole(page, fx.back);
     await page.goto(`/s/${SLUG}`);
     const region = await openConsole(page, false);
     await orderThroughConsole(region);
+
+    // Still waiting for approval: the way back keeps the PayPal button.
     await page.goto(`/o/${fx.back.id}`);
     await page.getByRole('link', { name: 'Back to the assistant' }).click();
     await expect(page).toHaveURL(new RegExp(`/s/${SLUG}\\?assistant=1$`));
-    const again = consoleRegion(page, false);
-    await expect(again.getByRole('link', { name: 'Approve $27.00 on PayPal' })).toBeVisible();
+    let again = consoleRegion(page, false);
+    await expect(again.getByRole('link', { name: 'Approve $27.00 on PayPal' })).toHaveAttribute('href', fx.back.approvalUrl);
     await expect(again.getByRole('button', { name: 'Did my payment go through?' })).toBeVisible();
+
+    // Paid on PayPal: back in the console, the card no longer offers to approve; it links the receipt.
+    markPaid(fx.back);
+    await page.goto(`/o/${fx.back.id}`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Paid. Marigold Bakehouse has your order.' })).toBeVisible();
+    await page.getByRole('link', { name: 'Back to the assistant' }).click();
+    again = consoleRegion(page, false);
+    await expect(again.getByRole('link', { name: 'Paid · View receipt' })).toHaveAttribute('href', `/o/${fx.back.id}`);
+    await expect(again.getByRole('link', { name: /Approve .* on PayPal/ })).toHaveCount(0);
+    await expect(again.getByRole('button', { name: 'Did my payment go through?' })).toHaveCount(0);
+    await expectAccessible(page);
+    await again.getByRole('link', { name: 'Paid · View receipt' }).scrollIntoViewIfNeeded();
+    await settle(page);
+    await shoot(page, 'console-paid-1440', false);
   });
 });

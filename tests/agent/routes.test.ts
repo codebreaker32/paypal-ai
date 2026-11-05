@@ -1,5 +1,5 @@
 // Buyer-side routes: PayPal return/cancel, the receipt's order read, the console route and the menu photo route.
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -48,6 +48,24 @@ const shipTwoCroissants = (key: string): Promise<Order> =>
   });
 
 const get = (url: string) => new Request(`http://localhost:3102${url}`);
+
+// Every warning a test logs is captured and must be one the server is meant to log; tests assert their own lines.
+const EXPECTED_WARNINGS = [
+  /^\[shelfie\] PayPal unavailable during get order: /,
+  /^\[shelfie\] return URL sync for ord_\w+ failed: /,
+  /^\[shelfie\] cancel URL for ord_\w+ failed: /,
+  /^\[shelfie\] order brief for SHF-\w+: using the template \(ANTHROPIC_API_KEY is not set\)$/, // Task 8's onPaid hook
+];
+let warn: MockInstance<typeof console.warn>;
+const warned = () => warn.mock.calls.map((c) => String(c[0]));
+beforeEach(() => {
+  warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+afterEach(() => {
+  const unexpected = warned().filter((line) => !EXPECTED_WARNINGS.some((re) => re.test(line)));
+  warn.mockRestore();
+  expect(unexpected).toEqual([]);
+});
 const refCtx = (ref: string) => ({ params: Promise.resolve({ ref }) });
 
 describe('route handlers run in the Node runtime', () => {
@@ -79,12 +97,17 @@ describe('GET /api/paypal/return', () => {
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe(`/o/${order.id}`);
     expect(orders.byId(getDb(), order.id)!.status).toBe('awaiting_approval');
+    expect(warned()).toEqual([
+      '[shelfie] PayPal unavailable during get order: Error: network down',
+      `[shelfie] return URL sync for ${order.id} failed: PayPal could not be reached.`,
+    ]);
   });
 
   it('redirects an unknown order to its receipt URL (which says it can’t be found)', async () => {
     const res = await returnGET(get('/api/paypal/return?o=ord_doesnotexist'));
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe('/o/ord_doesnotexist');
+    expect(warned()).toEqual(['[shelfie] return URL sync for ord_doesnotexist failed: No order with reference "ord_doesnotexist".']);
   });
 
   it('sends a request without an order reference home', async () => {
@@ -122,6 +145,7 @@ describe('GET /api/paypal/cancel', () => {
     const res = await cancelGET(get('/api/paypal/cancel?o=ord_nope'));
     expect(res.status).toBe(303);
     expect(res.headers.get('location')).toBe('/o/ord_nope');
+    expect(warned()).toEqual(['[shelfie] cancel URL for ord_nope failed: No order with reference "ord_nope".']);
   });
 });
 

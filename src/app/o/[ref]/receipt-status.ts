@@ -11,7 +11,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { formatUSD } from '@/lib/domain/money';
-import { OPEN_RECEIPT_STATUSES, type ReceiptOrder } from './receipt-types';
+import { OPEN_RECEIPT_STATUSES, type ReceiptOrder } from '@/lib/orders/receipt-types';
 
 export type Tone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral';
 

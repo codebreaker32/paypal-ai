@@ -1,9 +1,10 @@
-// The buyer's view of an order, read from SQLite only (the poller and the return URL do the PayPal sync).
+// The buyer's view of an order (the receipt page and GET /api/orders/[ref]), read from SQLite only: the poller and the
+// return URL do the PayPal sync.
 import type { Db } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
-import { lastCaptureFailure } from '@/lib/orders/service';
+import { lastCaptureFailure } from './service';
 import { ORDER_REF, type ReceiptOrder } from './receipt-types';
 
 export { OPEN_RECEIPT_STATUSES, ORDER_REF, type ReceiptLine, type ReceiptOrder } from './receipt-types';

@@ -1,5 +1,6 @@
 // The in-app buyer assistant (spec §9 A3): Claude orders through the shop's agent door over real HTTP, exactly like an
 // outside agent, and every step comes back as a ConsoleEvent the shop page can show.
+import { createHash } from 'node:crypto';
 import type Anthropic from '@anthropic-ai/sdk';
 import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 import type { BetaMessageParam } from '@anthropic-ai/sdk/resources/beta/messages/messages';
@@ -20,12 +21,14 @@ export type ConsoleEvent =
   | { type: 'tool_result'; id: string; ok: boolean; result: unknown; ms: number }
   | { type: 'approval'; approvalUrl: string; total: string; orderRef: string; orderNumber?: string }
   | { type: 'done' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string; code?: 'CONVERSATION_FULL' };
 
 /** The agent name the door records on orders placed from the console. */
 export const CONSOLE_AGENT_NAME = 'shelfie-assistant';
 
 export const MAX_ITERATIONS = 8;
+/** Messages from the person per conversation; then the console asks them to start a new one (bounds history and spend). */
+export const MAX_USER_TURNS = 16;
 
 export const NO_KEY_MESSAGE =
   'This assistant needs an Anthropic API key on the server (ANTHROPIC_API_KEY). ' +
@@ -33,11 +36,13 @@ export const NO_KEY_MESSAGE =
 export const SHOP_UNREACHABLE_MESSAGE = "The shop didn't answer. Try again.";
 export const ASSISTANT_FAILED_MESSAGE = "The assistant stopped before it finished. Try again.";
 export const REFUSAL_MESSAGE = "The assistant can't help with that. Try asking another way.";
+export const TOO_MANY_STEPS_MESSAGE = 'The assistant took too many steps without finishing. Ask again, one thing at a time.';
+export const CONVERSATION_FULL_MESSAGE = 'This conversation is full. Start a new one to keep ordering.';
 
 /** The parts of an MCP client the console uses (the SDK `Client`, or a stub in tests). */
 export interface McpToolClient {
   listTools(): Promise<{ tools: { name: string; description?: string; inputSchema: Record<string, unknown> }[] }>;
-  callTool(params: { name: string; arguments?: Record<string, unknown> }): Promise<unknown>;
+  callTool(params: { name: string; arguments?: Record<string, unknown> }, resultSchema?: undefined, options?: { signal?: AbortSignal }): Promise<unknown>;
   close(): Promise<void>;
 }
 
@@ -50,15 +55,22 @@ export interface BuyerConsoleTurnInput {
   /** Defaults to the app's Anthropic client (needs ANTHROPIC_API_KEY). */
   client?: Anthropic;
   /** Defaults to the MCP SDK client over Streamable HTTP. */
-  mcpClientFactory?: (url: URL) => Promise<McpToolClient>;
+  mcpClientFactory?: (url: URL, signal?: AbortSignal) => Promise<McpToolClient>;
   /** Defaults to the app database. */
   db?: Db;
+  /** The browser went away: stop the turn (no more Claude calls, no more tool calls). */
+  signal?: AbortSignal;
 }
 
 /** Connects to the agent door the way any outside MCP client does: Streamable HTTP. */
-export async function connectAgentDoor(url: URL): Promise<McpToolClient> {
+export async function connectAgentDoor(url: URL, signal?: AbortSignal): Promise<McpToolClient> {
   const client = new Client({ name: CONSOLE_AGENT_NAME, version: '1.0.0' });
-  await client.connect(new StreamableHTTPClientTransport(url));
+  try {
+    await client.connect(new StreamableHTTPClientTransport(url), { signal });
+  } catch (e) {
+    await client.close().catch(() => {});
+    throw e;
+  }
   return client as unknown as McpToolClient;
 }
 
@@ -96,113 +108,169 @@ export async function* runBuyerConsoleTurn(input: BuyerConsoleTurnInput): AsyncG
   const sessionId = session.id;
   yield { type: 'session', id: sessionId };
 
-  let door: McpToolClient;
-  let doorTools: Awaited<ReturnType<McpToolClient['listTools']>>['tools'];
-  try {
-    door = await (input.mcpClientFactory ?? connectAgentDoor)(new URL(input.mcpUrl));
-    doorTools = (await door.listTools()).tools;
-  } catch (e) {
-    console.warn(`[shelfie] buyer console could not reach the agent door: ${e instanceof Error ? e.message : String(e)}`);
-    yield { type: 'error', message: SHOP_UNREACHABLE_MESSAGE };
+  const prior = session.messages as BetaMessageParam[];
+  if (userTurns(prior) >= MAX_USER_TURNS) {
+    yield { type: 'error', message: CONVERSATION_FULL_MESSAGE, code: 'CONVERSATION_FULL' };
     return;
   }
 
-  const queue = new EventQueue<ConsoleEvent>();
-  const turnEvents: ConsoleEvent[] = [];
-  const emit = (e: ConsoleEvent) => {
-    turnEvents.push(e);
-    queue.push(e);
-  };
-  let toolCalls = 0;
+  // One signal for the whole turn: the caller's (request closed) or ours (the reader stopped iterating).
+  const abort = new AbortController();
+  const stop = () => abort.abort();
+  input.signal?.addEventListener('abort', stop, { once: true });
+  if (input.signal?.aborted) stop();
+  const { signal } = abort;
 
-  const tools = doorTools.map((tool) =>
-    betaTool({
-      name: tool.name,
-      description: tool.description ?? '',
-      inputSchema: toolInputSchema(tool.inputSchema),
-      run: async (args, context) => {
-        const id = context?.toolUse.id ?? `call_${toolCalls + 1}`;
-        toolCalls++;
-        const sent = scopeRequestId(args as Record<string, unknown>, sessionId);
-        emit({ type: 'tool_call', id, name: tool.name, input: sent });
-        const started = performance.now();
-        const elapsed = () => Math.round(performance.now() - started);
-        let raw: unknown;
-        try {
-          raw = await door.callTool({ name: tool.name, arguments: sent });
-        } catch (e) {
-          console.warn(`[shelfie] buyer console: ${tool.name} failed: ${e instanceof Error ? e.message : String(e)}`);
-          const body = { error: { code: 'SHOP_UNREACHABLE', message: "The shop's agent door didn't answer.", hint: 'Try again in a moment.', retryable: true } };
-          emit({ type: 'tool_result', id, ok: false, result: body, ms: elapsed() });
-          return JSON.stringify(body);
-        }
-        const ms = elapsed();
-        const { text, payload, ok } = readToolResult(raw);
-        emit({ type: 'tool_result', id, ok, result: payload, ms });
-        if (ok && tool.name === 'create_order') {
-          const approval = approvalFrom(payload);
-          if (approval) emit(approval);
-        }
-        return text;
-      },
-    }),
-  );
-
-  const prior = session.messages as BetaMessageParam[];
-  const messages: BetaMessageParam[] = [...prior, { role: 'user', content: input.userText }];
-  const client = input.client ?? getAnthropic();
-
-  const work = (async () => {
-    // Full history every request (no message threads): the session in SQLite is the source of truth.
-    const runner = client.beta.messages.toolRunner({
-      model: MODEL_ID,
-      max_tokens: 16000,
-      output_config: { effort: 'low' },
-      system: systemPrompt(shop.name),
-      messages,
-      tools,
-      max_iterations: MAX_ITERATIONS,
-      thread: false,
-    });
+  try {
+    if (signal.aborted) return;
+    let door: McpToolClient;
+    let doorTools: Awaited<ReturnType<McpToolClient['listTools']>>['tools'];
     try {
-      for await (const message of runner) {
-        for (const block of message.content) {
-          if (block.type === 'text' && block.text.trim()) emit({ type: 'text', text: block.text });
-        }
-        if (message.stop_reason === 'refusal') emit({ type: 'error', message: REFUSAL_MESSAGE });
-      }
-      emit({ type: 'done' });
-      assistantRepo.append(db, sessionId, runner.params.messages.slice(prior.length), turnEvents);
+      door = await (input.mcpClientFactory ?? connectAgentDoor)(new URL(input.mcpUrl), signal);
     } catch (e) {
-      console.warn(`[shelfie] buyer console turn failed: ${e instanceof Error ? e.message : String(e)}`);
-      emit({ type: 'error', message: ASSISTANT_FAILED_MESSAGE });
-      // Keep what happened in the shop (tool calls and their results) so the next turn knows about it.
-      // A turn that never reached the shop is dropped, so a retry starts clean.
-      if (toolCalls > 0) {
-        const partial = runner.params.messages.slice(prior.length);
-        if (partial.at(-1)?.role === 'user') assistantRepo.append(db, sessionId, partial, turnEvents);
-      }
-    } finally {
-      await door.close().catch(() => {});
-      queue.end();
+      if (signal.aborted) return;
+      console.warn(`[shelfie] buyer console could not reach the agent door: ${e instanceof Error ? e.message : String(e)}`);
+      yield { type: 'error', message: SHOP_UNREACHABLE_MESSAGE };
+      return;
     }
-  })();
+    try {
+      doorTools = (await door.listTools()).tools;
+    } catch (e) {
+      await door.close().catch(() => {});
+      if (signal.aborted) return;
+      console.warn(`[shelfie] buyer console could not reach the agent door: ${e instanceof Error ? e.message : String(e)}`);
+      yield { type: 'error', message: SHOP_UNREACHABLE_MESSAGE };
+      return;
+    }
 
-  yield* queue;
-  await work;
+    const queue = new EventQueue<ConsoleEvent>();
+    const turnEvents: ConsoleEvent[] = [];
+    const emit = (e: ConsoleEvent) => {
+      turnEvents.push(e);
+      queue.push(e);
+    };
+    let toolCalls = 0;
+
+    const tools = doorTools.map((tool) =>
+      betaTool({
+        name: tool.name,
+        description: tool.description ?? '',
+        inputSchema: toolInputSchema(tool.inputSchema),
+        run: async (args, context) => {
+          // Never reach the shop (and never place an order) for a reader that has gone.
+          if (signal.aborted) throw new Error('The turn was stopped.');
+          const id = context?.toolUse.id ?? `call_${toolCalls + 1}`;
+          toolCalls++;
+          const sent = scopeRequestId(args as Record<string, unknown>, sessionId);
+          emit({ type: 'tool_call', id, name: tool.name, input: sent });
+          const started = performance.now();
+          const elapsed = () => Math.round(performance.now() - started);
+          let raw: unknown;
+          try {
+            raw = await door.callTool({ name: tool.name, arguments: sent }, undefined, { signal });
+          } catch (e) {
+            if (!signal.aborted) console.warn(`[shelfie] buyer console: ${tool.name} failed: ${e instanceof Error ? e.message : String(e)}`);
+            const body = { error: { code: 'SHOP_UNREACHABLE', message: "The shop's agent door didn't answer.", hint: 'Try again in a moment.', retryable: true } };
+            emit({ type: 'tool_result', id, ok: false, result: body, ms: elapsed() });
+            return JSON.stringify(body);
+          }
+          const ms = elapsed();
+          const { text, payload, ok } = readToolResult(raw);
+          emit({ type: 'tool_result', id, ok, result: payload, ms });
+          if (ok && tool.name === 'create_order') {
+            const approval = approvalFrom(payload);
+            if (approval) emit(approval);
+          }
+          return text;
+        },
+      }),
+    );
+
+    const messages: BetaMessageParam[] = [...prior, { role: 'user', content: input.userText }];
+    const client = input.client ?? getAnthropic();
+
+    const work = (async () => {
+      /** The runner's history (prior turns + this one), once the runner exists. */
+      let history: (() => BetaMessageParam[]) | null = null;
+      try {
+        // Full history every request (no message threads): the session in SQLite is the source of truth.
+        // Prompt caching: a breakpoint after the tools + system prompt, and (top level) one at the end of each request,
+        // so every step of the loop and every later turn re-reads the conversation so far from the cache.
+        const runner = client.beta.messages.toolRunner(
+          {
+            model: MODEL_ID,
+            max_tokens: 16000,
+            output_config: { effort: 'low' },
+            system: [{ type: 'text', text: systemPrompt(shop.name), cache_control: { type: 'ephemeral' } }],
+            cache_control: { type: 'ephemeral' },
+            messages,
+            tools,
+            max_iterations: MAX_ITERATIONS,
+            thread: false,
+          },
+          { signal },
+        );
+        history = () => runner.params.messages;
+        let last: { stop_reason: string | null } | null = null;
+        for await (const message of runner) {
+          last = message;
+          for (const block of message.content) {
+            if (block.type === 'text' && block.text.trim()) emit({ type: 'text', text: block.text });
+          }
+          if (message.stop_reason === 'refusal') emit({ type: 'error', message: REFUSAL_MESSAGE });
+        }
+        // The runner stops after MAX_ITERATIONS even if Claude still wants a tool: the tools of that last step have
+        // run and their results are in the history, but there is no answer to show.
+        if (last?.stop_reason === 'tool_use') emit({ type: 'error', message: TOO_MANY_STEPS_MESSAGE });
+        else emit({ type: 'done' });
+        assistantRepo.append(db, sessionId, runner.params.messages.slice(prior.length), turnEvents);
+      } catch (e) {
+        if (!signal.aborted) {
+          console.warn(`[shelfie] buyer console turn failed: ${e instanceof Error ? e.message : String(e)}`);
+          emit({ type: 'error', message: ASSISTANT_FAILED_MESSAGE });
+        }
+        // Keep what happened in the shop (tool calls and their results) so the next turn knows about it.
+        // A turn that never reached the shop is dropped, so a retry starts clean.
+        if (history && toolCalls > 0) {
+          const partial = history().slice(prior.length);
+          if (partial.at(-1)?.role === 'user') assistantRepo.append(db, sessionId, partial, turnEvents);
+        }
+      } finally {
+        await door.close().catch(() => {});
+        queue.end();
+      }
+    })().catch((e) => {
+      console.error(`[shelfie] buyer console could not save the turn: ${e instanceof Error ? e.message : String(e)}`);
+      queue.end();
+    });
+
+    yield* queue;
+    await work;
+  } finally {
+    // Reached early when the reader stops iterating (return()): stop the turn so a closed tab spends nothing more.
+    stop();
+    input.signal?.removeEventListener('abort', stop);
+  }
+}
+
+/** Messages the person typed (tool results are user-role messages too, but never plain strings). */
+function userTurns(messages: BetaMessageParam[]): number {
+  return messages.filter((m) => m.role === 'user' && typeof m.content === 'string').length;
 }
 
 // ---- helpers ------------------------------------------------------------------------------------------
 
 /**
  * The door de-duplicates create_order per shop by client_request_id, and models tend to make up readable keys
- * ("order-2-almond-croissants") that two different buyers could both produce. Prefixing the conversation's session id
- * keeps retries within one conversation idempotent without ever handing one buyer another buyer's order.
+ * ("order-2-almond-croissants") that two different buyers could both produce. The key sent is the conversation's
+ * session id plus a hash of (session id, model key): retries within one conversation stay idempotent, two keys never
+ * collide by truncation, and one buyer never gets another buyer's order.
  */
 function scopeRequestId(args: Record<string, unknown>, sessionId: string): Record<string, unknown> {
   const key = args.client_request_id;
-  if (typeof key !== 'string' || !key || key.startsWith(`${sessionId}:`)) return args;
-  return { ...args, client_request_id: `${sessionId}:${key}`.slice(0, 64) };
+  if (typeof key !== 'string' || !key) return args;
+  const hash = createHash('sha256').update(`${sessionId}\n${key}`).digest('hex').slice(0, 64 - sessionId.length - 1);
+  return { ...args, client_request_id: `${sessionId}:${hash}` };
 }
 
 /** The door's JSON Schema as a Claude tool input schema (an object schema; `$schema` dropped). */

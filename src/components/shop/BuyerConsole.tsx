@@ -1,15 +1,36 @@
 'use client';
 
 import { useCallback, useEffect, useId, useReducer, useRef, useState, type FormEvent, type RefObject } from 'react';
-import { Bot, CornerDownLeft, Loader2, RotateCcw, SendHorizontal } from 'lucide-react';
+import {
+  Bot,
+  CircleAlert,
+  CircleCheck,
+  CircleX,
+  CornerDownLeft,
+  Hourglass,
+  Loader2,
+  RotateCcw,
+  SendHorizontal,
+  type LucideIcon,
+} from 'lucide-react';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
-import { Button, buttonClasses } from '@/components/ui/Button';
+import type { OrderStatus } from '@/lib/domain/types';
+import { Button, ButtonLink, buttonClasses } from '@/components/ui/Button';
 import { FieldError, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
-import { consoleReducer, initialConsoleState, restoreConsoleState, type ConsoleState, type Entry } from './console-state';
+import {
+  approvalCard,
+  consoleReducer,
+  initialConsoleState,
+  refsToCheck,
+  restoreConsoleState,
+  type ApprovalCardView,
+  type ConsoleState,
+  type Entry,
+} from './console-state';
 import { RichText } from './RichText';
 
 const SHOP_DIDNT_ANSWER = "The shop didn't answer. Try again.";
@@ -22,16 +43,24 @@ export interface BuyerConsoleApi {
   reset: () => void;
 }
 
-/** Conversation state for one shop, kept in sessionStorage so it survives the trip to PayPal and back. */
+/**
+ * Conversation state for one shop, kept in sessionStorage so it survives the trip to PayPal and back. Approval cards
+ * follow their order: the hook re-reads each open order from the receipt API after a reload and whenever the page is
+ * shown again, so a paid order never still offers "Approve on PayPal".
+ */
 export function useBuyerConsole(slug: string): BuyerConsoleApi {
   const [state, dispatch] = useReducer(consoleReducer, initialConsoleState);
   const storageKey = `shelfie:console:${slug}`;
   const latest = useRef(state);
   const loaded = useRef(false);
+  /** The turn being streamed: aborted when the console goes away, so a closed page stops the assistant. */
+  const inflight = useRef<AbortController | null>(null);
 
   useEffect(() => {
     latest.current = state;
   }, [state]);
+
+  useEffect(() => () => inflight.current?.abort(), []);
 
   useEffect(() => {
     try {
@@ -53,18 +82,54 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
     }
   }, [state, storageKey]);
 
+  const checkOrders = useCallback(async () => {
+    await Promise.all(
+      refsToCheck(latest.current).map(async (ref) => {
+        try {
+          const res = await fetch(`/api/orders/${encodeURIComponent(ref)}`, { cache: 'no-store' });
+          if (!res.ok) return;
+          const { order } = (await res.json()) as { order: { status: OrderStatus; captureRefused?: boolean } };
+          dispatch({ type: 'order_status', orderRef: ref, status: order.status, captureRefused: order.captureRefused });
+        } catch {
+          // Offline for a moment: the card keeps what it knew.
+        }
+      }),
+    );
+  }, []);
+
+  const openOrders = refsToCheck(state).join(' ');
+  useEffect(() => {
+    if (loaded.current && openOrders) void checkOrders();
+  }, [openOrders, checkOrders]);
+
+  // Back from PayPal with the browser's Back button (bfcache), or back to this tab.
+  useEffect(() => {
+    const again = () => {
+      if (document.visibilityState === 'visible') void checkOrders();
+    };
+    window.addEventListener('pageshow', again);
+    document.addEventListener('visibilitychange', again);
+    return () => {
+      window.removeEventListener('pageshow', again);
+      document.removeEventListener('visibilitychange', again);
+    };
+  }, [checkOrders]);
+
   const send = useCallback(
     (raw: string) => {
       const text = raw.trim().slice(0, 500);
       if (!text || latest.current.busy) return;
       const sessionId = latest.current.sessionId;
       dispatch({ type: 'send', text });
+      const turn = new AbortController();
+      inflight.current = turn;
       void (async () => {
         try {
           const res = await fetch(`/api/assistant/${encodeURIComponent(slug)}`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify(sessionId ? { text, sessionId } : { text }),
+            signal: turn.signal,
           });
           if (!res.ok || !res.body) {
             const body = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
@@ -78,7 +143,10 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
           }
           if (!finished) dispatch({ type: 'fail', message: SHOP_DIDNT_ANSWER });
         } catch {
-          dispatch({ type: 'fail', message: SHOP_DIDNT_ANSWER });
+          // Aborted because the console went away: nobody is left to tell.
+          if (!turn.signal.aborted) dispatch({ type: 'fail', message: SHOP_DIDNT_ANSWER });
+        } finally {
+          if (inflight.current === turn) inflight.current = null;
         }
       })();
     },
@@ -128,10 +196,21 @@ function AssistantSays({ text }: { text: string }) {
   );
 }
 
+/** After approval the card links the receipt; the button says what happened. */
+const SETTLED: Record<Extract<ApprovalCardView, { approve: false }>['label'], { icon: LucideIcon; note: string | null }> = {
+  Paid: { icon: CircleCheck, note: null },
+  'Confirming with PayPal': { icon: Hourglass, note: null },
+  'Payment refused': { icon: CircleAlert, note: 'Nothing was charged.' },
+  Cancelled: { icon: CircleX, note: 'Nothing was charged.' },
+  Expired: { icon: CircleX, note: 'Nothing was charged.' },
+};
+
 function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'approval' }>; shopName: string }) {
   const cents = parseAmountToCents(entry.total);
   const total = cents === null ? `$${entry.total}` : formatUSD(cents);
   const safe = isPayPalApprovalUrl(entry.approvalUrl);
+  const view = approvalCard(entry);
+  const settled = view.approve ? null : SETTLED[view.label];
   return (
     <div className="flex flex-col gap-2.5 rounded-md border border-line-strong bg-surface-raised p-3 shadow-xs">
       <div className="flex items-baseline justify-between gap-3">
@@ -141,14 +220,25 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
         </span>
         <span className="type-price text-lg font-semibold">{total}</span>
       </div>
-      {safe ? (
-        <a href={entry.approvalUrl} className={buttonClasses({ variant: 'paypal', fullWidth: true })}>
-          Approve {total} on PayPal
-        </a>
+      {view.approve ? (
+        <>
+          {safe ? (
+            <a href={entry.approvalUrl} className={buttonClasses({ variant: 'paypal', fullWidth: true })}>
+              Approve {total} on PayPal
+            </a>
+          ) : (
+            <FieldError>This approval link doesn&apos;t go to PayPal, so it isn&apos;t shown.</FieldError>
+          )}
+          <p className="type-meta text-ink-muted">Nothing is charged until you approve on PayPal.</p>
+        </>
       ) : (
-        <FieldError>This approval link doesn&apos;t go to PayPal, so it isn&apos;t shown.</FieldError>
+        <>
+          <ButtonLink href={`/o/${encodeURIComponent(entry.orderRef)}`} icon={settled!.icon} fullWidth>
+            {view.label} · View receipt
+          </ButtonLink>
+          {settled!.note && <p className="type-meta text-ink-muted">{settled!.note}</p>}
+        </>
       )}
-      <p className="type-meta text-ink-muted">Nothing is charged until you approve on PayPal.</p>
     </div>
   );
 }
@@ -200,7 +290,9 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   const end = useRef<HTMLDivElement>(null);
   const last = state.entries.at(-1);
   const calling = last?.kind === 'activity' && last.calls.some((c) => c.status === 'running');
-  const approved = state.entries.some((e) => e.kind === 'approval');
+  // Offer the status question only while an order may still change; a full conversation offers a new one.
+  const waitingOnPayPal = refsToCheck(state).length > 0;
+  const full = last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'nearest' });
@@ -233,14 +325,20 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
       )}
       {!state.busy && (
         <div className="flex flex-wrap items-center gap-2">
-          {approved && (
+          {waitingOnPayPal && !full && (
             <Button variant="secondary" onClick={() => send(PAYMENT_CHECK_PROMPT)}>
               {PAYMENT_CHECK_PROMPT}
             </Button>
           )}
-          <Button variant="ghost" icon={RotateCcw} onClick={reset}>
-            Start over
-          </Button>
+          {full ? (
+            <Button variant="primary" icon={RotateCcw} onClick={reset}>
+              Start a new conversation
+            </Button>
+          ) : (
+            <Button variant="ghost" icon={RotateCcw} onClick={reset}>
+              Start over
+            </Button>
+          )}
         </div>
       )}
       <div ref={end} />

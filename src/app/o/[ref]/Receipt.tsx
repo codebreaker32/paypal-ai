@@ -9,7 +9,7 @@ import { cx } from '@/components/ui/cx';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';
 import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
-import type { ReceiptOrder } from './receipt-types';
+import type { ReceiptOrder } from '@/lib/orders/receipt-types';
 
 const POLL_MS = 3000;
 

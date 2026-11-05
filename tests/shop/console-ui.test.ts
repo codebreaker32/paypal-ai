@@ -3,7 +3,16 @@ import { describe, expect, it } from 'vitest';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import type { ItemWithVariants } from '@/lib/domain/types';
 import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/components/shop/activity-format';
-import { consoleReducer, initialConsoleState, restoreConsoleState, type ConsoleState } from '@/components/shop/console-state';
+import {
+  approvalCard,
+  consoleReducer,
+  initialConsoleState,
+  refsToCheck,
+  restoreConsoleState,
+  type ConsoleState,
+  type Entry,
+} from '@/components/shop/console-state';
+import type { OrderStatus } from '@/lib/domain/types';
 import { starterPrompts } from '@/components/shop/starters';
 
 const run = (state: ConsoleState, ...events: ConsoleEvent[]) => events.reduce((s, event) => consoleReducer(s, { type: 'event', event }), state);
@@ -87,6 +96,95 @@ describe('consoleReducer', () => {
   it('starts over on reset', () => {
     const s = run(consoleReducer(initialConsoleState, { type: 'send', text: 'hi' }), { type: 'session', id: 'a' }, { type: 'done' });
     expect(consoleReducer(s, { type: 'reset' })).toEqual(initialConsoleState);
+  });
+
+  it('keeps a full conversation\'s error code, so the console can offer a new conversation', () => {
+    let s = consoleReducer(initialConsoleState, { type: 'send', text: 'One more' });
+    s = run(s, { type: 'session', id: 'asst_full' }, { type: 'error', message: 'This conversation is full. Start a new one to keep ordering.', code: 'CONVERSATION_FULL' });
+    expect(s.entries.at(-1)).toMatchObject({ kind: 'error', code: 'CONVERSATION_FULL' });
+    expect(restoreConsoleState(JSON.parse(JSON.stringify(s))).entries.at(-1)).toMatchObject({ kind: 'error', code: 'CONVERSATION_FULL' });
+  });
+});
+
+// ---- approval cards follow their order ---------------------------------------------------------------
+
+const APPROVAL = { type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=1', total: '27.00', orderRef: 'ord_1', orderNumber: 'SHF-AAAAAA' } as const;
+const approvalOf = (s: ConsoleState, ref = 'ord_1') => s.entries.find((e): e is Extract<Entry, { kind: 'approval' }> => e.kind === 'approval' && e.orderRef === ref)!;
+const placed = () =>
+  run(consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' }), { type: 'session', id: 'asst_1' }, APPROVAL, { type: 'text', text: 'Tap the PayPal button.' }, { type: 'done' });
+const askStatus = (s: ConsoleState, id: string, result: Record<string, unknown>, ok = true) =>
+  run(
+    consoleReducer(s, { type: 'send', text: 'Did my payment go through?' }),
+    { type: 'tool_call', id, name: 'get_order_status', input: { order_ref: 'ord_1' } },
+    { type: 'tool_result', id, ok, result, ms: 300 },
+    { type: 'done' },
+  );
+
+describe('approval cards', () => {
+  it('offer PayPal only while the order waits for approval; otherwise say what happened and link the receipt', () => {
+    const card = (status?: OrderStatus, captureRefused?: boolean) => approvalCard({ status, captureRefused });
+    expect(card()).toEqual({ approve: true });
+    expect(card('awaiting_approval')).toEqual({ approve: true });
+    expect(card('paid')).toEqual({ approve: false, label: 'Paid', tone: 'ok' });
+    expect(card('fulfilled')).toEqual({ approve: false, label: 'Paid', tone: 'ok' });
+    expect(card('approved')).toEqual({ approve: false, label: 'Confirming with PayPal', tone: 'info' });
+    expect(card('payment_pending')).toEqual({ approve: false, label: 'Confirming with PayPal', tone: 'info' });
+    expect(card('approved', true)).toEqual({ approve: false, label: 'Payment refused', tone: 'danger' });
+    expect(card('failed')).toEqual({ approve: false, label: 'Payment refused', tone: 'danger' });
+    expect(card('cancelled')).toEqual({ approve: false, label: 'Cancelled', tone: 'neutral' });
+    expect(card('expired')).toEqual({ approve: false, label: 'Expired', tone: 'neutral' });
+  });
+
+  it('follow get_order_status results for the same order', () => {
+    let s = placed();
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: true });
+    s = askStatus(s, 't1', { order_ref: 'ord_1', status: 'awaiting_approval' });
+    expect(approvalOf(s).status).toBe('awaiting_approval');
+    s = askStatus(s, 't2', { order_ref: 'ord_1', status: 'paid' });
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: false, label: 'Paid', tone: 'ok' });
+    // An error result, or a status for another order, changes nothing.
+    expect(approvalOf(askStatus(s, 't3', { error: { code: 'ORDER_NOT_FOUND' } }, false)).status).toBe('paid');
+    expect(approvalOf(askStatus(s, 't4', { order_ref: 'ord_other', status: 'cancelled' })).status).toBe('paid');
+  });
+
+  it('follow a status read in the same turn as the order (the card is still held until the turn ends)', () => {
+    const s = run(
+      consoleReducer(initialConsoleState, { type: 'send', text: 'Yes, and check it' }),
+      APPROVAL,
+      { type: 'tool_call', id: 't1', name: 'get_order_status', input: { order_ref: 'ord_1' } },
+      { type: 'tool_result', id: 't1', ok: true, result: { order_ref: 'ord_1', status: 'expired' }, ms: 10 },
+      { type: 'done' },
+    );
+    expect(approvalOf(s).status).toBe('expired');
+  });
+
+  it('follow the order read from the receipt API (order_status), and only for that order', () => {
+    let s = placed();
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_other', status: 'paid' });
+    expect(approvalOf(s).status).toBeUndefined();
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'approved', captureRefused: true });
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: false, label: 'Payment refused', tone: 'danger' });
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'paid', captureRefused: false });
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: false, label: 'Paid', tone: 'ok' });
+  });
+
+  it('keep their order status across a reload (sessionStorage), dropping anything that is not a status', () => {
+    const s = consoleReducer(placed(), { type: 'order_status', orderRef: 'ord_1', status: 'paid', captureRefused: false });
+    expect(approvalOf(restoreConsoleState(JSON.parse(JSON.stringify(s)))).status).toBe('paid');
+    const bad = JSON.parse(JSON.stringify(s));
+    bad.entries.find((e: { kind: string }) => e.kind === 'approval').status = 'teleported';
+    expect(approvalOf(restoreConsoleState(bad)).status).toBeUndefined();
+  });
+
+  it('lists the orders worth re-reading: the ones PayPal may still move, once each', () => {
+    let s = placed();
+    s = run(consoleReducer(s, { type: 'send', text: 'And another' }), { ...APPROVAL, orderRef: 'ord_2' }, { ...APPROVAL, orderRef: 'ord_1' }, { type: 'done' });
+    expect(refsToCheck(s)).toEqual(['ord_1', 'ord_2']);
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_2', status: 'approved' });
+    expect(refsToCheck(s)).toEqual(['ord_1', 'ord_2']);
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'paid' });
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_2', status: 'approved', captureRefused: true });
+    expect(refsToCheck(s)).toEqual([]);
   });
 });
 

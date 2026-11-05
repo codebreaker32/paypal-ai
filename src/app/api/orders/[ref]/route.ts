@@ -1,5 +1,5 @@
 // GET /api/orders/[ref]: the receipt's view of an order. Public by capability (the ref is unguessable), SQLite only.
-import { receiptView } from '@/app/o/[ref]/receipt-view';
+import { receiptView } from '@/lib/orders/receipt';
 import { getDb } from '@/lib/db';
 
 export const runtime = 'nodejs';

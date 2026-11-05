@@ -1,6 +1,6 @@
 // PayPal sends the buyer back here after they approve: GET /api/paypal/return?o=<orderId>&token=<paypalOrderId>.
 // Sync with PayPal (approved → capture → paid), then show the receipt. Spec §7, way 1 of 3 to "paid".
-import { ORDER_REF } from '@/app/o/[ref]/receipt-view';
+import { ORDER_REF } from '@/lib/orders/receipt';
 import { syncOrder } from '@/lib/orders/service';
 import { getOrderDeps } from '@/lib/services';
 

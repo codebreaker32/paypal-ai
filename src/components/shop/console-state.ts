@@ -1,5 +1,6 @@
 // The buyer console's conversation state, built from streamed ConsoleEvents. Pure, so it is unit-tested.
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
+import type { OrderStatus } from '@/lib/domain/types';
 
 export type CallStatus = 'running' | 'ok' | 'error' | 'interrupted';
 
@@ -16,8 +17,19 @@ export type Entry =
   | { kind: 'user'; key: string; text: string }
   | { kind: 'assistant'; key: string; text: string }
   | { kind: 'activity'; key: string; calls: ToolCall[] }
-  | { kind: 'approval'; key: string; approvalUrl: string; total: string; orderRef: string; orderNumber?: string }
-  | { kind: 'error'; key: string; message: string };
+  | {
+      kind: 'approval';
+      key: string;
+      approvalUrl: string;
+      total: string;
+      orderRef: string;
+      orderNumber?: string;
+      /** The order's latest known status (from get_order_status or the receipt API); unknown means just placed. */
+      status?: OrderStatus;
+      /** PayPal refused to complete the approved payment. */
+      captureRefused?: boolean;
+    }
+  | { kind: 'error'; key: string; message: string; code?: 'CONVERSATION_FULL' };
 
 type ApprovalEntry = Omit<Extract<Entry, { kind: 'approval' }>, 'key'>;
 
@@ -35,7 +47,9 @@ export type ConsoleAction =
   | { type: 'event'; event: ConsoleEvent }
   | { type: 'fail'; message: string }
   | { type: 'restore'; state: ConsoleState }
-  | { type: 'reset' };
+  | { type: 'reset' }
+  /** The order behind an approval card, read from GET /api/orders/[ref]. */
+  | { type: 'order_status'; orderRef: string; status: OrderStatus; captureRefused?: boolean };
 
 export const initialConsoleState: ConsoleState = { sessionId: null, entries: [], busy: false, nextKey: 1, held: [] };
 
@@ -57,6 +71,8 @@ export function consoleReducer(state: ConsoleState, action: ConsoleAction): Cons
       return { ...push(state, { kind: 'user', text: action.text }), busy: true };
     case 'fail':
       return push(endTurn(state), { kind: 'error', message: action.message });
+    case 'order_status':
+      return withOrderStatus(state, action.orderRef, action.status, action.captureRefused);
     case 'restore':
       return action.state;
     case 'reset':
@@ -81,6 +97,7 @@ function applyEvent(state: ConsoleState, e: ConsoleEvent): ConsoleState {
       return push(state, { kind: 'activity', calls: [call] });
     }
     case 'tool_result': {
+      const call = state.entries.flatMap((entry) => (entry.kind === 'activity' ? entry.calls : [])).find((c) => c.id === e.id);
       const entries = state.entries.map((entry) =>
         entry.kind === 'activity' && entry.calls.some((c) => c.id === e.id)
           ? {
@@ -89,7 +106,13 @@ function applyEvent(state: ConsoleState, e: ConsoleEvent): ConsoleState {
             }
           : entry,
       );
-      return { ...state, entries };
+      const next = { ...state, entries };
+      // "Did my payment go through?": the answer moves the approval card of that order too.
+      const r = e.result as { order_ref?: unknown; status?: unknown } | null;
+      if (call?.name === 'get_order_status' && e.ok && r && typeof r.order_ref === 'string' && isOrderStatus(r.status)) {
+        return withOrderStatus(next, r.order_ref, r.status);
+      }
+      return next;
     }
     case 'approval':
       return {
@@ -97,10 +120,64 @@ function applyEvent(state: ConsoleState, e: ConsoleEvent): ConsoleState {
         held: [...state.held, { kind: 'approval', approvalUrl: e.approvalUrl, total: e.total, orderRef: e.orderRef, orderNumber: e.orderNumber }],
       };
     case 'error':
-      return push(endTurn(state), { kind: 'error', message: e.message });
+      return push(endTurn(state), { kind: 'error', message: e.message, ...(e.code ? { code: e.code } : {}) });
     case 'done':
       return endTurn(state);
   }
+}
+
+const ORDER_STATUSES: readonly OrderStatus[] = [
+  'awaiting_approval', 'approved', 'payment_pending', 'paid', 'fulfilled', 'cancelled', 'expired', 'failed',
+];
+const isOrderStatus = (v: unknown): v is OrderStatus => typeof v === 'string' && (ORDER_STATUSES as readonly string[]).includes(v);
+
+/** Sets the status of every approval card (shown or still held) for `orderRef`. */
+function withOrderStatus(state: ConsoleState, orderRef: string, status: OrderStatus, captureRefused?: boolean): ConsoleState {
+  const apply = <A extends ApprovalEntry>(a: A): A =>
+    a.orderRef === orderRef ? { ...a, status, ...(captureRefused === undefined ? {} : { captureRefused }) } : a;
+  return {
+    ...state,
+    entries: state.entries.map((entry) => (entry.kind === 'approval' ? apply(entry) : entry)),
+    held: state.held.map(apply),
+  };
+}
+
+export type ApprovalCardView =
+  | { approve: true }
+  | { approve: false; label: 'Paid' | 'Confirming with PayPal' | 'Payment refused' | 'Cancelled' | 'Expired'; tone: 'ok' | 'info' | 'danger' | 'neutral' };
+
+/** The approval card offers PayPal only while the order waits for approval; after that it says what happened. */
+export function approvalCard(entry: Pick<ApprovalEntry, 'status' | 'captureRefused'>): ApprovalCardView {
+  switch (entry.status) {
+    case undefined:
+    case 'awaiting_approval':
+      return { approve: true };
+    case 'paid':
+    case 'fulfilled':
+      return { approve: false, label: 'Paid', tone: 'ok' };
+    case 'approved':
+      return entry.captureRefused
+        ? { approve: false, label: 'Payment refused', tone: 'danger' }
+        : { approve: false, label: 'Confirming with PayPal', tone: 'info' };
+    case 'payment_pending':
+      return { approve: false, label: 'Confirming with PayPal', tone: 'info' };
+    case 'failed':
+      return { approve: false, label: 'Payment refused', tone: 'danger' };
+    case 'cancelled':
+      return { approve: false, label: 'Cancelled', tone: 'neutral' };
+    case 'expired':
+      return { approve: false, label: 'Expired', tone: 'neutral' };
+  }
+}
+
+/** Orders behind approval cards that PayPal may still move (waiting, or being confirmed), each once. */
+export function refsToCheck(state: ConsoleState): string[] {
+  const open = (a: ApprovalEntry) => {
+    const view = approvalCard(a);
+    return view.approve || view.label === 'Confirming with PayPal';
+  };
+  const refs = state.entries.filter((e): e is Extract<Entry, { kind: 'approval' }> => e.kind === 'approval' && open(e)).map((e) => e.orderRef);
+  return [...new Set(refs)];
 }
 
 // ---- saving across page loads (sessionStorage) ---------------------------------------------------------
@@ -115,10 +192,18 @@ function validEntry(raw: unknown): NewEntry | null {
     case 'assistant':
       return str(e.text) ? { kind: e.kind, text: e.text } : null;
     case 'error':
-      return str(e.message) ? { kind: 'error', message: e.message } : null;
+      return str(e.message) ? { kind: 'error', message: e.message, ...(e.code === 'CONVERSATION_FULL' ? { code: e.code } : {}) } : null;
     case 'approval':
       return str(e.approvalUrl) && str(e.total) && str(e.orderRef)
-        ? { kind: 'approval', approvalUrl: e.approvalUrl, total: e.total, orderRef: e.orderRef, orderNumber: str(e.orderNumber) ? e.orderNumber : undefined }
+        ? {
+            kind: 'approval',
+            approvalUrl: e.approvalUrl,
+            total: e.total,
+            orderRef: e.orderRef,
+            orderNumber: str(e.orderNumber) ? e.orderNumber : undefined,
+            ...(isOrderStatus(e.status) ? { status: e.status } : {}),
+            ...(typeof e.captureRefused === 'boolean' ? { captureRefused: e.captureRefused } : {}),
+          }
         : null;
     case 'activity': {
       if (!Array.isArray(e.calls)) return null;

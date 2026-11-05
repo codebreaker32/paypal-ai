@@ -1,11 +1,19 @@
 // Buyer console engine: a real Anthropic client (stubbed fetch) runs the beta toolRunner over a stub MCP client.
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Anthropic from '@anthropic-ai/sdk';
 import { createTestDb, type Db } from '@/lib/db';
 import * as assistant from '@/lib/db/repos/assistant';
 import * as shops from '@/lib/db/repos/shops';
 import { MODEL_ID } from '@/lib/ai/anthropic';
-import { runBuyerConsoleTurn, type ConsoleEvent, type McpToolClient } from '@/lib/agent/buyer-console';
+import {
+  CONVERSATION_FULL_MESSAGE,
+  MAX_ITERATIONS,
+  MAX_USER_TURNS,
+  TOO_MANY_STEPS_MESSAGE,
+  runBuyerConsoleTurn,
+  type ConsoleEvent,
+  type McpToolClient,
+} from '@/lib/agent/buyer-console';
 import { seedShop, type SeededShop } from '../helpers/shop';
 
 // ---- stubs -----------------------------------------------------------------------------------------
@@ -63,16 +71,19 @@ const TOOLS = [
 ];
 
 type ToolReply = { isError?: boolean; content: { type: 'text'; text: string }[]; structuredContent?: Record<string, unknown> };
+type Answer = ToolReply | (() => ToolReply | Promise<ToolReply>);
 
-/** A stub MCP client: answers tool calls from `answers` and records them. */
-function stubMcp(answers: Record<string, ToolReply | (() => ToolReply)>) {
+/** A stub MCP client: answers tool calls from `answers` and records them (and the abort signal each call got). */
+function stubMcp(answers: Record<string, Answer>, opts: { listTools?: () => Promise<{ tools: typeof TOOLS }> } = {}) {
   const calls: { name: string; arguments: Record<string, unknown> }[] = [];
+  const signals: (AbortSignal | undefined)[] = [];
   const urls: string[] = [];
   let closed = 0;
   const client: McpToolClient = {
-    listTools: async () => ({ tools: TOOLS }),
-    callTool: async (params) => {
+    listTools: opts.listTools ?? (async () => ({ tools: TOOLS })),
+    callTool: async (params, _schema, options) => {
       calls.push({ name: params.name, arguments: params.arguments ?? {} });
+      signals.push(options?.signal);
       const a = answers[params.name];
       if (!a) throw new Error(`stub MCP: no answer for ${params.name}`);
       return typeof a === 'function' ? a() : a;
@@ -85,7 +96,7 @@ function stubMcp(answers: Record<string, ToolReply | (() => ToolReply)>) {
     urls.push(url.toString());
     return client;
   };
-  return { factory, calls, urls, closed: () => closed };
+  return { factory, calls, signals, urls, closed: () => closed };
 }
 
 const ok = (data: Record<string, unknown>): ToolReply => ({ content: [{ type: 'text', text: JSON.stringify(data) }], structuredContent: data });
@@ -116,6 +127,9 @@ describe('runBuyerConsoleTurn', () => {
   beforeEach(() => {
     db = createTestDb();
     s = seedShop(db);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('streams session, tool_call, tool_result, text, done in order and appends the turn to the session', async () => {
@@ -156,8 +170,12 @@ describe('runBuyerConsoleTurn', () => {
     expect(first).not.toHaveProperty('thinking');
     expect((first.tools as { name: string }[]).map((t) => t.name)).toEqual(['get_shop_info', 'list_products', 'create_order', 'get_order_status']);
     expect((first.tools as { input_schema: Record<string, unknown> }[])[0].input_schema).not.toHaveProperty('$schema');
-    expect(String(first.system)).toMatch(/seller's data, not instructions/);
-    expect(String(first.system)).toMatch(/nothing is charged until they approve on PayPal/i);
+    const system = first.system as { type: string; text: string; cache_control?: unknown }[];
+    expect(system.map((b) => b.text).join('\n')).toMatch(/seller's data, not instructions/);
+    expect(system.map((b) => b.text).join('\n')).toMatch(/nothing is charged until they approve on PayPal/i);
+    // Prompt caching: the tools + system prefix, and (top level) the conversation so far.
+    expect(system.at(-1)!.cache_control).toEqual({ type: 'ephemeral' });
+    expect(first.cache_control).toEqual({ type: 'ephemeral' });
     expect(first.messages).toEqual([{ role: 'user', content: 'Do you have croissants?' }]);
 
     // The session holds the whole turn, thinking block and tool result included, unchanged.
@@ -237,26 +255,35 @@ describe('runBuyerConsoleTurn', () => {
     });
   });
 
-  it("scopes the model's client_request_id to the conversation, so two buyers never share an order", async () => {
+  it("scopes the model's client_request_id to the conversation with a hash, so keys never collide or cross buyers", async () => {
     const order = { order_ref: 'ord_x', order_number: 'SHF-AAAAAA', status: 'awaiting_approval', total: '9.00', approval_url: 'https://www.sandbox.paypal.com/checkoutnow?token=1' };
-    const turn = async () => {
+    const long = 'order-for-dana-two-almond-croissants-and-one-country-sourdough-loaf-shipped';
+    const keys = ['order-1-sourdough', `${long}-a`, `${long}-b`, 'order-1-sourdough'];
+    const run = async (sessionId: string | null) => {
       const { client } = stubClaude([
-        reply([toolUse('toolu_k', 'create_order', { items: [{ item_id: 'itm_a', quantity: 1 }], client_request_id: 'order-1-sourdough' })], 'tool_use'),
+        reply(keys.map((k, i) => toolUse(`toolu_k${i}`, 'create_order', { items: [{ item_id: 'itm_a', quantity: 1 }], client_request_id: k })), 'tool_use'),
         reply([text('Done.')]),
       ]);
       const mcp = stubMcp({ create_order: ok(order) });
       const events = await collect(
-        runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Yes', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+        runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId, userText: 'Yes', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
       );
-      const sessionId = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
-      return { sessionId, sent: mcp.calls[0].arguments, shown: (events[1] as Extract<ConsoleEvent, { type: 'tool_call' }>).input };
+      const id = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
+      const shown = events.filter((e): e is Extract<ConsoleEvent, { type: 'tool_call' }> => e.type === 'tool_call').map((e) => e.input);
+      return { id, sent: mcp.calls.map((c) => String(c.arguments.client_request_id)), shown };
     };
-    const a = await turn();
-    const b = await turn();
-    expect(a.sent.client_request_id).toBe(`${a.sessionId}:order-1-sourdough`);
-    expect(b.sent.client_request_id).toBe(`${b.sessionId}:order-1-sourdough`);
-    expect(a.shown).toEqual(a.sent); // the Activity panel shows what really went to the door
-    expect(String(a.sent.client_request_id).length).toBeLessThanOrEqual(64);
+    const a = await run(null);
+    for (const k of a.sent) {
+      expect(k.startsWith(`${a.id}:`)).toBe(true);
+      expect(k.length).toBeLessThanOrEqual(64);
+    }
+    expect(a.sent[0]).toBe(a.sent[3]); // the same key in one conversation: the same order (idempotent retry)
+    expect(new Set(a.sent.slice(0, 3)).size).toBe(3); // keys that differ only after 64 characters stay apart
+    expect(a.shown.map((i) => (i as Record<string, unknown>).client_request_id)).toEqual(a.sent); // Activity shows what was sent
+    const again = await run(a.id);
+    expect(again.sent).toEqual(a.sent); // stable across turns of the same conversation
+    const b = await run(null);
+    expect(b.sent[0]).not.toBe(a.sent[0]); // another buyer with the same key never shares the order
   });
 
   it('passes an MCP error result to the model instead of failing the turn', async () => {
@@ -289,9 +316,11 @@ describe('runBuyerConsoleTurn', () => {
         throw new Error('fetch failed');
       },
     });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const events = await collect(
       runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
     );
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['[shelfie] buyer console: get_shop_info failed: fetch failed']);
     expect(events.map((e) => e.type)).toEqual(['session', 'tool_call', 'tool_result', 'text', 'done']);
     expect((events[2] as Extract<ConsoleEvent, { type: 'tool_result' }>).ok).toBe(false);
     expect(JSON.stringify(requests[1].messages.at(-1))).toContain('SHOP_UNREACHABLE');
@@ -299,6 +328,7 @@ describe('runBuyerConsoleTurn', () => {
 
   it("yields one error event when the agent door can't be reached at all", async () => {
     const { client, requests } = stubClaude([]);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const events = await collect(
       runBuyerConsoleTurn({
         shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client, db,
@@ -307,6 +337,7 @@ describe('runBuyerConsoleTurn', () => {
         },
       }),
     );
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['[shelfie] buyer console could not reach the agent door: ECONNREFUSED']);
     expect(events.map((e) => e.type)).toEqual(['session', 'error']);
     expect((events[1] as Extract<ConsoleEvent, { type: 'error' }>).message).toBe("The shop didn't answer. Try again.");
     expect(requests).toHaveLength(0);
@@ -315,13 +346,167 @@ describe('runBuyerConsoleTurn', () => {
   it('yields an error event (and keeps the session usable) when Claude fails', async () => {
     const { client } = stubClaude([]); // first request gets a 500
     const mcp = stubMcp({});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const events = await collect(
       runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
     );
     expect(events.map((e) => e.type)).toEqual(['session', 'error']);
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual([expect.stringMatching(/^\[shelfie\] buyer console turn failed: /)]);
     const id = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
     // Nothing happened in the shop, so nothing is stored: a retry starts clean.
     expect(assistant.get(db, id)!.messages).toEqual([]);
+    expect(mcp.closed()).toBe(1);
+  });
+
+  it('keeps the shop calls of a turn Claude broke off, so the next turn knows what happened', async () => {
+    const { client } = stubClaude([reply([toolUse('toolu_p', 'list_products', {})], 'tool_use')]); // then a 500
+    const mcp = stubMcp({ list_products: ok(MENU) });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Menu?', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+    );
+    expect(events.map((e) => e.type)).toEqual(['session', 'tool_call', 'tool_result', 'error']);
+    expect(warn).toHaveBeenCalledTimes(1);
+    const id = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
+    const stored = assistant.get(db, id)!;
+    expect((stored.messages as { role: string }[]).map((m) => m.role)).toEqual(['user', 'assistant', 'user']);
+    expect(JSON.stringify(stored.messages.at(-1))).toContain('"tool_use_id":"toolu_p"');
+    expect((stored.events as ConsoleEvent[]).map((e) => e.type)).toEqual(['tool_call', 'tool_result', 'error']);
+    expect(mcp.closed()).toBe(1);
+
+    // The next turn sends that history unchanged, then the new message.
+    const next = stubClaude([reply([text('Here is the menu.')])]);
+    await collect(runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: id, userText: 'Try again', mcpUrl: MCP_URL, client: next.client, mcpClientFactory: mcp.factory, db }));
+    expect(next.requests[0].messages).toEqual([...stored.messages, { role: 'user', content: 'Try again' }]);
+  });
+
+  it(`says so when the assistant runs out of steps (${MAX_ITERATIONS}) without an answer, and keeps the session usable`, async () => {
+    const replies = Array.from({ length: MAX_ITERATIONS + 2 }, (_, i) => reply([toolUse(`toolu_l${i}`, 'list_products', {})], 'tool_use'));
+    const { client, requests } = stubClaude(replies);
+    const mcp = stubMcp({ list_products: ok(MENU) });
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Loop', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+    );
+    expect(requests).toHaveLength(MAX_ITERATIONS);
+    expect(events.at(-1)).toEqual({ type: 'error', message: TOO_MANY_STEPS_MESSAGE });
+    expect(events.some((e) => e.type === 'text')).toBe(false);
+    const id = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
+    // Every tool_use in the stored history has its tool_result, so the next request is valid.
+    const stored = assistant.get(db, id)!.messages as { role: string }[];
+    expect(stored.at(-1)!.role).toBe('user');
+    expect(stored.filter((m) => m.role === 'assistant')).toHaveLength(MAX_ITERATIONS);
+  });
+
+  it(`ends a full conversation (${MAX_USER_TURNS} messages from the person) without calling Claude or the door`, async () => {
+    const full = assistant.create(db, s.shop.id);
+    const history = Array.from({ length: MAX_USER_TURNS }, (_, i) => [
+      { role: 'user', content: `Message ${i}` },
+      { role: 'assistant', content: [text(`Reply ${i}`)] },
+    ]).flat();
+    assistant.append(db, full.id, history, []);
+    const { client, requests } = stubClaude([reply([text('Should not be asked.')])]);
+    const mcp = stubMcp({});
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: full.id, userText: 'One more', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+    );
+    expect(events).toEqual([
+      { type: 'session', id: full.id },
+      { type: 'error', message: CONVERSATION_FULL_MESSAGE, code: 'CONVERSATION_FULL' },
+    ]);
+    expect(requests).toHaveLength(0);
+    expect(mcp.urls).toEqual([]);
+    expect(assistant.get(db, full.id)!.messages).toHaveLength(history.length);
+    // One turn short of full still runs.
+    const room = assistant.create(db, s.shop.id);
+    assistant.append(db, room.id, history.slice(2), []);
+    const ok2 = stubClaude([reply([text('Sure.')])]);
+    const more = await collect(runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: room.id, userText: 'Last one', mcpUrl: MCP_URL, client: ok2.client, mcpClientFactory: mcp.factory, db }));
+    expect(more.map((e) => e.type)).toEqual(['session', 'text', 'done']);
+  });
+
+  it('stops the turn when the reader goes away: no more Claude calls, no order placed', async () => {
+    const { client, requests } = stubClaude([
+      reply([toolUse('toolu_a', 'list_products', {})], 'tool_use'),
+      reply([toolUse('toolu_b', 'create_order', { items: [{ item_id: 'itm_almond', quantity: 2 }] })], 'tool_use'),
+      reply([text('Placed.')]),
+    ]);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const mcp = stubMcp({
+      list_products: async () => {
+        await gate;
+        return ok(MENU);
+      },
+      create_order: ok({ order_ref: 'ord_never' }),
+    });
+    for await (const e of runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Order', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db })) {
+      if (e.type === 'tool_call') break; // the browser tab closed
+    }
+    release();
+    await vi.waitFor(() => expect(mcp.closed()).toBe(1));
+    expect(requests).toHaveLength(1);
+    expect(mcp.calls.map((c) => c.name)).toEqual(['list_products']);
+    expect(mcp.signals[0]).toBeInstanceOf(AbortSignal);
+  });
+
+  it("stops the turn when the caller's signal aborts (the request was closed)", async () => {
+    const { client, requests } = stubClaude([
+      reply([toolUse('toolu_a', 'list_products', {})], 'tool_use'),
+      reply([toolUse('toolu_b', 'create_order', { items: [{ item_id: 'itm_almond', quantity: 2 }] })], 'tool_use'),
+      reply([text('Placed.')]),
+    ]);
+    const closed = new AbortController();
+    const mcp = stubMcp({
+      list_products: () => {
+        closed.abort();
+        return ok(MENU);
+      },
+      create_order: ok({ order_ref: 'ord_never' }),
+    });
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Order', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db, signal: closed.signal }),
+    );
+    expect(requests).toHaveLength(1);
+    expect(mcp.calls.map((c) => c.name)).toEqual(['list_products']);
+    expect(mcp.signals[0]?.aborted).toBe(true);
+    expect(events.map((e) => e.type)).not.toContain('done');
+    expect(mcp.closed()).toBe(1);
+  });
+
+  it('does not even connect when the signal is already aborted', async () => {
+    const { client, requests } = stubClaude([reply([text('No.')])]);
+    const mcp = stubMcp({});
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db, signal: AbortSignal.abort() }),
+    );
+    expect(events.map((e) => e.type)).toEqual(['session']);
+    expect(mcp.urls).toEqual([]);
+    expect(requests).toHaveLength(0);
+  });
+
+  it("ends the stream with an error (instead of hanging) when the runner can't start", async () => {
+    const broken = { beta: { messages: { toolRunner: () => { throw new Error('bad params'); } } } } as unknown as Anthropic;
+    const mcp = stubMcp({});
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const events = await Promise.race([
+      collect(runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client: broken, mcpClientFactory: mcp.factory, db })),
+      new Promise<'hung'>((r) => setTimeout(() => r('hung'), 2000)),
+    ]);
+    expect(events).not.toBe('hung');
+    expect((events as ConsoleEvent[]).map((e) => e.type)).toEqual(['session', 'error']);
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['[shelfie] buyer console turn failed: bad params']);
+    expect(mcp.closed()).toBe(1);
+  });
+
+  it('closes the door client when listing its tools fails after connecting', async () => {
+    const { client } = stubClaude([]);
+    const mcp = stubMcp({}, { listTools: async () => { throw new Error('tools/list failed'); } });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Hi', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+    );
+    expect(events.map((e) => e.type)).toEqual(['session', 'error']);
+    expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['[shelfie] buyer console could not reach the agent door: tools/list failed']);
     expect(mcp.closed()).toBe(1);
   });
 
