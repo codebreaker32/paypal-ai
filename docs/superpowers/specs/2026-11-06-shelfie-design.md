@@ -129,6 +129,7 @@ assistant_sessions(id, shop_id, messages_json (append-only Claude message params
 | `payment_pending` | `capture_completed` / `capture_denied` | `paid` + `brief` / `failed` | webhook `PAYMENT.CAPTURE.COMPLETED`/`DENIED` · poller |
 | `approved` | `capture_declined` | `awaiting_approval` | 422 `INSTRUMENT_DECLINED` (buyer re-approves with the same link) |
 | `approved` | `mismatch` | `failed` (no capture) | PayPal amount or `custom_id` differs from ours |
+| `approved` | `capture_denied` | `failed` | PayPal reports the order COMPLETED with a DECLINED/FAILED capture |
 | `awaiting_approval` | `cancelled` / `expired` | `cancelled` / `expired` | cancel URL / 60 min without approval |
 | `paid` | `fulfilled` | `fulfilled` | Mark picked up, or tracking added |
 
