@@ -1,0 +1,36 @@
+{
+  "_fixture": "Hand-written test fixture, not a recorded delivery. Shape follows PayPal's documented PAYMENT.CAPTURE.COMPLETED webhook (Payments v2 capture resource). Ids are placeholders; tests replace id and resource.supplementary_data.related_ids.order_id.",
+  "id": "WH-1BB11111BB111111B-1BB11111BB1111111",
+  "event_version": "1.0",
+  "create_time": "2026-11-06T18:22:07.940Z",
+  "resource_type": "capture",
+  "resource_version": "2.0",
+  "event_type": "PAYMENT.CAPTURE.COMPLETED",
+  "summary": "Payment completed for $ 26.50 USD",
+  "resource": {
+    "id": "42311647XV020574X",
+    "status": "COMPLETED",
+    "amount": { "currency_code": "USD", "value": "26.50" },
+    "final_capture": true,
+    "custom_id": "ord_placeholder",
+    "invoice_id": "SHF-XXXXXX",
+    "seller_protection": { "status": "ELIGIBLE", "dispute_categories": ["ITEM_NOT_RECEIVED", "UNAUTHORIZED_TRANSACTION"] },
+    "seller_receivable_breakdown": {
+      "gross_amount": { "currency_code": "USD", "value": "26.50" },
+      "paypal_fee": { "currency_code": "USD", "value": "1.27" },
+      "net_amount": { "currency_code": "USD", "value": "25.23" }
+    },
+    "supplementary_data": { "related_ids": { "order_id": "5O190127TN364715T" } },
+    "create_time": "2026-11-06T18:22:04Z",
+    "update_time": "2026-11-06T18:22:04Z",
+    "links": [
+      { "href": "https://api-m.sandbox.paypal.com/v2/payments/captures/42311647XV020574X", "rel": "self", "method": "GET" },
+      { "href": "https://api-m.sandbox.paypal.com/v2/payments/captures/42311647XV020574X/refund", "rel": "refund", "method": "POST" },
+      { "href": "https://api-m.sandbox.paypal.com/v2/checkout/orders/5O190127TN364715T", "rel": "up", "method": "GET" }
+    ]
+  },
+  "links": [
+    { "href": "https://api-m.sandbox.paypal.com/v1/notifications/webhooks-events/WH-1BB11111BB111111B-1BB11111BB1111111", "rel": "self", "method": "GET" },
+    { "href": "https://api-m.sandbox.paypal.com/v1/notifications/webhooks-events/WH-1BB11111BB111111B-1BB11111BB1111111/resend", "rel": "resend", "method": "POST" }
+  ]
+}
