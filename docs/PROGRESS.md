@@ -14,6 +14,7 @@ Build, wave 1 of 3 (subagent-driven, parallel worktrees): PayPal client, menu re
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- Menu reader on the 4 sample photos with real Claude (`npm run test:ai`, 4/4): Marigold 10 items in 10.3 s, Tía Lupe 9.5 s, Ravi 7.3 s, blurry photo → "unreadable" with a retake tip in 4.3 s.
 - PayPal sandbox OAuth, `POST /v1/catalogs/products`, `POST /v2/checkout/orders` → `PAYER_ACTION_REQUIRED` + `payer-action` link.
 - Claude vision extraction via `@anthropic-ai/sdk` `messages.parse`.
 
