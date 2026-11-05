@@ -11,7 +11,8 @@ import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import { extractMenu } from '@/lib/ai/extract';
 import { loadSetupView, runReading, setShopPhotos } from '@/lib/catalog/setup';
-import { errorResponse, jsonError, notFound, ownedShop } from '@/lib/catalog/http';
+import { errorResponse, notFound, ownedShop } from '@/lib/catalog/http';
+import { jsonError } from '@/lib/http/json-error';
 import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
@@ -25,7 +26,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/extr
   const { id } = await ctx.params;
   let shop = await ownedShop(id);
   if (!shop) return notFound();
-  if (shop.status !== 'draft') return jsonError('SHOP_LIVE', 'This shop is already published.', 409);
+  if (shop.status !== 'draft') return jsonError(409, 'SHOP_LIVE', 'This shop is already published.');
   const db = getDb();
 
   try {
@@ -57,7 +58,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/extr
       case 'unreadable':
         return Response.json({ unreadable: { reason: out.reason, tip: out.tip } });
       case 'failed':
-        return jsonError('READING_FAILED', out.message, 502);
+        return jsonError(502, 'READING_FAILED', out.message);
     }
   } catch (err) {
     return errorResponse(err, 'POST /api/shops/[id]/extract');

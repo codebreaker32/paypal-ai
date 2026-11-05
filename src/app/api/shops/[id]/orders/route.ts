@@ -4,7 +4,8 @@ import { getOwnedShop } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
-import { json, jsonError } from '@/lib/seller/http';
+import { jsonError } from '@/lib/http/json-error';
+import { json } from '@/lib/seller/http';
 
 export const runtime = 'nodejs';
 

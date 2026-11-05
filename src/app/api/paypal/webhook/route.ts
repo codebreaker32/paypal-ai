@@ -6,7 +6,8 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import { syncOrder } from '@/lib/orders/service';
 import { getPayPal } from '@/lib/paypal';
 import { getOrderDeps } from '@/lib/services';
-import { json, jsonError } from '@/lib/seller/http';
+import { jsonError } from '@/lib/http/json-error';
+import { json } from '@/lib/seller/http';
 
 export const runtime = 'nodejs';
 

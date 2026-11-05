@@ -5,6 +5,7 @@ import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { clientIp } from '@/lib/http/client-ip';
+import { jsonError } from '@/lib/http/json-error';
 import { allow } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -95,8 +96,4 @@ function ndjson(events: AsyncGenerator<ConsoleEvent>, stop: () => void): Readabl
       await events.return(undefined).catch(() => {});
     },
   });
-}
-
-function jsonError(status: number, code: string, message: string): Response {
-  return Response.json({ error: { code, message } }, { status, headers: { 'cache-control': 'no-store' } });
 }
