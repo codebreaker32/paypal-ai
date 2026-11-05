@@ -78,6 +78,9 @@ export function ReviewStep(props: ReviewProps) {
   const inPerson = items.filter((i) => i.status === 'in_person' && i.issues.length === 0);
   const removed = items.filter((i) => i.status === 'removed');
   const toPublish = items.filter(isPendingPublish).length;
+  // A publish that broke after its items reached PayPal leaves nothing to send: publishing again only opens the shop.
+  const inPayPal = items.filter((i) => i.paypalProductId).length;
+  const finishOnly = toPublish === 0 && inPayPal > 0;
   const lines = openSkipped(skipped, items);
 
   // After a card is fixed, keep the keyboard where the work is: the next card, or the ready list.
@@ -137,7 +140,11 @@ export function ReviewStep(props: ReviewProps) {
     }
     window.scrollTo({ top: 0 });
     const result = await start();
-    if (result.phase === 'done' && result.failed === 0) {
+    if (result.phase === 'error' && result.code === 'NOTHING_TO_PUBLISH') {
+      // An earlier run (say, one whose connection dropped) already finished: let the server show where things stand.
+      reset();
+      router.refresh();
+    } else if (result.phase === 'done' && result.failed === 0) {
       // A beat to see every line turn green, then the live screen.
       setTimeout(() => router.refresh(), 900);
     }
@@ -188,7 +195,7 @@ export function ReviewStep(props: ReviewProps) {
 
   // ───────────── Review (step 2) ─────────────
   const disabledReason =
-    toPublish === 0
+    toPublish === 0 && !finishOnly
       ? needYou > 0
         ? 'Fix an item above, or give one a price, to publish.'
         : 'Give at least one item a price to publish.'
@@ -333,7 +340,12 @@ export function ReviewStep(props: ReviewProps) {
                 {publishError ? <FieldError>{publishError}</FieldError> : disabledReason}
               </span>
             )}
-            {!disabledReason && !publishError && needYou > 0 && (
+            {finishOnly && !publishError && (
+              <span className="text-sm text-ink-soft">
+                {plural(inPayPal, 'item')} {inPayPal === 1 ? 'is' : 'are'} already in PayPal. Open your shop to finish.
+              </span>
+            )}
+            {!disabledReason && !finishOnly && !publishError && needYou > 0 && (
               <span className="hidden text-sm text-ink-soft sm:block">
                 {needYou === 1 ? '1 item that needs you stays' : `${needYou} items that need you stay`} off your shop for now.
               </span>
@@ -343,11 +355,11 @@ export function ReviewStep(props: ReviewProps) {
             size="lg"
             icon={Send}
             onClick={() => void doPublish()}
-            disabled={toPublish === 0}
+            disabled={toPublish === 0 && !finishOnly}
             aria-describedby={disabledReason || publishError ? 'publish-reason' : undefined}
             className="sm:order-2"
           >
-            Publish {plural(toPublish, 'item')} to PayPal
+            {finishOnly ? 'Open your shop' : `Publish ${plural(toPublish, 'item')} to PayPal`}
           </Button>
         </div>
       </div>

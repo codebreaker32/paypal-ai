@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 
 const state = vi.hoisted(() => ({
@@ -68,6 +68,18 @@ describe('POST /api/shops', () => {
     expect(shop.menuPhotoPaths).toHaveLength(2);
     const token = state.jar.get(`shelfie_owner_${shopId}`);
     expect(shops.verifyOwnerToken(state.db, shopId, token)).toBe(true);
+  });
+
+  it('starts a shop without PayPal keys: only publishing needs them', async () => {
+    const saved = { id: process.env.PAYPAL_CLIENT_ID, secret: process.env.PAYPAL_SECRET_KEY };
+    delete process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_SECRET_KEY;
+    onTestFinished(() => {
+      if (saved.id !== undefined) process.env.PAYPAL_CLIENT_ID = saved.id;
+      if (saved.secret !== undefined) process.env.PAYPAL_SECRET_KEY = saved.secret;
+    });
+    const res = await POST(json({ sample: 'marigold-bakehouse' }));
+    expect(res.status).toBe(201);
   });
 
   it('creates a shop from a sample menu', async () => {

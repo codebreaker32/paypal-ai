@@ -4,7 +4,7 @@ import { useCallback, useRef, useState } from 'react';
 import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
-import { publish, type PublishEvent } from './api';
+import { ApiError, publish, type PublishEvent } from './api';
 
 export interface PublishRow {
   itemId: string;
@@ -16,7 +16,7 @@ export interface PublishRow {
 export type PublishRun =
   | { phase: 'idle' }
   | { phase: 'running' | 'done'; rows: PublishRow[]; published: number; failed: number; shopStatus?: string }
-  | { phase: 'error'; message: string; rows: PublishRow[] };
+  | { phase: 'error'; message: string; rows: PublishRow[]; code?: string };
 
 /** Runs a publish and keeps a row per item as PayPal answers. Calling start() again is the retry. */
 export function usePublish(shopId: string) {
@@ -48,7 +48,7 @@ export function usePublish(shopId: string) {
       });
       if (last.phase === 'running') commit({ phase: 'error', message: 'The connection dropped before publishing finished. Try again.', rows });
     } catch (err) {
-      commit({ phase: 'error', message: err instanceof Error ? err.message : String(err), rows });
+      commit({ phase: 'error', message: err instanceof Error ? err.message : String(err), rows, code: err instanceof ApiError ? err.code : undefined });
     } finally {
       busy.current = false;
     }
@@ -69,7 +69,9 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
         ? `Adding to PayPal… ${finished}/${total}`
         : 'Connecting to PayPal…'
       : run.phase === 'done' && run.failed === 0
-        ? `All ${total} ${total === 1 ? 'item is' : 'items are'} in PayPal`
+        ? total
+          ? `All ${total} ${total === 1 ? 'item is' : 'items are'} in PayPal`
+          : 'Your items are in PayPal'
         : run.phase === 'done'
           ? `${run.published} of ${total} added to PayPal`
           : 'Publishing stopped';

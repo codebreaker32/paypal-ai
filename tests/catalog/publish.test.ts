@@ -1,9 +1,9 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
-import { publishShop, type PublishProgress } from '@/lib/catalog/publish';
+import { canGoLive, publishShop, type PublishProgress } from '@/lib/catalog/publish';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import type { DraftItem } from '@/lib/domain/types';
@@ -114,6 +114,65 @@ describe('publishShop', () => {
     const bad = events.find((e) => !e.ok)!;
     expect(ok).toMatchObject({ type: 'item', ok: true, paypalProductId: expect.stringMatching(/^PROD-/) });
     expect(bad).toMatchObject({ type: 'item', ok: false, message: 'boom' });
+  });
+
+  it('a progress listener that throws (a browser that left) changes nothing: the shop still goes live', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    onTestFinished(() => warn.mockRestore());
+    let heard = 0;
+    const result = await publishShop({ db, paypal }, shopId, () => {
+      heard++;
+      throw new TypeError('Invalid state: Controller is already closed');
+    });
+    expect(heard).toBe(2);
+    expect(result).toEqual({ published: 2, failed: [] });
+    expect(paypal.calls.filter((c) => c.method === 'createProduct')).toHaveLength(2);
+    for (const name of ['Butter croissant', 'Drip coffee']) expect(byName(db, shopId, name).status).toBe('live');
+    const shop = shops.byId(db, shopId)!;
+    expect(shop.status).toBe('live');
+    expect(shop.slug).toBe('marigold-bakehouse');
+  });
+
+  it('a throwing listener never turns a failed item into a crash or a double count', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    onTestFinished(() => warn.mockRestore());
+    paypal.failNext('createProduct', new PayPalApiError(500, 'INTERNAL_SERVICE_ERROR', null, 'dbg', 'PayPal had a hiccup'));
+    const result = await publishShop({ db, paypal }, shopId, () => {
+      throw new Error('listener gone');
+    });
+    expect(result.published).toBe(1);
+    expect(result.failed).toHaveLength(1);
+    expect(shops.byId(db, shopId)!.status).toBe('live');
+  });
+
+  describe('a run that broke before the shop went live', () => {
+    // Every publishable item reached PayPal, but the shop is still a draft with its draft slug.
+    function brokenRun(): string {
+      const id = shops.create(db, { name: 'draft q1w2e3r4' }).shop.id;
+      shops.update(db, id, { name: "Tía Lupe's" });
+      items.replaceDrafts(db, id, [draft('Taco', [350]), draft('Agua fresca', [300])]);
+      for (const it of items.listWithVariants(db, id)) items.setPayPalProductId(db, it.id, `PROD-${it.id}`);
+      return id;
+    }
+
+    it('canGoLive is true only for a draft shop with items in PayPal', () => {
+      const id = brokenRun();
+      expect(canGoLive(db, id)).toBe(true);
+      expect(canGoLive(db, shopId)).toBe(false); // a draft with nothing in PayPal yet
+      shops.publish(db, id);
+      expect(canGoLive(db, id)).toBe(false); // already live
+    });
+
+    it('a re-run makes no PayPal calls and finishes going live, with the real slug', async () => {
+      const id = brokenRun();
+      const before = paypal.calls.length;
+      const r = await publishShop({ db, paypal }, id);
+      expect(r).toEqual({ published: 0, failed: [] });
+      expect(paypal.calls.length).toBe(before);
+      const shop = shops.byId(db, id)!;
+      expect(shop.status).toBe('live');
+      expect(shop.slug).toBe('tia-lupes');
+    });
   });
 
   it('runs at most 3 PayPal calls at once', async () => {

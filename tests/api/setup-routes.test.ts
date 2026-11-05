@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 
@@ -12,7 +12,6 @@ const state = vi.hoisted(() => ({
   db: null as unknown as Database.Database,
   jar: new Map<string, string>(),
   extract: null as unknown as (photos: unknown[]) => Promise<MenuExtraction>,
-  paypal: null as unknown,
 }));
 
 vi.mock('next/headers', () => ({
@@ -24,16 +23,17 @@ vi.mock('next/headers', () => ({
 }));
 vi.mock('@/lib/db', async (orig) => ({ ...(await orig<typeof import('@/lib/db')>()), getDb: () => state.db }));
 vi.mock('@/lib/ai/extract', () => ({ extractMenu: (photos: unknown[]) => state.extract(photos) }));
-vi.mock('@/lib/paypal', async (orig) => ({ ...(await orig<typeof import('@/lib/paypal')>()), getPayPal: () => state.paypal }));
 
 const { createTestDb } = await import('@/lib/db');
 const shops = await import('@/lib/db/repos/shops');
 const items = await import('@/lib/db/repos/items');
 const extractions = await import('@/lib/db/repos/extractions');
 const { createFakePayPal } = await import('@/lib/paypal/fake');
+const { setPayPalForServices } = await import('@/lib/services');
 const { recordedReading } = await import('@/lib/ai/samples');
 const { ownerCookieName } = await import('@/lib/auth/owner');
 const { createShopFromSample } = await import('@/lib/catalog/setup');
+const { itemsToPublish } = await import('@/lib/catalog/publish');
 const extractRoute = await import('@/app/api/shops/[id]/extract/route');
 const itemsRoute = await import('@/app/api/shops/[id]/items/route');
 const shopRoute = await import('@/app/api/shops/[id]/route');
@@ -63,12 +63,14 @@ describe('setup routes', () => {
       reads++;
       return recordedReading('marigold-bakehouse');
     };
-    state.paypal = createFakePayPal();
+    // Route handlers get PayPal from the composition root (src/lib/services.ts).
+    setPayPalForServices(createFakePayPal());
     const created = await createShopFromSample(state.db, 'marigold-bakehouse');
     shopId = created.shop.id;
     state.jar.set(ownerCookieName(shopId), created.ownerToken);
   });
   afterEach(() => {
+    setPayPalForServices(undefined);
     delete process.env.UPLOADS_DIR;
     fs.rmSync(dir, { recursive: true, force: true });
   });
@@ -153,6 +155,67 @@ describe('setup routes', () => {
     const again = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
     expect(again.status).toBe(400);
     expect(((await again.json()) as { error: { code: string } }).error.code).toBe('NOTHING_TO_PUBLISH');
+  });
+
+  it('keeps publishing and makes the shop live when the browser drops the stream mid-run', async () => {
+    await extractRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    const fake = createFakePayPal();
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    setPayPalForServices({
+      ...fake,
+      async createProduct(p: Parameters<typeof fake.createProduct>[0], requestId: string) {
+        await gate;
+        return fake.createProduct(p, requestId);
+      },
+    });
+    const res = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    const reader = res.body!.getReader();
+    const first = new TextDecoder().decode((await reader.read()).value);
+    expect(JSON.parse(first.split('\n')[0])).toMatchObject({ type: 'start' });
+    await reader.cancel(); // the seller closed the tab
+    release();
+
+    await vi.waitFor(() => expect(shops.byId(state.db, shopId)!.status).toBe('live'));
+    expect(items.listWithVariants(state.db, shopId, { status: ['live'] })).toHaveLength(6);
+    expect(fake.calls.filter((c) => c.method === 'createProduct')).toHaveLength(6);
+    // The run is over: a new POST is not refused as "already running".
+    await vi.waitFor(async () => {
+      const again = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+      expect(((await again.json()) as { error: { code: string } }).error.code).toBe('NOTHING_TO_PUBLISH');
+    });
+  });
+
+  it('a re-POST finishes a run that broke after every item reached PayPal', async () => {
+    await extractRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    // The broken run: items are in PayPal, the shop never went live.
+    for (const it of itemsToPublish(state.db, shopId)) items.setPayPalProductId(state.db, it.id, `PROD-${it.id}`);
+    expect(shops.byId(state.db, shopId)!.status).toBe('draft');
+
+    const fake = createFakePayPal();
+    setPayPalForServices(fake);
+    const res = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    expect(res.status).toBe(200);
+    const events = await ndjson(res);
+    expect(events[0]).toEqual({ type: 'start', items: [] });
+    expect(events.at(-1)).toMatchObject({ type: 'done', published: 0, failed: [], shop: { status: 'live', slug: 'marigold-bakehouse' } });
+    expect(fake.calls).toHaveLength(0);
+  });
+
+  it('publish is a 503 that names the missing keys when PayPal is not configured', async () => {
+    await extractRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    setPayPalForServices(undefined);
+    const saved = process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_ID;
+    onTestFinished(() => {
+      if (saved !== undefined) process.env.PAYPAL_CLIENT_ID = saved;
+    });
+    const res = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    expect(res.status).toBe(503);
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe('PAYPAL_NOT_CONFIGURED');
+    expect(body.error.message).toContain('PAYPAL_CLIENT_ID');
+    expect(shops.byId(state.db, shopId)!.status).toBe('draft');
   });
 
   it('every setup route is a 404 for a browser that does not own the shop', async () => {

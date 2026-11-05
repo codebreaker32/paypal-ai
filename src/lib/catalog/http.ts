@@ -1,4 +1,9 @@
 // JSON helpers shared by the setup route handlers. Every error is { error: { code, message } }.
+//
+// Where handlers get their dependencies: the one that calls PayPal (publish) takes db + PayPal from
+// the composition root, getOrderDeps() in src/lib/services.ts. The others only touch SQLite and use
+// getDb(), the same connection getOrderDeps().db returns: getOrderDeps() builds the PayPal client
+// and so throws without PayPal keys, and every step before publishing works without them.
 import { getOwnedShop } from '@/lib/auth/owner';
 import type { Shop } from '@/lib/domain/types';
 import { UploadError } from '@/lib/uploads';

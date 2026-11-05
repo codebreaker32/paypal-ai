@@ -69,9 +69,39 @@ function assignRealSlug(db: Db, shop: Shop): void {
 }
 
 /**
+ * A draft shop with at least one item already in PayPal can go live. Normally a publish run does
+ * that at its end; this is also true when a run broke after its items reached PayPal (a re-POST
+ * then has nothing to send and only finishes going live).
+ */
+export function canGoLive(db: Db, shopId: string): boolean {
+  return shops.byId(db, shopId)?.status === 'draft' && items.listWithVariants(db, shopId, { status: ['live'] }).length > 0;
+}
+
+/** Gives a draft shop with items in PayPal its real slug and makes it live (a paused shop stays paused). */
+function goLiveIfReady(db: Db, shopId: string): void {
+  db.transaction(() => {
+    if (!canGoLive(db, shopId)) return;
+    assignRealSlug(db, shops.byId(db, shopId)!);
+    shops.publish(db, shopId);
+  })();
+}
+
+/** Progress goes to a listener (the browser's stream) that may be gone; it never affects the run. */
+function notify(onProgress: ((e: PublishProgress) => void) | undefined, e: PublishProgress, run: { listenerFailed: boolean }): void {
+  if (!onProgress) return;
+  try {
+    onProgress(e);
+  } catch (err) {
+    if (!run.listenerFailed) console.warn('publish: progress listener failed:', err instanceof Error ? err.message : err);
+    run.listenerFailed = true;
+  }
+}
+
+/**
  * Publishes every resolved, fully priced draft item (3 at a time, request id `pub-<itemId>`),
  * marks each one live, and makes a draft shop live once at least one item is in PayPal.
- * "Ask in person" items are listed on the shop but never sent to PayPal.
+ * "Ask in person" items are listed on the shop but never sent to PayPal. `onProgress` hears about
+ * each item after its result is recorded; if it throws, the run carries on regardless.
  */
 export async function publishShop(
   deps: PublishDeps,
@@ -84,26 +114,23 @@ export async function publishShop(
 
   const todo = itemsToPublish(db, shopId);
   const result: PublishResult = { published: 0, failed: [] };
+  const run = { listenerFailed: false };
 
   await pool(todo, PUBLISH_CONCURRENCY, async (item) => {
+    let event: PublishProgress;
     try {
       const { id } = await paypal.createProduct(productFor(item, shop), `pub-${item.id}`);
       items.setPayPalProductId(db, item.id, id);
       result.published++;
-      onProgress?.({ type: 'item', itemId: item.id, ok: true, paypalProductId: id });
+      event = { type: 'item', itemId: item.id, ok: true, paypalProductId: id };
     } catch (err) {
       const message = messageOf(err);
       result.failed.push({ itemId: item.id, message });
-      onProgress?.({ type: 'item', itemId: item.id, ok: false, message });
+      event = { type: 'item', itemId: item.id, ok: false, message };
     }
+    notify(onProgress, event, run);
   });
 
-  const anyLive = items.listWithVariants(db, shopId, { status: ['live'] }).length > 0;
-  if (shop.status === 'draft' && anyLive) {
-    db.transaction(() => {
-      assignRealSlug(db, shops.byId(db, shopId)!);
-      shops.publish(db, shopId);
-    })();
-  }
+  goLiveIfReady(db, shopId);
   return result;
 }
