@@ -19,11 +19,13 @@ Build, wave 2 of 3 (session 2). Task 8 (dashboard, AI brief, tracking, webhook) 
 - Menu reader on the 4 sample photos with real Claude (`npm run test:ai`, 4/4): Marigold 10 items in 10.3 s, Tía Lupe 9.5 s, Ravi 7.3 s, blurry photo → "unreadable" with a retake tip in 4.3 s.
 - PayPal sandbox OAuth, `POST /v1/catalogs/products`, `POST /v2/checkout/orders` → `PAYER_ACTION_REQUIRED` + `payer-action` link.
 - Claude vision extraction via `@anthropic-ai/sdk` `messages.parse`.
+- **Approval + capture on the real sandbox (session 2 spike):** order `3K582170DV477391D` built with the app's `createPayPalClient` + `buildOrderBody` (shipping order, $18.25), approved on PayPal's approval page via guest card checkout (country US, PayPal sandbox test Visa `4012000033330026`), then `captureOrder` → order COMPLETED, capture `9BV852348L665241F` COMPLETED.
 - Task 7 (session 2, real sandbox): the buyer console ordered from a live shop over the real MCP door and got a real PayPal approval link ($27.00); PayPal's own "Cancel and return" link landed on our cancelled receipt.
 - Task 8 (session 1 worker): AI order brief written 3× by the Claude brief agent calling the Agent Toolkit's `get_order` on real sandbox orders (~10 s each).
 
 ## Unverified
-- Order capture after buyer approval. The sandbox buyer login in `.env` works, but PayPal's checkout then says "This seller doesn't accept payments in your currency" (buyer/merchant account pairing). A spike is looking for a sandbox-legitimate way through.
+- Capture through the app's own return URL and a Playwright test (the capture gate, wave 3). Capture itself is verified (see Verified).
+- Paying with a PayPal wallet login: the sandbox merchant and the `.env` buyer are both India accounts, and PayPal blocks IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
 - Webhooks (no public URL on the VM).
 
 ## Next steps
@@ -32,4 +34,5 @@ Build, wave 2 of 3 (session 2). Task 8 (dashboard, AI brief, tracking, webhook) 
 3. Wave 3: seed, e2e, screenshots, judge round 1.
 
 ## Needs from human
-- Probably: a **US** sandbox personal (buyer) account, if the spike confirms the current buyer can't pay this merchant ("This seller doesn't accept payments in your currency").
+- Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
+- Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD` in `.env`. It contains `#`, and dotenv cuts the value there.
