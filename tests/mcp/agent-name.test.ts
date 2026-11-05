@@ -21,6 +21,13 @@ describe('agentFromUserAgent', () => {
     expect(agentFromUserAgent(ua)).toBe(name);
   });
 
+  it('finds a client token late in a long User-Agent', () => {
+    const electron =
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.6834.210 Electron/34.3.4 Safari/537.36 Cursor/1.4';
+    expect(electron.length).toBeGreaterThan(60);
+    expect(agentFromUserAgent(electron)).toBe('Cursor');
+  });
+
   it('has no name when there is no User-Agent', () => {
     expect(agentFromUserAgent(null)).toBeNull();
     expect(agentFromUserAgent('   ')).toBeNull();

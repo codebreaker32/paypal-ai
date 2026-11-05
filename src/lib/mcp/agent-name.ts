@@ -13,15 +13,23 @@ const KNOWN: { pattern: RegExp; name: string }[] = [
 
 export const UNKNOWN_AGENT = 'an AI assistant';
 
-/** A short, printable label (the `?agent=` name), or null. */
-export function agentLabel(raw: string | null): string | null {
-  const s = raw?.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60);
+/** Printable, single-spaced and at most `max` characters, or null. */
+function printable(raw: string | null, max: number): string | null {
+  const s = raw?.replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
   return s || null;
 }
 
-/** A friendly name for a known client's User-Agent; any other client (node, undici, …) is "an AI assistant". */
+/** A short, printable label (the `?agent=` name), or null. */
+export function agentLabel(raw: string | null): string | null {
+  return printable(raw, 60);
+}
+
+/**
+ * A friendly name for a known client's User-Agent; any other client (node, undici, …) is "an AI assistant". Matched on
+ * the first 256 characters, since client tokens often come late (an Electron UA ending in "Cursor/1.4").
+ */
 export function agentFromUserAgent(userAgent: string | null): string | null {
-  const ua = agentLabel(userAgent);
+  const ua = printable(userAgent, 256);
   if (!ua) return null;
   return KNOWN.find((k) => k.pattern.test(ua))?.name ?? UNKNOWN_AGENT;
 }
