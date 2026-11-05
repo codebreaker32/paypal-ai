@@ -16,7 +16,8 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    env: { PORT: String(PORT) },
+    // No Claude key in e2e: paid orders get the labelled template brief (fixtures use a fake PayPal).
+    env: { PORT: String(PORT), ANTHROPIC_API_KEY: '' },
     // Never attach to someone else's server on the same port unless asked to.
     reuseExistingServer: Boolean(process.env.E2E_REUSE_SERVER),
     timeout: 180_000,

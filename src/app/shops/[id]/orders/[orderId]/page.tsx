@@ -9,6 +9,7 @@ import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { BriefCard } from '@/components/dashboard/BriefCard';
 import { CopyButton } from '@/components/dashboard/CopyButton';
+import { withFallbackBrief } from '@/lib/ai/template';
 import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
 import { LocalTime } from '@/components/dashboard/LocalTime';
 import { TrackingForm } from '@/components/dashboard/TrackingForm';
@@ -282,8 +283,10 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   const { id, orderId } = await params;
   const shop = await requireOwner(id);
   const db = getDb();
-  const order = ordersRepo.byId(db, orderId);
-  if (!order || order.shopId !== shop.id) notFound();
+  const stored = ordersRepo.byId(db, orderId);
+  if (!stored || stored.shopId !== shop.id) notFound();
+  // A paid order whose brief never arrived (restart mid-write) shows the labelled template and stops polling.
+  const order = withFallbackBrief(stored);
   const trackers = ordersRepo.trackers(db, order.id);
   const entries = timelineEntries(eventsRepo.list(db, order.id), order);
   const pending = isOpen(order.status) || ((order.status === 'paid' || order.status === 'fulfilled') && !order.brief);

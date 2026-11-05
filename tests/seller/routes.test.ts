@@ -16,7 +16,17 @@ import { seedShop, type SeededShop } from '../helpers/shop';
 const h = vi.hoisted(() => ({
   owned: new Set<string>(),
   createTracking: null as null | ((args: Record<string, unknown>) => Promise<string>),
+  boom: false,
 }));
+
+vi.mock('@/lib/seller/actions', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/seller/actions')>();
+  const guard = <A extends unknown[], R>(fn: (...a: A) => R) => (...a: A): R => {
+    if (h.boom) throw new Error('database is locked: /secret/path');
+    return fn(...a);
+  };
+  return { ...actual, markPickedUp: guard(actual.markPickedUp), addTracking: guard(actual.addTracking) };
+});
 
 vi.mock('@/lib/auth/owner', async () => {
   const shops = await import('@/lib/db/repos/shops');
@@ -136,6 +146,28 @@ describe('owner order routes', () => {
       const p = placeOrder(s, { fulfillment: 'pickup' });
       expect((await fulfilRoute.POST(post(), params(s.shop.id, p.id))).status).toBe(404);
       expect(orders.byId(getDb(), p.id)!.status).toBe('paid');
+    });
+  });
+
+  describe('unexpected errors keep the { error: { code, message } } contract', () => {
+    it('fulfil and tracking answer 500 INTERNAL without leaking the cause', async () => {
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const o = placeOrder(s, { fulfillment: 'pickup' });
+      h.boom = true;
+      try {
+        const a = await fulfilRoute.POST(post(), params(s.shop.id, o.id));
+        expect(a.status).toBe(500);
+        const ab = await a.json();
+        expect(ab.error.code).toBe('INTERNAL');
+        expect(JSON.stringify(ab)).not.toContain('secret');
+        const b = await trackingRoute.POST(post({ carrier: 'UPS', trackingNumber: '1Z999AA10123456784' }), params(s.shop.id, o.id));
+        expect(b.status).toBe(500);
+        expect((await b.json()).error.code).toBe('INTERNAL');
+        expect(log).toHaveBeenCalled();
+      } finally {
+        h.boom = false;
+        log.mockRestore();
+      }
     });
   });
 

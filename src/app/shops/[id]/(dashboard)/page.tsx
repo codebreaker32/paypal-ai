@@ -1,5 +1,6 @@
 // Seller dashboard (spec §4): Orders · Menu · Share. Owner only; reads SQLite, then the client re-reads its API every 5 s.
 import type { Metadata } from 'next';
+import { withFallbackBrief } from '@/lib/ai/template';
 import { Dashboard, type DashboardTab } from '@/components/dashboard/Dashboard';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
@@ -26,7 +27,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   return (
     <Dashboard
       shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status }}
-      initialOrders={orders}
+      initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}
       appUrl={getConfig().appUrl}

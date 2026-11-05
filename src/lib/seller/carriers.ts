@@ -8,6 +8,11 @@ export const CARRIERS = [
   { id: 'DHL', label: 'DHL' },
   { id: 'OTHER', label: 'Other' },
 ] as const;
+/**
+ * What the form offers. "Other" is hidden until verified in the sandbox: Agent Toolkit 1.11.0 drops
+ * carrier_name_other, which PayPal requires for OTHER. The server-side handling stays for when it is back.
+ */
+export const OFFERED_CARRIERS = CARRIERS.filter((c) => c.id !== 'OTHER');
 export type CarrierId = (typeof CARRIERS)[number]['id'];
 
 export interface TrackingInput {

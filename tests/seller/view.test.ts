@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Order, OrderEventRow } from '@/lib/domain/types';
-import { agentLabel, buyerLabel, groupOrders, itemSummary, timelineEntries, whereLabel } from '@/lib/seller/view';
+import { agentLabel, buyerLabel, groupOrders, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
 
 const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
@@ -79,5 +79,12 @@ describe('seller view helpers', () => {
     ]);
     const pickup = timelineEntries([ev('fulfilled', null, 'seller')], o({ fulfillment: 'pickup' }));
     expect(pickup[0].text).toBe('Marked picked up');
+  });
+
+  it('a stale poll never moves a picked-up order back to paid', () => {
+    const mine = [o({ id: 'a', status: 'fulfilled' }), o({ id: 'b', status: 'awaiting_approval' })];
+    const polled = [o({ id: 'a', status: 'paid' }), o({ id: 'b', status: 'paid' }), o({ id: 'c', status: 'paid' })];
+    expect(mergePolledOrders(mine, polled).map((x) => x.status)).toEqual(['fulfilled', 'paid', 'paid']);
+    expect(mergePolledOrders([o({ id: 'a', status: 'paid' })], [o({ id: 'a', status: 'fulfilled' })])[0].status).toBe('fulfilled');
   });
 });

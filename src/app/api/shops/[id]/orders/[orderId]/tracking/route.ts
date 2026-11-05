@@ -18,6 +18,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/orde
     return json({ order, trackers });
   } catch (e) {
     if (e instanceof SellerActionError) return jsonError(e.status, e.code, e.message);
-    throw e;
+    console.error(`[shelfie] ${'tracking'} failed: ${e instanceof Error ? e.message : String(e)}`);
+    return jsonError(500, 'INTERNAL', 'Something went wrong on our side. Please try again.');
   }
 }

@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, FieldError, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
-import { CARRIERS, type CarrierId } from '@/lib/seller/carriers';
+import { OFFERED_CARRIERS, type CarrierId } from '@/lib/seller/carriers';
 import { ApiError, addTracking } from './api';
 
 const SELECT =
@@ -80,7 +80,7 @@ export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: str
               onChange={(e) => setCarrier(e.target.value as CarrierId)}
               className={SELECT}
             >
-              {CARRIERS.map((c) => (
+              {OFFERED_CARRIERS.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.label}
                 </option>

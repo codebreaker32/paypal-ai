@@ -33,6 +33,10 @@ export async function POST(req: Request): Promise<Response> {
   const webhookId = getConfig().paypalWebhookId;
   let verified = false;
   if (webhookId) {
+    // Cheap guard: an unsigned POST must not cost us an outbound PayPal call.
+    const h = req.headers;
+    const signed = ['paypal-transmission-id', 'paypal-transmission-time', 'paypal-transmission-sig', 'paypal-cert-url', 'paypal-auth-algo'].every((k) => h.get(k));
+    if (!signed) return jsonError(400, 'BAD_SIGNATURE', 'Missing PayPal signature headers.');
     try {
       verified = await getPayPal().verifyWebhookSignature(req.headers, raw, webhookId);
     } catch (e) {
@@ -71,8 +75,10 @@ export async function POST(req: Request): Promise<Response> {
     const synced = await syncOrder(deps, order.id, 'webhook');
     return json({ ok: true, status: synced.status });
   } catch (e) {
-    // The event is recorded, so a redelivery would be deduped: acknowledge it and let the poller (every 15 s) catch up.
-    console.warn(`[shelfie] webhook ${eventType} for order ${order.number}: sync failed, the poller will retry: ${e instanceof Error ? e.message : String(e)}`);
-    return json({ ok: true, synced: false });
+    // Un-record the event and answer 5xx so PayPal redelivers it (the poller only covers recent orders).
+    // A concurrent duplicate is harmless: syncOrder is compare-and-set guarded.
+    eventsRepo.forgetWebhook(deps.db, id);
+    console.warn(`[shelfie] webhook ${eventType} for order ${order.number}: sync failed, asking PayPal to redeliver: ${e instanceof Error ? e.message : String(e)}`);
+    return jsonError(503, 'SYNC_FAILED', 'Could not re-read the order from PayPal; please redeliver.');
   }
 }

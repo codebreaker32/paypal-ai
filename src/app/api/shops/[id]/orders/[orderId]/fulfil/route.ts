@@ -15,6 +15,7 @@ export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/ord
     return json({ order });
   } catch (e) {
     if (e instanceof SellerActionError) return jsonError(e.status, e.code, e.message);
-    throw e;
+    console.error(`[shelfie] ${'fulfil'} failed: ${e instanceof Error ? e.message : String(e)}`);
+    return jsonError(500, 'INTERNAL', 'Something went wrong on our side. Please try again.');
   }
 }

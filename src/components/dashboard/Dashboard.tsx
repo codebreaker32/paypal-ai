@@ -11,7 +11,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/components/ui/Toast';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, Order, ShopStatus } from '@/lib/domain/types';
-import { whereLabel } from '@/lib/seller/view';
+import { mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
 import { MenuPanel } from './MenuPanel';
 import { OrdersPanel } from './OrdersPanel';
@@ -46,11 +46,13 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
   const [pollFailures, setPollFailures] = useState(0);
+  const ordersRef = useRef(initialOrders);
   const known = useRef(new Map(initialOrders.map((o) => [o.id, o.status])));
 
   // Re-read our own API every 5 s (SQLite only). New orders and orders that just got paid slide in.
   const applyOrders = useCallback(
-    (next: Order[]) => {
+    (polled: Order[]) => {
+      const next = mergePolledOrders(ordersRef.current, polled);
       const arrived: string[] = [];
       for (const o of next) {
         const before = known.current.get(o.id);
@@ -60,6 +62,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         }
       }
       known.current = new Map(next.map((o) => [o.id, o.status]));
+      ordersRef.current = next;
       setOrders(next);
       if (arrived.length) {
         setFresh(new Set(arrived));
@@ -97,7 +100,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
 
   const onOrderChange = (updated: Order) => {
     known.current.set(updated.id, updated.status);
-    setOrders((all) => all.map((o) => (o.id === updated.id ? updated : o)));
+    ordersRef.current = ordersRef.current.map((o) => (o.id === updated.id ? updated : o));
+    setOrders(ordersRef.current);
   };
 
   const selectTab = (id: string) => {

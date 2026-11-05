@@ -226,13 +226,28 @@ describe('POST /api/paypal/webhook', () => {
     expect(orders.byId(getDb(), o.id)!.status).toBe('paid');
   });
 
-  it('a sync failure is acknowledged (the poller picks the order up) and logged', async () => {
+  it('a sync failure is a 503 and the event is not deduped, so PayPal redelivery is processed', async () => {
     const o = await newOrder();
+    fake.approve(o.paypalOrderId);
+    const e = approvedEvent(o.paypalOrderId);
     fake.failNext('getOrder', new Error('socket hang up'));
-    const res = await route.POST(deliver(approvedEvent(o.paypalOrderId)));
-    expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ ok: true, synced: false });
+    const res = await route.POST(deliver(e));
+    expect(res.status).toBe(503);
     expect(warn).toHaveBeenCalled();
+    const again = await route.POST(deliver(e));
+    expect(again.status).toBe(200);
+    expect(await again.json()).not.toMatchObject({ duplicate: true });
+    expect(orders.byId(getDb(), o.id)!.status).toBe('paid');
+  });
+
+  it('missing paypal-transmission headers → 400 without calling PayPal', async () => {
+    const o = await newOrder();
+    const res = await route.POST(new Request('http://localhost:3000/api/paypal/webhook', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(approvedEvent(o.paypalOrderId)),
+    }));
+    expect(res.status).toBe(400);
+    expect(h.verify).not.toHaveBeenCalled();
+    expect(syncOrder).not.toHaveBeenCalled();
   });
 
   it('in production, an unset PAYPAL_WEBHOOK_ID → 503', async () => {

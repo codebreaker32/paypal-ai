@@ -247,7 +247,7 @@ test.describe('order detail', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Sent to PayPal: UPS' })).toBeVisible();
   });
 
-  test('Other carrier asks for the carrier name', async ({ page }) => {
+  test.skip('Other carrier asks for the carrier name (hidden until verified in the sandbox)', async ({ page }) => {
     await page.goto(detail(full, orders.nutOrder.id));
     await page.getByLabel('Carrier').selectOption('OTHER');
     await page.getByLabel('Tracking number').fill('OT12345678');

@@ -106,3 +106,15 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
   }
   return out;
 }
+
+/**
+ * Folds a polled list into what the dashboard shows. A poll that started before a local action (Mark picked up)
+ * can come back with the old state: never move a fulfilled order back to paid.
+ */
+export function mergePolledOrders(current: Order[], polled: Order[]): Order[] {
+  const byId = new Map(current.map((o) => [o.id, o]));
+  return polled.map((o) => {
+    const mine = byId.get(o.id);
+    return mine && mine.status === 'fulfilled' && o.status === 'paid' ? mine : o;
+  });
+}
