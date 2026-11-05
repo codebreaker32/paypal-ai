@@ -130,6 +130,9 @@ const SYSTEM_PROMPT = [
 /** Escapes the characters that could close or forge the wrapper tags. */
 const escapeTagText = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+/** JSON for inside a wrapper tag: JSON.stringify leaves `<` and `>` alone, so names like "</order>" are escaped too. */
+const tagJson = (value: unknown) => escapeTagText(JSON.stringify(value, null, 2));
+
 function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; section: string | null; notes: string }[]): string {
   const snapshot = {
     order_number: order.number,
@@ -165,15 +168,15 @@ function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; s
     `Write the prep brief for order ${order.number}. Its PayPal order id is ${order.paypalOrderId}: call get_order with it first, then submit_brief.`,
     '',
     '<order>',
-    JSON.stringify(snapshot, null, 2),
+    tagJson(snapshot),
     '</order>',
     '',
     '<shop>',
-    JSON.stringify(shopInfo, null, 2),
+    tagJson(shopInfo),
     '</shop>',
     '',
     "<item_notes source=\"the seller's menu\">",
-    JSON.stringify(itemNotes, null, 2),
+    tagJson(itemNotes),
     '</item_notes>',
     '',
     checks,
