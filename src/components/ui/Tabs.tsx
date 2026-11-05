@@ -69,13 +69,13 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cx(
                 'relative inline-flex min-h-(--tabs-h) items-center gap-2 px-3 font-semibold whitespace-nowrap',
-                'after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:transition-colors',
+                'after:absolute after:inset-x-2 after:-bottom-px after:h-0.75 after:transition-colors',
                 selected ? 'text-ink after:bg-(--tabs-indicator)' : 'text-ink-muted hover:text-ink after:bg-transparent',
               )}
             >
               {item.label}
               {item.count !== undefined && (
-                <span className="type-price rounded-full bg-surface-sunken px-2 text-sm text-ink-soft">
+                <span className="type-price rounded-xs border border-line-strong bg-surface-raised px-1.5 text-sm text-ink-soft">
                   {item.count}
                 </span>
               )}

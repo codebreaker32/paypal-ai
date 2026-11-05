@@ -1,26 +1,36 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { Fraunces, Public_Sans } from 'next/font/google';
+import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
 import { ToastProvider } from '@/components/ui/Toast';
 import './globals.css';
 
-const fraunces = Fraunces({
+/** Display: a grotesk with a width axis, set semi-expanded for headings and totals. */
+const archivo = Archivo({
   subsets: ['latin'],
-  variable: '--font-fraunces',
-  axes: ['SOFT', 'opsz'],
+  variable: '--font-archivo',
+  axes: ['wdth'],
   display: 'swap',
 });
 
-const publicSans = Public_Sans({
+/** UI: a precise sans with real tabular figures for every price. */
+const plexSans = IBM_Plex_Sans({
   subsets: ['latin'],
-  variable: '--font-public-sans',
+  variable: '--font-plex-sans',
+  display: 'swap',
+});
+
+/** References: order numbers and PayPal ids. */
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  variable: '--font-plex-mono',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Shelfie — your price list, open to AI shoppers',
+  title: 'Shelfie: your price list, open to AI shoppers',
   description:
     'Snap a photo of your paper price list. Shelfie reads it, lists it with PayPal, and opens an agent door any AI assistant can order and pay through.',
 };
@@ -31,7 +41,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${publicSans.variable}`}>
+    <html lang="en" className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable}`}>
       <body className="flex min-h-dvh flex-col bg-surface text-ink">
         <a
           href="#main"

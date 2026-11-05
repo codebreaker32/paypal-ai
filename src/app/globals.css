@@ -1,48 +1,46 @@
 @import "tailwindcss";
 
 /*
- * Shelfie design tokens. Three layers, defined once here and documented in docs/DESIGN.md.
+ * Shelfie design tokens, Direction B "Counter ledger". Three layers, defined once here and documented in docs/DESIGN.md.
  *
- *   1. Primitives  (:root, raw values)        --paper-50, --tomato-600 ...   never used in components
+ *   1. Primitives  (:root, raw values)          --sheet-50, --cash-600 ...      never used in components
  *   2. Semantic    (@theme, Tailwind utilities) bg-surface, text-ink, bg-accent, text-ok ...
- *   3. Component   (:root, per component)      --button-primary-bg, --card-radius ...
+ *   3. Component   (:root, per component)       --button-primary-bg, --card-radius ...
  *
  * Re-skinning: change primitives, or remap the semantic layer. Components never hold a raw value.
  */
 
 /* ───────────── 1. Primitives ───────────── */
 :root {
-  /* Paper: page, cards, wells, hairlines */
-  --paper-0: #fffdf9;
-  --paper-50: #fbf7f0;
-  --paper-100: #f4eee3;
-  --paper-200: #ebe2d3;
-  --paper-300: #ddd0bc;
-  --paper-500: #8c7d70;
+  /* Sheet: cool off-white ledger paper for the page, cards, wells and rules */
+  --sheet-0: #fcfcfa;
+  --sheet-50: #f4f5f2;
+  --sheet-100: #eaece7;
+  --sheet-200: #dfe2dc;
+  --sheet-300: #d1d5cf;
+  --sheet-500: #7c847e;
 
-  /* Ink: text */
-  --ink-900: #1f1a17;
-  --ink-700: #4a413b;
-  --ink-600: #6b5f56;
-  --ink-400: #a3968a;
-  --ink-rgb: 31 26 23;
+  /* Graphite: text, a green-leaning near-black */
+  --graphite-900: #121916;
+  --graphite-700: #3a443f;
+  --graphite-600: #56605a;
+  --graphite-400: #99a19b;
+  --graphite-rgb: 18 25 22;
 
-  /* Tomato: the single brand accent */
-  --tomato-50: #fbeae5;
-  --tomato-100: #f6d5cc;
-  --tomato-600: #c2412d;
-  --tomato-700: #a33522;
-  --tomato-800: #84291a;
+  /* Cash green: the single brand accent, and the colour of money received */
+  --cash-50: #e3f1e8;
+  --cash-100: #c9e4d3;
+  --cash-600: #0b6b45;
+  --cash-700: #08583a;
+  --cash-800: #064530;
 
-  /* Status hues (text values all pass AA on paper; see docs/DESIGN.md) */
-  --sage-50: #e6efe3;
-  --sage-700: #3d6b45;
-  --amber-50: #faebcb;
-  --amber-700: #8a5a00;
-  --brick-50: #f8e3de;
-  --brick-700: #9e2b25;
-  --pen-50: #e3eaf3;
-  --pen-700: #2b4c7e;
+  /* Status hues (text values all pass AA on sheet; see docs/DESIGN.md) */
+  --amber-50: #fbefd6;
+  --amber-700: #8a5300;
+  --brick-50: #fbe6e3;
+  --brick-700: #a3271f;
+  --slate-50: #e4ebf3;
+  --slate-700: #24476f;
 
   /* PayPal brand blue: PayPal buttons only */
   --paypal-500: #0070ba;
@@ -51,10 +49,10 @@
   --white: #ffffff;
 
   /* Motion */
-  --duration-instant: 90ms;
-  --duration-fast: 140ms;
-  --duration-base: 220ms;
-  --duration-slow: 360ms;
+  --duration-instant: 80ms;
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
 
   /* Layers */
   --z-header: 20;
@@ -67,45 +65,48 @@
   /* Closed palette: Tailwind's default colours are removed so only these exist. */
   --color-*: initial;
 
-  --color-surface: var(--paper-50);
-  --color-surface-raised: var(--paper-0);
-  --color-surface-sunken: var(--paper-100);
-  --color-line: var(--paper-200);
-  --color-line-strong: var(--paper-300);
-  --color-control: var(--paper-500);
+  --color-surface: var(--sheet-50);
+  --color-surface-raised: var(--sheet-0);
+  --color-surface-sunken: var(--sheet-100);
+  --color-line: var(--sheet-200);
+  --color-line-strong: var(--sheet-300);
+  --color-control: var(--sheet-500);
 
-  --color-ink: var(--ink-900);
-  --color-ink-soft: var(--ink-700);
-  --color-ink-muted: var(--ink-600);
-  --color-ink-faint: var(--ink-400);
+  --color-ink: var(--graphite-900);
+  --color-ink-soft: var(--graphite-700);
+  --color-ink-muted: var(--graphite-600);
+  --color-ink-faint: var(--graphite-400);
 
-  --color-accent: var(--tomato-600);
-  --color-accent-hover: var(--tomato-700);
-  --color-accent-active: var(--tomato-800);
-  --color-accent-soft: var(--tomato-50);
-  --color-accent-ink: var(--tomato-700);
-  --color-on-accent: var(--paper-0);
+  --color-accent: var(--cash-600);
+  --color-accent-hover: var(--cash-700);
+  --color-accent-active: var(--cash-800);
+  --color-accent-soft: var(--cash-50);
+  --color-accent-ink: var(--cash-700);
+  --color-on-accent: var(--sheet-0);
 
-  --color-ok: var(--sage-700);
-  --color-ok-soft: var(--sage-50);
+  /* Paid and done share the accent's green: in a ledger, green means money is in. */
+  --color-ok: var(--cash-700);
+  --color-ok-soft: var(--cash-50);
   --color-warn: var(--amber-700);
   --color-warn-soft: var(--amber-50);
   --color-danger: var(--brick-700);
   --color-danger-soft: var(--brick-50);
-  --color-info: var(--pen-700);
-  --color-info-soft: var(--pen-50);
+  --color-info: var(--slate-700);
+  --color-info-soft: var(--slate-50);
 
   --color-paypal: var(--paypal-500);
   --color-paypal-hover: var(--paypal-700);
   --color-paypal-active: var(--paypal-900);
   --color-on-paypal: var(--white);
 
-  --color-focus: var(--ink-900);
-  --color-selection: var(--tomato-100);
-  --color-scrim: rgb(var(--ink-rgb) / 0.45);
+  --color-focus: var(--cash-700);
+  --color-selection: var(--cash-100);
+  --color-scrim: rgb(var(--graphite-rgb) / 0.5);
 
-  /* Type scale: major third from 16 px, rounded to the 2 px grid. Smallest step is 13 px. */
+  /* Type scale: 2 px steps at the small end, a minor third above 20 px. */
   --text-*: initial;
+  --text-2xs: 0.75rem;
+  --text-2xs--line-height: 1rem;
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.125rem;
   --text-sm: 0.875rem;
@@ -113,54 +114,55 @@
   --text-base: 1rem;
   --text-base--line-height: 1.5rem;
   --text-lg: 1.125rem;
-  --text-lg--line-height: 1.75rem;
+  --text-lg--line-height: 1.625rem;
   --text-xl: 1.25rem;
   --text-xl--line-height: 1.75rem;
   --text-2xl: 1.5rem;
-  --text-2xl--line-height: 2rem;
-  --text-3xl: 1.875rem;
-  --text-3xl--line-height: 2.25rem;
-  --text-4xl: 2.375rem;
-  --text-4xl--line-height: 2.75rem;
-  --text-5xl: 3rem;
-  --text-5xl--line-height: 3.25rem;
-  --text-6xl: 3.75rem;
-  --text-6xl--line-height: 4rem;
+  --text-2xl--line-height: 1.875rem;
+  --text-3xl: 1.75rem;
+  --text-3xl--line-height: 2.125rem;
+  --text-4xl: 2.125rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-5xl: 2.75rem;
+  --text-5xl--line-height: 3rem;
+  --text-6xl: 3.5rem;
+  --text-6xl--line-height: 3.75rem;
 
-  --tracking-display: -0.02em;
-  --tracking-tight: -0.01em;
+  --tracking-display: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-label: 0.06em;
 
-  /* Spacing: Tailwind's 4 px base (p-1 = 4 px), plus a few named rhythm tokens. */
+  /* Spacing: a strict 4 px grid (p-1 = 4 px), plus a few named rhythm tokens. */
   --spacing: 0.25rem;
   --spacing-tap: 2.75rem;
-  --spacing-gutter: clamp(1.25rem, 4vw, 3rem);
-  --spacing-section: clamp(3rem, 8vw, 6rem);
+  --spacing-gutter: clamp(1rem, 4vw, 3rem);
+  --spacing-section: clamp(2.5rem, 6vw, 5rem);
 
   --container-page: 76rem;
   --container-measure: 36rem;
 
-  /* Radius */
+  /* Radius: tight and square-shouldered. Badges 2, buttons and inputs 6, cards 8, sheets 12. */
   --radius-*: initial;
-  --radius-xs: 0.25rem;
-  --radius-sm: 0.375rem;
-  --radius-md: 0.625rem;
-  --radius-lg: 0.875rem;
-  --radius-xl: 1.25rem;
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
   --radius-full: 9999px;
 
-  /* Elevation: ink-tinted, always an offset and a soft blur */
+  /* Elevation: flat by default. Hairlines do the work; shadows only lift things that float. */
   --shadow-*: initial;
-  --shadow-xs: 0 1px 1px rgb(var(--ink-rgb) / 0.06);
-  --shadow-sm: 0 1px 2px rgb(var(--ink-rgb) / 0.06), 0 2px 6px -2px rgb(var(--ink-rgb) / 0.08);
-  --shadow-md: 0 2px 4px rgb(var(--ink-rgb) / 0.05), 0 10px 24px -8px rgb(var(--ink-rgb) / 0.16);
-  --shadow-lg: 0 4px 8px rgb(var(--ink-rgb) / 0.05), 0 24px 48px -16px rgb(var(--ink-rgb) / 0.28);
+  --shadow-xs: 0 1px 0 rgb(var(--graphite-rgb) / 0.05);
+  --shadow-sm: 0 1px 2px rgb(var(--graphite-rgb) / 0.06);
+  --shadow-md: 0 1px 2px rgb(var(--graphite-rgb) / 0.06), 0 8px 20px -8px rgb(var(--graphite-rgb) / 0.18);
+  --shadow-lg: 0 2px 4px rgb(var(--graphite-rgb) / 0.06), 0 20px 44px -16px rgb(var(--graphite-rgb) / 0.3);
 
-  /* Motion */
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Motion: short and decisive */
+  --ease-out: cubic-bezier(0.2, 0.9, 0.3, 1);
   --ease-in: cubic-bezier(0.55, 0, 1, 0.45);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-  --default-transition-duration: 140ms;
-  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --default-transition-duration: 120ms;
+  --default-transition-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
 
   --animate-spin: spin 0.9s linear infinite;
   --animate-shimmer: shimmer 1.6s var(--ease-in-out) infinite;
@@ -183,7 +185,7 @@
   @keyframes rise-in {
     from {
       opacity: 0;
-      transform: translateY(1.5rem);
+      transform: translateY(0.75rem);
     }
     to {
       opacity: 1;
@@ -202,9 +204,9 @@
 
 /* Fonts come from next/font in layout.tsx; inline so the utility points at the loaded family. */
 @theme inline {
-  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
-  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 /* ───────────── 3. Component tokens ───────────── */
@@ -218,12 +220,20 @@
   --icon-lg: 1.5rem;
   --icon-stroke: 1.75;
 
+  /* Archivo at semi-expanded width: a wide, square-shouldered grotesk for headings and totals */
+  --display-stretch: 112.5%;
+
+  /* Header */
+  --header-h: 3.5rem;
+  --header-bg: var(--color-surface-raised);
+  --header-border: var(--color-line-strong);
+
   /* Button */
   --button-radius: var(--radius-md);
   --button-h-md: var(--spacing-tap);
-  --button-h-lg: 3.5rem;
-  --button-px-md: 1.125rem;
-  --button-px-lg: 1.5rem;
+  --button-h-lg: 3.25rem;
+  --button-px-md: 1rem;
+  --button-px-lg: 1.375rem;
   --button-primary-bg: var(--color-accent);
   --button-primary-bg-hover: var(--color-accent-hover);
   --button-primary-bg-active: var(--color-accent-active);
@@ -231,7 +241,7 @@
   --button-secondary-bg: var(--color-surface-raised);
   --button-secondary-bg-hover: var(--color-surface-sunken);
   --button-secondary-fg: var(--color-ink);
-  --button-secondary-border: var(--color-ink);
+  --button-secondary-border: var(--color-control);
   --button-ghost-fg: var(--color-ink);
   --button-ghost-bg-hover: var(--color-surface-sunken);
   --button-paypal-bg: var(--color-paypal);
@@ -239,24 +249,28 @@
   --button-paypal-bg-active: var(--color-paypal-active);
   --button-paypal-fg: var(--color-on-paypal);
 
-  /* Card */
+  /* Card: a ruled sheet, not a floating tile */
   --card-bg: var(--color-surface-raised);
   --card-border: var(--color-line-strong);
   --card-radius: var(--radius-lg);
-  --card-shadow: var(--shadow-sm);
-  --card-pad: 1.25rem;
-  --card-pad-lg: 1.75rem;
+  --card-shadow: var(--shadow-xs);
+  --card-pad: 1rem;
+  --card-pad-lg: 1.5rem;
+
+  /* Ledger: grouped rows inside one ruled panel */
+  --ledger-rule: var(--color-line);
+  --ledger-head-bg: var(--color-surface-sunken);
 
   /* Field */
   --field-bg: var(--color-surface-raised);
   --field-border: var(--color-control);
-  --field-border-focus: var(--color-ink);
+  --field-border-focus: var(--color-accent);
   --field-radius: var(--radius-md);
   --field-h: 3rem;
 
-  /* Badge */
-  --badge-radius: var(--radius-full);
-  --badge-h: 1.625rem;
+  /* Badge: a status stamp */
+  --badge-radius: var(--radius-xs);
+  --badge-h: 1.5rem;
 
   /* Sheet (bottom sheet on phones, dialog from sm up) */
   --sheet-bg: var(--color-surface-raised);
@@ -280,17 +294,17 @@
 }
 
 /* ───────────── Type roles (semantic type utilities) ───────────── */
-/* Fraunces' SOFT axis rounds the terminals: closer to a sign-painter's brush than a book face. */
+/* Kept for compatibility with the type roles: the display face has no soft axis, so this only sets the width. */
 @utility font-soft {
-  font-variation-settings: "SOFT" 50;
+  font-stretch: var(--display-stretch);
 }
 @utility type-display {
   font-family: var(--font-display);
+  font-stretch: var(--display-stretch);
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: var(--tracking-display);
-  font-variation-settings: "SOFT" 50;
   @media (width >= 64rem) {
     font-size: var(--text-5xl);
     line-height: var(--text-5xl--line-height);
@@ -298,11 +312,11 @@
 }
 @utility type-title {
   font-family: var(--font-display);
+  font-stretch: var(--display-stretch);
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: var(--tracking-tight);
-  font-variation-settings: "SOFT" 50;
   @media (width >= 64rem) {
     font-size: var(--text-3xl);
     line-height: var(--text-3xl--line-height);
@@ -310,10 +324,11 @@
 }
 @utility type-heading {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
-  font-weight: 600;
-  font-variation-settings: "SOFT" 50;
+  font-stretch: var(--display-stretch);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
+  font-weight: 650;
+  letter-spacing: var(--tracking-tight);
 }
 @utility type-lead {
   font-size: var(--text-lg);
@@ -332,9 +347,36 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
 }
+/* Status stamps and ledger column heads: short, uppercase, tracked. Never above a section heading. */
+@utility type-stamp {
+  font-size: var(--text-2xs);
+  line-height: var(--text-2xs--line-height);
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
 @utility type-price {
   font-variant-numeric: tabular-nums lining-nums;
   font-feature-settings: "tnum" 1, "lnum" 1;
+}
+/* Order numbers and PayPal ids: monospaced so a reference reads like one. */
+@utility type-ref {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+/* Totals: the display face at tabular width, so columns of money line up. */
+@utility type-amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+/* The bookkeeper's double rule under a grand total. */
+@utility rule-total {
+  border-bottom: 3px double var(--color-ink);
 }
 
 /* ───────────── Base ───────────── */
