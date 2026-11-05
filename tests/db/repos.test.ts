@@ -42,6 +42,30 @@ describe('repos', () => {
     expect(list[0].id).toMatch(/^itm_/);
   });
 
+  it('setSlug gives a shop a unique slug from a name, never colliding with itself or others', () => {
+    shops.create(db, { name: 'Rosa' });
+    const { shop } = shops.create(db, { name: 'draft k7f2qxm4' });
+    expect(shops.setSlug(db, shop.id, "Rosa's").slug).toBe('rosas');
+    expect(shops.setSlug(db, shop.id, 'Rosa').slug).toBe('rosa-2');
+    // Its own current slug is not "taken".
+    expect(shops.setSlug(db, shop.id, 'Rosa 2').slug).toBe('rosa-2');
+  });
+
+  it('insertDraft adds one draft item (with its variants) at the end of the menu', () => {
+    const { shop } = shops.create(db, { name: 'Marigold' });
+    items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425]), draft('Drip coffee', [300, 400])]);
+    const added = items.insertDraft(db, shop.id, draft('Seeded rye', [1050, null], { section: 'Breads', issues: ['MISSING_PRICE'] }));
+    expect(added).toMatchObject({
+      shopId: shop.id, name: 'Seeded rye', section: 'Breads', status: 'draft', issues: ['MISSING_PRICE'], sort: 2, paypalProductId: null,
+    });
+    expect(added.id).toMatch(/^itm_/);
+    expect(added.variants.map((v) => [v.label, v.priceCents])).toEqual([['S', 1050], ['L', null]]);
+    expect(items.listWithVariants(db, shop.id).map((i) => i.name)).toEqual(['Butter croissant', 'Drip coffee', 'Seeded rye']);
+    // The first item of an empty menu sorts first.
+    const empty = shops.create(db, { name: 'Empty' }).shop.id;
+    expect(items.insertDraft(db, empty, draft('Only', [100])).sort).toBe(0);
+  });
+
   it('stores orders with lines and supports compare-and-set status changes', () => {
     const { shop } = shops.create(db, { name: 'Marigold' });
     const [item] = items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425])]);

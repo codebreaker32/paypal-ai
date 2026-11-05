@@ -4,7 +4,6 @@
 import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
-import { slugify } from '@/lib/domain/ids';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
@@ -96,14 +95,9 @@ async function pool<T>(list: T[], limit: number, fn: (x: T) => Promise<void>): P
 // name is only known after the menu is read and reviewed. The public slug is fixed at first publish.
 const DRAFT_SLUG = /^draft-[a-z0-9]{8}(-\d+)?$/;
 
-/** The shops repo has no slug setter, so this one statement lives here. Atomic in better-sqlite3. */
 function assignRealSlug(db: Db, shop: Shop): void {
   if (shop.publishedAt || !DRAFT_SLUG.test(shop.slug)) return;
-  const base = slugify(shop.name);
-  const taken = db.prepare('SELECT 1 FROM shops WHERE slug = ? AND id != ?');
-  let slug = base;
-  for (let n = 2; taken.get(slug, shop.id); n++) slug = `${base}-${n}`;
-  db.prepare('UPDATE shops SET slug = ? WHERE id = ?').run(slug, shop.id);
+  shops.setSlug(db, shop.id, shop.name);
 }
 
 /**

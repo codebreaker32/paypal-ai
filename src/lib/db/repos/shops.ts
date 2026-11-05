@@ -27,13 +27,14 @@ export interface CreateShopInput {
   menuPhotoPaths?: string[];
 }
 
-function uniqueSlug(db: Db, name: string): string {
+/** A slug from `name` that no other shop uses (`exceptId`'s own slug doesn't count as taken). */
+function uniqueSlug(db: Db, name: string, exceptId: string | null = null): string {
   const base = slugify(name);
-  const taken = db.prepare('SELECT 1 FROM shops WHERE slug = ?');
-  if (!taken.get(base)) return base;
+  const taken = db.prepare('SELECT 1 FROM shops WHERE slug = ? AND id IS NOT ?');
+  if (!taken.get(base, exceptId)) return base;
   for (let n = 2; ; n++) {
     const candidate = `${base}-${n}`;
-    if (!taken.get(candidate)) return candidate;
+    if (!taken.get(candidate, exceptId)) return candidate;
   }
 }
 
@@ -92,6 +93,12 @@ export function update(db: Db, id: string, patch: ShopPatch): Shop {
     const params = Object.fromEntries(entries.map(([k, v]) => [k, k === 'menuPhotoPaths' ? JSON.stringify(v) : v]));
     db.prepare(`UPDATE shops SET ${sets} WHERE id = @id`).run({ ...params, id });
   }
+  return byId(db, id)!;
+}
+
+/** Gives the shop a unique slug made from `name` (a draft shop gets its public slug at first publish). */
+export function setSlug(db: Db, id: string, name: string): Shop {
+  db.prepare('UPDATE shops SET slug = ? WHERE id = ?').run(uniqueSlug(db, name, id), id);
   return byId(db, id)!;
 }
 

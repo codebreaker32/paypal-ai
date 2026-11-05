@@ -2,10 +2,8 @@
 // validation for PATCH /api/shops/[id], PATCH /api/shops/[id]/items and POST /api/shops/[id]/items.
 import { z } from 'zod';
 import type { Db } from '@/lib/db';
-import { now } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
-import { newId } from '@/lib/domain/ids';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { MAX_PRICE_CENTS } from './rules';
 
@@ -134,25 +132,21 @@ export type NewItemInput = z.infer<typeof NewItemSchema>;
 
 export const parseNewItem = (body: unknown): NewItemInput => parse(NewItemSchema, body);
 
-/**
- * Adds one draft item at the end of the menu. The items repo only replaces whole drafts, so this
- * insert lives here; it writes exactly the columns replaceDrafts writes.
- */
+/** Adds one draft item at the end of the menu; without a price it waits on the "needs you" list. */
 export function addItem(db: Db, shopId: string, input: NewItemInput): ItemWithVariants {
   const shop = shops.byId(db, shopId);
   if (!shop) throw new EditError('NOT_FOUND', 404, 'No such shop.');
-  const id = newId('itm', 12);
-  const priced = input.priceCents != null;
-  db.transaction(() => {
-    const { sort } = db.prepare('SELECT COALESCE(MAX(sort), -1) + 1 AS sort FROM items WHERE shop_id = ?').get(shopId) as { sort: number };
-    db.prepare(
-      `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, sort, updated_at)
-       VALUES (?, ?, ?, ?, NULL, ?, 'high', ?, NULL, ?, 'draft', ?, ?)`,
-    ).run(
-      id, shopId, input.section || null, input.name, input.sourceText,
-      JSON.stringify(priced ? [] : ['MISSING_PRICE']), shop.kind === 'services' ? 'SERVICE' : 'PHYSICAL', sort, now(),
-    );
-    items.setVariants(db, id, [{ label: null, priceCents: input.priceCents ?? null }]);
-  })();
-  return items.byIdForShop(db, shopId, id)!;
+  const priceCents = input.priceCents ?? null;
+  return items.insertDraft(db, shopId, {
+    section: input.section || null,
+    name: input.name,
+    description: null,
+    sourceText: input.sourceText,
+    confidence: 'high',
+    kind: shop.kind === 'services' ? 'SERVICE' : 'PHYSICAL',
+    issues: priceCents == null ? ['MISSING_PRICE'] : [],
+    issueDetail: null,
+    status: 'draft',
+    variants: [{ label: null, priceCents }],
+  });
 }
