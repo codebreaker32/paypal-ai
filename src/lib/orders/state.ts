@@ -27,6 +27,8 @@ const ALLOWED: Partial<Record<From, Partial<Record<OrderEvent, { next: OrderStat
     capture_completed: { next: 'paid', effects: ['brief'] },
     capture_pending: { next: 'payment_pending', effects: [] },
     capture_declined: { next: 'awaiting_approval', effects: [] },
+    // Coordinator ruling (spec §7 to be amended): PayPal shows the order COMPLETED with a DECLINED/FAILED capture.
+    capture_denied: { next: 'failed', effects: [] },
     mismatch: { next: 'failed', effects: [] },
   },
   payment_pending: {

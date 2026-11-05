@@ -9,7 +9,7 @@ import { toPayPalValue } from '@/lib/domain/money';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 import { OrderError } from '@/lib/orders/errors';
 import { ORDER_LIMITS, isListed, optionViews, shopModes, unavailableReason } from '@/lib/orders/pricing';
-import { createOrderForShop, syncOrder, type OrderDeps } from '@/lib/orders/service';
+import { createOrderForShop, lastCaptureFailure, syncOrder, type OrderDeps } from '@/lib/orders/service';
 import { isOpen } from '@/lib/orders/state';
 import { allow } from '@/lib/rate-limit';
 import { fromOrderError, fromZodError, toolError, toolOk } from './errors';
@@ -80,7 +80,8 @@ const INPUT = {
     .strict(),
 };
 
-const optionOut = z.object({ option_id: z.string(), label: z.string().nullable(), price: z.string() });
+/** `price` is null for items sold in person only: the shop sets that price on the day. */
+const optionOut = z.object({ option_id: z.string(), label: z.string().nullable(), price: z.string().nullable() });
 const trackingOut = z.object({ carrier: z.string(), tracking_number: z.string(), status: z.string().nullable() });
 const lineOut = z.object({ name: z.string(), option: z.string().nullable(), quantity: z.number().int(), unit_price: z.string(), line_total: z.string() });
 
@@ -298,7 +299,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       if (!order || order.shopId !== shopId) {
         throw new OrderError('ORDER_NOT_FOUND', `No order "${order_ref}" at this shop.`, 'Use the order_ref returned by create_order for this shop.');
       }
-      let stale = false;
+      let staleNote = '';
       const lastChecked = order.lastCheckedAt ? Date.parse(order.lastCheckedAt) : null;
       if (isOpen(order.status) && (lastChecked === null || now() - lastChecked >= STATUS_SYNC_MIN_INTERVAL_MS)) {
         try {
@@ -306,7 +307,9 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         } catch (e) {
           if (!(e instanceof OrderError && e.code === 'PAYPAL_UNAVAILABLE')) throw e;
           order = ordersRepo.byId(db, order.id)!;
-          stale = true;
+          staleNote = e.retryable
+            ? " (PayPal couldn't be reached just now, so this is the last known status.)"
+            : ' (PayPal returned an error when we checked, so this is the last known status.)';
         }
       }
       const tracking = ordersRepo.trackers(db, order.id);
@@ -319,7 +322,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         paid_at: order.paidAt,
         approval_url: order.status === 'awaiting_approval' ? order.approvalUrl : null,
         tracking: tracking.map((t) => ({ carrier: t.carrier, tracking_number: t.trackingNumber, status: t.paypalStatus })),
-        message: statusMessage(order, shop, tracking) + (stale ? " (PayPal couldn't be reached just now, so this is the last known status.)" : ''),
+        message: statusMessage(order, shop, tracking, lastCaptureFailure(db, order)) + staleNote,
       };
     },
   });
@@ -335,7 +338,10 @@ function productView(item: ItemWithVariants) {
     description: item.description,
     orderable: reason === null,
     ...(reason ? { not_orderable_reason: reason } : {}),
-    options: optionViews(item),
+    options:
+      item.status === 'in_person'
+        ? item.variants.map((v) => ({ option_id: v.id, label: v.label, price: null }))
+        : optionViews(item),
   };
 }
 
@@ -366,13 +372,16 @@ function orderView(order: Order): z.infer<typeof TOOL_OUTPUT_SCHEMAS.create_orde
   };
 }
 
-function statusMessage(order: Order, shop: Shop, tracking: Tracker[]): string {
+function statusMessage(order: Order, shop: Shop, tracking: Tracker[], captureFailure: { issue: string | null } | null): string {
   const name = sanitizeShopName(shop.name);
   switch (order.status) {
     case 'awaiting_approval':
       return `Waiting for the user to approve payment on PayPal. Share approval_url if they haven't opened it; it expires at ${order.expiresAt}. Nothing has been charged.`;
     case 'approved':
-      return 'The user approved on PayPal and the payment is being completed. Check again in a few seconds.';
+      return captureFailure
+        ? `The user approved on PayPal, but PayPal refused to complete the payment (${captureFailure.issue ?? 'no reason given'}). ` +
+            'Nothing has been charged. Tell the user; they can contact the shop or start a new order later.'
+        : 'The user approved on PayPal and the payment is being completed. Check again in a few seconds.';
     case 'payment_pending':
       return 'PayPal is still clearing the payment. The shop will prepare the order once it clears.';
     case 'paid':

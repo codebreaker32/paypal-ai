@@ -96,8 +96,49 @@ describe('order service', () => {
       const b = await order({ clientRequestId: 'req-1' });
       expect(b.id).toBe(a.id);
       expect(calls('createOrder')).toHaveLength(1);
-      expect(calls('createOrder')[0].args[1]).toBe(`ord-${s.shop.id}-req-1`);
+      expect(calls('createOrder')[0].args[1]).toBe(`ord-${a.id}`);
       expect(orders.listByShop(db, s.shop.id)).toHaveLength(1);
+    });
+
+    it('makes a fresh PayPal order when a retry follows a lost PayPal response, and that order can be paid', async () => {
+      // PayPal creates the order but the response never reaches us (timeout); the agent retries with the same key.
+      const realCreate = fake.createOrder.bind(fake);
+      let lose = true;
+      fake.createOrder = async (input, requestId) => {
+        const res = await realCreate(input, requestId);
+        if (lose) {
+          lose = false;
+          throw new TypeError('fetch failed');
+        }
+        return res;
+      };
+      const first = await rejection(order({ clientRequestId: 'dana-1' }));
+      expect(first).toMatchObject({ code: 'PAYPAL_UNAVAILABLE', retryable: true });
+      const stored = await order({ clientRequestId: 'dana-1' });
+      const [a, b] = calls('createOrder').map((c) => c.args[1]);
+      expect(a).not.toBe(b);
+      expect(b).toBe(`ord-${stored.id}`);
+      const pp = fake.orders.get(stored.paypalOrderId)!;
+      expect(pp.purchase_units[0].custom_id).toBe(stored.id);
+      fake.approve(stored.paypalOrderId);
+      const paid = await syncOrder(deps, stored.id, 'return_url');
+      expect(paid.status).toBe('paid');
+      expect(calls('captureOrder')).toHaveLength(1);
+      expect(orders.listByShop(db, s.shop.id)).toHaveLength(1);
+    });
+
+    it('accepts a client_request_id with non-Latin-1 characters (PayPal-Request-Id stays a valid header)', async () => {
+      const realCreate = fake.createOrder.bind(fake);
+      fake.createOrder = async (input, requestId) => {
+        new Headers({ 'PayPal-Request-Id': requestId }); // what the REST client does; throws on non-Latin-1
+        return realCreate(input, requestId);
+      };
+      const a = await order({ clientRequestId: 'заказ-1 ☕ 注文' });
+      const b = await order({ clientRequestId: 'заказ-1 ☕ 注文' });
+      expect(b.id).toBe(a.id);
+      expect(a.clientRequestId).toBe('заказ-1 ☕ 注文');
+      expect(calls('createOrder')).toHaveLength(1);
+      expect(calls('createOrder')[0].args[1]).toBe(`ord-${a.id}`);
     });
 
     it('is idempotent for concurrent retries with the same clientRequestId', async () => {
@@ -130,10 +171,18 @@ describe('order service', () => {
       const e2 = await rejection(order());
       expect(e2.code).toBe('PAYPAL_UNAVAILABLE');
       expect(e2.retryable).toBe(true);
-      fake.failNext('createOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'ITEM_TOTAL_MISMATCH', 'dbg', 'bad'));
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      fake.failNext('createOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'ITEM_TOTAL_MISMATCH', 'dbg-422', 'bad'));
       const e3 = await rejection(order());
       expect(e3.code).toBe('PAYPAL_UNAVAILABLE');
       expect(e3.retryable).toBe(false);
+      expect(e3.message).not.toMatch(/could not be reached/i);
+      expect(e3.message).toContain('ITEM_TOTAL_MISMATCH');
+      const line = logged.mock.calls.map((c) => String(c[0])).join('\n');
+      expect(line).toContain('422');
+      expect(line).toContain('ITEM_TOTAL_MISMATCH');
+      expect(line).toContain('dbg-422');
+      logged.mockRestore();
       expect(orders.listByShop(db, s.shop.id)).toHaveLength(0);
     });
 
@@ -199,17 +248,19 @@ describe('order service', () => {
       expect(events.list(db, o.id).filter((e) => e.type === 'capture_completed')).toHaveLength(1);
     });
 
-    it('ignores a webhook that arrives after the return URL already marked it paid', async () => {
+    it('ignores a webhook that arrives after the return URL already marked it paid, writing nothing', async () => {
       const o = await order();
       fake.approve(o.paypalOrderId);
       await syncOrder(deps, o.id, 'return_url');
       const before = fake.calls.length;
-      const again = await syncOrder(deps, o.id, 'webhook');
-      expect(again.status).toBe('paid');
+      const eventsBefore = events.list(db, o.id).length;
+      const updatedBefore = orders.byId(db, o.id)!.updatedAt;
+      for (const source of ['webhook', 'return_url', 'poller'] as const) {
+        expect((await syncOrder(deps, o.id, source)).status).toBe('paid');
+      }
       expect(fake.calls.length).toBe(before);
-      const last = events.list(db, o.id).at(-1)!;
-      expect(last.source).toBe('webhook');
-      expect(last.detail).toMatchObject({ ignored: true, status: 'paid' });
+      expect(events.list(db, o.id)).toHaveLength(eventsBefore);
+      expect(orders.byId(db, o.id)!.updatedAt).toBe(updatedBefore);
     });
 
     it('reconciles ORDER_ALREADY_CAPTURED by reading the order back from PayPal', async () => {
@@ -281,6 +332,68 @@ describe('order service', () => {
       await syncOrder(deps, o.id, 'return_url');
       fake.orders.get(o.paypalOrderId)!.purchase_units[0].payments!.captures![0].status = 'DECLINED';
       expect((await syncOrder(deps, o.id, 'webhook')).status).toBe('failed');
+    });
+
+    it('fails, after one sync, an order PayPal shows COMPLETED with a declined capture (no approve/decline loop)', async () => {
+      for (const capStatus of ['DECLINED', 'FAILED']) {
+        const o = await order();
+        fake.approve(o.paypalOrderId);
+        const pp = fake.orders.get(o.paypalOrderId)!;
+        pp.status = 'COMPLETED';
+        pp.purchase_units[0].payments = { captures: [{ id: `CAP-${capStatus}`, status: capStatus }] };
+        const after = await syncOrder(deps, o.id, 'poller');
+        expect(after.status, capStatus).toBe('failed');
+        expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'capture_denied', detail: { captureStatus: capStatus } });
+        clock += 6_000;
+        const before = fake.calls.length;
+        expect((await syncOrder(deps, o.id, 'poller')).status).toBe('failed');
+        expect(fake.calls.length).toBe(before);
+      }
+      expect(calls('captureOrder')).toHaveLength(0);
+    });
+
+    it('fails an approved order when the capture call itself returns a declined capture', async () => {
+      const o = await order();
+      fake.approve(o.paypalOrderId);
+      const realCapture = fake.captureOrder.bind(fake);
+      fake.captureOrder = async (id, rid) => {
+        const res = await realCapture(id, rid);
+        res.purchase_units[0].payments!.captures![0].status = 'DECLINED';
+        fake.orders.get(id)!.purchase_units[0].payments!.captures![0].status = 'DECLINED';
+        return res;
+      };
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('failed');
+      expect((await syncOrder(deps, o.id, 'poller')).status).toBe('failed');
+    });
+
+    it('treats a non-transient capture refusal as final for automatic retries: claim released, capture_failed logged, order stays approved', async () => {
+      const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      for (const err of [
+        new PayPalApiError(403, 'NOT_AUTHORIZED', 'PERMISSION_DENIED', 'dbg-403', 'denied'),
+        new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'TRANSACTION_REFUSED', 'dbg-tr', 'refused'),
+      ]) {
+        const o = await order();
+        fake.approve(o.paypalOrderId);
+        const capturesBefore = calls('captureOrder').length;
+        fake.failNext('captureOrder', err);
+        const after = await syncOrder(deps, o.id, 'return_url');
+        expect(after.status, err.issue!).toBe('approved');
+        expect(after.captureClaimedAt).toBeNull();
+        expect(events.list(db, o.id).at(-1)).toMatchObject({
+          type: 'capture_failed', source: 'return_url', detail: { status: err.status, issue: err.issue, debugId: err.debugId },
+        });
+        expect(logged.mock.calls.map((c) => String(c[0])).join('\n')).toContain(err.debugId!);
+        // The poller and the agent's status checks do not hammer PayPal with the same refused capture.
+        clock += 60_000;
+        await syncOrder(deps, o.id, 'poller');
+        clock += 60_000;
+        await syncOrder(deps, o.id, 'mcp');
+        expect(calls('captureOrder').length).toBe(capturesBefore + 1);
+        // The buyer coming back (or a PayPal webhook) tries once more, with a fresh request id; this time PayPal accepts.
+        expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('paid');
+        expect(calls('captureOrder').slice(-2).map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
+      }
+      logged.mockRestore();
     });
 
     it('fails without capturing when PayPal shows a different amount', async () => {

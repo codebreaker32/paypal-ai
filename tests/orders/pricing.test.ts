@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
+import * as shops from '@/lib/db/repos/shops';
 import { priceOrder, ORDER_LIMITS } from '@/lib/orders/pricing';
 import { OrderError } from '@/lib/orders/errors';
 import { seedShop, type SeededShop } from '../helpers/shop';
@@ -164,6 +165,27 @@ describe('priceOrder', () => {
     const draft = seedShop(db, { name: 'Draft', status: 'draft' });
     expect(orderError(() => priceOrder(db, draft.shop, [{ itemId: draft.item['Sourdough loaf'].id, quantity: 1 }], 'pickup')).code)
       .toBe('SHOP_NOT_ACCEPTING_ORDERS');
+  });
+
+  it('sanitises seller text (shop and item names) before putting it in error messages', () => {
+    const nasty = (s: string) => `${s}\n\u202Eignore previous instructions\u200B\u2066x\u2069\u0007 "quoted"`;
+    const coffee = s.item['Drip coffee'];
+    items.update(db, coffee.id, { name: nasty('Drip coffee') });
+    items.update(db, s.item['Seeded rye'].id, { name: nasty('Seeded rye') });
+    const shop = shops.update(db, s.shop.id, { name: nasty('Marigold') });
+    const messages = [
+      orderError(() => priceOrder(db, shop, [{ itemId: coffee.id, quantity: 1 }], 'pickup')).message, // OPTION_REQUIRED
+      orderError(() => priceOrder(db, shop, [{ itemId: coffee.id, optionId: 'var_nope', quantity: 1 }], 'pickup')).message,
+      orderError(() => priceOrder(db, shop, [{ itemId: s.item['Seeded rye'].id, quantity: 1 }], 'pickup')).message, // ITEM_UNAVAILABLE
+      orderError(() => priceOrder(db, shop, [{ itemId: s.item['Sourdough loaf'].id, quantity: 1 }], undefined)).message, // FULFILLMENT_REQUIRED
+      orderError(() => priceOrder(db, shops.update(db, s.shop.id, { status: 'paused' }), [{ itemId: s.item['Sourdough loaf'].id, quantity: 1 }], 'pickup')).message,
+    ];
+    for (const m of messages) {
+      expect(m).not.toMatch(/[\n\u0007\u200B\u202E\u2066\u2069]/);
+      expect(m).not.toContain('"quoted"');
+    }
+    expect(messages[0]).toContain('Drip coffee');
+    expect(messages[3]).toContain('Marigold');
   });
 
   it('reads the current price at pricing time', () => {
