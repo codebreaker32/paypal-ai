@@ -1,0 +1,250 @@
+{
+  "is_menu": true,
+  "image_quality": "usable",
+  "problems": [
+    "glare",
+    "handwriting_hard"
+  ],
+  "retake_tip": null,
+  "warnings": [
+    "Prices sit far from item names and the page is tilted, so the matching of prices to items was done by row position; please verify.",
+    "Pain au chocolat has a blurred name and no readable price.",
+    "Seeded rye has a crossed-out price replaced with a new one.",
+    "Glare on the right side of the page."
+  ],
+  "shop": {
+    "name": "Marigold Bakehouse",
+    "about": null,
+    "pickup_notes": "Sat & Sun pickup · 14 Alder St · order by Fri 6pm"
+  },
+  "kind": "food",
+  "items": [
+    {
+      "section": "Breads",
+      "name": "Country sourdough loaf",
+      "description": null,
+      "source_text": "Country sourdough loaf $9",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 900,
+          "raw": "$9"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "Price is far from the name on the right; matched by row.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Breads",
+      "name": "Seeded rye",
+      "description": "(caraway, sunflower)",
+      "source_text": "Seeded rye (caraway, sunflower) $10.50",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1050,
+          "raw": "$10.50"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "Price matched by row position.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Breads",
+      "name": "Focaccia – rosemary & sea salt",
+      "description": null,
+      "source_text": "Focaccia – rosemary & sea salt $7 $8",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 800,
+          "raw": "$7 $8"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "$7 is crossed out and replaced with $8; using $8.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Pastries",
+      "name": "Butter croissant",
+      "description": null,
+      "source_text": "Butter croissant $4.25",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 425,
+          "raw": "$4.25"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "Price matched by row position.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Pastries",
+      "name": "Almond croissant",
+      "description": "contains nuts!",
+      "source_text": "Almond croissant contains nuts! $5",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 500,
+          "raw": "$5"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "Price matched by row position.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Pastries",
+      "name": "Cardamom bun",
+      "description": null,
+      "source_text": "Cardamom bun 2 for $7",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 350,
+          "raw": "2 for $7"
+        }
+      ],
+      "price_kind": "deal",
+      "deal_text": "2 for $7",
+      "confidence": "medium",
+      "note": "Multi-buy deal; unit price is 350 cents. Matched by row position.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Pastries",
+      "name": "Pain au chocolat",
+      "description": null,
+      "source_text": "Pain au chocolat $4.75",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 475,
+          "raw": "$4.75"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "low",
+      "note": "Name and price are blurred; best reading. The $4.75 price is blurred and may belong to this item.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Cakes (24h notice)",
+      "name": "Olive oil citrus cake – 8\"",
+      "description": null,
+      "source_text": "Olive oil citrus cake – 8\" $38",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 3800,
+          "raw": "$38"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "medium",
+      "note": "Price matched by row position.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Cakes (24h notice)",
+      "name": "Seasonal fruit galette",
+      "description": null,
+      "source_text": "Seasonal fruit galette market price",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": null,
+          "raw": "market price"
+        }
+      ],
+      "price_kind": "market",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "Coffee",
+      "name": "Drip coffee",
+      "description": null,
+      "source_text": "Drip coffee S / L $3 / $4",
+      "page": 1,
+      "prices": [
+        {
+          "label": "S",
+          "amount_cents": 300,
+          "raw": "$3"
+        },
+        {
+          "label": "L",
+          "amount_cents": 400,
+          "raw": "$4"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    }
+  ],
+  "skipped_lines": [
+    {
+      "text": "Marigold Bakehouse",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Sat & Sun pickup · 14 Alder St · order by Fri 6pm",
+      "page": 1,
+      "reason": "hours"
+    },
+    {
+      "text": "Breads",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Pastries",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Cakes (24h notice)",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Coffee",
+      "page": 1,
+      "reason": "header"
+    }
+  ]
+}
