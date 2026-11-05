@@ -1,0 +1,18 @@
+{
+  "_note": "HAND-WRITTEN from PayPal's documented Orders v2 capture response shape, not recorded from the sandbox (approving needs a buyer login).",
+  "status": 201,
+  "body": {
+    "id": "5L661201XF603611H",
+    "status": "COMPLETED",
+    "payer": { "name": { "given_name": "Test", "surname": "Buyer" }, "email_address": "buyer@example.com" },
+    "purchase_units": [
+      {
+        "reference_id": "default",
+        "custom_id": "ord_fixture",
+        "invoice_id": "SHF-FIXTURE",
+        "amount": { "currency_code": "USD", "value": "9.00" },
+        "payments": { "captures": [{ "id": "3C679366HH908993F", "status": "COMPLETED", "amount": { "currency_code": "USD", "value": "9.00" } }] }
+      }
+    ]
+  }
+}

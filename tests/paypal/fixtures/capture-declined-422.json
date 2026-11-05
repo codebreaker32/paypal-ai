@@ -1,0 +1,12 @@
+{
+  "_note": "HAND-WRITTEN from PayPal's documented error shape (INSTRUMENT_DECLINED), not recorded from the sandbox.",
+  "status": 422,
+  "body": {
+    "name": "UNPROCESSABLE_ENTITY",
+    "details": [
+      { "issue": "INSTRUMENT_DECLINED", "description": "The instrument presented was either declined by the processor or bank, or it can't be used for this payment." }
+    ],
+    "message": "The requested action could not be performed, semantically incorrect, or failed business validation.",
+    "debug_id": "fixture"
+  }
+}
