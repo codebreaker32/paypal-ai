@@ -1,14 +1,16 @@
 # Progress
 
-_Last updated: 2026-11-06 05:15 IST (session 3)_
+_Last updated: 2026-11-06 05:40 IST (session 4)_
 
 ## Current phase
-**Session 3 (from 04:55 IST):** all of session 2's commits are on GitHub.
-- **Judge round 1:** Part A 21, Part B 21, 1 Part C fail (raw AI notes on the review card), verdict **fix**.
-- **Running in parallel:**
-  - the visual-direction round: worker A "Menu board" and worker B "Counter ledger", screenshots to `docs/judge/screenshots/direction-a|b/`;
-  - round-1 fixes: plain review-note copy and re-recorded samples, Render readiness plus an outside-client (Claude Code CLI) order through the agent door, and research into sourced seller voices.
-- **After the direction merge:** UI polish from fix 1, then judge round 2.
+**Session 4 (from 05:24 IST; this session is capped at 120 min, so it ends by ~07:24 IST):** session 3's four workers were cut off when it ended. Their work was still in their worktrees, so fresh workers are finishing it there instead of starting over:
+- visual direction A "Menu board" and B "Counter ledger": finish the polish, regenerate the 390/1440 screenshots in one run, and write the reports;
+- round-1 fix 1a: plain seller copy on the review cards, plus re-recorded sample readings;
+- round-1 fix 2 (the parts allowed in this run): the Render blueprint, a README deploy section, and evidence of an outside MCP client (the Claude Code CLI) ordering through the agent door;
+- research into sourced seller voices (EVIDENCE 5b).
+After that: the judge compares the two directions, the winner and the fixes are merged, and judge round 2 runs.
+
+**Session 3 (04:55–05:24 IST):** judge round 1 scored Part A 21, Part B 21, with 1 Part C fail (raw AI notes on the review card). Verdict: **fix**. Session 3 then started the five workers above.
 
 Session 2 ended with:
 The core flow is built, reviewed and verified end to end on the real sandbox. All of wave 3 is merged:
