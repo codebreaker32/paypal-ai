@@ -6,3 +6,5 @@ build/
 .next/
 video/out/
 *.log
+CLAUDE.local.md
+vm.sh
