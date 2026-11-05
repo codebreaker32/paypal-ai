@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import os from 'node:os';
 import path from 'node:path';
 import { register } from '@/instrumentation';
@@ -30,9 +30,15 @@ describe('instrumentation register()', () => {
     expect(isPollerRunning()).toBe(false);
   });
 
-  it('logs one warning and keeps the server up when PayPal is not wired yet', async () => {
+  it('logs one warning and keeps the server up when PayPal credentials are missing', async () => {
     process.env.NEXT_RUNTIME = 'nodejs';
     delete process.env.SHELFIE_TEST;
+    const savedId = process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_ID;
+    setPayPalForServices(undefined);
+    onTestFinished(() => {
+      if (savedId !== undefined) process.env.PAYPAL_CLIENT_ID = savedId;
+    });
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await expect(register()).resolves.toBeUndefined();
     expect(warn).toHaveBeenCalledTimes(1);
