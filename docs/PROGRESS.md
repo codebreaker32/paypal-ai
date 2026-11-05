@@ -1,9 +1,14 @@
 # Progress
 
-_Last updated: 2026-11-06 05:10 IST (session 3)_
+_Last updated: 2026-11-06 05:15 IST (session 3)_
 
 ## Current phase
-**Session 3 (from 04:55 IST):** all of session 2's commits are on GitHub. Running in parallel: judge round 1 on main, plus the visual-direction round (worker A "Menu board" and worker B "Counter ledger", each in its own worktree, screenshots to `docs/judge/screenshots/direction-a|b/`).
+**Session 3 (from 04:55 IST):** all of session 2's commits are on GitHub.
+- **Judge round 1:** Part A 21, Part B 21, 1 Part C fail (raw AI notes on the review card), verdict **fix**.
+- **Running in parallel:**
+  - the visual-direction round: worker A "Menu board" and worker B "Counter ledger", screenshots to `docs/judge/screenshots/direction-a|b/`;
+  - round-1 fixes: plain review-note copy and re-recorded samples, Render readiness plus an outside-client (Claude Code CLI) order through the agent door, and research into sourced seller voices.
+- **After the direction merge:** UI polish from fix 1, then judge round 2.
 
 Session 2 ended with:
 The core flow is built, reviewed and verified end to end on the real sandbox. All of wave 3 is merged:
@@ -26,7 +31,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
-- **Capture gate re-run on main after the Task 11 fixes (session 3, 05:20 IST), passed in 3.5 min:** order `SHF-7D5KQN` → PayPal order `18424242KV221112J` → capture `7L534834RM8417808` COMPLETED ($27.00). The Claude brief flagged the nut allergy against the almond croissants. USPS tracker `9400111179392174599760` SHIPPED at PayPal, and `get_order_status` read it back.
+- **Capture gate re-run on main after the Task 11 fixes (session 3, ~05:10 IST), passed in 3.5 min:** order `SHF-7D5KQN` → PayPal order `18424242KV221112J` → capture `7L534834RM8417808` COMPLETED ($27.00). The Claude brief flagged the nut allergy against the almond croissants. USPS tracker `9400111179392174599760` SHIPPED at PayPal, and `get_order_status` read it back.
 - **Capture gate, end to end on the real sandbox (`e2e/capture.spec.ts`, passed twice in a row):** a new shop from the sample photo read live by Claude → published to the PayPal Catalog → an MCP client over HTTP calls `get_shop_info` → `list_products` → `create_order` (shipped, nut-allergy note) → PayPal guest card checkout → our return URL captures → receipt **Paid** → the stored capture id matches PayPal's own order record (COMPLETED) → the order brief is written by the Claude agent → USPS tracking from the order page exists at PayPal (SHIPPED) → `get_order_status` returns the tracking number. Example run: order `9SS11373NT603413P`, capture `3K941065XR757601S`.
 - `npm run test:sandbox` (PayPal client): product create, order create → PAYER_ACTION_REQUIRED + approval link, same request id → same order, capture before approval → ORDER_NOT_APPROVED, Agent Toolkit `get_order` on a real order, toolkit error for a non-existent order (5/5).
 - MCP agent door over real HTTP with the MCP SDK client (unit/route tests with a fake PayPal); 217 unit tests pass on main.
