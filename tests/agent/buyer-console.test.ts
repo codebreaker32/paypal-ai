@@ -237,6 +237,28 @@ describe('runBuyerConsoleTurn', () => {
     });
   });
 
+  it("scopes the model's client_request_id to the conversation, so two buyers never share an order", async () => {
+    const order = { order_ref: 'ord_x', order_number: 'SHF-AAAAAA', status: 'awaiting_approval', total: '9.00', approval_url: 'https://www.sandbox.paypal.com/checkoutnow?token=1' };
+    const turn = async () => {
+      const { client } = stubClaude([
+        reply([toolUse('toolu_k', 'create_order', { items: [{ item_id: 'itm_a', quantity: 1 }], client_request_id: 'order-1-sourdough' })], 'tool_use'),
+        reply([text('Done.')]),
+      ]);
+      const mcp = stubMcp({ create_order: ok(order) });
+      const events = await collect(
+        runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Yes', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+      );
+      const sessionId = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
+      return { sessionId, sent: mcp.calls[0].arguments, shown: (events[1] as Extract<ConsoleEvent, { type: 'tool_call' }>).input };
+    };
+    const a = await turn();
+    const b = await turn();
+    expect(a.sent.client_request_id).toBe(`${a.sessionId}:order-1-sourdough`);
+    expect(b.sent.client_request_id).toBe(`${b.sessionId}:order-1-sourdough`);
+    expect(a.shown).toEqual(a.sent); // the Activity panel shows what really went to the door
+    expect(String(a.sent.client_request_id).length).toBeLessThanOrEqual(64);
+  });
+
   it('passes an MCP error result to the model instead of failing the turn', async () => {
     const { client, requests } = stubClaude([
       reply([toolUse('toolu_2', 'create_order', { items: [{ item_id: 'itm_coffee', quantity: 1 }] })], 'tool_use'),
