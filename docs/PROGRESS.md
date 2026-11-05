@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 04:12 IST (session 2)_
+_Last updated: 2026-11-06 04:26 IST (session 2)_
 
 ## Current phase
 Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page + buyer console + receipt (Task 7), dashboard + AI brief + tracking + webhook (Task 8), each reviewed and fixed. Lint cleanup and measured photo-to-live timings (Task 9c) are merged. Running now: Task 9a (capture gate e2e: agent order → PayPal guest checkout → Paid → brief → tracking → `get_order_status`) and Task 9b (demo seed, full-flow e2e, round-1 screenshots with axe). Next: judge round 1 and the visual-direction round in parallel, then docs (README, AI_TOOLS, DEMO).
@@ -32,9 +32,15 @@ Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page
 - Webhooks (no public URL on the VM).
 
 ## Next steps
-1. Review and merge wave 1; write `src/lib/services.ts` (composition root).
-2. Wave 2: setup flow (upload → review → publish), shop page + buyer console + receipt, dashboard + brief + tracking + webhook.
-3. Wave 3: seed, e2e, screenshots, judge round 1.
+Running at 04:26 IST in their own worktrees (ledger `.superpowers/sdd/2026-11-06-shelfie/progress.md` has paths, briefs and report files). If a session ends mid-run, a fresh worker resumes in the same worktree from its brief and report:
+- Task 9a, capture gate e2e (`e2e/capture.spec.ts`, guest checkout).
+- Task 9b: seed with a reserved slug, `e2e/flow.spec.ts`, and `e2e/screenshots.spec.ts` with axe → `docs/judge/screenshots/round-1/`.
+- Task 11: fixes from the milestone code review (8 findings).
+
+After they land:
+1. Review, merge, then run judge round 1 on main with the round-1 screenshots, plus the two visual-direction workers (A "Menu board", B "Counter ledger"; brief `.superpowers/sdd/2026-11-06-shelfie/visual-directions.md`) in parallel.
+2. The judge compares the two directions; merge the winner; judge round 2. Work through the top-3 fixes until the verdict is "ship".
+3. A final whole-branch code review, then add the capture gate and `npm run screenshots` to the README once they're on main.
 
 ## Needs from human
 - Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
