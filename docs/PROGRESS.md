@@ -1,9 +1,9 @@
 # Progress
 
-_Last updated: 2026-11-06 01:53 IST (session 1)_
+_Last updated: 2026-11-06 02:25 IST (session 1)_
 
 ## Current phase
-Build, wave 1 of 3 (subagent-driven, parallel worktrees): PayPal client, menu reader, orders + MCP agent door, design system + Start page. Ledger: `.superpowers/sdd/2026-11-06-shelfie/progress.md` (local only).
+Build, wave 2 of 3: setup flow (Task 6), shop page + buyer console + receipt (Task 7), dashboard + AI brief + tracking + webhook (Task 8) running in parallel worktrees. Wave 1 merged: PayPal REST client + Agent Toolkit wrapper, menu reader, order domain + MCP agent door (fix round in progress), design system + Start page. Ledger: `.superpowers/sdd/2026-11-06-shelfie/progress.md` (local only).
 
 ## Done
 - Product approach round: approach 1 (seller-first) won judge round 0 (Part A 19, Part B 21 vs 18/19). Final spec `docs/superpowers/specs/2026-11-06-shelfie-design.md`; plan `docs/superpowers/plans/2026-11-06-shelfie.md`.
@@ -14,6 +14,8 @@ Build, wave 1 of 3 (subagent-driven, parallel worktrees): PayPal client, menu re
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- `npm run test:sandbox` (PayPal client): product create, order create → PAYER_ACTION_REQUIRED + approval link, same request id → same order, capture before approval → ORDER_NOT_APPROVED, Agent Toolkit `get_order` on a real order, toolkit error for a non-existent order (5/5).
+- MCP agent door over real HTTP with the MCP SDK client (unit/route tests with a fake PayPal); 217 unit tests pass on main.
 - Menu reader on the 4 sample photos with real Claude (`npm run test:ai`, 4/4): Marigold 10 items in 10.3 s, Tía Lupe 9.5 s, Ravi 7.3 s, blurry photo → "unreadable" with a retake tip in 4.3 s.
 - PayPal sandbox OAuth, `POST /v1/catalogs/products`, `POST /v2/checkout/orders` → `PAYER_ACTION_REQUIRED` + `payer-action` link.
 - Claude vision extraction via `@anthropic-ai/sdk` `messages.parse`.
