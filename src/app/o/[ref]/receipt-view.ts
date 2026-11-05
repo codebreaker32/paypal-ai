@@ -3,6 +3,7 @@ import type { Db } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { lastCaptureFailure } from '@/lib/orders/service';
 import { ORDER_REF, type ReceiptOrder } from './receipt-types';
 
 export { OPEN_RECEIPT_STATUSES, ORDER_REF, type ReceiptLine, type ReceiptOrder } from './receipt-types';
@@ -31,6 +32,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     approvalUrl: awaiting ? order.approvalUrl : null,
     paidAt: order.paidAt,
     declined,
+    captureRefused: lastCaptureFailure(db, order) !== null,
     lines: order.lines.map((l) => ({ name: l.name, label: l.label, qty: l.qty, unitCents: l.unitCents })),
   };
 }

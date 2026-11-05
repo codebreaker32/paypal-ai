@@ -1,5 +1,5 @@
 // Buyer-side routes: PayPal return/cancel, the receipt's order read, the console route and the menu photo route.
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -10,6 +10,7 @@ import * as shops from '@/lib/db/repos/shops';
 import type { Order } from '@/lib/domain/types';
 import { createOrderForShop, type OrderDeps } from '@/lib/orders/service';
 import { createFakePayPal } from '@/lib/paypal/fake';
+import { PayPalApiError } from '@/lib/paypal/types';
 import { resetRateLimits } from '@/lib/rate-limit';
 import { setPayPalForServices } from '@/lib/services';
 import { GET as returnGET, runtime as returnRuntime } from '@/app/api/paypal/return/route';
@@ -145,6 +146,7 @@ describe('GET /api/orders/[ref]', () => {
         approvalUrl: order.approvalUrl,
         paidAt: null,
         declined: false,
+        captureRefused: false,
         lines: [
           { name: 'Almond croissant', label: null, qty: 2, unitCents: 475 },
           { name: 'Sourdough loaf', label: null, qty: 1, unitCents: 900 },
@@ -172,7 +174,23 @@ describe('GET /api/orders/[ref]', () => {
     const body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
     expect(body.order.status).toBe('awaiting_approval');
     expect(body.order.declined).toBe(true);
+    expect(body.order.captureRefused).toBe(false);
     expect(body.order.approvalUrl).toBe(order.approvalUrl);
+  });
+
+  it('marks an approved order whose capture PayPal refused, and clears it when a retry succeeds', async () => {
+    const order = await shipTwoCroissants('get-4');
+    fake.approve(order.paypalOrderId);
+    fake.failNext('captureOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'TRANSACTION_REFUSED', 'dbg-t7', 'refused'));
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await returnGET(get(`/api/paypal/return?o=${order.id}`));
+    logged.mockRestore();
+    let body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
+    expect(body.order).toMatchObject({ status: 'approved', captureRefused: true, declined: false, approvalUrl: null });
+    // The buyer comes back through PayPal's return URL again: a fresh capture, and this time PayPal accepts.
+    await returnGET(get(`/api/paypal/return?o=${order.id}`));
+    body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
+    expect(body.order).toMatchObject({ status: 'paid', captureRefused: false });
   });
 
   it('answers 404 with a coded error for an unknown order', async () => {

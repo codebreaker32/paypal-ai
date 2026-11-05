@@ -1,30 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  ArrowLeft,
-  Bot,
-  CircleAlert,
-  CircleCheck,
-  CircleX,
-  Clock,
-  Hourglass,
-  Loader2,
-  PackageCheck,
-  TimerOff,
-  type LucideIcon,
-} from 'lucide-react';
+import { ArrowLeft, Bot } from 'lucide-react';
 import { ButtonLink, buttonClasses } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';
-import { OPEN_RECEIPT_STATUSES, type ReceiptOrder } from './receipt-types';
+import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
+import type { ReceiptOrder } from './receipt-types';
 
 const POLL_MS = 3000;
-
-type Tone = 'ok' | 'warn' | 'danger' | 'info' | 'neutral';
 
 const TONE: Record<Tone, string> = {
   ok: 'bg-ok-soft text-ok',
@@ -33,93 +20,6 @@ const TONE: Record<Tone, string> = {
   info: 'bg-info-soft text-info',
   neutral: 'bg-surface-sunken text-ink-soft',
 };
-
-interface StatusView {
-  tone: Tone;
-  icon: LucideIcon;
-  spin?: boolean;
-  title: string;
-  body: string;
-  /** Label of the PayPal button, when the buyer still has to approve. */
-  approve?: string;
-}
-
-interface Tracking {
-  carrier: string;
-  number: string;
-}
-
-function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Tracking | null): StatusView {
-  const total = formatUSD(o.totalCents);
-  const pickup = o.fulfillment === 'pickup';
-  switch (o.status) {
-    case 'awaiting_approval':
-      return o.declined
-        ? {
-            tone: 'danger',
-            icon: CircleAlert,
-            title: 'PayPal declined that payment',
-            body: 'Nothing was charged. Try PayPal again and pick another card or your PayPal balance.',
-            approve: 'Try PayPal again',
-          }
-        : {
-            tone: 'warn',
-            icon: Clock,
-            title: 'Waiting for your approval',
-            body: 'Approve the payment on PayPal to place this order. Nothing is charged until you do, and the link works for 60 minutes.',
-            approve: `Approve ${total} on PayPal`,
-          };
-    case 'approved':
-      return {
-        tone: 'info',
-        icon: Loader2,
-        spin: true,
-        title: 'Confirming with PayPal…',
-        body: "You approved the payment. We're confirming it with PayPal, and this page updates by itself.",
-      };
-    case 'payment_pending':
-      return {
-        tone: 'info',
-        icon: Hourglass,
-        title: 'Confirming with PayPal…',
-        body: `PayPal is still clearing this payment. This page updates by itself, and ${o.shopName} starts on your order once it clears.`,
-      };
-    case 'paid':
-      return {
-        tone: 'ok',
-        icon: CircleCheck,
-        title: `Paid. ${o.shopName} has your order.`,
-        body: pickup
-          ? pickupNotes
-            ? `Pick it up: ${pickupNotes}`
-            : `${o.shopName} will let you know when it's ready to pick up.`
-          : `${o.shopName} will ship it to the address on your PayPal account.`,
-      };
-    case 'fulfilled':
-      return {
-        tone: 'ok',
-        icon: PackageCheck,
-        title: `Paid. ${o.shopName} has your order.`,
-        body: pickup ? 'Picked up. Enjoy!' : tracking ? `Shipped with ${tracking.carrier}, tracking number ${tracking.number}.` : 'Shipped.',
-      };
-    case 'cancelled':
-      return { tone: 'neutral', icon: CircleX, title: 'Order cancelled', body: 'You cancelled on PayPal, so nothing was charged.' };
-    case 'expired':
-      return {
-        tone: 'neutral',
-        icon: TimerOff,
-        title: 'This order expired',
-        body: "It wasn't approved on PayPal within 60 minutes, so nothing was charged. You can place it again.",
-      };
-    case 'failed':
-      return {
-        tone: 'danger',
-        icon: CircleAlert,
-        title: "The payment didn't go through",
-        body: 'Nothing was charged. If you still want these items, place the order again.',
-      };
-  }
-}
 
 export interface ReceiptProps {
   orderRef: string;
@@ -132,7 +32,7 @@ export interface ReceiptProps {
 
 export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, tracking }: ReceiptProps) {
   const [order, setOrder] = useState(initial);
-  const open = OPEN_RECEIPT_STATUSES.includes(order.status);
+  const open = keepsPolling(order);
 
   // While PayPal is still deciding, re-read our own record every 3 s (the return URL and the poller do the PayPal sync).
   useEffect(() => {

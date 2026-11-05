@@ -23,6 +23,11 @@ export interface ReceiptOrder {
   paidAt: string | null;
   /** PayPal declined the payment method; the buyer can approve again with the same link. */
   declined: boolean;
+  /**
+   * The buyer approved, but PayPal refused to complete the payment for a reason retrying won't fix. Nothing was
+   * charged; automatic retries have stopped (only the buyer coming back from PayPal, or a webhook, tries again).
+   */
+  captureRefused: boolean;
   lines: ReceiptLine[];
 }
 
