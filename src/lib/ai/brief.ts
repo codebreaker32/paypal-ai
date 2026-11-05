@@ -14,7 +14,7 @@ import { formatUSD } from '@/lib/domain/money';
 import type { Order, OrderBrief, Shop } from '@/lib/domain/types';
 import { createSellerToolkit, type ShopScope } from '@/lib/paypal/toolkit';
 import { shopScope } from '@/lib/seller/scope';
-import { HEADLINE_MAX, shorten, templateBrief } from './template';
+import { BRIEF_RUN_TIMEOUT_MS, HEADLINE_MAX, shorten, templateBrief } from './template';
 
 export { HEADLINE_MAX, templateBrief };
 import { MODEL_ID, getAnthropic } from './anthropic';
@@ -36,7 +36,7 @@ export interface BriefDeps {
 }
 
 export const BRIEF_MAX_ITERATIONS = 4;
-const RUN_TIMEOUT_MS = 120_000;
+const RUN_TIMEOUT_MS = BRIEF_RUN_TIMEOUT_MS;
 
 // ---- submit_brief: strict JSON Schema that matches OrderBrief exactly --------------------------------------
 

@@ -1,7 +1,7 @@
 // The template brief fallback and the stale-brief rule that stops "Writing the brief…" from spinning forever.
 import { describe, expect, it } from 'vitest';
 import type { Order } from '@/lib/domain/types';
-import { briefIsStale, templateBrief, withFallbackBrief } from '@/lib/ai/template';
+import { BRIEF_RUN_TIMEOUT_MS, BRIEF_STALE_MS, briefIsStale, templateBrief, withFallbackBrief } from '@/lib/ai/template';
 
 const paid: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: null, buyerNote: null,
@@ -18,8 +18,8 @@ describe('stale brief fallback', () => {
     expect(briefIsStale(paid, paidAt + 60_000)).toBe(false);
     expect(withFallbackBrief(paid, paidAt + 60_000)).toBe(paid);
   });
-  it('after two minutes with no brief, shows the labelled template', () => {
-    const shown = withFallbackBrief(paid, paidAt + 3 * 60_000);
+  it('once the brief is stale (a minute past the agent run timeout), shows the labelled template', () => {
+    const shown = withFallbackBrief(paid, paidAt + BRIEF_STALE_MS + 1_000);
     expect(shown.briefSource).toBe('template');
     expect(shown.brief).toEqual(templateBrief(paid));
     expect(shown.brief!.prep_list[0].text).toBe('Loaf (Large)');
@@ -29,5 +29,15 @@ describe('stale brief fallback', () => {
     expect(withFallbackBrief(stored, paidAt + 3_600_000)).toBe(stored);
     const open = { ...paid, status: 'awaiting_approval' as const, paidAt: null };
     expect(briefIsStale(open, paidAt + 3_600_000)).toBe(false);
+  });
+});
+
+describe('the stale-brief threshold', () => {
+  it('is comfortably above the brief agent run timeout, so a running brief is never shown as stale', () => {
+    expect(BRIEF_STALE_MS).toBeGreaterThanOrEqual(BRIEF_RUN_TIMEOUT_MS + 60_000);
+    // Paid two minutes ago (the agent may still be in its last seconds): not stale yet.
+    const paidAt = Date.parse(paid.paidAt!);
+    expect(briefIsStale(paid, paidAt + BRIEF_RUN_TIMEOUT_MS + 5_000)).toBe(false);
+    expect(briefIsStale(paid, paidAt + BRIEF_STALE_MS + 1)).toBe(true);
   });
 });
