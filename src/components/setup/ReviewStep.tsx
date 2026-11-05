@@ -62,12 +62,22 @@ export function ReviewStep(props: ReviewProps) {
   const { shopId, photoCount } = props;
   const router = useRouter();
   const [items, setItems] = useState(props.items);
+  // A save the server refused reloads the page's data (router.refresh()). Adopt the server's menu and
+  // details, and remount the cards and lists (keyed by `synced`) so their fields show what was saved.
+  const [server, setServer] = useState({ items: props.items, shop: props.shop });
+  const [synced, setSynced] = useState(0);
+  if (server.items !== props.items || server.shop !== props.shop) {
+    setServer({ items: props.items, shop: props.shop });
+    setItems(props.items);
+    setSynced((n) => n + 1);
+  }
   const [skipped] = useState(props.skipped);
   const [announce, setAnnounce] = useState('');
   // Where keyboard focus goes after a card is fixed (set while updating, used after the render).
   const focusNext = useRef<string | null>(null);
   const [publishError, setPublishError] = useState<string | null>(null);
-  const autosave = useAutosave(shopId);
+  const resync = useCallback(() => router.refresh(), [router]);
+  const autosave = useAutosave(shopId, { onRejected: resync });
   const { queueItem } = autosave;
   const { run, start, reset } = usePublish(shopId);
 
@@ -208,7 +218,7 @@ export function ReviewStep(props: ReviewProps) {
         {announce}
       </p>
       <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
-        <div className="flex min-w-0 flex-col gap-10 lg:col-span-7">
+        <div key={synced} className="flex min-w-0 flex-col gap-10 lg:col-span-7">
           <StepHeader
             step={2}
             title="Check your menu"
@@ -316,7 +326,7 @@ export function ReviewStep(props: ReviewProps) {
             )}
           </div>
 
-          <ShopDetails shop={props.shop} onChange={autosave.queueShop} />
+          <ShopDetails shop={server.shop} onChange={autosave.queueShop} />
         </div>
 
         <aside aria-label="Your menu photo" className="hidden lg:col-span-5 lg:block">

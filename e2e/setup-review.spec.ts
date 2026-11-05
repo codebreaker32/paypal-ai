@@ -12,7 +12,7 @@ import * as extractions from '@/lib/db/repos/extractions';
 import { recordedReading } from '@/lib/ai/samples';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { runReading } from '@/lib/catalog/setup';
-import { publishShop } from '@/lib/catalog/publish';
+import { itemsToPublish, publishShop } from '@/lib/catalog/publish';
 import { DESKTOP, PHONE, settle } from './helpers';
 
 const OUT = 'docs/judge/screenshots/task6';
@@ -189,6 +189,42 @@ test('a partly failed publish shows the live shop with Retry for the rest', asyn
   await expect(page.getByRole('button', { name: 'Retry 1' })).toBeVisible();
   await settle(page);
   await shoot(page, 'live-partial');
+});
+
+test('a save the server refuses re-syncs the review with the database and keeps the message', async ({ page }) => {
+  test.setTimeout(120_000);
+  const shopId = await shopWithReading(page, recordedReading('marigold-bakehouse'));
+  await page.goto(`/shops/${shopId}/setup`);
+  const publish = page.getByRole('button', { name: /^Publish \d+ items? to PayPal$/ });
+  await expect(publish).toHaveText('Publish 6 items to PayPal');
+  // Behind this screen's back (another tab, say) the rye reaches PayPal, so its name is fixed now.
+  const rye = items.listWithVariants(getDb(), shopId).find((i) => i.name === 'Seeded rye')!;
+  items.setPayPalProductId(getDb(), rye.id, `PROD-E2E-${rye.id}`);
+  const row = page.locator('li').filter({ hasText: 'Seeded rye' }).first();
+  await row.getByRole('button', { name: /Edit/ }).click();
+  await row.getByLabel('Name').fill('Seeded rye loaf');
+  const refused = page.getByRole('alert').filter({ hasText: '"Seeded rye" is already in PayPal' });
+  await expect(refused).toBeVisible();
+  // The screen now shows what the server has: the rye is in PayPal, not renamed, and no longer to publish.
+  await expect(publish).toHaveText('Publish 5 items to PayPal');
+  await expect(page.getByLabel('Name', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Seeded rye loaf')).toHaveCount(0);
+  await expect(refused).toBeVisible();
+  expect(items.byIdForShop(getDb(), shopId, rye.id)!.name).toBe('Seeded rye');
+});
+
+test('a publish that stopped after every item reached PayPal finishes from the review', async ({ page }) => {
+  test.setTimeout(120_000);
+  const shopId = await shopWithReading(page, recordedReading('marigold-bakehouse'));
+  // The broken run: every item is in PayPal, but the shop never went live.
+  for (const it of itemsToPublish(getDb(), shopId)) items.setPayPalProductId(getDb(), it.id, `PROD-E2E-${it.id}`);
+  await page.goto(`/shops/${shopId}/setup`);
+  await expect(page.getByText('6 items are already in PayPal. Open your shop to finish.')).toBeVisible();
+  await page.getByRole('button', { name: 'Open your shop' }).click();
+  await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
+  expect(shops.byId(getDb(), shopId)).toMatchObject({ status: 'live', slug: expect.stringMatching(/^marigold-bakehouse(-\d+)?$/) });
+  // The Live step's one primary action is on screen on a phone without scrolling.
+  await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeInViewport();
 });
 
 test('the reading screen: the photo with a scan and plain status lines, and a refresh keeps watching', async ({ page }) => {
