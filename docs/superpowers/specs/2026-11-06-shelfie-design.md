@@ -29,7 +29,7 @@ _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`
 1. `/` → **Snap your price list** (camera or file, 1–4 photos), or **Try a sample menu** (3 originals ship in `public/samples/`).
 2. **Reading your menu…** (about 10 s): the photo with a scan animation and plain status lines ("Finding prices", "Checking sizes").
 3. **Review:** "10 items · 3 need you". Flagged cards sit on top, each with the line as read ("We read: *2 for $7*") and a one-thumb fix. Shop name, about text and pickup notes are prefilled from the photo; she ticks **Also ship orders** and sets a flat $8 shipping fee. Unresolved items stay off the shop; they never block publishing.
-4. **Publish 7 items to PayPal** → per-item progress → **Your shop is live** (share screen): shop link, agent door link with copy buttons, **Watch an AI order from you**, and the owner link (shown once).
+4. **Publish 7 items to PayPal** → per-item progress → **Your shop is live** (share screen): shop link, agent door link with copy buttons, **Watch an AI order from you**, and the owner link (shown only to the owner, on the Live step).
 5. Later, the dashboard shows **Paid · $26.25 · #SHF-K7F2QX · Ship to Austin, TX** with an AI brief: "Ship 2 almond croissants + 1 sourdough · ⚠ buyer says nut allergy, but almond croissants contain nuts". She packs it, taps **Add tracking**, pastes the USPS number, and it goes to PayPal. Pickup orders get **Mark picked up** instead.
 
 **Buyer through an agent (Dana, uses Claude)**
@@ -211,7 +211,7 @@ Every tool has an `outputSchema` and returns `structuredContent` with the same J
 **On localhost:** the buyer console reaches the door over real HTTP at `APP_URL`, exactly like an external agent. MCP Inspector and Claude Code also work against localhost. PayPal returns the buyer's browser to localhost, so the full flow needs no public URL.
 
 ## 11. Seller auth
-Creating a shop sets an httpOnly `shelfie_owner` cookie holding a random owner token (only its SHA-256 hash is stored). Owner routes require it. The live screen shows a one-time owner link `/claim/<token>` to open the dashboard on another device. No passwords (hackathon scope; documented).
+Creating a shop sets an httpOnly `shelfie_owner` cookie holding a random owner token (only its SHA-256 hash is stored). Owner routes require it. The Live step shows the owner (and only the owner, who already holds the same token in the cookie) an owner link `/claim/<token>` to open the dashboard on another device. No passwords (hackathon scope; documented).
 
 ## 12. Testing
 - **Unit (Vitest, test-first):** `normalizeExtraction` (every issue code, cents parsing, variants, deals, cross-page duplicates, truncation, `ODD_TEXT`, not-a-menu, unreadable); `priceOrder` (unknown/removed/in-person/sold-out items, options, caps, snapshots); PayPal client with injected `fetch` (token cache + 401 refresh, request-ID headers, order body snapshot, payer-action link, 422 issue mapping using recorded sandbox payloads); toolkit wrapper (string parsing, errors, scope check); state machine (full transition table, a webhook after the return URL, a two-caller capture-claim race on in-memory SQLite); MCP via `InMemoryTransport.createLinkedPair()` against `createShopServer` with a fake PayPal (schemas, `price` rejected, every error code, idempotent `client_request_id`, paused shop, `get_order_status` capturing on APPROVED); one route test sending web `Request`s (initialize → `tools/list`); webhook (bad signature → 400, duplicate ignored, payload not trusted).
