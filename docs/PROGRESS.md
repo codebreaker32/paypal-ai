@@ -1,9 +1,9 @@
 # Progress
 
-_Last updated: 2026-11-06 02:25 IST (session 1)_
+_Last updated: 2026-11-06 03:16 IST (session 2)_
 
 ## Current phase
-Build, wave 2 of 3: setup flow (Task 6), shop page + buyer console + receipt (Task 7), dashboard + AI brief + tracking + webhook (Task 8) running in parallel worktrees. Wave 1 merged: PayPal REST client + Agent Toolkit wrapper, menu reader, order domain + MCP agent door (fix round in progress), design system + Start page. Ledger: `.superpowers/sdd/2026-11-06-shelfie/progress.md` (local only).
+Build, wave 2 of 3 (session 2). Tasks 6 (setup flow) and 8 (dashboard, AI brief, tracking, webhook) are implemented on their branches and under task review; Task 7 (shop page, buyer console, receipt) is being finished. Next: merge wave 2, then wave 3 (seed, e2e incl. the real capture gate, screenshots), judge round 1, visual-direction round.
 
 ## Done
 - Product approach round: approach 1 (seller-first) won judge round 0 (Part A 19, Part B 21 vs 18/19). Final spec `docs/superpowers/specs/2026-11-06-shelfie-design.md`; plan `docs/superpowers/plans/2026-11-06-shelfie.md`.
@@ -30,4 +30,4 @@ Build, wave 2 of 3: setup flow (Task 6), shop page + buyer console + receipt (Ta
 3. Wave 3: seed, e2e, screenshots, judge round 1.
 
 ## Needs from human
-- `PAYPAL_SANDBOX_BUYER_EMAIL` and `PAYPAL_SANDBOX_BUYER_PASSWORD` in `.env` (a sandbox **personal** account from developer.paypal.com → Sandbox accounts) so capture can be tested end to end. Sandbox card capture isn't available on this merchant (`PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING`).
+- Nothing blocking. (Sandbox buyer login is now in `.env`; the capture gate runs in wave 3.)
