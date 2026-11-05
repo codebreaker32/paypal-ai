@@ -16,7 +16,8 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    env: { PORT: String(PORT) },
+    // APP_URL builds PayPal's return/cancel URLs and the agent door URL: point them at this server, not :3000.
+    env: { PORT: String(PORT), APP_URL: process.env.APP_URL ?? `http://localhost:${PORT}` },
     // Never attach to someone else's server on the same port unless asked to.
     reuseExistingServer: Boolean(process.env.E2E_REUSE_SERVER),
     timeout: 180_000,
