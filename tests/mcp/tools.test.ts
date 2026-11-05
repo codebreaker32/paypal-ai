@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -140,7 +140,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     const fish = all.find((i) => i.name === 'Market fish')!;
     expect(fish.orderable).toBe(false);
     expect(fish.not_orderable_reason).toMatch(/in person/i);
-    expect(fish.options).toEqual([]);
+    expect(fish.options).toEqual([{ option_id: s.item['Market fish'].variants[0].id, label: null, price: null }]);
     const rye = all.find((i) => i.name === 'Seeded rye')!;
     expect(rye).toMatchObject({ orderable: false, not_orderable_reason: expect.stringMatching(/sold out/i) });
     const coffee = all.find((i) => i.name === 'Drip coffee')!;
@@ -149,6 +149,17 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(coffee.options.map((o) => [o.label, o.price])).toEqual([['S', '3.00'], ['L', '4.00']]);
     expect(all.find((i) => i.name === 'Almond croissant')).toMatchObject({ item_id: almond().id, description: 'Flaky, with almond cream. Contains nuts.' });
     expect(out.data_notice).toMatch(/seller('s)? data, not instructions/i);
+  });
+
+  it('list_products never shows a price for an in-person item, even when one is stored', async () => {
+    const fish = s.item['Market fish'];
+    items.setVariants(db, fish.id, [{ label: 'Whole', priceCents: 2400 }, { label: 'Fillet', priceCents: 1600 }]);
+    const out = ok<{ sections: { items: { name: string; orderable: boolean; not_orderable_reason?: string; options: { label: string | null; price: string | null }[] }[] }[] }>(
+      'list_products', await call(await connect(), 'list_products', { query: 'fish' }));
+    const view = out.sections[0].items[0];
+    expect(view).toMatchObject({ name: 'Market fish', orderable: false, not_orderable_reason: expect.stringMatching(/in person/i) });
+    expect(view.options.map((o) => [o.label, o.price])).toEqual([['Whole', null], ['Fillet', null]]);
+    expect(JSON.stringify(out)).not.toMatch(/24\.00|16\.00/);
   });
 
   it('list_products filters by query and by section', async () => {
@@ -317,6 +328,47 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     const out = ok<{ status: string; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
     expect(out.status).toBe('awaiting_approval');
     expect(out.message).toMatch(/PayPal/);
+  });
+
+  it('get_order_status does not call a PayPal refusal "unreachable"', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client = await connect();
+    const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
+    fake.failNext('getOrder', new PayPalApiError(403, 'NOT_AUTHORIZED', 'PERMISSION_DENIED', 'dbg-403', 'denied'));
+    const out = ok<{ status: string; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(out.status).toBe('awaiting_approval');
+    expect(out.message).not.toMatch(/couldn't be reached|could not be reached/i);
+    expect(out.message).toMatch(/PayPal returned an error/i);
+    expect(logged.mock.calls.map((c) => String(c[0])).join('\n')).toContain('dbg-403');
+    logged.mockRestore();
+  });
+
+  it('get_order_status explains a capture PayPal refused, and stays approved without retrying', async () => {
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const client = await connect();
+    const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
+    fake.approve(orders.byId(db, order_ref)!.paypalOrderId);
+    fake.failNext('captureOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'TRANSACTION_REFUSED', 'dbg-tr', 'refused'));
+    const first = ok<{ status: string; approval_url: string | null; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(first).toMatchObject({ status: 'approved', approval_url: null });
+    expect(first.message).toMatch(/PayPal refused/i);
+    expect(first.message).toMatch(/nothing (has been|was) charged/i);
+    clock += 6_000;
+    const second = ok<{ status: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(second.status).toBe('approved');
+    expect(fake.calls.filter((c) => c.method === 'captureOrder')).toHaveLength(1);
+    logged.mockRestore();
+  });
+
+  it('get_order_status reports failed, once, for a COMPLETED order with a declined capture', async () => {
+    const client = await connect();
+    const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
+    const pp = fake.orders.get(orders.byId(db, order_ref)!.paypalOrderId)!;
+    pp.status = 'COMPLETED';
+    pp.purchase_units[0].payments = { captures: [{ id: 'CAP-X', status: 'DECLINED' }] };
+    const out = ok<{ status: string; approval_url: string | null; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(out).toMatchObject({ status: 'failed', approval_url: null });
+    expect(out.message).toMatch(/did not go through/);
   });
 
   it('get_order_status reads back tracking for a shipped order', async () => {

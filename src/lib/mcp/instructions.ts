@@ -1,17 +1,11 @@
 // Server instructions for the agent door (spec §10). A fixed template: the only seller data is the sanitised shop name.
+import { sanitizeLabel } from '@/lib/text';
 
 export const SHOP_NAME_MAX = 60;
 
-/** Strips control characters and newlines, collapses whitespace, swaps double quotes, caps at 60 characters. */
+/** One visible line: no control, zero-width or bidi characters; double quotes swapped; at most 60 characters. */
 export function sanitizeShopName(name: string): string {
-  const clean = name
-    .replace(/[\u0000-\u001F\u007F-\u009F\u2028\u2029]/g, ' ')
-    .replace(/"/g, "'")
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, SHOP_NAME_MAX)
-    .trimEnd();
-  return clean || 'this shop';
+  return sanitizeLabel(name, SHOP_NAME_MAX) || 'this shop';
 }
 
 export function buildInstructions(shopName: string): string {
