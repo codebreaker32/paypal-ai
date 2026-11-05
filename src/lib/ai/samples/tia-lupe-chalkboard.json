@@ -1,0 +1,269 @@
+{
+  "is_menu": true,
+  "image_quality": "good",
+  "problems": [],
+  "retake_tip": null,
+  "warnings": [
+    "Prices are printed without a $ sign; they were read as USD.",
+    "Agua fresca del día has '?' instead of a price."
+  ],
+  "shop": {
+    "name": "TÍA LUPE'S TACOS",
+    "about": null,
+    "pickup_notes": "Tue-Sat 11-8 · corner of 5th & Mill · cash or PayPal"
+  },
+  "kind": "food",
+  "items": [
+    {
+      "section": "TACOS (3 per order)",
+      "name": "Al pastor",
+      "description": null,
+      "source_text": "Al pastor 9",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 900,
+          "raw": "9"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "TACOS (3 per order)",
+      "name": "Carnitas",
+      "description": null,
+      "source_text": "Carnitas 9",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 900,
+          "raw": "9"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "TACOS (3 per order)",
+      "name": "Pollo asado",
+      "description": null,
+      "source_text": "Pollo asado 8.5",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 850,
+          "raw": "8.5"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "TACOS (3 per order)",
+      "name": "Hongos (veg)",
+      "description": null,
+      "source_text": "Hongos (veg) 8",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 800,
+          "raw": "8"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "EXTRAS",
+      "name": "Guac + chips",
+      "description": null,
+      "source_text": "Guac + chips 5",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 500,
+          "raw": "5"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "EXTRAS",
+      "name": "Elote",
+      "description": null,
+      "source_text": "Elote 4",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 400,
+          "raw": "4"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "BURRITOS",
+      "name": "Burrito grande",
+      "description": "any meat",
+      "source_text": "Burrito grande any meat · +$1.5 add guac 12",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1200,
+          "raw": "12"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": "Add guac +$1.5 listed in skipped lines.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": "BURRITOS",
+      "name": "Bean & cheese",
+      "description": null,
+      "source_text": "Bean & cheese 9",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 900,
+          "raw": "9"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "DRINKS",
+      "name": "Horchata",
+      "description": null,
+      "source_text": "Horchata sm / lg 3 / 4.5",
+      "page": 1,
+      "prices": [
+        {
+          "label": "sm",
+          "amount_cents": 300,
+          "raw": "3"
+        },
+        {
+          "label": "lg",
+          "amount_cents": 450,
+          "raw": "4.5"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "DRINKS",
+      "name": "Jarritos",
+      "description": null,
+      "source_text": "Jarritos 3",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 300,
+          "raw": "3"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": "DRINKS",
+      "name": "Agua fresca del día",
+      "description": null,
+      "source_text": "Agua fresca del día ?",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": null,
+          "raw": "?"
+        }
+      ],
+      "price_kind": "market",
+      "deal_text": null,
+      "confidence": "high",
+      "note": "Price shown as '?'.",
+      "looks_like_instruction": false
+    }
+  ],
+  "skipped_lines": [
+    {
+      "text": "TÍA LUPE'S TACOS",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Tue-Sat 11-8 · corner of 5th & Mill · cash or PayPal",
+      "page": 1,
+      "reason": "hours"
+    },
+    {
+      "text": "TACOS (3 per order)",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "EXTRAS",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "BURRITOS",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "DRINKS",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "+$1.5 add guac",
+      "page": 1,
+      "reason": "addon"
+    }
+  ]
+}

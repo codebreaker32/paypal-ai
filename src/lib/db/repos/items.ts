@@ -27,28 +27,40 @@ function withVariants(db: Db, rows: ItemRow[]): ItemWithVariants[] {
   }));
 }
 
+/** Inserts one draft item and its variants at position `sort`; returns the new item's id. */
+function insertItem(db: Db, shopId: string, d: DraftItem, sort: number, ts: string): string {
+  const id = newId('itm', 12);
+  db.prepare(
+    `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, sort, updated_at)
+     VALUES (@id, @shopId, @section, @name, @description, @sourceText, @confidence, @issues, @issueDetail, @kind, @status, @sort, @ts)`,
+  ).run({
+    id, shopId, section: d.section, name: d.name, description: d.description, sourceText: d.sourceText,
+    confidence: d.confidence, issues: JSON.stringify(d.issues), issueDetail: d.issueDetail, kind: d.kind,
+    status: d.status, sort, ts,
+  });
+  const insVar = db.prepare('INSERT INTO variants (id, item_id, label, price_cents, sort) VALUES (?, ?, ?, ?, ?)');
+  d.variants.forEach((v, j) => insVar.run(newId('var', 12), id, v.label, v.priceCents, j));
+  return id;
+}
+
 /** Replaces every unpublished item of the shop with a new draft list (published items are kept). */
 export function replaceDrafts(db: Db, shopId: string, drafts: DraftItem[]): ItemWithVariants[] {
   const ts = now();
   const tx = db.transaction(() => {
     db.prepare('DELETE FROM items WHERE shop_id = ? AND paypal_product_id IS NULL').run(shopId);
-    const insItem = db.prepare(
-      `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, sort, updated_at)
-       VALUES (@id, @shopId, @section, @name, @description, @sourceText, @confidence, @issues, @issueDetail, @kind, @status, @sort, @ts)`,
-    );
-    const insVar = db.prepare('INSERT INTO variants (id, item_id, label, price_cents, sort) VALUES (?, ?, ?, ?, ?)');
-    drafts.forEach((d, i) => {
-      const id = newId('itm', 12);
-      insItem.run({
-        id, shopId, section: d.section, name: d.name, description: d.description, sourceText: d.sourceText,
-        confidence: d.confidence, issues: JSON.stringify(d.issues), issueDetail: d.issueDetail, kind: d.kind,
-        status: d.status, sort: i, ts,
-      });
-      d.variants.forEach((v, j) => insVar.run(newId('var', 12), id, v.label, v.priceCents, j));
-    });
+    drafts.forEach((d, i) => insertItem(db, shopId, d, i, ts));
   });
   tx();
   return listWithVariants(db, shopId);
+}
+
+/** Adds one draft item (and its variants) at the end of the shop's menu. */
+export function insertDraft(db: Db, shopId: string, draft: DraftItem): ItemWithVariants {
+  const id = db.transaction(() => {
+    const { sort } = db.prepare('SELECT COALESCE(MAX(sort), -1) + 1 AS sort FROM items WHERE shop_id = ?').get(shopId) as { sort: number };
+    return insertItem(db, shopId, draft, sort, now());
+  })();
+  return byIdForShop(db, shopId, id)!;
 }
 
 export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemStatus[] } = {}): ItemWithVariants[] {
