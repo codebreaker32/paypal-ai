@@ -1,0 +1,160 @@
+{
+  "is_menu": true,
+  "image_quality": "good",
+  "problems": [],
+  "retake_tip": null,
+  "warnings": [],
+  "shop": {
+    "name": "Ravi's Bike Repair",
+    "about": null,
+    "pickup_notes": "Drop-off Mon–Fri · 88 Canal Rd · ready in 48h"
+  },
+  "kind": "services",
+  "items": [
+    {
+      "section": null,
+      "name": "Flat fix (tube incl.)",
+      "description": null,
+      "source_text": "Flat fix (tube incl.) $15",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1500,
+          "raw": "$15"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Brake tune — per wheel",
+      "description": null,
+      "source_text": "Brake tune — per wheel $12",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1200,
+          "raw": "$12"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Full tune-up",
+      "description": null,
+      "source_text": "Full tune-up $65",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 6500,
+          "raw": "$65"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Gear indexing",
+      "description": null,
+      "source_text": "Gear indexing $20",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 2000,
+          "raw": "$20"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Chain replace (+ parts)",
+      "description": null,
+      "source_text": "Chain replace (+ parts) $18 + parts",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1800,
+          "raw": "$18 + parts"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": "Labour price $18; parts charged extra.",
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Wheel true",
+      "description": null,
+      "source_text": "Wheel true $25",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 2500,
+          "raw": "$25"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": null,
+      "confidence": "high",
+      "note": null,
+      "looks_like_instruction": false
+    },
+    {
+      "section": null,
+      "name": "Kids bike safety check",
+      "description": null,
+      "source_text": "Kids bike safety check FREE w/ tune-up, else $10",
+      "page": 1,
+      "prices": [
+        {
+          "label": null,
+          "amount_cents": 1000,
+          "raw": "FREE w/ tune-up, else $10"
+        }
+      ],
+      "price_kind": "fixed",
+      "deal_text": "FREE w/ tune-up, else $10",
+      "confidence": "high",
+      "note": "Free when purchased with a tune-up; otherwise $10.",
+      "looks_like_instruction": false
+    }
+  ],
+  "skipped_lines": [
+    {
+      "text": "Ravi's Bike Repair",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Drop-off Mon–Fri · 88 Canal Rd · ready in 48h",
+      "page": 1,
+      "reason": "hours"
+    }
+  ]
+}

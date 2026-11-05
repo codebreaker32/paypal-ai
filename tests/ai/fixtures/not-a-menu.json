@@ -1,0 +1,11 @@
+{
+  "is_menu": false,
+  "image_quality": "good",
+  "problems": ["not_a_menu"],
+  "retake_tip": "This looks like a photo of a dog, not a menu.",
+  "warnings": [],
+  "shop": { "name": null, "about": null, "pickup_notes": null },
+  "kind": "goods",
+  "items": [],
+  "skipped_lines": []
+}

@@ -1,0 +1,47 @@
+{
+  "is_menu": true,
+  "image_quality": "unreadable",
+  "problems": [
+    "blurry",
+    "glare",
+    "dark"
+  ],
+  "retake_tip": "The photo is too blurry to read the prices and item names. Hold your phone steady, tap the menu to focus, and step back a little so the whole sheet fits. Try to avoid the bright glare on the right side by shifting the angle or moving to even lighting.",
+  "warnings": [
+    "Only the shop name (Marigold Bakehouse, best reading) and section headings are partly legible. Item names and prices are too blurry to extract reliably, so no items were listed to avoid guessing."
+  ],
+  "shop": {
+    "name": "Marigold Bakehouse",
+    "about": null,
+    "pickup_notes": null
+  },
+  "kind": "food",
+  "items": [],
+  "skipped_lines": [
+    {
+      "text": "Marigold Bakehouse",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Breads",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Pastries",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Cakes (16h notice)",
+      "page": 1,
+      "reason": "header"
+    },
+    {
+      "text": "Coffee",
+      "page": 1,
+      "reason": "header"
+    }
+  ]
+}
