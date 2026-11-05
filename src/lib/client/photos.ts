@@ -1,5 +1,5 @@
 // Client-side checks for menu photos before they are sent to POST /api/shops.
-// Limits mirror the server's saveUpload (Task 6): images only, at most 15 MB each, 1 to 4 photos.
+// Limits mirror the server's upload checks (src/lib/uploads.ts): images only, at most 15 MB each, 1 to 4 photos.
 
 export const MAX_PHOTOS = 4;
 export const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
