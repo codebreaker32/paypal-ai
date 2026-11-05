@@ -45,6 +45,6 @@ Model `claude-sonnet-5-5`, real PayPal sandbox Catalog, production build (`next 
 | ravi-bike-repair.jpg | 1 | 7 | 2 | 6.5 s | 7 | 1.5 s | 8.1 s | live |
 | ravi-bike-repair.jpg | 2 | 7 | 2 | 6.5 s | 7 | 2.4 s | 8.9 s | live |
 
-Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publishing 1.5 to 3.7 s. Items read minus items published is the number left off PayPal (not priced for online sale), e.g. 1 item on the Marigold menu.
+Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publishing 1.5 to 3.7 s. Items read minus items published is the number left off PayPal (read as in-person only): the seasonal fruit galette on Marigold and the agua fresca del día on Tía Lupe.
 
 How it was measured: `scripts/measure-photo-to-live.ts` uploads each photo to `POST /api/shops` (not the recorded sample path), runs `POST /extract` (real Claude), resolves every flagged item through `PATCH /items` the way a seller would (fills a missing or market price with $5.00, keeps the first of any duplicate pair, confirms CHECK items), then `POST /publish` and waits for the shop to go `live`. Total includes shop creation and the resolving call, which take well under a second. The app ran with a throwaway `DATABASE_PATH` under `data/measure/`.
