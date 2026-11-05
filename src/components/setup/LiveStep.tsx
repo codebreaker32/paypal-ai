@@ -38,7 +38,20 @@ async function copyText(text: string): Promise<boolean> {
 }
 
 /** A link shown in full (it wraps), with a Copy button that confirms in place and with a toast. */
-function CopyRow({ value, label, copyLabel = 'Copy link', mono }: { value: string; label: string; copyLabel?: string; mono?: boolean }) {
+function CopyRow({
+  value,
+  label,
+  copyLabel = 'Copy link',
+  mono,
+  primary,
+}: {
+  value: string;
+  label: string;
+  copyLabel?: string;
+  mono?: boolean;
+  /** The screen's one primary action. */
+  primary?: boolean;
+}) {
   const toast = useToast();
   const [copied, setCopied] = useState(false);
   const id = useId();
@@ -59,7 +72,8 @@ function CopyRow({ value, label, copyLabel = 'Copy link', mono }: { value: strin
         {value}
       </code>
       <Button
-        variant="secondary"
+        variant={primary ? 'primary' : 'secondary'}
+        size={primary ? 'lg' : 'md'}
         icon={copied ? Check : Copy}
         aria-describedby={id}
         onClick={async () => {
@@ -74,10 +88,10 @@ function CopyRow({ value, label, copyLabel = 'Copy link', mono }: { value: strin
   );
 }
 
-function LinkCard({ icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+function LinkCard({ icon, title, className, children }: { icon: LucideIcon; title: string; className?: string; children: ReactNode }) {
   const id = useId();
   return (
-    <Card as="section" aria-labelledby={id} className="flex flex-col gap-3">
+    <Card as="section" aria-labelledby={id} className={cx('flex flex-col gap-3', className)}>
       <h2 id={id} className="flex items-center gap-2 type-heading">
         <Icon icon={icon} className="text-ink-soft" />
         {title}
@@ -140,15 +154,23 @@ export function LiveStep(p: LiveProps) {
         </Card>
       )}
 
-      {/* Phones: the next step first, then the links. Desktop: links on the left, next step on the right. */}
-      <div className="grid items-start gap-4 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-12 lg:gap-y-4">
-        <Card as="section" aria-labelledby="try-title" tone="sunken" className="flex flex-col gap-4 lg:col-span-5 lg:col-start-8 lg:row-start-1">
+      {/* The primary action, Copy agent door link, comes first on phones; then the next step to try, then the rest.
+          Desktop: the links on the left, the next step and the owner link on the right. */}
+      <div className="grid items-start gap-4 lg:grid-cols-12 lg:gap-x-12 lg:gap-y-4">
+        <LinkCard icon={DoorOpen} title="Agent door" className="lg:col-span-7 lg:col-start-1 lg:row-start-1">
+          <p className="text-ink-soft">
+            Give this link to any AI assistant. It can read your menu and place orders for people, who then pay on PayPal.
+          </p>
+          <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" primary />
+        </LinkCard>
+
+        <Card as="section" aria-labelledby="try-title" tone="sunken" className="flex flex-col gap-4 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
           <h2 id="try-title" className="flex items-center gap-2 type-heading">
             <Icon icon={Bot} className="text-ink-soft" />
             See it work
           </h2>
           <p className="text-ink-soft">An AI assistant that has never seen your menu orders from it through the agent door. You watch every step.</p>
-          <ButtonLink href={`/s/${p.slug}?assistant=1`} variant="primary" size="lg" icon={Bot} fullWidth>
+          <ButtonLink href={`/s/${p.slug}?assistant=1`} size="lg" icon={Bot} fullWidth>
             Watch an AI order from you
           </ButtonLink>
           <ButtonLink href={`/shops/${p.shopId}`} icon={LayoutDashboard} fullWidth>
@@ -156,14 +178,7 @@ export function LiveStep(p: LiveProps) {
           </ButtonLink>
         </Card>
 
-        <div className="flex flex-col gap-4 lg:col-span-7 lg:col-start-1 lg:row-span-2 lg:row-start-1">
-          <LinkCard icon={DoorOpen} title="Agent door">
-            <p className="text-ink-soft">
-              Give this link to any AI assistant. It can read your menu and place orders for people, who then pay on PayPal.
-            </p>
-            <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" />
-          </LinkCard>
-
+        <div className="flex flex-col gap-4 lg:col-span-7 lg:col-start-1 lg:row-span-2 lg:row-start-2">
           <LinkCard icon={Store} title="Shop link">
             <p className="text-ink-soft">Your menu for people to read, with a button to order through an assistant.</p>
             <CopyRow value={p.shopUrl} label="Shop link" />
@@ -193,7 +208,7 @@ export function LiveStep(p: LiveProps) {
         </div>
 
         {p.ownerLink && (
-          <div className="lg:col-span-5 lg:col-start-8 lg:row-start-2">
+          <div className="lg:col-span-5 lg:col-start-8 lg:row-start-3">
             <LinkCard icon={KeyRound} title="Your owner link">
               <p className="text-ink-soft">Open your shop on another phone. Keep this link private: anyone with it can run your shop.</p>
               <CopyRow value={p.ownerLink} label="Owner link" mono />
