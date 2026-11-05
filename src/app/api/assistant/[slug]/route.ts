@@ -9,7 +9,7 @@ import { allow } from '@/lib/rate-limit';
 export const runtime = 'nodejs';
 
 /** 20 console turns per IP per hour (spec §15: Anthropic spend). */
-const CONSOLE_RATE ={ limit: 20, windowMs: 60 * 60_000 } as const;
+const CONSOLE_RATE = { limit: 20, windowMs: 60 * 60_000 } as const;
 
 const Body = z
   .object({

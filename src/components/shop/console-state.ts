@@ -19,11 +19,15 @@ export type Entry =
   | { kind: 'approval'; key: string; approvalUrl: string; total: string; orderRef: string; orderNumber?: string }
   | { kind: 'error'; key: string; message: string };
 
+type ApprovalEntry = Omit<Extract<Entry, { kind: 'approval' }>, 'key'>;
+
 export interface ConsoleState {
   sessionId: string | null;
   entries: Entry[];
   busy: boolean;
   nextKey: number;
+  /** Approval cards wait for the end of the turn, so they sit under the assistant's "tap the PayPal button". */
+  held: ApprovalEntry[];
 }
 
 export type ConsoleAction =
@@ -33,7 +37,7 @@ export type ConsoleAction =
   | { type: 'restore'; state: ConsoleState }
   | { type: 'reset' };
 
-export const initialConsoleState: ConsoleState = { sessionId: null, entries: [], busy: false, nextKey: 1 };
+export const initialConsoleState: ConsoleState = { sessionId: null, entries: [], busy: false, nextKey: 1, held: [] };
 
 type NewEntry = Entry extends infer E ? (E extends Entry ? Omit<E, 'key'> : never) : never;
 
@@ -41,12 +45,18 @@ function push(state: ConsoleState, entry: NewEntry): ConsoleState {
   return { ...state, entries: [...state.entries, { ...entry, key: `e${state.nextKey}` } as Entry], nextKey: state.nextKey + 1 };
 }
 
+/** The turn is over: show the approval cards it produced, then stop being busy. */
+function endTurn(state: ConsoleState): ConsoleState {
+  const flushed = state.held.reduce((s, a) => push(s, a), state);
+  return { ...flushed, held: [], busy: false };
+}
+
 export function consoleReducer(state: ConsoleState, action: ConsoleAction): ConsoleState {
   switch (action.type) {
     case 'send':
       return { ...push(state, { kind: 'user', text: action.text }), busy: true };
     case 'fail':
-      return { ...push(state, { kind: 'error', message: action.message }), busy: false };
+      return push(endTurn(state), { kind: 'error', message: action.message });
     case 'restore':
       return action.state;
     case 'reset':
@@ -82,11 +92,14 @@ function applyEvent(state: ConsoleState, e: ConsoleEvent): ConsoleState {
       return { ...state, entries };
     }
     case 'approval':
-      return push(state, { kind: 'approval', approvalUrl: e.approvalUrl, total: e.total, orderRef: e.orderRef, orderNumber: e.orderNumber });
+      return {
+        ...state,
+        held: [...state.held, { kind: 'approval', approvalUrl: e.approvalUrl, total: e.total, orderRef: e.orderRef, orderNumber: e.orderNumber }],
+      };
     case 'error':
-      return { ...push(state, { kind: 'error', message: e.message }), busy: false };
+      return push(endTurn(state), { kind: 'error', message: e.message });
     case 'done':
-      return { ...state, busy: false };
+      return endTurn(state);
   }
 }
 

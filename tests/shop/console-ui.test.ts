@@ -38,6 +38,25 @@ describe('consoleReducer', () => {
     expect(new Set(s.entries.map((e) => e.key)).size).toBe(s.entries.length);
   });
 
+  it('puts the approval card after the assistant’s words for that turn (“tap the PayPal button under this message”)', () => {
+    let s = consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' });
+    s = run(
+      s,
+      { type: 'tool_call', id: 't1', name: 'create_order', input: {} },
+      { type: 'tool_result', id: 't1', ok: true, result: {}, ms: 900 },
+      { type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=1', total: '27.00', orderRef: 'ord_1' },
+    );
+    expect(s.entries.map((e) => e.kind)).toEqual(['user', 'activity']);
+    s = run(s, { type: 'text', text: 'Tap the PayPal button under this message.' }, { type: 'done' });
+    expect(s.entries.map((e) => e.kind)).toEqual(['user', 'activity', 'assistant', 'approval']);
+    // A turn that breaks off still shows the approval it already got.
+    let broken = run(consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' }), {
+      type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=2', total: '9.00', orderRef: 'ord_2',
+    });
+    broken = consoleReducer(broken, { type: 'fail', message: "The shop didn't answer. Try again." });
+    expect(broken.entries.map((e) => e.kind)).toEqual(['user', 'approval', 'error']);
+  });
+
   it('shows error events and failures as error entries and stops being busy', () => {
     let s = consoleReducer(initialConsoleState, { type: 'send', text: 'hi' });
     s = run(s, { type: 'error', message: "The shop didn't answer. Try again." });

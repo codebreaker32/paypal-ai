@@ -41,24 +41,24 @@ function HowToGetIt({ shop }: { shop: Shop }) {
       </h2>
       <dl className="flex flex-col gap-3">
         {pickup && (
-          <div className="flex items-start gap-3">
-            <Icon icon={Store} className="mt-0.5 text-ink-soft" />
-            <div>
-              <dt className="font-semibold">Pickup</dt>
-              <dd className="text-ink-soft">{shop.pickupNotes || 'Ask the shop when and where to pick up.'}</dd>
-            </div>
+          <div>
+            <dt className="flex items-center gap-3 font-semibold">
+              <Icon icon={Store} className="text-ink-soft" />
+              Pickup
+            </dt>
+            <dd className="pl-8 text-ink-soft">{shop.pickupNotes || 'Ask the shop when and where to pick up.'}</dd>
           </div>
         )}
         {shipping && (
-          <div className="flex items-start gap-3">
-            <Icon icon={Truck} className="mt-0.5 text-ink-soft" />
-            <div>
-              <dt className="font-semibold">Shipping</dt>
-              <dd className="text-ink-soft">
-                <span className="type-price">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
-                per order, to the address on your PayPal account.
-              </dd>
-            </div>
+          <div>
+            <dt className="flex items-center gap-3 font-semibold">
+              <Icon icon={Truck} className="text-ink-soft" />
+              Shipping
+            </dt>
+            <dd className="pl-8 text-ink-soft">
+              <span className="type-price">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
+              per order, to the address on your PayPal account.
+            </dd>
           </div>
         )}
       </dl>
@@ -85,7 +85,7 @@ function Intro({ shop, photoCount }: { shop: Shop; photoCount: number }) {
               src={`/s/${shop.slug}/photo/1`}
               alt={`The price list ${shop.name} was made from`}
               width={88}
-              height={110}
+              height={112}
               unoptimized
               className="h-28 w-22 -rotate-2 rounded-sm border border-line-strong object-cover shadow-md transition-transform group-hover:rotate-0"
             />
