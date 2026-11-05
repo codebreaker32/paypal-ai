@@ -1,0 +1,80 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import sharp from 'sharp';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { MAX_PHOTO_BYTES, UploadError, normalizePhoto, readUpload, saveUpload } from '@/lib/uploads';
+
+const solid = (width: number, height: number) =>
+  sharp({ create: { width, height, channels: 3, background: { r: 200, g: 150, b: 90 } } });
+
+async function codeOf(p: Promise<unknown>): Promise<string> {
+  try {
+    await p;
+    return 'resolved';
+  } catch (e) {
+    return e instanceof UploadError ? e.code : `other: ${(e as Error).message}`;
+  }
+}
+
+describe('uploads', () => {
+  let dir: string;
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shelfie-uploads-'));
+    process.env.UPLOADS_DIR = dir;
+  });
+  afterEach(() => {
+    delete process.env.UPLOADS_DIR;
+    fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('shrinks a large photo to 1600 px on the long edge and re-encodes it as JPEG', async () => {
+    const png = await solid(3000, 2000).png().toBuffer();
+    const out = await normalizePhoto(png);
+    const meta = await sharp(out).metadata();
+    expect(meta.format).toBe('jpeg');
+    expect([meta.width, meta.height]).toEqual([1600, 1067]);
+  });
+
+  it('never enlarges a small photo', async () => {
+    const out = await normalizePhoto(await solid(400, 300).jpeg().toBuffer());
+    const meta = await sharp(out).metadata();
+    expect([meta.width, meta.height]).toEqual([400, 300]);
+  });
+
+  it('turns a photo upright from its EXIF orientation', async () => {
+    const sideways = await solid(200, 100).jpeg().withMetadata({ orientation: 6 }).toBuffer();
+    const meta = await sharp(await normalizePhoto(sideways)).metadata();
+    expect([meta.width, meta.height]).toEqual([100, 200]);
+    expect(meta.orientation ?? 1).toBe(1);
+  });
+
+  it('rejects bytes that are not an image, whatever they claim to be', async () => {
+    expect(await codeOf(normalizePhoto(Buffer.from('definitely not a jpeg')))).toBe('BAD_IMAGE');
+  });
+
+  it('rejects SVG and PDF even though sharp could open some of them', async () => {
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10"/></svg>');
+    expect(await codeOf(normalizePhoto(svg))).toBe('BAD_IMAGE');
+    expect(await codeOf(normalizePhoto(Buffer.from('%PDF-1.4\n%âãÏÓ\n')))).toBe('BAD_IMAGE');
+  });
+
+  it('rejects a photo over 15 MB before decoding it', async () => {
+    const big = new Blob([new Uint8Array(MAX_PHOTO_BYTES + 1)], { type: 'image/jpeg' });
+    expect(await codeOf(saveUpload('shp_x', big, 1))).toBe('PHOTO_TOO_LARGE');
+  });
+
+  it('saves page n under the shop folder and returns a path relative to UPLOADS_DIR', async () => {
+    const file = new Blob([new Uint8Array(await solid(50, 80).png().toBuffer())], { type: 'image/png' });
+    const rel = await saveUpload('shp_abc', file, 2);
+    expect(rel).toBe('shp_abc/page-2.jpg');
+    expect(fs.existsSync(path.join(dir, 'shp_abc', 'page-2.jpg'))).toBe(true);
+    const back = await readUpload(rel);
+    expect((await sharp(back).metadata()).format).toBe('jpeg');
+  });
+
+  it('refuses to read outside the uploads folder', async () => {
+    expect(await codeOf(readUpload('../../etc/passwd'))).toMatch(/other: /);
+    await expect(readUpload('/etc/passwd')).rejects.toThrow();
+  });
+});
