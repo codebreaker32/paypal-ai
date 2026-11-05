@@ -83,6 +83,44 @@ describe('createSaveQueue', () => {
     expect(onRejected).not.toHaveBeenCalled();
   });
 
+  it('a refused item batch does not drop the shop patch from the same flush, and says what was refused', async () => {
+    const states: SaveState[] = [];
+    const saveShop = vi.fn(async () => {});
+    const q = createSaveQueue({
+      saveItems: async () => {
+        throw refused();
+      },
+      saveShop,
+      onState: (st) => states.push(st),
+    });
+    q.queueItem({ itemId: 'a', name: 'Focaccia Genovese' });
+    q.queueShop({ name: 'Marigold Bakehouse' });
+    await expect(q.flush()).rejects.toBeInstanceOf(ApiError);
+    expect(saveShop).toHaveBeenCalledWith({ name: 'Marigold Bakehouse' });
+    expect(q.hasPending()).toBe(false);
+    const last = states.at(-1) as Extract<SaveState, { status: 'error' }>;
+    expect(last.retryable).toBe(false);
+    expect(last.message).toMatch(/item changes/i);
+    expect(last.message).toContain(refused().message);
+  });
+
+  it('a retryable item failure keeps the edits for Retry while the shop patch is still sent', async () => {
+    const saveShop = vi.fn(async () => {});
+    const saveItems = vi.fn(async (): Promise<void> => {
+      throw new ApiError('NETWORK', "We couldn't reach Shelfie.", 0);
+    });
+    const q = createSaveQueue({ saveItems, saveShop, onState: () => {} });
+    q.queueItem({ itemId: 'a', name: 'Rye' });
+    q.queueShop({ about: 'Fresh bread daily' });
+    await expect(q.flush()).rejects.toBeInstanceOf(ApiError);
+    expect(saveShop).toHaveBeenCalledWith({ about: 'Fresh bread daily' });
+    expect(q.hasPending()).toBe(true);
+    saveItems.mockImplementation(async () => {});
+    await q.flush();
+    expect(saveItems).toHaveBeenLastCalledWith([{ itemId: 'a', name: 'Rye' }]);
+    expect(saveShop).toHaveBeenCalledTimes(1);
+  });
+
   it('a new edit after a refusal clears the message', async () => {
     let n = 0;
     const { q, last } = setup(async () => {

@@ -1,6 +1,7 @@
 // The review screen's save queue, without React (useAutosave wraps it). Edits are batched: typing
 // waits for a pause, taps save at once, and saves run one at a time.
 // - A failure worth retrying (network, 5xx) keeps its edits for Retry; newer edits win.
+// - The item batch and the shop patch are sent independently, so one being refused never drops the other.
 // - A save the server refuses (4xx) is dropped. Its message stays up until the seller edits again,
 //   and once nothing else is waiting, onRejected asks the screen to show the server's version,
 //   so it never keeps showing edits that were not saved.
@@ -29,6 +30,9 @@ export interface SaveQueue {
 
 const TYPING_DELAY_MS = 700;
 
+/** Network errors and 5xx are worth retrying; any other 4xx is the server refusing the save. */
+const isRetryable = (e: unknown) => !(e instanceof ApiError) || e.code === 'NETWORK' || e.status >= 500;
+
 export function createSaveQueue(o: SaveQueueOptions): SaveQueue {
   let items = new Map<string, ItemUpdate>();
   let shop: ShopPatch = {};
@@ -55,24 +59,55 @@ export function createSaveQueue(o: SaveQueueOptions): SaveQueue {
       items = new Map();
       shop = {};
       set({ status: 'saving' });
-      try {
-        if (updates.length) await o.saveItems(updates);
-        if (Object.keys(patch).length) await o.saveShop(patch);
+      // The item batch and the shop patch are sent independently: one being refused never drops the other.
+      const both = updates.length > 0 && Object.keys(patch).length > 0;
+      const failures: { error: unknown; label: string; requeue: () => void }[] = [];
+      if (updates.length) {
+        try {
+          await o.saveItems(updates);
+        } catch (error) {
+          failures.push({
+            error,
+            label: 'Your item changes were not saved',
+            // Newer edits made meanwhile win.
+            requeue: () => {
+              for (const u of updates) items.set(u.itemId, mergeUpdates(u, items.get(u.itemId) ?? { itemId: u.itemId }));
+            },
+          });
+        }
+      }
+      if (Object.keys(patch).length) {
+        try {
+          await o.saveShop(patch);
+        } catch (error) {
+          failures.push({ error, label: 'Your shop details were not saved', requeue: () => (shop = { ...patch, ...shop }) });
+        }
+      }
+      if (!failures.length) {
         set(hasPending() ? { status: 'pending' } : refused ? { status: 'error', message: refused, retryable: false } : { status: 'saved' });
-      } catch (e) {
-        const retryable = !(e instanceof ApiError) || e.code === 'NETWORK' || e.status >= 500;
-        const message = e instanceof Error ? e.message : String(e);
-        if (retryable) {
-          // Keep the changes (newer edits made meanwhile win) so Retry sends them again.
-          for (const u of updates) items.set(u.itemId, mergeUpdates(u, items.get(u.itemId) ?? { itemId: u.itemId }));
-          shop = { ...patch, ...shop };
+        return;
+      }
+      const messages: string[] = [];
+      let retryable = false;
+      let wasRefused = false;
+      for (const f of failures) {
+        const canRetry = isRetryable(f.error);
+        const text = f.error instanceof Error ? f.error.message : String(f.error);
+        // With both kinds in one save, say which one failed.
+        messages.push(both ? `${f.label}: ${text}` : text);
+        if (canRetry) {
+          // Keep the changes so Retry sends them again.
+          f.requeue();
+          retryable = true;
         } else {
-          refused = message;
+          wasRefused = true;
           resync = true;
         }
-        set({ status: 'error', message, retryable });
-        throw e;
       }
+      const message = messages.join(' ');
+      if (wasRefused) refused = message;
+      set({ status: 'error', message, retryable });
+      throw failures[0].error;
     });
     chain = run
       .catch(() => {})
