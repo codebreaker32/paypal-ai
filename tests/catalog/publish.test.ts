@@ -96,7 +96,7 @@ describe('publishShop', () => {
     const first = await publishShop({ db, paypal }, shopId);
     const failedId = (paypal.calls[0].args[1] as string).replace(/^pub-/, '');
     expect(first.published).toBe(1);
-    expect(first.failed).toEqual([{ itemId: failedId, message: 'PayPal had a hiccup' }]);
+    expect(first.failed).toEqual([{ itemId: failedId, message: 'PayPal had a problem on its side. Retry in a moment.' }]);
     expect(items.byIdForShop(db, shopId, failedId)!.paypalProductId).toBeNull();
 
     const callsBefore = paypal.calls.length;
@@ -113,7 +113,41 @@ describe('publishShop', () => {
     const ok = events.find((e) => e.ok)!;
     const bad = events.find((e) => !e.ok)!;
     expect(ok).toMatchObject({ type: 'item', ok: true, paypalProductId: expect.stringMatching(/^PROD-/) });
-    expect(bad).toMatchObject({ type: 'item', ok: false, message: 'boom' });
+    expect(bad).toMatchObject({ type: 'item', ok: false, message: "PayPal didn't add this item. Retry in a moment." });
+  });
+
+  describe('what the seller reads when PayPal turns an item down', () => {
+    const cases: [string, Error, RegExp][] = [
+      ['a malformed request', new PayPalApiError(400, 'INVALID_REQUEST', 'INVALID_PARAMETER_SYNTAX', 'dbg-1', 'Request is not well-formed, syntactically incorrect, or violates schema.'), /^PayPal didn't accept this item's name or description\.$/],
+      ['a rejected value', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'INVALID_STRING_LENGTH', 'dbg-2', 'The requested action could not be performed.'), /^PayPal didn't accept this item's name or description\.$/],
+      ['wrong sandbox keys', new PayPalApiError(401, 'invalid_client', null, null, 'Client Authentication failed'), /sandbox keys.*PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY/],
+      ['too many requests', new PayPalApiError(429, 'RATE_LIMIT_REACHED', null, 'dbg-3', 'Too many requests. Blocked due to rate limiting.'), /^PayPal is busy right now/],
+      ['a PayPal outage', new PayPalApiError(503, 'SERVICE_UNAVAILABLE', null, 'dbg-4', 'Service Unavailable.'), /^PayPal had a problem on its side/],
+      ['no network', Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('getaddrinfo ENOTFOUND api-m.sandbox.paypal.com'), { code: 'ENOTFOUND' }) }), /^We couldn't reach PayPal/],
+    ];
+
+    for (const [what, err, expected] of cases) {
+      it(`${what}: a plain message, and the raw error only in the server log`, async () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        onTestFinished(() => warn.mockRestore());
+        paypal.failNext('createProduct', err);
+        const r = await publishShop({ db, paypal }, shopId);
+        expect(r.failed).toHaveLength(1);
+        expect(r.failed[0].message).toMatch(expected);
+        expect(r.failed[0].message).not.toContain(err.message);
+        const logged = warn.mock.calls.map((c) => c.join(' ')).join('\n');
+        expect(logged).toContain(err.message);
+        expect(logged).toContain(r.failed[0].itemId);
+      });
+    }
+
+    it('the server log keeps PayPal\'s debug id', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      onTestFinished(() => warn.mockRestore());
+      paypal.failNext('createProduct', cases[0][1]);
+      await publishShop({ db, paypal }, shopId);
+      expect(warn.mock.calls.map((c) => c.join(' ')).join('\n')).toMatch(/400 INVALID_REQUEST.*dbg-1/);
+    });
   });
 
   it('a progress listener that throws (a browser that left) changes nothing: the shop still goes live', async () => {

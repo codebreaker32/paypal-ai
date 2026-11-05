@@ -7,7 +7,7 @@ import * as items from '@/lib/db/repos/items';
 import { slugify } from '@/lib/domain/ids';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
-import type { CreateProductInput, PayPalPort } from '@/lib/paypal/types';
+import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
 import { isPendingPublish } from './rules';
 
 export const PUBLISH_CONCURRENCY = 3;
@@ -41,8 +41,46 @@ export function productFor(item: ItemWithVariants, shop: Shop): CreateProductInp
   return p;
 }
 
-function messageOf(err: unknown): string {
-  return err instanceof Error && err.message ? err.message : 'PayPal did not accept this item';
+// What the seller reads when an item doesn't reach PayPal. PayPal's own text ("Request is not
+// well-formed…", "Client Authentication failed") and Node's ("fetch failed") stay in the server log.
+const SELLER_MESSAGES = {
+  details: "PayPal didn't accept this item's name or description.",
+  keys: "PayPal didn't accept Shelfie's sandbox keys. Check PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY in .env, then retry.",
+  busy: 'PayPal is busy right now. Wait a minute, then retry.',
+  outage: 'PayPal had a problem on its side. Retry in a moment.',
+  offline: "We couldn't reach PayPal. Check the connection, then retry.",
+  other: "PayPal didn't add this item. Retry in a moment.",
+} as const;
+
+const NETWORK_ERROR = /fetch failed|network|socket|timed? ?out|timeout|abort|ECONN|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|UND_ERR/i;
+
+/** A plain, specific message for the seller. */
+export function sellerMessageFor(err: unknown): string {
+  if (err instanceof PayPalApiError) {
+    if (err.status === 401 || err.status === 403 || err.errorName === 'invalid_client') return SELLER_MESSAGES.keys;
+    if (err.status === 400 || err.status === 422) return SELLER_MESSAGES.details;
+    if (err.status === 429) return SELLER_MESSAGES.busy;
+    if (err.status >= 500) return SELLER_MESSAGES.outage;
+    return SELLER_MESSAGES.other;
+  }
+  if (err instanceof Error) {
+    const cause = (err as { cause?: { code?: unknown; message?: unknown } }).cause;
+    const text = `${err.name} ${err.message} ${String(cause?.code ?? '')} ${String(cause?.message ?? '')}`;
+    if (NETWORK_ERROR.test(text)) return SELLER_MESSAGES.offline;
+  }
+  return SELLER_MESSAGES.other;
+}
+
+/** The raw error for the server log: PayPal's status, name, issue and debug id, or Node's error and cause. */
+function describeError(err: unknown): string {
+  if (err instanceof PayPalApiError) {
+    return `${err.status} ${err.errorName}${err.issue ? `/${err.issue}` : ''} debug_id=${err.debugId ?? '-'}: ${err.message}`;
+  }
+  if (err instanceof Error) {
+    const cause = (err as { cause?: { code?: unknown; message?: unknown } }).cause;
+    return `${err.name}: ${err.message}${cause ? ` (cause: ${String(cause.code ?? '')} ${String(cause.message ?? '')})` : ''}`;
+  }
+  return String(err);
 }
 
 /** Runs fn over list with at most `limit` calls in flight. */
@@ -124,7 +162,8 @@ export async function publishShop(
       result.published++;
       event = { type: 'item', itemId: item.id, ok: true, paypalProductId: id };
     } catch (err) {
-      const message = messageOf(err);
+      console.warn(`publish: item ${item.id} not added to PayPal: ${describeError(err)}`);
+      const message = sellerMessageFor(err);
       result.failed.push({ itemId: item.id, message });
       event = { type: 'item', itemId: item.id, ok: false, message };
     }
