@@ -28,3 +28,14 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - Capture before approval: 422 `ORDER_NOT_APPROVED`.
 - Card payment source: 422 `PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING`.
 - `GET /v1/notifications/webhooks`: 200.
+
+## Session 1 — product approach round (2026-11-06 ~01:35 IST)
+- **Product approach: approach 1 (seller-first) wins.** Judge round 0 scored it Part A 19 / Part B 21 vs approach 2's 18 / 19 (`docs/judge/round-0.md`). Reason: better design discipline, fits the build window, usable even when buyers have no AI of their own.
+- **Taken from approach 2:** shipped order with flat shipping fee + tracking read back by the agent; MCP Inspector tamper test (server-enforced prices); `outputSchema`/`hint`/next-call/`did_you_mean` tool contracts; `scopeTool` ownership checks on toolkit calls; extraction `problems[]` + one schema retry; sandbox idempotency + MCP-over-HTTP tests. Reason: the judge's take-from-loser list.
+- **Left behind:** seller copilot, `prepare_cart` quotes, agent.json/llms.txt/JSON-LD, FTS search, blocking publish on flags. Reason: judge's leave-behind list; scope.
+- **Judge fix 2 applied:** issue codes cut from seven to four (`MISSING_PRICE`, `MARKET_PRICE`, `CHECK`, `DUPLICATE`; instruction-like text is skipped automatically); menu edits after launch, `update_product` rename, QR code and seller-page poll-on-read dropped. `get_order_status` keeps a 5 s-throttled sync because the agent's "did it go through?" must be fresh.
+- **`FULFILLMENT_REQUIRED` error added.** A shop offering both pickup and shipping must be told which one; guessing would charge the wrong total.
+- **No streaming extraction.** One `messages.parse` call (~8–15 s) with a progress screen. Reason: structured-output streaming adds partial-JSON handling for little demo value.
+- **Probe 2026-11-06 01:24 IST:** full order body (brand_name, GET_FROM_FILE, sku, custom_id, invoice_id) → 200 `PAYER_ACTION_REQUIRED`; same `PayPal-Request-Id` twice → same order id; `PATCH /v1/catalogs/products/{id}` → 204.
+- **zod 3.25** for the whole app. Reason: the toolkit ships zod-3 schemas, and both `@anthropic-ai/sdk` and `@modelcontextprotocol/sdk` accept `^3.25`.
+- **Execution method: subagent-driven, in waves.** Wave 0 (scaffold, contracts) by the coordinator; wave 1 (PayPal, AI, orders, MCP, design foundation) and wave 2 (setup flow, shop page + console, dashboard) as parallel workers in git worktrees; wave 3 (seed, e2e, screenshots) by the coordinator. Reason: the brief asks for parallel workers; frozen contracts in wave 0 keep them independent.
