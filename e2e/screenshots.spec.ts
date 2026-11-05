@@ -172,6 +172,14 @@ test.afterAll(() => {
 
 // ---- capture + axe --------------------------------------------------------------------------------------------
 
+/**
+ * The e2e server runs without the order poller (SHELFIE_TEST), so open fixture orders look unchecked after a few
+ * minutes and the dashboard rightly shows "We can't reach PayPal". Stamp them as just checked, as the poller would.
+ */
+function pollerJustChecked() {
+  getDb().prepare('UPDATE orders SET last_checked_at = ? WHERE shop_id = ?').run(new Date().toISOString(), demo.shop.id);
+}
+
 async function signIn(context: BrowserContext, shopId: string, token: string) {
   await context.addCookies([{ name: `shelfie_owner_${shopId}`, value: token, url: BASE, httpOnly: true, sameSite: 'Lax' }]);
 }
@@ -393,7 +401,9 @@ const SCREENS: Screen[] = [
     name: 'dashboard-orders',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}`);
+      await expect(page.getByText("We can't reach PayPal right now")).toHaveCount(0);
       await expect(page.locator(`[data-order="${orders.nut.number}"]`)).toContainText('almond croissants contain nuts');
       await page.locator('details[data-group="waiting"] summary').click();
       await expect(page.locator('details[data-group="waiting"]')).toHaveAttribute('open', '');
@@ -403,6 +413,7 @@ const SCREENS: Screen[] = [
     name: 'dashboard-menu',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}?tab=menu`);
       await expect(page.getByRole('tab', { name: 'Menu' })).toHaveAttribute('aria-selected', 'true');
     },
@@ -411,6 +422,7 @@ const SCREENS: Screen[] = [
     name: 'dashboard-share',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}?tab=share`);
       await expect(page.getByTestId('share-door-url')).toBeVisible();
     },
@@ -428,6 +440,7 @@ const SCREENS: Screen[] = [
     name: 'order-paid-with-brief',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}/orders/${orders.nut.id}`);
       await expect(page.getByTestId('brief-headline')).toHaveText(NUT_BRIEF.headline);
       await expect(page.getByRole('form', { name: 'Add tracking' })).toBeVisible();
@@ -437,6 +450,7 @@ const SCREENS: Screen[] = [
     name: 'order-shipped-with-tracking',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}/orders/${orders.shipped.id}`);
       await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('9400111899223197428490');
     },
