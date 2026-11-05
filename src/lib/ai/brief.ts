@@ -130,8 +130,12 @@ const SYSTEM_PROMPT = [
 /** Escapes the characters that could close or forge the wrapper tags. */
 const escapeTagText = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-/** JSON for inside a wrapper tag: JSON.stringify leaves `<` and `>` alone, so names like "</order>" are escaped too. */
-const tagJson = (value: unknown) => escapeTagText(JSON.stringify(value, null, 2));
+/**
+ * JSON for inside a wrapper tag. JSON.stringify leaves `<`, `>` and `&` alone, so they become JSON Unicode escapes: a
+ * name like "</order>" can't close the wrapper, and the values still decode to the original text ("Bean & cheese").
+ */
+const tagJson = (value: unknown) =>
+  JSON.stringify(value, null, 2).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
 function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; section: string | null; notes: string }[]): string {
   const snapshot = {
