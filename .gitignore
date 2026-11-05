@@ -8,3 +8,4 @@ video/out/
 *.log
 CLAUDE.local.md
 vm.sh
+.scratch/
