@@ -184,7 +184,7 @@ export function LiveStep(p: LiveProps) {
             <CopyRow value={p.shopUrl} label="Shop link" />
             <Link
               href={`/s/${p.slug}`}
-              className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"
+              className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink"
             >
               Open your shop <Icon icon={ExternalLink} size="sm" />
             </Link>

@@ -9,7 +9,7 @@ import { groupOrders } from '@/lib/seller/view';
 import { OrderCard } from './OrderCard';
 
 function Count({ n }: { n: number }) {
-  return <span className="type-price rounded-full bg-surface-sunken px-2.5 py-0.5 font-sans text-sm font-semibold text-ink-soft">{n}</span>;
+  return <span className="type-receipt rounded-xs border border-line-strong px-1.5 text-sm font-medium text-ink-soft">{n}</span>;
 }
 
 export function PayPalBanner() {
@@ -43,7 +43,7 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
         <button
           type="button"
           onClick={onShowShare}
-          className="inline-flex min-h-tap items-center justify-center px-2 font-semibold text-accent-ink underline underline-offset-4 hover:text-accent-active"
+          className="inline-flex min-h-tap items-center justify-center px-2 font-semibold text-accent-ink underline underline-offset-4 hover:decoration-ink"
         >
           Share your agent door
         </button>
@@ -85,7 +85,7 @@ export function OrdersPanel({
               To prepare <Count n={g.toPrepare.length} />
             </h2>
             {g.toPrepare.length > 0 ? (
-              <ul className="grid gap-3 lg:grid-cols-2">{g.toPrepare.map(card)}</ul>
+              <ul className="paper-drop grid gap-4 lg:grid-cols-2">{g.toPrepare.map(card)}</ul>
             ) : (
               <p className="text-ink-muted">Nothing to prepare right now. Paid orders show up here.</p>
             )}
@@ -103,7 +103,7 @@ export function OrdersPanel({
                 <p className="type-meta text-ink-muted">
                   The buyer still has to approve on PayPal. Nothing is charged until they do, and unpaid orders expire after 60 minutes.
                 </p>
-                <ul className="grid gap-3 lg:grid-cols-2">{g.waiting.map(card)}</ul>
+                <ul className="paper-drop grid gap-4 lg:grid-cols-2">{g.waiting.map(card)}</ul>
               </div>
             </details>
           )}
@@ -113,7 +113,7 @@ export function OrdersPanel({
               <h2 id="group-done" className="type-heading flex items-center gap-2">
                 Done <Count n={g.done.length} />
               </h2>
-              <ul className="grid gap-3 lg:grid-cols-2">{g.done.map(card)}</ul>
+              <ul className="paper-drop grid gap-4 lg:grid-cols-2">{g.done.map(card)}</ul>
             </section>
           )}
         </>

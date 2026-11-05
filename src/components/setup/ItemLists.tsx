@@ -179,7 +179,7 @@ export function Disclosure({ title, count, hint, children, defaultOpen }: { titl
       <summary className="flex min-h-tap list-none items-center gap-3 px-4 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="flex flex-1 flex-col">
           <span className="font-semibold">
-            {title} <span className="type-price text-ink-muted">({count})</span>
+            {title} <span className="type-figures text-ink-muted">({count})</span>
           </span>
           {hint && <span className="type-meta text-ink-muted">{hint}</span>}
         </span>

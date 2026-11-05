@@ -144,7 +144,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
         </p>
       )}
 
-      <div className="flex flex-col gap-1.5 border-t border-line pt-4">
+      <div className="rule-dashed flex flex-col gap-1.5 pt-4">
         {order.fulfillment === 'pickup' ? (
           <>
             <h3 className="flex items-center gap-1.5 type-label">
@@ -187,9 +187,16 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
 
 function ItemsCard({ order, className }: { order: Order; className?: string }) {
   return (
-    <Card as="section" aria-labelledby="items-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
+    <div className={cx('paper-drop', className)}>
+    <Card
+      as="section"
+      aria-labelledby="items-title"
+      tone="flat"
+      padding="none"
+      className="perforated flex flex-col gap-4 border-0 px-5 pt-5 sm:px-7 sm:pt-7"
+    >
       <SectionTitle id="items-title">Items</SectionTitle>
-      <dl className="type-price flex flex-col gap-3">
+      <dl className="type-receipt rule-dashed flex flex-col gap-3 pt-4">
         {order.lines.map((l, i) => (
           <div key={i} className="flex items-baseline justify-between gap-4">
             <dt className="flex flex-col">
@@ -201,7 +208,7 @@ function ItemsCard({ order, className }: { order: Order; className?: string }) {
             <dd>{formatUSD(l.unitCents * l.qty)}</dd>
           </div>
         ))}
-        <div className="flex justify-between gap-4 border-t border-line pt-3 text-ink-soft">
+        <div className="rule-dashed flex justify-between gap-4 pt-3 text-ink-soft">
           <dt>Items</dt>
           <dd>{formatUSD(order.itemsCents)}</dd>
         </div>
@@ -211,13 +218,14 @@ function ItemsCard({ order, className }: { order: Order; className?: string }) {
             <dd>{formatUSD(order.shippingCents)}</dd>
           </div>
         )}
-        <div className="flex justify-between gap-4 text-lg font-semibold">
+        <div className="rule-dashed flex items-baseline justify-between gap-4 pt-3 text-xl leading-7 font-semibold">
           <dt>Total</dt>
           <dd>{formatUSD(order.totalCents)}</dd>
         </div>
       </dl>
       <p className="type-meta text-ink-muted">Prices come from your menu. The assistant could only pick items and quantities.</p>
     </Card>
+    </div>
   );
 }
 
@@ -236,8 +244,8 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
       <ol className="flex flex-col">
         {entries.map((e, i) => (
           <li key={e.id} className="relative flex gap-3 pb-4 last:pb-0">
-            {i < entries.length - 1 && <span aria-hidden="true" className="absolute top-4 bottom-0 left-[4.5px] w-px bg-line-strong" />}
-            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rounded-full', DOT[e.tone])} />
+            {i < entries.length - 1 && <span aria-hidden="true" className="absolute top-4 bottom-0 left-[4px] border-l-[1.5px] border-dashed border-line-strong" />}
+            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rotate-45', DOT[e.tone])} />
             <div className="flex flex-col">
               <span className="font-medium">{e.text}</span>
               <LocalTime iso={e.at} className="type-meta text-ink-muted" />
@@ -302,15 +310,15 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
         Orders
       </Link>
 
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-          <h1 className="type-title">
-            Order <span className="type-price">{order.number}</span>
+      <header className="flex flex-col gap-3 border-b-2 border-ink pb-5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <h1 className="type-display">
+            Order <span className="type-price font-semibold tracking-tight">{order.number}</span>
           </h1>
           <OrderStatusBadge order={order} />
         </div>
         <p className="text-ink-soft">
-          <span className="type-price font-semibold text-ink">{formatUSD(order.totalCents)}</span> · placed by {agentLabel(order.agentName)} ·{' '}
+          <span className="type-price text-lg font-semibold text-ink">{formatUSD(order.totalCents)}</span> · placed by {agentLabel(order.agentName)} ·{' '}
           <LocalTime iso={order.createdAt} />
         </p>
       </header>

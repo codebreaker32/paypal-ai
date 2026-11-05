@@ -79,7 +79,7 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <p className="type-label type-price" role="status" aria-live="polite">
+        <p className="type-label type-figures" role="status" aria-live="polite">
           {label}
         </p>
         <div

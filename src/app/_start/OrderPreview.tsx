@@ -17,7 +17,7 @@ const ORDER_REF = 'SHF-K7F2QX';
 
 function BuyerSays({ children }: { children: string }) {
   return (
-    <p className="ml-auto max-w-[85%] rounded-lg rounded-br-xs bg-ink px-3.5 py-2.5 text-sm leading-5 text-surface">
+    <p className="ml-auto max-w-[85%] rounded-md rounded-br-none bg-ink px-3.5 py-2.5 text-sm leading-5 text-surface">
       {children}
     </p>
   );
@@ -37,13 +37,14 @@ function PaymentReceived({ className }: { className?: string }) {
   return (
     <Card
       padding="none"
-      className={cx('relative items-center gap-3 p-3 pr-4 animate-rise-in [animation-delay:600ms]', className)}
+      tone="flat"
+      className={cx('perforated relative items-center gap-3 border-0 px-4 pt-3.5 animate-rise-in [animation-delay:600ms]', className)}
     >
-      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-ok-soft text-ok">
+      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-ok bg-ok-soft text-ok">
         <Icon icon={CircleCheck} />
       </span>
       <span className="flex flex-1 flex-col">
-        <span className="font-semibold">Payment received</span>
+        <span className="type-heading">Payment received</span>
         <span className="type-meta type-price text-ink-muted">{formatUSD(TOTAL_CENTS)} · pickup Saturday</span>
       </span>
     </Card>
@@ -68,9 +69,11 @@ export function OrderPreview() {
             height={1500}
             loading="eager"
             sizes="(min-width: 1024px) 34vw, 100vw"
-            className="aspect-[4/3] w-full rounded-lg object-cover object-[50%_38%] shadow-lg lg:aspect-[4/5] lg:object-center"
+            className="aspect-[4/3] w-full object-cover object-[50%_38%] shadow-lg lg:aspect-[4/5] lg:object-center"
           />
-          <PaymentReceived className="z-20 hidden lg:-mt-12 lg:ml-5 lg:mr-18 lg:flex" />
+          <div className="paper-drop relative z-20 hidden lg:-mt-12 lg:mr-18 lg:ml-5 lg:block">
+            <PaymentReceived className="flex" />
+          </div>
         </div>
 
         {/* The buyer's assistant ordering through the shop's agent door */}
@@ -94,18 +97,18 @@ export function OrderPreview() {
 
             <div className="flex flex-col gap-2 text-sm leading-5">
               <p>Here’s the order. Prices come from the shop:</p>
-              <dl className="type-price flex flex-col gap-1 rounded-md bg-surface-sunken px-3 py-2.5">
+              <dl className="flex flex-col gap-1 border-y-[1.5px] border-dashed border-line-strong py-2.5">
                 {LINES.map((l) => (
                   <div key={l.name} className="flex justify-between gap-3">
                     <dt>
                       {l.qty} × {l.name}
                     </dt>
-                    <dd>{formatUSD(l.qty * l.unitCents)}</dd>
+                    <dd className="type-price">{formatUSD(l.qty * l.unitCents)}</dd>
                   </div>
                 ))}
-                <div className="mt-1 flex justify-between gap-3 border-t border-line-strong pt-1.5 font-semibold">
+                <div className="rule-dashed mt-1 flex justify-between gap-3 pt-1.5 font-semibold">
                   <dt>Total, pickup at 14 Alder St</dt>
-                  <dd>{formatUSD(TOTAL_CENTS)}</dd>
+                  <dd className="type-price">{formatUSD(TOTAL_CENTS)}</dd>
                 </div>
               </dl>
               <p className="flex items-start gap-1.5 text-warn">
@@ -117,13 +120,13 @@ export function OrderPreview() {
 
             <BuyerSays>Yes, go ahead.</BuyerSays>
 
-            <div className="flex flex-col gap-2.5 rounded-md border border-line-strong p-3">
+            <div className="flex flex-col gap-3 border border-line-strong bg-surface-raised p-3.5 shadow-sm">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="flex flex-col">
-                  <span className="text-sm font-semibold">Marigold Bakehouse</span>
+                  <span className="font-display text-lg leading-6 font-bold">Marigold Bakehouse</span>
                   <span className="type-meta type-price text-ink-muted">Order {ORDER_REF}</span>
                 </span>
-                <span className="type-price text-lg font-semibold">{formatUSD(TOTAL_CENTS)}</span>
+                <span className="type-price text-xl font-semibold">{formatUSD(TOTAL_CENTS)}</span>
               </div>
               {/* A picture of the approval button the buyer sees; not a control on this page. */}
               <span className={cx(buttonClasses({ variant: 'paypal', fullWidth: true }), 'pointer-events-none')}>
@@ -133,7 +136,9 @@ export function OrderPreview() {
           </div>
         </Card>
 
-        <PaymentReceived className="z-20 mx-3 mt-3 flex lg:hidden" />
+        <div className="paper-drop relative z-20 mx-3 mt-3 lg:hidden">
+          <PaymentReceived className="flex" />
+        </div>
       </div>
 
       <figcaption id="order-preview-caption" className="type-meta text-ink-muted lg:pl-1">

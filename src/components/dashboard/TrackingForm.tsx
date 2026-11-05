@@ -61,7 +61,7 @@ export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: str
       <p role="status" className="flex items-start gap-2 rounded-md bg-ok-soft px-3 py-2.5 font-medium text-ok">
         <Icon icon={CircleCheck} className="mt-0.5" />
         <span>
-          Sent to PayPal: {state.carrier} <span className="type-price">{state.trackingNumber}</span>
+          Sent to PayPal: {state.carrier} <span className="type-price font-semibold">{state.trackingNumber}</span>
         </span>
       </p>
     );

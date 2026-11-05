@@ -56,7 +56,7 @@ function HowToGetIt({ shop }: { shop: Shop }) {
               Shipping
             </dt>
             <dd className="pl-8 text-ink-soft">
-              <span className="type-price">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
+              <span className="type-figures font-semibold text-ink">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
               per order, to the address on your PayPal account.
             </dd>
           </div>
@@ -69,27 +69,34 @@ function HowToGetIt({ shop }: { shop: Shop }) {
 function Intro({ shop, photoCount }: { shop: Shop; photoCount: number }) {
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-start gap-5">
-        <div className="min-w-0 flex-1">
-          <h1 className="type-display [overflow-wrap:anywhere]">{shop.name}</h1>
-          {shop.about && <p className="mt-3 max-w-measure type-lead text-ink-soft">{shop.about}</p>}
+      <div className="flex items-start gap-5 sm:gap-8">
+        <div className="min-w-0 flex-1 pt-1">
+          <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
+          {shop.about && <p className="mt-4 max-w-measure type-lead text-ink-soft">{shop.about}</p>}
         </div>
         {photoCount > 0 && (
           <a
             href={`/s/${shop.slug}/photo/1`}
             target="_blank"
             rel="noopener"
-            className="group flex shrink-0 flex-col items-center gap-1.5 rounded-sm"
+            className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm pt-2"
           >
+            {/* A strip of tape holding the original price list to the board */}
+            <span
+              aria-hidden="true"
+              className="absolute top-0 left-1/2 z-10 h-5 w-14 -translate-x-1/2 rotate-3 bg-accent/70 shadow-xs"
+            />
             <Image
               src={`/s/${shop.slug}/photo/1`}
               alt={`The price list ${shop.name} was made from`}
-              width={88}
-              height={112}
+              width={176}
+              height={224}
               unoptimized
-              className="h-28 w-22 -rotate-2 rounded-sm border border-line-strong object-cover shadow-md transition-transform group-hover:rotate-0"
+              className="h-32 w-26 -rotate-2 border-4 border-surface-raised object-cover shadow-lg transition-transform duration-(--duration-base) group-hover:rotate-0 sm:h-48 sm:w-38"
             />
-            <span className="type-meta text-ink-muted underline-offset-2 group-hover:underline">The original</span>
+            <span className="type-meta font-semibold text-ink-soft underline decoration-accent-hover underline-offset-2">
+              The original
+            </span>
           </a>
         )}
       </div>

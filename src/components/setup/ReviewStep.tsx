@@ -223,7 +223,7 @@ export function ReviewStep(props: ReviewProps) {
             step={2}
             title="Check your menu"
             lead={
-              <span className="type-price" role="status">
+              <span className="type-figures" role="status">
                 {plural(live.length, 'item')} · {needYou ? `${needYou} need${needYou === 1 ? 's' : ''} you` : 'all clear'}
               </span>
             }
@@ -281,7 +281,7 @@ export function ReviewStep(props: ReviewProps) {
           <section aria-labelledby="ready-title" className="flex flex-col gap-4">
             <div className="flex flex-col gap-1">
               <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
-                Ready for PayPal <span className="type-price text-ink-muted">({ready.length})</span>
+                Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>
               <p className="text-ink-soft">Each one becomes a product in your PayPal catalog when you publish.</p>
             </div>

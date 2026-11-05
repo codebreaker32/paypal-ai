@@ -105,7 +105,7 @@ export function RetakeStep({
         {(problem || error) && <FieldError>{problem ?? error}</FieldError>}
         <Link
           href="/"
-          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"
+          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink"
         >
           Try a sample menu instead
         </Link>
@@ -126,7 +126,7 @@ export function FailedStep({ shopId, photoCount, message, onRetry }: { shopId: s
         </Button>
         <Link
           href="/"
-          className="inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent sm:self-auto"
+          className="inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink sm:self-auto"
         >
           Start over
         </Link>

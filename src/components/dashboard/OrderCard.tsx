@@ -21,7 +21,7 @@ function BriefPreview({ order }: { order: Order }) {
   if (order.status !== 'paid') return null;
   if (!order.brief) {
     return (
-      <div className="flex flex-col gap-2 border-l-2 border-line-strong pl-3">
+      <div className="flex flex-col gap-2 border-l-[3px] border-accent pl-3">
         <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-muted">
           <Icon icon={Loader2} size="sm" className="animate-spin" />
           Writing the brief…
@@ -32,7 +32,7 @@ function BriefPreview({ order }: { order: Order }) {
   }
   const warns = order.brief.flags.filter((f) => f.severity === 'warn');
   return (
-    <div className="flex flex-col gap-1.5 border-l-2 border-line-strong pl-3">
+    <div className="flex flex-col gap-1.5 border-l-[3px] border-accent pl-3">
       <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-muted">
         <Icon icon={order.briefSource === 'agent' ? Sparkles : Info} size="sm" />
         {order.briefSource === 'agent' ? 'AI brief' : 'Summary'}
@@ -70,24 +70,24 @@ export function OrderCard({
     <Card
       as="li"
       padding="none"
-      tone={muted ? 'flat' : 'raised'}
+      tone="flat"
       data-order={order.number}
       className={cx(
-        'relative flex flex-col gap-3 p-4 sm:p-5',
+        'perforated relative flex flex-col gap-3 px-4 pt-4 sm:px-5 sm:pt-5',
         muted && 'bg-surface text-ink-soft',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h3 className="type-price font-semibold">
+          <h3 className="type-receipt text-base font-semibold whitespace-nowrap">
             <Link
               href={href}
               data-stretched-link
               className={cx(
                 'underline-offset-4 hover:underline focus-visible:outline-none',
-                'after:absolute after:inset-0 after:rounded-(--card-radius) after:content-[""]',
-                'focus-visible:after:outline-2 focus-visible:after:outline-offset-2 focus-visible:after:outline-focus',
+                'after:absolute after:inset-0 after:content-[""]',
+                'focus-visible:after:outline-2 focus-visible:after:-outline-offset-4 focus-visible:after:outline-focus',
               )}
             >
               {order.number}
@@ -97,15 +97,10 @@ export function OrderCard({
             {buyerLabel(order)} · via {agentLabel(order.agentName)} · <LocalTime iso={order.paidAt ?? order.createdAt} />
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-1.5">
-          <span className={cx('type-price text-lg font-semibold', muted && 'text-ink-muted line-through decoration-1')}>
-            {formatUSD(order.totalCents)}
-          </span>
-          <OrderStatusBadge order={order} />
-        </div>
+        <OrderStatusBadge order={order} className="shrink-0" />
       </div>
 
-      <p className={cx('text-sm', muted ? 'text-ink-muted' : 'text-ink-soft')}>{itemSummary(order.lines)}</p>
+      <p className={cx('rule-dashed pt-3 text-sm', muted ? 'text-ink-muted' : 'text-ink')}>{itemSummary(order.lines)}</p>
       <p className="flex items-center gap-1.5 text-sm font-semibold">
         <Icon icon={ships ? (order.shipTo?.city ? MapPin : Truck) : Store} size="sm" className="text-ink-muted" />
         {whereLabel(order)}
@@ -119,17 +114,25 @@ export function OrderCard({
         </p>
       )}
 
-      {order.status === 'paid' && (
-        <div className="relative z-10 mt-auto pt-1">
-          {ships ? (
-            <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck} className="w-full sm:w-auto">
-              Add tracking
-            </ButtonLink>
-          ) : (
-            <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} />
-          )}
-        </div>
-      )}
+      <div className="rule-dashed mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-3 pt-3">
+        <p className="flex items-baseline gap-3">
+          <span className="type-meta font-semibold text-ink-muted">Total</span>
+          <span className={cx('type-receipt text-xl leading-7 font-semibold', muted && 'text-ink-muted line-through decoration-1')}>
+            {formatUSD(order.totalCents)}
+          </span>
+        </p>
+        {order.status === 'paid' && (
+          <div className="relative z-10 w-full sm:w-auto">
+            {ships ? (
+              <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck} className="w-full sm:w-auto">
+                Add tracking
+              </ButtonLink>
+            ) : (
+              <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} />
+            )}
+          </div>
+        )}
+      </div>
     </Card>
   );
 }

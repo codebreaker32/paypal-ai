@@ -60,68 +60,88 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
   const approvalUrl = view.approve && order.approvalUrl && isPayPalApprovalUrl(order.approvalUrl) ? order.approvalUrl : null;
 
   return (
-    <div className="flex flex-col gap-8">
-      <div aria-live="polite" className="flex flex-col items-start gap-4">
-        <span className={cx('inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
-          <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
-        </span>
-        <h1 className="type-display">{view.title}</h1>
-        <p className="type-lead text-ink-soft">{view.body}</p>
-      </div>
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-16">
+      <div className="flex flex-col gap-8">
+        <div aria-live="polite" className="flex flex-col items-start gap-4">
+          <span className={cx('inline-flex size-14 items-center justify-center rounded-full border-2 border-current', TONE[view.tone])}>
+            <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
+          </span>
+          <h1 className="type-display">{view.title}</h1>
+          <p className="type-lead text-ink-soft">{view.body}</p>
+        </div>
 
-      <div className="flex flex-col gap-3">
-        {approvalUrl && (
-          <a href={approvalUrl} className={buttonClasses({ variant: 'paypal', size: 'lg', fullWidth: true })}>
-            {view.approve}
-          </a>
-        )}
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <ButtonLink href={shopHref} variant={approvalUrl ? 'secondary' : 'primary'} icon={ArrowLeft}>
-            Back to shop
-          </ButtonLink>
-          {fromAssistant && (
-            <ButtonLink href={`${shopHref}?assistant=1`} variant={approvalUrl ? 'ghost' : 'secondary'} icon={Bot}>
-              Back to the assistant
+        <div className="flex flex-col gap-3">
+          {approvalUrl && (
+            <a href={approvalUrl} className={buttonClasses({ variant: 'paypal', size: 'lg', fullWidth: true })}>
+              {view.approve}
+            </a>
+          )}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <ButtonLink href={shopHref} variant={approvalUrl ? 'secondary' : 'primary'} icon={ArrowLeft}>
+              Back to shop
             </ButtonLink>
-          )}
+            {fromAssistant && (
+              <ButtonLink href={`${shopHref}?assistant=1`} variant={approvalUrl ? 'ghost' : 'secondary'} icon={Bot}>
+                Back to the assistant
+              </ButtonLink>
+            )}
+          </div>
+          {open && <p className="type-meta text-ink-muted">This page updates by itself.</p>}
         </div>
-        {open && <p className="type-meta text-ink-muted">This page updates by itself.</p>}
       </div>
 
-      <Card as="section" aria-labelledby="receipt-title" className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 id="receipt-title" className="type-heading">
-            {order.shopName}
-          </h2>
-          <span className="type-meta type-price text-ink-muted">Order {order.number}</span>
-        </div>
-        <dl className="type-price flex flex-col gap-1.5 rounded-md bg-surface-sunken px-3.5 py-3 text-sm">
-          {order.lines.map((l, i) => (
-            <div key={i} className="flex justify-between gap-4">
-              <dt className="min-w-0 [overflow-wrap:anywhere]">
-                {l.qty} × {l.name}
-                {l.label ? ` (${l.label})` : ''}
-              </dt>
-              <dd className="shrink-0">{formatUSD(l.unitCents * l.qty)}</dd>
-            </div>
-          ))}
-          {order.shippingCents > 0 && (
-            <div className="flex justify-between gap-4 text-ink-soft">
-              <dt>Shipping</dt>
-              <dd>{formatUSD(order.shippingCents)}</dd>
-            </div>
-          )}
-          <div className="mt-1 flex justify-between gap-4 border-t border-line-strong pt-2 text-base font-semibold">
-            <dt>Total</dt>
-            <dd>{formatUSD(order.totalCents)}</dd>
+      {/* The printed slip: a till receipt with a torn, perforated foot */}
+      <div className="paper-drop relative lg:mt-2">
+        <Card
+          as="section"
+          aria-labelledby="receipt-title"
+          tone="flat"
+          padding="none"
+          className="perforated relative flex flex-col gap-4 border-0 px-5 pt-6 sm:px-7 sm:pt-7"
+        >
+          <div className="flex flex-col items-center gap-1 text-center">
+            <h2 id="receipt-title" className="type-title [overflow-wrap:anywhere]">
+              {order.shopName}
+            </h2>
+            <span className="type-receipt text-ink-muted">Order {order.number}</span>
+            {(order.status === 'paid' || order.status === 'fulfilled') && (
+              // A rubber stamp on the slip; the page heading already says it in words.
+              <span
+                aria-hidden="true"
+                className="mt-2 -rotate-6 rounded-xs border-[3px] border-ok px-3 font-display text-2xl leading-9 font-extrabold tracking-wide text-ok uppercase"
+              >
+                Paid
+              </span>
+            )}
           </div>
-        </dl>
-        <p className="type-meta text-ink-muted">
-          {order.fulfillment === 'shipping'
-            ? 'Shipping to the address on your PayPal account.'
-            : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
-        </p>
-      </Card>
+          <dl className="type-receipt rule-dashed flex flex-col gap-1.5 pt-4">
+            {order.lines.map((l, i) => (
+              <div key={i} className="flex justify-between gap-4">
+                <dt className="min-w-0 [overflow-wrap:anywhere]">
+                  {l.qty} × {l.name}
+                  {l.label ? ` (${l.label})` : ''}
+                </dt>
+                <dd className="shrink-0">{formatUSD(l.unitCents * l.qty)}</dd>
+              </div>
+            ))}
+            {order.shippingCents > 0 && (
+              <div className="flex justify-between gap-4 text-ink-soft">
+                <dt>Shipping</dt>
+                <dd>{formatUSD(order.shippingCents)}</dd>
+              </div>
+            )}
+            <div className="rule-dashed mt-3 flex items-baseline justify-between gap-4 pt-3 text-lg font-semibold">
+              <dt>Total</dt>
+              <dd>{formatUSD(order.totalCents)}</dd>
+            </div>
+          </dl>
+          <p className="rule-dashed pt-3 text-center type-meta text-ink-muted">
+            {order.fulfillment === 'shipping'
+              ? 'Shipping to the address on your PayPal account.'
+              : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
+          </p>
+        </Card>
+      </div>
     </div>
   );
 }

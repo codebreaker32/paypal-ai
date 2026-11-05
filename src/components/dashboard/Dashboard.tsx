@@ -137,13 +137,13 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-6 pb-section lg:pt-10">
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="type-title">{shop.name}</h1>
+          <h1 className="type-display">{shop.name}</h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <ShopStatusBadge status={status} />
             {status !== 'draft' ? (
               <Link
                 href={`/s/${shop.slug}`}
-                className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink underline underline-offset-4 hover:text-accent-active"
+                className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink underline underline-offset-4 hover:decoration-ink"
               >
                 View your shop <Icon icon={ExternalLink} size="sm" />
               </Link>

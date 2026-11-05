@@ -51,7 +51,7 @@ export function AgentDoor({ slug, shopName, url }: AgentDoorProps) {
   return (
     <section id="agent-door" aria-labelledby="agent-door-title" className="flex scroll-mt-6 flex-col gap-4">
       <h2 id="agent-door-title" className="type-title flex items-center gap-2.5">
-        <Icon icon={DoorOpen} size="lg" className="text-accent" />
+        <Icon icon={DoorOpen} size="lg" className="text-ink" />
         Agent door
       </h2>
       <p className="max-w-measure text-ink-soft">

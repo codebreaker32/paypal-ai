@@ -256,7 +256,7 @@ export function StartActions() {
       {/* Tertiary: see what a finished shop looks like */}
       <Link
         href={LIVE_SHOP_HREF}
-        className="-my-2 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"
+        className="-my-2 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent hover:decoration-ink"
       >
         See a live shop
         <Icon icon={ArrowRight} size="sm" />
