@@ -114,7 +114,7 @@ const SYSTEM_PROMPT = [
   '3. Call submit_brief exactly once with the brief. That is the only output that counts; do not write a reply after it.',
   '',
   'How to write it:',
-  '- headline: at most 90 characters. Start with the job ("Ship" or "Pickup:"), then the items and quantities, then where it goes (city and state from PayPal for shipping orders).',
+  '- headline: at most 90 characters. Start with the job ("Ship" or "Pickup:"), then the items and quantities, then where it goes (city and state from PayPal for shipping orders). Separate parts with " · ", not dashes.',
   '- prep_list: one entry per order line, with the quantity.',
   "- buyer_requests: only what the buyer's note asks for (allergy, timing, inscription, other). Empty when there is no note.",
   "- flags: warn when the seller must act before handing the order over: a buyer allergy or diet need that conflicts with what an item's notes say it contains, a shipping order without a ship-to address at PayPal, or PayPal amounts that differ from the order. Use info for useful notes. Never invent allergens or ingredients; use only the item notes you are given.",

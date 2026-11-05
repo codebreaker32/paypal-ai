@@ -198,6 +198,12 @@ describe('paypalLooksUnreachable', () => {
     events.add(db, fresh.id, 'capture_error', 'poller', { status: 503 });
     expect(paypalLooksUnreachable(db, [orders.byId(db, fresh.id)!], now)).toBe(true);
 
+    // A payment still pending after the poller's 3 h window is not a sign that PayPal is unreachable.
+    const slow = placeOrder(s, { paid: false });
+    const longAgo = new Date(now - 4 * 60 * 60_000).toISOString();
+    db.prepare("UPDATE orders SET status = 'payment_pending', created_at = ?, last_checked_at = ? WHERE id = ?").run(longAgo, longAgo, slow.id);
+    expect(paypalLooksUnreachable(db, [orders.byId(db, slow.id)!], now)).toBe(false);
+
     const paid = placeOrder(s);
     db.prepare('UPDATE orders SET created_at = ? WHERE id = ?').run(old, paid.id);
     expect(paypalLooksUnreachable(db, [orders.byId(db, paid.id)!], now)).toBe(false);
