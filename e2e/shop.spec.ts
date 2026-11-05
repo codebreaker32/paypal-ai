@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getConfig } from '../src/lib/config';
 import { getDb } from '../src/lib/db';
+import * as eventsRepo from '../src/lib/db/repos/events';
 import * as itemsRepo from '../src/lib/db/repos/items';
 import * as ordersRepo from '../src/lib/db/repos/orders';
 import * as shopsRepo from '../src/lib/db/repos/shops';
@@ -32,7 +33,7 @@ const APPROVAL_URL = (FIXTURE.turns[1].find((e) => e.type === 'approval') as { a
 let shop: Shop;
 let edgeShop: Shop;
 const made: string[] = [];
-const fx = {} as Record<'awaiting' | 'paid' | 'cancelled' | 'polling' | 'cancelRoute' | 'back', Order>;
+const fx = {} as Record<'awaiting' | 'paid' | 'cancelled' | 'refused' | 'polling' | 'cancelRoute' | 'back', Order>;
 const EDGE_NAME = 'Shelfie Test Kitchen';
 
 function makeOrder(label: string, fulfillment: 'shipping' | 'pickup' = 'shipping'): Order {
@@ -86,6 +87,10 @@ test.beforeAll(async () => {
   fx.polling = makeOrder('polling');
   fx.cancelRoute = makeOrder('cancel-route');
   fx.back = makeOrder('back');
+  // Approved, but PayPal refused the capture for a reason retrying won't fix (the order service logs capture_failed).
+  fx.refused = makeOrder('refused');
+  ordersRepo.casStatus(db, fx.refused.id, 'awaiting_approval', 'approved');
+  eventsRepo.add(db, fx.refused.id, 'capture_failed', 'return_url', { status: 422, issue: 'TRANSACTION_REFUSED', debugId: 'E2E' });
 
   // A paused shop with a sold-out item and an "ask in person" item.
   const old = db.prepare('SELECT id FROM shops WHERE name = ?').all(EDGE_NAME) as { id: string }[];
@@ -380,6 +385,21 @@ test.describe('receipt behaviour', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Waiting for your approval' })).toBeVisible();
     markPaid(fx.polling);
     await expect(page.getByRole('heading', { level: 1, name: 'Paid. Marigold Bakehouse has your order.' })).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('PayPal refused the approved payment: says so, no PayPal button, stops re-reading', async ({ page }) => {
+    const reads: string[] = [];
+    page.on('request', (r) => r.url().includes('/api/orders/') && reads.push(r.url()));
+    await page.goto(`/o/${fx.refused.id}`);
+    await settle(page);
+    await expect(page.getByRole('heading', { level: 1, name: "PayPal didn't complete the payment" })).toBeVisible();
+    await expect(page.getByText(/so nothing was charged\. Contact Marigold Bakehouse/)).toBeVisible();
+    await expect(page.getByRole('link', { name: /PayPal/ })).toHaveCount(0);
+    await expect(page.getByText('This page updates by itself.')).toHaveCount(0);
+    await expectAccessible(page);
+    await shoot(page, 'receipt-capture-refused-390');
+    await page.waitForTimeout(3500);
+    expect(reads).toEqual([]);
   });
 
   test('the PayPal cancel URL cancels the order and shows the receipt', async ({ page }) => {
