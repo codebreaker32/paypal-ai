@@ -34,10 +34,31 @@ async function jpeg(): Promise<Blob> {
   return new Blob([new Uint8Array(buf)], { type: 'image/jpeg' });
 }
 
-function multipart(files: { blob: Blob; name: string }[]): Request {
+/** A form upload as a browser sends it: serialised, with its Content-Length. */
+async function multipart(files: { blob: Blob; name: string }[]): Promise<Request> {
   const form = new FormData();
   for (const f of files) form.append('photos', f.blob, f.name);
-  return new Request('http://localhost/api/shops', { method: 'POST', body: form });
+  const encoded = new Response(form);
+  const body = new Uint8Array(await encoded.arrayBuffer());
+  return new Request('http://localhost/api/shops', {
+    method: 'POST',
+    headers: { 'content-type': encoded.headers.get('content-type')!, 'content-length': String(body.byteLength) },
+    body,
+  });
+}
+
+/** A multipart body streamed without a Content-Length (chunked); reading it would buffer an unbounded body. */
+function chunkedMultipart(url: string, onRead: () => void): Request {
+  const body = new ReadableStream(
+    {
+      pull() {
+        onRead();
+        throw new Error('the body must not be read');
+      },
+    },
+    { highWaterMark: 0 },
+  );
+  return new Request(url, { method: 'POST', headers: { 'content-type': 'multipart/form-data; boundary=x' }, body, duplex: 'half' } as RequestInit);
 }
 
 const json = (body: unknown) =>
@@ -61,7 +82,7 @@ describe('POST /api/shops', () => {
   });
 
   it('creates a draft shop from photos, sets the owner cookie and answers 201', async () => {
-    const res = await POST(multipart([{ blob: await jpeg(), name: 'a.jpg' }, { blob: await jpeg(), name: 'b.jpg' }]));
+    const res = await POST(await multipart([{ blob: await jpeg(), name: 'a.jpg' }, { blob: await jpeg(), name: 'b.jpg' }]));
     expect(res.status).toBe(201);
     const { shopId } = (await res.json()) as { shopId: string };
     const shop = shops.byId(state.db, shopId)!;
@@ -90,14 +111,14 @@ describe('POST /api/shops', () => {
   });
 
   it('rejects a request with no photos', async () => {
-    const res = await POST(multipart([]));
+    const res = await POST(await multipart([]));
     expect(res.status).toBe(400);
     expect(await errorCode(res)).toBe('NO_PHOTOS');
   });
 
   it('rejects five photos', async () => {
     const five = await Promise.all(Array.from({ length: 5 }, async (_, i) => ({ blob: await jpeg(), name: `${i}.jpg` })));
-    const res = await POST(multipart(five));
+    const res = await POST(await multipart(five));
     expect(res.status).toBe(400);
     expect(await errorCode(res)).toBe('TOO_MANY_PHOTOS');
     expect(state.db.prepare('select count(*) as n from shops').get()).toEqual({ n: 0 });
@@ -105,7 +126,7 @@ describe('POST /api/shops', () => {
 
   it('rejects a file that is not an image, even when it says it is', async () => {
     const fake = new Blob([new TextEncoder().encode('<html>not a photo</html>')], { type: 'image/jpeg' });
-    const res = await POST(multipart([{ blob: await jpeg(), name: 'ok.jpg' }, { blob: fake, name: 'menu.jpg' }]));
+    const res = await POST(await multipart([{ blob: await jpeg(), name: 'ok.jpg' }, { blob: fake, name: 'menu.jpg' }]));
     expect(res.status).toBe(415);
     expect(await errorCode(res)).toBe('BAD_IMAGE');
     // Nothing is created when any photo is bad.
@@ -139,8 +160,19 @@ describe('POST /api/shops', () => {
     expect(state.db.prepare('select count(*) as n from shops').get()).toEqual({ n: 0 });
 
     // At the limit the request is read as usual.
-    const ok = multipart([{ blob: await jpeg(), name: 'a.jpg' }]);
+    const ok = await multipart([{ blob: await jpeg(), name: 'a.jpg' }]);
     expect((await POST(ok)).status).toBe(201);
+  });
+
+  it('refuses a multipart upload without a Content-Length with 411, before reading it', async () => {
+    let read = false;
+    const res = await POST(chunkedMultipart('http://localhost/api/shops', () => (read = true)));
+    expect(res.status).toBe(411);
+    expect(await res.json()).toEqual({ error: { code: 'LENGTH_REQUIRED', message: expect.any(String) } });
+    expect(read).toBe(false);
+    expect(state.db.prepare('select count(*) as n from shops').get()).toEqual({ n: 0 });
+    // The JSON sample path needs no Content-Length.
+    expect((await POST(json({ sample: 'marigold-bakehouse' }))).status).toBe(201);
   });
 
   it('rejects an unknown sample and a body that is neither', async () => {
