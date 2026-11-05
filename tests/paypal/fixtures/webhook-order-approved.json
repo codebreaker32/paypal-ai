@@ -1,0 +1,49 @@
+{
+  "_fixture": "Hand-written test fixture, not a recorded delivery. Shape follows PayPal's documented CHECKOUT.ORDER.APPROVED webhook (Orders v2 resource). Ids are placeholders; tests replace id and resource.id. resource.status says COMPLETED on purpose: Shelfie must never trust it.",
+  "id": "WH-0AA00000AA000000A-0AA00000AA0000000",
+  "event_version": "1.0",
+  "create_time": "2026-11-06T18:21:49.000Z",
+  "resource_type": "checkout-order",
+  "resource_version": "2.0",
+  "event_type": "CHECKOUT.ORDER.APPROVED",
+  "summary": "An order has been approved by buyer",
+  "resource": {
+    "id": "5O190127TN364715T",
+    "intent": "CAPTURE",
+    "status": "COMPLETED",
+    "create_time": "2026-11-06T18:20:01Z",
+    "update_time": "2026-11-06T18:21:49Z",
+    "payer": {
+      "name": { "given_name": "Dana", "surname": "Buyer" },
+      "email_address": "dana@example.com",
+      "payer_id": "QYR5Z8XDVJNXQ",
+      "address": { "country_code": "US" }
+    },
+    "purchase_units": [
+      {
+        "reference_id": "default",
+        "custom_id": "ord_placeholder",
+        "invoice_id": "SHF-XXXXXX",
+        "amount": { "currency_code": "USD", "value": "0.01" },
+        "shipping": {
+          "name": { "full_name": "Dana Buyer" },
+          "address": {
+            "address_line_1": "1 Main St",
+            "admin_area_2": "Austin",
+            "admin_area_1": "TX",
+            "postal_code": "78701",
+            "country_code": "US"
+          }
+        }
+      }
+    ],
+    "links": [
+      { "href": "https://api-m.sandbox.paypal.com/v2/checkout/orders/5O190127TN364715T", "rel": "self", "method": "GET" },
+      { "href": "https://api-m.sandbox.paypal.com/v2/checkout/orders/5O190127TN364715T/capture", "rel": "capture", "method": "POST" }
+    ]
+  },
+  "links": [
+    { "href": "https://api-m.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0AA00000AA000000A-0AA00000AA0000000", "rel": "self", "method": "GET" },
+    { "href": "https://api-m.sandbox.paypal.com/v1/notifications/webhooks-events/WH-0AA00000AA000000A-0AA00000AA0000000/resend", "rel": "resend", "method": "POST" }
+  ]
+}
