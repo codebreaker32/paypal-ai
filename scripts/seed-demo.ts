@@ -1,25 +1,27 @@
 // npm run seed [-- --reset]
 // Creates the demo shop "Marigold Bakehouse" from the recorded menu reading, resolves its review issues as a seller
-// would, publishes its items to the real PayPal sandbox catalog, and marks it live. Idempotent: a second run reuses
-// the shop and only publishes what is missing. --reset deletes the shop (and its orders) and starts again.
+// would, publishes its items to the real PayPal sandbox catalog with the setup flow's own publishShop, and marks it
+// live. Idempotent: a second run reuses the shop and only publishes what is missing (an item PayPal turned down last
+// time, say). --reset deletes the shop (and its orders) and starts again.
 import { config } from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
 import { normalizeExtraction } from '@/lib/ai/normalize';
 import type { MenuExtraction } from '@/lib/ai/schemas';
+import { RESERVED_SLUG, publishShop, type PublishResult } from '@/lib/catalog/publish';
 import { ConfigError, getConfig } from '@/lib/config';
 import { getDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
 import * as shops from '@/lib/db/repos/shops';
-import type { ItemWithVariants, Shop } from '@/lib/domain/types';
-import { categoryFor } from '@/lib/paypal/categories';
+import type { Shop } from '@/lib/domain/types';
 import type { PayPalPort } from '@/lib/paypal/types';
 
 config({ quiet: true });
 
 export const DEMO_SHOP = {
   name: 'Marigold Bakehouse',
-  slug: 'marigold-bakehouse',
+  /** Reserved for this shop: a visitor's published Marigold sample gets marigold-bakehouse-2 and up. */
+  slug: RESERVED_SLUG,
   about: 'Small-batch breads and pastries, baked at home for weekend pickup or shipping.',
   fulfillment: 'both',
   shippingFeeCents: 800,
@@ -41,7 +43,10 @@ export interface SeedResult {
   /** The raw owner token, only when this run created the shop (only its hash is stored). */
   ownerToken: string | null;
   created: boolean;
+  /** Items this run added to the PayPal catalog. */
   published: number;
+  /** Items PayPal turned down this run, with the seller's message; a re-run retries them. */
+  failed: PublishResult['failed'];
 }
 
 export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
@@ -77,10 +82,14 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
     log(`Created ${shop.name} with ${catalog.items.length} items from the recorded menu reading.`);
   }
 
-  shop = shops.update(db, shop.id, { menuPhotoPaths: [ensurePhoto(uploadsDir, shop.id)] });
-  const published = await publishItems(db, opts.paypal, shop, log);
-  if (shop.status === 'draft') shop = shops.publish(db, shop.id);
-  return { shop, ownerToken, created, published };
+  const shopId = shop.id;
+  shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)] });
+  // The setup flow's own publish: same products, same request ids, and it makes the shop live.
+  const result = await publishShop({ db, paypal: opts.paypal }, shopId, (e) => {
+    const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
+    log(e.ok ? `  PayPal product ${e.paypalProductId}  ${name}` : `  Not added: ${name}: ${e.message}`);
+  });
+  return { shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed };
 }
 
 /** What a seller does on the review screen: "Looks right" on every CHECK, "Ask in person" on market prices. */
@@ -106,33 +115,6 @@ function ensurePhoto(uploadsDir: string, shopId: string): string {
   return rel;
 }
 
-const publishable = (i: ItemWithVariants) =>
-  i.status === 'draft' && !i.paypalProductId && !i.issues.length && i.variants.some((v) => v.priceCents !== null && v.priceCents > 0);
-
-/**
- * Publishes every ready item to the PayPal catalog (3 at a time, PayPal-Request-Id `pub-<itemId>` so a retry never
- * makes a second product) and marks it live. Task 6's publishShop replaces this function.
- */
-export async function publishItems(db: Db, paypal: PayPalPort, shop: Shop, log: (line: string) => void = () => {}): Promise<number> {
-  const ready = items.listWithVariants(db, shop.id).filter(publishable);
-  const category = categoryFor(shop.kind);
-  let done = 0;
-  for (let i = 0; i < ready.length; i += 3) {
-    await Promise.all(
-      ready.slice(i, i + 3).map(async (item) => {
-        const { id } = await paypal.createProduct(
-          { name: item.name, type: item.kind, ...(item.description ? { description: item.description } : {}), ...(category ? { category } : {}) },
-          `pub-${item.id}`,
-        );
-        items.setPayPalProductId(db, item.id, id);
-        done++;
-        log(`  PayPal product ${id}  ${item.name}`);
-      }),
-    );
-  }
-  return done;
-}
-
 async function main(): Promise<void> {
   const reset = process.argv.includes('--reset');
   const cfg = getConfig();
@@ -143,6 +125,10 @@ async function main(): Promise<void> {
   const live = items.listWithVariants(getDb(), shop.id).filter((i) => i.status === 'live');
   console.log('');
   console.log(`${shop.name} is ${shop.status}: ${live.length} items in the PayPal sandbox catalog${result.published ? ` (${result.published} published now)` : ''}.`);
+  if (result.failed.length) {
+    console.log(`${result.failed.length} item${result.failed.length === 1 ? '' : 's'} didn't reach PayPal. Run \`npm run seed\` again to retry ${result.failed.length === 1 ? 'it' : 'them'}.`);
+    process.exitCode = 1;
+  }
   if (live.some((i) => i.paypalProductId?.startsWith('PROD-FAKE'))) {
     console.log('Warning: this shop was seeded for tests with fake PayPal products. Run `npm run seed -- --reset` to publish it to the sandbox.');
   }

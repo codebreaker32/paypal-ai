@@ -161,7 +161,8 @@ describe('setup routes', () => {
     expect(events[0]).toMatchObject({ type: 'start' });
     expect((events[0].items as unknown[]).length).toBe(6);
     expect(events.filter((e) => e.type === 'item')).toHaveLength(6);
-    expect(events.at(-1)).toMatchObject({ type: 'done', published: 6, failed: [], shop: { status: 'live', slug: 'marigold-bakehouse' } });
+    // A visitor's Marigold sample never takes marigold-bakehouse: that slug is the demo shop's (npm run seed).
+    expect(events.at(-1)).toMatchObject({ type: 'done', published: 6, failed: [], shop: { status: 'live', slug: 'marigold-bakehouse-2' } });
 
     // Nothing left: a second publish is a 400, not an empty stream.
     const again = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
@@ -210,7 +211,7 @@ describe('setup routes', () => {
     expect(res.status).toBe(200);
     const events = await ndjson(res);
     expect(events[0]).toEqual({ type: 'start', items: [] });
-    expect(events.at(-1)).toMatchObject({ type: 'done', published: 0, failed: [], shop: { status: 'live', slug: 'marigold-bakehouse' } });
+    expect(events.at(-1)).toMatchObject({ type: 'done', published: 0, failed: [], shop: { status: 'live', slug: 'marigold-bakehouse-2' } });
     expect(fake.calls).toHaveLength(0);
   });
 
