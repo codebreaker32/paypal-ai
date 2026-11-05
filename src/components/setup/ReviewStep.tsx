@@ -1,0 +1,356 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, CircleAlert, CircleCheck, Hand, History, Loader2, RotateCcw, Send, TriangleAlert } from 'lucide-react';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { FieldError } from '@/components/ui/Field';
+import { Icon } from '@/components/ui/Icon';
+import { cx } from '@/components/ui/cx';
+import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
+import type { ReviewShop } from '@/lib/catalog/setup';
+import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
+import { addItem, type ItemUpdate } from './api';
+import { IssueCard, type OnUpdate } from './IssueCards';
+import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
+import { MenuPhoto, PhotoStrip } from './MenuPhotos';
+import { PublishProgress, usePublish } from './Publishing';
+import { ShopDetails } from './ShopDetails';
+import { StepHeader } from './StepHeader';
+import { applyLocal, cardId, flaggedCards, openSkipped } from './review-model';
+import { useAutosave, type SaveState } from './useAutosave';
+
+export interface ReviewProps {
+  shopId: string;
+  photoCount: number;
+  shop: ReviewShop;
+  items: ItemWithVariants[];
+  skipped: SkippedLine[];
+  warnings: string[];
+  nonUsd: boolean;
+  recorded: boolean;
+}
+
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
+  if (state.status === 'error') {
+    return (
+      <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
+        <Icon icon={CircleAlert} size="sm" />
+        {state.retryable ? "Couldn't save your last change." : state.message}
+        {state.retryable && (
+          <Button variant="ghost" icon={RotateCcw} onClick={onRetry} className="-my-1">
+            Retry
+          </Button>
+        )}
+      </span>
+    );
+  }
+  const busy = state.status === 'pending' || state.status === 'saving';
+  return (
+    <span className="flex items-center gap-1.5 type-meta text-ink-muted" role="status">
+      <Icon icon={busy ? Loader2 : state.status === 'saved' ? CircleCheck : History} size="sm" className={cx(busy && 'animate-spin', state.status === 'saved' && 'text-ok')} />
+      {busy ? 'Saving…' : state.status === 'saved' ? 'Saved' : 'Changes save as you go'}
+    </span>
+  );
+}
+
+/** Review: flagged cards first, then the ready menu, then everything set aside, then the shop details. */
+export function ReviewStep(props: ReviewProps) {
+  const { shopId, photoCount } = props;
+  const router = useRouter();
+  const [items, setItems] = useState(props.items);
+  const [skipped] = useState(props.skipped);
+  const [announce, setAnnounce] = useState('');
+  // Where keyboard focus goes after a card is fixed (set while updating, used after the render).
+  const focusNext = useRef<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
+  const autosave = useAutosave(shopId);
+  const { queueItem } = autosave;
+  const { run, start, reset } = usePublish(shopId);
+
+  const cards = useMemo(() => flaggedCards(items), [items]);
+  const live = items.filter((i) => i.status !== 'removed');
+  const needYou = items.filter(needsSeller).length;
+  const ready = items.filter((i) => i.status === 'draft' && i.issues.length === 0);
+  const inPerson = items.filter((i) => i.status === 'in_person' && i.issues.length === 0);
+  const removed = items.filter((i) => i.status === 'removed');
+  const toPublish = items.filter(isPendingPublish).length;
+  const lines = openSkipped(skipped, items);
+
+  // After a card is fixed, keep the keyboard where the work is: the next card, or the ready list.
+  // The sticky publish bar must never hide the field that has keyboard focus.
+  useEffect(() => {
+    const html = document.documentElement;
+    html.style.scrollPaddingBottom = '9rem';
+    return () => {
+      html.style.scrollPaddingBottom = '';
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!focusNext.current) return;
+    document.getElementById(focusNext.current)?.focus();
+    focusNext.current = null;
+  }, [items]);
+
+  const onUpdate: OnUpdate = useCallback(
+    (u: ItemUpdate, opts = {}) => {
+      setItems((all) => {
+        const next = all.map((it) => (it.id === u.itemId ? applyLocal(it, u) : it));
+        if (opts.resolved) {
+          const before = flaggedCards(all);
+          const at = before.findIndex((c) => (c.kind === 'single' ? c.item.id === u.itemId : c.items.some((i) => i.id === u.itemId)));
+          const after = flaggedCards(next);
+          const following = after[Math.min(Math.max(at, 0), after.length - 1)];
+          focusNext.current = following ? `${cardId(following)}-name` : 'ready-title';
+          const name = all.find((i) => i.id === u.itemId)?.name ?? 'Item';
+          const left = next.filter(needsSeller).length;
+          setAnnounce(`${name} saved. ${left ? `${plural(left, 'item')} still need you.` : 'Nothing else needs you.'}`);
+        }
+        return next;
+      });
+      // Taps save at once; typing (names, prices) waits for a pause.
+      queueItem(u, { immediate: Boolean(opts.resolved) || u.status !== undefined || Boolean(u.resolveIssues) });
+    },
+    [queueItem],
+  );
+
+  const makeItem = useCallback(
+    async (input: { name: string; priceCents: number | null; sourceText: string }) => {
+      const item = await addItem(shopId, input);
+      setItems((all) => [...all, item]);
+      setAnnounce(`${item.name} added to your menu.`);
+    },
+    [shopId],
+  );
+
+  const doPublish = async () => {
+    setPublishError(null);
+    try {
+      await autosave.flush();
+    } catch {
+      setPublishError("Some changes didn't save, so we didn't publish. Check your connection and try again.");
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    const result = await start();
+    if (result.phase === 'done' && result.failed === 0) {
+      // A beat to see every line turn green, then the live screen.
+      setTimeout(() => router.refresh(), 900);
+    }
+  };
+
+  // ───────────── Publishing (step 3) ─────────────
+  if (run.phase !== 'idle') {
+    const done = run.phase === 'done';
+    const failed = done ? run.failed : run.phase === 'error' ? run.rows.filter((r) => r.state !== 'ok').length : 0;
+    const anyLive = done && run.shopStatus !== 'draft';
+    return (
+      <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-gutter pt-8 pb-section lg:pt-12">
+        <StepHeader
+          step={3}
+          title={done && failed === 0 ? 'Your menu is in PayPal' : done || run.phase === 'error' ? 'Almost there' : 'Adding your menu to PayPal'}
+          lead={
+            run.phase === 'running'
+              ? 'Each item becomes a product in your PayPal catalog. Prices stay with Shelfie.'
+              : done && failed === 0
+                ? 'Opening your shop…'
+                : run.phase === 'error'
+                  ? run.message
+                  : `${plural(failed, 'item')} didn’t reach PayPal. The rest are in.`
+          }
+        />
+        <div className="max-w-measure">
+          <PublishProgress run={run} />
+        </div>
+        {(failed > 0 || run.phase === 'error') && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Button size="lg" icon={RotateCcw} onClick={() => void doPublish()}>
+              {failed > 0 ? `Retry ${failed}` : 'Try again'}
+            </Button>
+            {anyLive ? (
+              <Button size="lg" variant="secondary" onClick={() => router.refresh()}>
+                Continue to your live shop
+              </Button>
+            ) : (
+              <Button size="lg" variant="ghost" icon={ArrowLeft} onClick={reset}>
+                Back to review
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ───────────── Review (step 2) ─────────────
+  const disabledReason =
+    toPublish === 0
+      ? needYou > 0
+        ? 'Fix an item above, or give one a price, to publish.'
+        : 'Give at least one item a price to publish.'
+      : null;
+
+  return (
+    <div className="flex w-full flex-1 flex-col">
+      <div className="mx-auto w-full max-w-page px-gutter pt-8 pb-12 lg:pt-12">
+      <p className="sr-only" aria-live="polite">
+        {announce}
+      </p>
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="flex min-w-0 flex-col gap-10 lg:col-span-7">
+          <StepHeader
+            step={2}
+            title="Check your menu"
+            lead={
+              <span className="type-price" role="status">
+                {plural(live.length, 'item')} · {needYou ? `${needYou} need${needYou === 1 ? 's' : ''} you` : 'all clear'}
+              </span>
+            }
+          />
+
+          <div className="flex items-center gap-4 lg:hidden">
+            <PhotoStrip shopId={shopId} count={photoCount} className="shrink-0" />
+            <p className="type-meta text-ink-muted">Tap your photo to compare it with what we read.</p>
+          </div>
+
+          {(props.recorded || props.nonUsd) && (
+            <div className="flex flex-col gap-3">
+              {props.recorded && (
+                <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+                  <Badge tone="info" icon={History}>
+                    Recorded reading
+                  </Badge>
+                  No Anthropic key is set, so this is Claude’s saved reading of the sample photo.
+                </p>
+              )}
+              {props.nonUsd && (
+                <p className="flex items-start gap-2 rounded-md bg-warn-soft px-3.5 py-2.5 text-sm text-warn">
+                  <Icon icon={TriangleAlert} size="sm" className="mt-0.5" />
+                  <span>
+                    <strong>Shelfie charges in USD.</strong> Your menu doesn’t look like it’s in dollars, so check each price.
+                  </span>
+                </p>
+              )}
+            </div>
+          )}
+
+          {cards.length > 0 ? (
+            <section aria-labelledby="needs-title" className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 id="needs-title" className="type-title">
+                  Needs you
+                </h2>
+                <p className="text-ink-soft">Fix these, or leave them: they stay off your shop until you do.</p>
+              </div>
+              <ul className="flex flex-col gap-4">
+                {cards.map((c) => (
+                  <li key={cardId(c)}>
+                    <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : (
+            <p className="flex items-center gap-2 rounded-md bg-ok-soft px-3.5 py-3 font-semibold text-ok">
+              <Icon icon={CircleCheck} />
+              Nothing needs you. Every item is checked.
+            </p>
+          )}
+
+          <section aria-labelledby="ready-title" className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1">
+              <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
+                Ready for PayPal <span className="type-price text-ink-muted">({ready.length})</span>
+              </h2>
+              <p className="text-ink-soft">Each one becomes a product in your PayPal catalog when you publish.</p>
+            </div>
+            {ready.length ? (
+              <ReadyList items={ready} onUpdate={onUpdate} />
+            ) : (
+              <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
+            )}
+          </section>
+
+          {inPerson.length > 0 && (
+            <section aria-labelledby="inperson-title" className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 id="inperson-title" className="flex items-center gap-2 type-title">
+                  <Icon icon={Hand} className="text-ink-soft" /> Ask in person
+                </h2>
+                <p className="text-ink-soft">Listed on your shop without a price. People ask you, and assistants can’t order them.</p>
+              </div>
+              <InPersonList items={inPerson} onUpdate={onUpdate} />
+            </section>
+          )}
+
+          <div className="flex flex-col gap-3">
+            {lines.length > 0 && (
+              <Disclosure title="Lines we skipped" count={lines.length} hint="Headings, hours and notes that aren’t things to buy.">
+                <SkippedList lines={lines} onMake={makeItem} />
+              </Disclosure>
+            )}
+            {removed.length > 0 && (
+              <Disclosure title="Removed" count={removed.length}>
+                <RemovedList items={removed} onUpdate={onUpdate} />
+              </Disclosure>
+            )}
+            {props.warnings.length > 0 && (
+              <Disclosure title="Notes from the reading" count={props.warnings.length}>
+                <ul className="flex list-disc flex-col gap-1.5 pl-5 text-sm text-ink-soft">
+                  {props.warnings.map((w, i) => (
+                    <li key={i}>{w}</li>
+                  ))}
+                </ul>
+              </Disclosure>
+            )}
+          </div>
+
+          <ShopDetails shop={props.shop} onChange={autosave.queueShop} />
+        </div>
+
+        <aside aria-label="Your menu photo" className="hidden lg:col-span-5 lg:block">
+          <div className="sticky top-6 flex flex-col gap-3">
+            <MenuPhoto shopId={shopId} page={1} className="aspect-[4/5] w-full" sizes="34vw" />
+            {photoCount > 1 && <PhotoStrip shopId={shopId} count={photoCount} />}
+            <p className="type-meta text-ink-muted">Your photo, to compare with what we read.</p>
+          </div>
+        </aside>
+      </div>
+
+      </div>
+
+      {/* Sticky publish bar: the one primary action, with the save status beside it. */}
+      <div data-publish-bar className="sticky bottom-0 z-(--z-header) mt-auto border-t border-line-strong bg-surface-raised pb-[env(safe-area-inset-bottom)]">
+        <div className="mx-auto flex w-full max-w-page flex-col gap-2 px-gutter py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <div className="flex flex-col gap-0.5 sm:order-1">
+            <SaveStatus state={autosave.state} onRetry={() => void autosave.flush().catch(() => {})} />
+            {(disabledReason || publishError) && (
+              <span id="publish-reason" className="text-sm text-ink-soft">
+                {publishError ? <FieldError>{publishError}</FieldError> : disabledReason}
+              </span>
+            )}
+            {!disabledReason && !publishError && needYou > 0 && (
+              <span className="hidden text-sm text-ink-soft sm:block">
+                {needYou === 1 ? '1 item that needs you stays' : `${needYou} items that need you stay`} off your shop for now.
+              </span>
+            )}
+          </div>
+          <Button
+            size="lg"
+            icon={Send}
+            onClick={() => void doPublish()}
+            disabled={toPublish === 0}
+            aria-describedby={disabledReason || publishError ? 'publish-reason' : undefined}
+            className="sm:order-2"
+          >
+            Publish {plural(toPublish, 'item')} to PayPal
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

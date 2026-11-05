@@ -1,0 +1,42 @@
+/* Setup-only motion and layout that Tailwind utilities can't express. Tokens only. */
+
+/* The reading screen's scan: a soft band sweeping down the photo, slow and calm. */
+.scan {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  animation: scan 2.8s var(--ease-in-out) infinite alternate;
+}
+.scan::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: calc(8% - 3rem);
+  height: 3rem;
+  background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--color-accent) 18%, transparent));
+}
+.scan::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 8%;
+  height: 2px;
+  background: var(--color-accent);
+  box-shadow: var(--shadow-xs);
+}
+
+@keyframes scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(84%);
+  }
+}
+
+/* No sweep at all with reduced motion: the status lines carry the progress instead. */
+@media (prefers-reduced-motion: reduce) {
+  .scan {
+    display: none;
+  }
+}
