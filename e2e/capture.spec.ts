@@ -105,9 +105,16 @@ interface OrderStatusOut {
   message: string;
 }
 
+const AGENT = 'shelfie-capture-gate';
+
+/**
+ * Connects like the app's own buyer console: the agent names itself with `?agent=`. The stateless door builds a fresh
+ * server per HTTP request, so the name from MCP initialize (clientInfo) is gone by the time create_order arrives and
+ * the order would otherwise be attributed to the User-Agent ("node"). See the Task 9a report.
+ */
 async function openDoor(origin: string, slug: string): Promise<Client> {
-  const client = new Client({ name: 'shelfie-capture-gate', version: '1.0.0' });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/s/${slug}/mcp`)));
+  const client = new Client({ name: AGENT, version: '1.0.0' });
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${origin}/s/${slug}/mcp?agent=${AGENT}`)));
   return client;
 }
 
@@ -292,6 +299,7 @@ test.describe('capture gate (real PayPal sandbox)', () => {
       const card = page.locator(`[data-order="${order.order_number}"]`);
       await expect(card).toBeVisible();
       await expect(card).toContainText('Paid');
+      await expect(card).toContainText('Test Buyer · via Shelfie Capture Gate');
       await expect(card).toContainText('Ship to San Jose, CA');
       await expect(card).toContainText(HAS_CLAUDE ? 'AI brief' : 'Summary');
       await expect(card).toContainText(b.headline);
@@ -314,14 +322,16 @@ test.describe('capture gate (real PayPal sandbox)', () => {
       await form.getByLabel('Carrier').selectOption('USPS');
       await form.getByLabel('Tracking number').fill(trackingNumber);
       await form.getByRole('button', { name: 'Send tracking to PayPal' }).click();
+      // "Sent to PayPal: USPS …" shows briefly; the form's router.refresh() then swaps the card for "Shipped".
       const sent = page.getByRole('status').filter({ hasText: /Sent to PayPal: USPS/ });
-      const refused = page.getByRole('alert').filter({ hasText: /PayPal|tracking/ });
-      await expect(sent.or(refused).first()).toBeVisible({ timeout: 120_000 });
+      const shipped = page.getByRole('heading', { name: 'Shipped', exact: true });
+      const refused = form.getByRole('alert');
+      await expect(sent.or(shipped).or(refused).first()).toBeVisible({ timeout: 120_000 });
       if (await refused.isVisible()) throw new Error(`Add tracking failed: ${await refused.innerText()}`);
-      await expect(sent).toContainText(trackingNumber);
+      await expect(shipped).toBeVisible({ timeout: 30_000 });
 
       await page.reload();
-      await expect(page.getByRole('heading', { name: 'Shipped', exact: true })).toBeVisible();
+      await expect(shipped).toBeVisible();
       await expect(page.getByRole('list', { name: 'Tracking' })).toContainText(trackingNumber);
       await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText(`Tracking added: USPS ${trackingNumber}`);
       await settle(page);
