@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 04:26 IST (session 2)_
+_Last updated: 2026-11-06 04:32 IST (session 2)_
 
 ## Current phase
 Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page + buyer console + receipt (Task 7), dashboard + AI brief + tracking + webhook (Task 8), each reviewed and fixed. Lint cleanup and measured photo-to-live timings (Task 9c) are merged. Running now: Task 9a (capture gate e2e: agent order → PayPal guest checkout → Paid → brief → tracking → `get_order_status`) and Task 9b (demo seed, full-flow e2e, round-1 screenshots with axe). Next: judge round 1 and the visual-direction round in parallel, then docs (README, AI_TOOLS, DEMO).
@@ -14,6 +14,7 @@ Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- **Capture gate, end to end on the real sandbox (`e2e/capture.spec.ts`, passed twice in a row):** a new shop from the sample photo read live by Claude → published to the PayPal Catalog → an MCP client over HTTP calls `get_shop_info` → `list_products` → `create_order` (shipped, nut-allergy note) → PayPal guest card checkout → our return URL captures → receipt **Paid** → the stored capture id matches PayPal's own order record (COMPLETED) → the order brief is written by the Claude agent → USPS tracking from the order page exists at PayPal (SHIPPED) → `get_order_status` returns the tracking number. Example run: order `9SS11373NT603413P`, capture `3K941065XR757601S`.
 - `npm run test:sandbox` (PayPal client): product create, order create → PAYER_ACTION_REQUIRED + approval link, same request id → same order, capture before approval → ORDER_NOT_APPROVED, Agent Toolkit `get_order` on a real order, toolkit error for a non-existent order (5/5).
 - MCP agent door over real HTTP with the MCP SDK client (unit/route tests with a fake PayPal); 217 unit tests pass on main.
 - Menu reader on the 4 sample photos with real Claude (`npm run test:ai`, 4/4): Marigold 10 items in 10.3 s, Tía Lupe 9.5 s, Ravi 7.3 s, blurry photo → "unreadable" with a retake tip in 4.3 s.
@@ -27,13 +28,11 @@ Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page
 - Task 8 (session 1 worker): AI order brief written 3× by the Claude brief agent calling the Agent Toolkit's `get_order` on real sandbox orders (~10 s each).
 
 ## Unverified
-- Capture through the app's own return URL and a Playwright test (the capture gate, wave 3). Capture itself is verified (see Verified).
 - Paying with a PayPal wallet login: the sandbox merchant and the `.env` buyer are both India accounts, and PayPal blocks IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
 - Webhooks (no public URL on the VM).
 
 ## Next steps
 Running at 04:26 IST in their own worktrees (ledger `.superpowers/sdd/2026-11-06-shelfie/progress.md` has paths, briefs and report files). If a session ends mid-run, a fresh worker resumes in the same worktree from its brief and report:
-- Task 9a, capture gate e2e (`e2e/capture.spec.ts`, guest checkout).
 - Task 9b: seed with a reserved slug, `e2e/flow.spec.ts`, and `e2e/screenshots.spec.ts` with axe → `docs/judge/screenshots/round-1/`.
 - Task 11: fixes from the milestone code review (8 findings).
 
