@@ -1,69 +1,69 @@
-import Image from "next/image";
+import { unstable_rethrow } from 'next/navigation';
+import { LayoutDashboard } from 'lucide-react';
+import { ButtonLink } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { listOwnedShops } from '@/lib/auth/owner';
+import { OrderPreview } from './_start/OrderPreview';
+import { StartActions } from './_start/StartActions';
 
-export default function Home() {
+/** A shop this browser owns, for the "Open your dashboard" shortcut. */
+interface ReturningShop {
+  id: string;
+  name: string;
+}
+
+async function getReturningShops(): Promise<ReturningShop[]> {
+  try {
+    return (await listOwnedShops()).map((s) => ({ id: s.id, name: s.name }));
+  } catch (err) {
+    unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
+    // The start page must always render; a storage problem only hides the shortcut.
+    console.error('Start page: could not read owned shops', err instanceof Error ? err.message : err);
+    return [];
+  }
+}
+
+function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <Card as="section" aria-labelledby="welcome-back" tone="flat" className="mb-8 flex flex-col gap-3">
+      <h2 id="welcome-back" className="type-label">
+        Welcome back
+      </h2>
+      <ul className="flex flex-col gap-2">
+        {shops.slice(0, 3).map((shop) => (
+          <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <span className="font-semibold">{shop.name}</span>
+            <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>
+              Open your dashboard
+            </ButtonLink>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+export default async function StartPage() {
+  const returningShops = await getReturningShops();
+
+  return (
+    <div className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 pb-section lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-12">
+      <section aria-labelledby="start-title" className="lg:col-span-5">
+        {returningShops.length > 0 && <WelcomeBack shops={returningShops} />}
+        <h1 id="start-title" className="type-display">
+          Your price list, open to AI shoppers.
+        </h1>
+        <p className="mt-4 max-w-measure type-lead text-ink-soft">
+          Photograph your menu. Shelfie reads it and opens a PayPal shop any AI assistant can order from.
+        </p>
+        <div className="mt-8">
+          <StartActions />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </section>
+
+      <div className="lg:col-span-7">
+        <OrderPreview />
+      </div>
     </div>
   );
 }
