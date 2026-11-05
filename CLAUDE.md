@@ -18,8 +18,10 @@ npm test                    # unit tests (Vitest), no network
 npm run test:sandbox        # real PayPal sandbox calls (needs .env)
 npm run test:ai             # real Claude extraction on public/samples (needs ANTHROPIC_API_KEY)
 npm run typecheck && npm run lint
-npm run e2e                 # Playwright (starts the app)
-npm run seed                # publish the demo shop
+npm run e2e                 # Playwright (starts the app on port 3100; E2E_PORT overrides, E2E_REUSE_SERVER=1 attaches to a running one)
+npm run seed                # publish the demo shop (-- --reset recreates it); prints the owner link once
+# photo -> live timing against a running app (see the header of the script for the DATABASE_PATH setup):
+DATABASE_PATH=data/measure/m.db BASE_URL=http://localhost:3109 npx tsx scripts/measure-photo-to-live.ts [runs]
 ```
 
 ## Architecture
@@ -30,7 +32,9 @@ npm run seed                # publish the demo shop
 - **PayPal**: our typed REST client for money paths (orders, capture, catalog publish, webhook verify) with per-call `PayPal-Request-Id`; `@paypal/agent-toolkit` for seller-side tools (brief agent reads `get_order`/`get_shipment_tracking`; tracking via `create_shipment_tracking`). Sandbox only.
 - **Claude** via `@anthropic-ai/sdk`, model `claude-sonnet-5-5`: `messages.parse` + `zodOutputFormat` for menu extraction; beta `toolRunner` for the brief agent and the in-app buyer console. Never send `temperature`, forced `tool_choice`, or `thinking: disabled`.
 - **MCP agent door**: `POST /s/[slug]/mcp`, stateless `WebStandardStreamableHTTPServerTransport`, fresh `McpServer` per request.
-- **Orders**: pure state machine + compare-and-set writes; paid via return URL, webhook (deployed only) or the 15 s poller.
+- **Orders**: pure state machine + compare-and-set writes (`src/lib/orders/`); paid via return URL, webhook (deployed only) or the 15 s poller. The buyer's receipt view is `src/lib/orders/receipt.ts` (page `/o/[ref]`). Checkout is PayPal guest card checkout (verified); the sandbox merchant and the `.env` buyer are both India accounts, so wallet-login payment is blocked and unverified.
+- **Routes**: the seller dashboard is the `src/app/shops/[id]/(dashboard)` route group; setup is `shops/[id]/setup`; the owner link is `/claim/[token]`; the buyer console API is `/api/assistant/[slug]`. Rate-limit keys use `src/lib/http/client-ip.ts` (rightmost `X-Forwarded-For`).
+- **Services**: `src/lib/services.ts` is the composition root (db, PayPal client or fake, toolkit, Anthropic).
 - **Seller auth**: per-shop httpOnly cookie with an owner token (hash stored), `src/lib/auth/owner.ts`.
 - **Tests** live in `tests/` (unit), `tests/sandbox` and `tests/ai-live` (network), `e2e/` (Playwright).
 
