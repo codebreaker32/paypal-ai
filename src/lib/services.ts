@@ -14,9 +14,16 @@ export function setPayPalForServices(p: PayPalPort | undefined): void {
   g.__shelfiePayPalOverride = p;
 }
 
-/** Runs after an order becomes paid. Task 8 points this at the AI order brief. Never throws. */
+/**
+ * Runs after an order becomes paid: writes the AI order brief in the background (spec §9 A2).
+ * Fire-and-forget: it yields first so the sync that called it finishes untouched, and writeOrderBrief never throws.
+ * Without ANTHROPIC_API_KEY (tests, e2e) writeOrderBrief stores the labelled template brief.
+ */
 async function onPaid(order: Order): Promise<void> {
-  void order;
+  await new Promise<void>((resolve) => setImmediate(resolve));
+  // Loaded lazily so route handlers that never see a payment don't load the Agent Toolkit.
+  const { writeOrderBrief } = await import('@/lib/ai/brief');
+  await writeOrderBrief({ db: getDb() }, order.id);
 }
 
 export function getOrderDeps(): OrderDeps {

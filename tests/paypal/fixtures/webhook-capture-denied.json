@@ -1,0 +1,26 @@
+{
+  "_fixture": "Hand-written test fixture, not a recorded delivery. Shape follows PayPal's documented PAYMENT.CAPTURE.DENIED webhook (Payments v2 capture resource). Ids are placeholders; tests replace id and resource.supplementary_data.related_ids.order_id.",
+  "id": "WH-2CC22222CC222222C-2CC22222CC2222222",
+  "event_version": "1.0",
+  "create_time": "2026-11-06T18:40:00.000Z",
+  "resource_type": "capture",
+  "resource_version": "2.0",
+  "event_type": "PAYMENT.CAPTURE.DENIED",
+  "summary": "Payment denied for $ 26.50 USD",
+  "resource": {
+    "id": "7NW873794T343360M",
+    "status": "DECLINED",
+    "amount": { "currency_code": "USD", "value": "26.50" },
+    "final_capture": true,
+    "supplementary_data": { "related_ids": { "order_id": "5O190127TN364715T" } },
+    "create_time": "2026-11-06T18:39:58Z",
+    "update_time": "2026-11-06T18:40:00Z",
+    "links": [
+      { "href": "https://api-m.sandbox.paypal.com/v2/payments/captures/7NW873794T343360M", "rel": "self", "method": "GET" },
+      { "href": "https://api-m.sandbox.paypal.com/v2/checkout/orders/5O190127TN364715T", "rel": "up", "method": "GET" }
+    ]
+  },
+  "links": [
+    { "href": "https://api-m.sandbox.paypal.com/v1/notifications/webhooks-events/WH-2CC22222CC222222C-2CC22222CC2222222", "rel": "self", "method": "GET" }
+  ]
+}

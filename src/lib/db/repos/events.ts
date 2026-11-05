@@ -25,3 +25,8 @@ export function recordWebhook(db: Db, e: { id: string; eventType: string; resour
     .run(e.id, e.eventType, e.resourceId, e.verified ? 1 : 0, now());
   return res.changes === 1;
 }
+
+/** Forgets a webhook event id so PayPal's redelivery is processed again (used when syncing it failed). */
+export function forgetWebhook(db: Db, id: string): void {
+  db.prepare('DELETE FROM webhook_events WHERE id = ?').run(id);
+}
