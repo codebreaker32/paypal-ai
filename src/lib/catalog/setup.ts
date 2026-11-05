@@ -17,8 +17,12 @@ import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from
 
 /** Shown until the menu (or the seller) gives the shop a name. */
 export const PLACEHOLDER_NAME = 'My shop';
-/** A reading still "running" after this long died with its process: it counts as failed. */
-export const READING_STALE_MS = 2 * 60_000;
+/**
+ * A reading still "running" after this long died with its process: it counts as failed. A live
+ * reading can take up to 90 s, plus one 90 s retry when Claude's first answer doesn't parse
+ * (src/lib/ai/extract.ts), so this leaves a minute to spare.
+ */
+export const READING_STALE_MS = 4 * 60_000;
 export const RECORDED_PREFIX = 'recorded:';
 
 // ───────────── Creating the draft shop ─────────────
@@ -130,7 +134,7 @@ function applyShopDraft(db: Db, shop: Shop, c: DraftCatalog): void {
 
 /**
  * Reads the shop's photos once. Safe to call again: a run already going returns "running", and a
- * run that has been going for over two minutes is treated as dead and replaced.
+ * run that has been going for over four minutes (READING_STALE_MS) is treated as dead and replaced.
  */
 export async function runReading(deps: ReadingDeps, shopId: string): Promise<ReadingOutcome> {
   const { db } = deps;

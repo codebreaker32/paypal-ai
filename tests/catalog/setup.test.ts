@@ -155,7 +155,17 @@ describe('shop setup', () => {
       expect(calls).toBe(1);
     });
 
-    it('treats a run older than two minutes as failed and lets a new one start', async () => {
+    it('still counts a three-minute-old run as running: a reading can take 90 s plus a retry', async () => {
+      expect(READING_STALE_MS).toBe(4 * 60_000);
+      const { shop } = await createShopFromPhotos(db, [photo]);
+      extractions.start(db, shop.id, 'claude-sonnet-5-5');
+      t += 3 * 60_000;
+      expect(loadSetupView(db, shops.byId(db, shop.id)!, t)).toMatchObject({ step: 'reading', running: true });
+      expect(await runReading(deps(), shop.id)).toEqual({ status: 'running' });
+      expect(calls).toBe(0);
+    });
+
+    it('treats a run older than four minutes as failed and lets a new one start', async () => {
       const { shop } = await createShopFromPhotos(db, [photo]);
       extractions.start(db, shop.id, 'claude-sonnet-5-5');
       t += READING_STALE_MS + 1000;

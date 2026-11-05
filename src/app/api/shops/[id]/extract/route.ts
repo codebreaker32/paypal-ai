@@ -15,7 +15,8 @@ import { errorResponse, jsonError, notFound, ownedShop } from '@/lib/catalog/htt
 import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
-export const maxDuration = 120;
+// A reading can take 90 s plus one 90 s retry (src/lib/ai/extract.ts); READING_STALE_MS is 4 minutes.
+export const maxDuration = 240;
 
 // A recorded sample reading still shows the reading screen for a moment, so the flow reads the same.
 const RECORDED_DELAY_MS = 2500;
