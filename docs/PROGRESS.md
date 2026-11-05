@@ -1,9 +1,9 @@
 # Progress
 
-_Last updated: 2026-11-06 03:36 IST (session 2)_
+_Last updated: 2026-11-06 04:12 IST (session 2)_
 
 ## Current phase
-Build, wave 2 of 3 (session 2). Task 8 (dashboard, AI brief, tracking, webhook) is reviewed, fixed and merged. Task 6 (setup flow) and Task 7 (shop page, buyer console, receipt) are in review fix rounds. A spike is investigating the sandbox buyer approval blocker (below). Next: merge Tasks 6 and 7, then wave 3 (seed, e2e incl. the capture gate, screenshots), judge round 1, visual-direction round.
+Build, wave 3 of 3 (session 2). Wave 2 is merged: setup flow (Task 6), shop page + buyer console + receipt (Task 7), dashboard + AI brief + tracking + webhook (Task 8), each reviewed and fixed. Lint cleanup and measured photo-to-live timings (Task 9c) are merged. Running now: Task 9a (capture gate e2e: agent order → PayPal guest checkout → Paid → brief → tracking → `get_order_status`) and Task 9b (demo seed, full-flow e2e, round-1 screenshots with axe). Next: judge round 1 and the visual-direction round in parallel, then docs (README, AI_TOOLS, DEMO).
 
 ## Done
 - Product approach round: approach 1 (seller-first) won judge round 0 (Part A 19, Part B 21 vs 18/19). Final spec `docs/superpowers/specs/2026-11-06-shelfie-design.md`; plan `docs/superpowers/plans/2026-11-06-shelfie.md`.
@@ -20,6 +20,9 @@ Build, wave 2 of 3 (session 2). Task 8 (dashboard, AI brief, tracking, webhook) 
 - PayPal sandbox OAuth, `POST /v1/catalogs/products`, `POST /v2/checkout/orders` → `PAYER_ACTION_REQUIRED` + `payer-action` link.
 - Claude vision extraction via `@anthropic-ai/sdk` `messages.parse`.
 - **Approval + capture on the real sandbox (session 2 spike):** order `3K582170DV477391D` built with the app's `createPayPalClient` + `buildOrderBody` (shipping order, $18.25), approved on PayPal's approval page via guest card checkout (country US, PayPal sandbox test Visa `4012000033330026`), then `captureOrder` → order COMPLETED, capture `9BV852348L665241F` COMPLETED.
+- **Full paid path through the app (session 2, Task 7 fix round):** buyer console order over the real MCP door → PayPal guest card checkout → our return URL → capture → receipt **Paid** → the console card switches to "Paid · View receipt".
+- **Photo → live shop, measured (Task 9c):** 6 real runs (3 sample photos × 2) uploading the photo, real Claude reading, real PayPal Catalog publish: 8–14 s machine time (reading 6.5–9.4 s, publish 1.5–3.7 s). Table in `docs/EVIDENCE.md`.
+- Unit tests: 482 pass on main; typecheck and lint clean.
 - Task 7 (session 2, real sandbox): the buyer console ordered from a live shop over the real MCP door and got a real PayPal approval link ($27.00); PayPal's own "Cancel and return" link landed on our cancelled receipt.
 - Task 8 (session 1 worker): AI order brief written 3× by the Claude brief agent calling the Agent Toolkit's `get_order` on real sandbox orders (~10 s each).
 
