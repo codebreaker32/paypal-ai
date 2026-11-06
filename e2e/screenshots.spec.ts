@@ -631,6 +631,16 @@ const SCREENS: Screen[] = [
       await expect(page.getByRole('status').filter({ hasText: "We can’t reach PayPal right now." })).toBeVisible();
     },
   },
+  // Counter card (run 2, findable door): Share tab → Print counter card. Its print view: e2e/discovery.spec.ts.
+  {
+    name: 'counter-card',
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      await page.goto(`/shops/${demo.shop.id}/card`);
+      await expect(page.getByRole('heading', { level: 1, name: 'Counter card' })).toBeVisible();
+      await expect(page.getByTestId('card-door-url')).toHaveText(`${BASE}/s/${SLUG}/mcp`);
+    },
+  },
   // Order detail
   {
     // FIXTURE: the nut-allergy order on a second Marigold Bakehouse, paid just now, before the brief agent answers.

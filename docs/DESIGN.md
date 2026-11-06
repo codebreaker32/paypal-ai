@@ -164,7 +164,7 @@ The menu-board leader dots on the shop page and on the review step's "Ready for 
 ### Spacing, layout, radius, elevation
 
 - **Spacing:** Tailwind's 4 px base (`p-1` = 4 px). Use 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12. Named rhythm tokens: `tap` (44 px, minimum touch target: `min-h-tap`, `size-tap`), `gutter` (page side padding, 20 px to 48 px fluid: `px-gutter`), `section` (48 px to 96 px fluid: `pb-section`).
-- **Containers:** `max-w-page` (76 rem) for page content, `max-w-narrow` (64 rem) for the receipt, `max-w-measure` (36 rem) for prose.
+- **Containers:** `max-w-page` (76 rem) for page content, `max-w-narrow` (64 rem) for the receipt, `max-w-measure` (36 rem) for prose, `max-w-card` (5 in) for the printed counter card.
 - **Breakpoints:** Tailwind defaults. Design at 390 px first, then `sm` 640, `lg` 1024 and check 1440.
 - **Radius (shape lock: square paper corners):** `xs` 2 (badges, stamps, notes), `sm` 3, `md` 4 (buttons, inputs), `lg` 4 (cards, slips), `xl` 12 (the top of the bottom sheet only), `full` (round icon chips, the switch, step dots).
 - **Rules:** the site header and footer carry a 2 px ink rule; page mastheads (dashboard tabs, order header, the menu title) use 1 to 2 px ink rules. Everything inside a slip uses dashed `line-strong` rules.
@@ -188,6 +188,8 @@ Animations: `animate-rise-in` (entrance: fade plus 24 px rise), `animate-fade-in
 ### Browser surfaces
 
 Themed in the base layer: `::selection` (marigold-100), the text caret (marigold), scrollbars (`line-strong`), focus rings (ink, 2 px, 2 px offset on every focusable element), link underlines (2 px, marigold-500, 0.24em offset), lining figures by default, `color-scheme: light`, and the dialog backdrop (scrim). Page scroll locks while a dialog is open.
+
+**Print:** a page that marks one element `data-print-alone` prints that element only (the site header, footer and toast region drop out; the page hides its own toolbar with `print:hidden`). The counter card (`/shops/[id]/card`) is the one such page: a 5 × 7 in slip with a 2 px ink edge and a hairline frame inside it, sized by container queries (`@md:`) so the on-screen preview at 5 in matches the print, and `print-color-adjust: exact` so it prints the same with background graphics off. It stays ink on paper (it must survive a black-and-white printer); the marigold appears only in the Shelfie tag and, on screen, the tape holding the card to the page.
 
 ## Components (`src/components/ui`)
 

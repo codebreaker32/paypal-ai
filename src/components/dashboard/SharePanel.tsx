@@ -1,6 +1,7 @@
 'use client';
 
-import { Bot, DoorOpen, ExternalLink, Store } from 'lucide-react';
+import { useParams } from 'next/navigation';
+import { Bot, DoorOpen, ExternalLink, Printer, QrCode, Store } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -60,7 +61,34 @@ function LinkBlock({
   );
 }
 
+/** The counter card: a printable card with a QR code of the shop link (its own page, /shops/[id]/card). */
+function CounterCardBlock({ shopId }: { shopId: string }) {
+  return (
+    <Card as="section" aria-labelledby="share-card" padding="lg" className="flex flex-col gap-4">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-soft">
+          <Icon icon={QrCode} />
+        </span>
+        <div className="flex flex-col gap-1">
+          <h2 id="share-card" className="type-heading">
+            Counter card
+          </h2>
+          <p className="max-w-measure text-ink-soft">
+            A card for your counter with a QR code of your shop link. People scan it to see your menu, and their AI
+            assistants find your agent door there.
+          </p>
+        </div>
+      </div>
+      <ButtonLink href={`/shops/${shopId}/card`} variant="secondary" icon={Printer} className="w-full sm:w-auto sm:self-start">
+        Print counter card
+      </ButtonLink>
+    </Card>
+  );
+}
+
 export function SharePanel({ shopUrl, doorUrl, slug }: { shopUrl: string; doorUrl: string; slug: string }) {
+  // The dashboard's own route (/shops/[id]) names the shop, so the card link needs no extra prop.
+  const { id: shopId } = useParams<{ id: string }>();
   return (
     <div className="flex flex-col gap-5">
       <LinkBlock id="share-door" icon={DoorOpen} title="Your agent door" url={doorUrl} what="Agent door link" copyLabel="Copy agent door link">
@@ -69,6 +97,7 @@ export function SharePanel({ shopUrl, doorUrl, slug }: { shopUrl: string; doorUr
       <LinkBlock id="share-shop" icon={Store} title="Your shop link" url={shopUrl} what="Shop link" openHref={`/s/${slug}`}>
         Your menu for people to read, with the agent door on it. Put it in your bio or next to your price list.
       </LinkBlock>
+      <CounterCardBlock shopId={shopId} />
       <ButtonLink href={`/s/${slug}?assistant=1`} variant="secondary" icon={Bot} className="w-full sm:w-auto sm:self-start">
         Watch an AI order from you
       </ButtonLink>

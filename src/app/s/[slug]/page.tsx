@@ -9,6 +9,7 @@ import { starterPrompts } from '@/components/shop/starters';
 import { Icon } from '@/components/ui/Icon';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
+import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { formatUSD } from '@/lib/domain/money';
@@ -119,17 +120,27 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
   const { assistant } = await searchParams;
   const shop = loadShop(slug);
   const items = itemsRepo.listWithVariants(getDb(), shop.id, { status: ['live', 'in_person'] });
-  const doorUrl = `${getConfig().appUrl}/s/${shop.slug}/mcp`;
+  const shopUrl = `${getConfig().appUrl}/s/${shop.slug}`;
+  const doorUrl = `${shopUrl}/mcp`;
 
   return (
-    <ShopAssistant
-      slug={shop.slug}
-      shopName={shop.name}
-      starters={starterPrompts(shop, items)}
-      initiallyOpen={assistant === '1'}
-      intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
-      menu={<Menu sections={menuSections(items)} />}
-      door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} />}
-    />
+    <>
+      {/* For agents that read the page itself (spec §10a): React hoists the link into <head>; the JSON-LD is the menu
+          as schema.org offers, with the agent door as an OrderAction while the shop is live. */}
+      <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(shopJsonLd(shop, items, { shopUrl, doorUrl })) }}
+      />
+      <ShopAssistant
+        slug={shop.slug}
+        shopName={shop.name}
+        starters={starterPrompts(shop, items)}
+        initiallyOpen={assistant === '1'}
+        intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
+        menu={<Menu sections={menuSections(items)} />}
+        door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} />}
+      />
+    </>
   );
 }
