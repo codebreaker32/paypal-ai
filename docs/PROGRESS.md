@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-07 02:58 IST (run 3, session 6)_
+_Last updated: 2026-11-07 03:05 IST (run 3, session 6)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
@@ -12,8 +12,9 @@ _Last updated: 2026-11-07 02:58 IST (run 3, session 6)_
 - **Judge round 11: ship, A 25 / B 24, 0 Part C fails** (`docs/judge/round-11.md`): A5 4 → 5 on the rendered video. Fix 2 done (flavour-safe example photos: the citrus cake gets the lemon tart, Claude's pick too; "1 item"; hero bun $3.50; README). Fixes 1 and 3 (publish, public repo, SUBMISSION, Render deploy) are the human's. Round-11 screenshots re-shot after fix 2 (96, axe 0).
 - **Verified: final clips** (`npm run clips -- --build` on `f073227`, 02:10–02:30 IST): all 12, 1920x1080 at 30 fps, 0 dup / 0 drop. Cut points re-aligned by frame matching; the counter line now introduces the example photos; the discovery line fits this take (door found via the page's `llms.txt`).
 - **Verified: the video is rendered: `video/out/shelfie-demo.mp4`, 166.78 s (2:46.8), 1920x1080, H.264 30 fps + AAC**, poster `video/out/poster.png`, captions `video/shelfie-demo.srt` (gitignored mp4/poster, at `~/paypal-ai/video/out/`). Frame check every 2 s (84 frames): `docs/judge/video-frames-check.md`.
-- **running:** the video judge round (writes `docs/judge/video-round.md`) and the final full e2e (`/tmp/e2e/final-tests.txt` → copy to `docs/judge/final-tests.txt`).
-- **Next (if this session is cut off):** read `docs/judge/video-round.md`; apply its top fixes in `video/project/demo.json` (the tamper cut at 1.6 s is already in it, not yet rendered) → `cd video/remotion && npm run voice && npm run render` → re-check frames every 2 s (update `docs/judge/video-frames-check.md`) → record the final e2e result → final summary in this file, commit, push, `touch ~/paypal-ai/.run-complete`.
+- **Video judge round: A5 5/5, 0 Part C fails, ship** (`docs/judge/video-round.md`). Its 3 fixes are made in code/manifest (DECISIONS): Claude Code's order kept alive in a 05–09 re-take, loudness normalised to -14 LUFS in `render.mjs` (tested on the 2:46.8 render: -25.87 → -14.0 LUFS, true peak -1.0), discovery captions at the bottom with a 2.5 s hold, no footer on the architecture card.
+- **running:** the final full e2e (`/tmp/e2e/final-tests.txt`), then automatically `npm run clips -- --only 05,06,09,10` (`/tmp/clips-fix.log`).
+- **Next (if this session is cut off):** check `/tmp/clips-fix.log` (re-run the same command if it failed; never beside e2e) → re-align the discovery (05), console (06), paypal (06b), dashboard (08) and tracking (09) cut points in `video/project/demo.json` (frame matching: `/tmp/align/align.mjs` compares the old clips in `video/project/clips/` with `video/clips/`; 05 by hand) → `rm video/project/clips/{05,06,06b,08,09,10}*.mp4` → `cd video/remotion && npm run render` → frame check every 2 s (update `docs/judge/video-frames-check.md`, check the dashboard shows the agent's order not cancelled) → copy the e2e log to `docs/judge/final-tests.txt` → final summary here, commit, push, `touch ~/paypal-ai/.run-complete`.
 - **Unverified:** the live Pexels search (no `PEXELS_API_KEY`; unit-tested with a fake fetch only).
 - **Next:** judge 11's fixes → final clips (`npm run clips -- --build`) → re-check edit offsets → render → frame check every 2 s → video judge → fixes → completion.
 
