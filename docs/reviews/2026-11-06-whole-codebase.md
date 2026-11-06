@@ -28,7 +28,7 @@ A workflow of 4 area reviewers (orders, PayPal client, agent door, setup), each 
 
 **Verifier's fix:** Before reading the body, reject a request whose Content-Length is missing or over a small cap (64 KB is generous for PayPal events) with 413 or 411. When PAYPAL_WEBHOOK_ID is set, also run the signature-header check first. Then read the body through a byte-limited stream reader that stops and returns 413 once the cap is exceeded, rather than `req.text()`. Reuse the same helper for /api/assistant/[slug].
 
-**Status:** open
+**Status:** fixed (`9f5fa39`): `src/lib/http/read-body.ts` reads JSON and webhook bodies with a 64 KB cap counted on the stream (413 BODY_TOO_LARGE); the tracking route's reader answers 400 for an oversized body.
 
 ## R3. [orders, medium] A refused capture leaves the order stuck in 'approved' for good, and the seller is told the payment will land in seconds
 
@@ -86,7 +86,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Before reading the body: (1) return 503 early if no webhook ID is set in production, and check the five paypal-transmission-* headers first. (2) Reject Content-Length above a small cap (e.g. 64 KB) with 413. (3) Read req.body through a byte-limited reader that aborts and answers 413 once the cap is exceeded, so chunked bodies without Content-Length are also bounded. Then pass the collected string to verifyWebhookSignature and JSON.parse.
 
-**Status:** open
+**Status:** fixed (`9f5fa39`): `src/lib/http/read-body.ts` reads JSON and webhook bodies with a 64 KB cap counted on the stream (413 BODY_TOO_LARGE); the tracking route's reader answers 400 for an oversized body.
 
 ## R6. [door, high] client_request_id is matched per shop only, and request content is never compared, so one buyer gets (and can pay for) another buyer's order
 
@@ -142,7 +142,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Run the per-IP allow() check before reading the body (move clientIp/allow above req.json). Reject Content-Length over a small cap (e.g. 8 KB) with 413. Read the body with a streaming cap (readRequestBody from @modelcontextprotocol/sdk/server/requestBody.js with 8 KB, or a small reader that stops at the cap), so chunked bodies without Content-Length are bounded too. Then JSON.parse the bounded text. The same unbounded-read pattern appears in src/app/api/paypal/webhook/route.ts:32 (`await req.text()` before the signature-header check). In src/app/api/shops/route.ts:39 the JSON branch is also unbounded when the body is chunked with no Content-Length, because checkUploadSize only requires Content-Length for multipart. Both are worth the same cap.
 
-**Status:** open
+**Status:** fixed (`9f5fa39`): `src/lib/http/read-body.ts` reads JSON and webhook bodies with a 64 KB cap counted on the stream (413 BODY_TOO_LARGE); the tracking route's reader answers 400 for an oversized body.
 
 ## R10. [setup, medium] Menu reading silently drops a different item when the same name and price appear under another section
 
@@ -156,7 +156,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** In buildItem/dedupe, auto-merge only when the sections match or one of them is null (a heading cut off on another page). Otherwise keep both items. Apply the same section-aware grouping to the DUPLICATE 'different prices' flag. Add a normalize test for the same name and price under two sections.
 
-**Status:** open
+**Status:** fixed (`7aec222`): items merge or get a DUPLICATE flag only when their sections match (or one is empty); "HOT: Latte $4.50" and "ICED: Latte $4.50" stay two items.
 
 ## R11. [setup, medium] No rate limit on shop creation or menu reading, so anyone can spend the Anthropic key and fill the disk
 
@@ -170,7 +170,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Apply `allow(`shops:${clientIp(req)}`, …)` to POST /api/shops and `allow(`extract:${clientIp(req)}`, …)` to POST /api/shops/[id]/extract, returning 429 RATE_LIMITED. Optionally add a per-shop reading cap (for example, count extractions rows for the shop) and delete replaced photo files in setShopPhotos('replace').
 
-**Status:** open
+**Status:** fixed (`00e2b28`): per address per hour, 10 new shops, 20 retake uploads and 20 live readings, each a 429 with a plain message; recorded sample readings aren't counted. Skipped when `SHELFIE_TEST` is set (the Playwright and screenshot servers only).
 
 ## R12. [setup, medium] Reading timeout budget is wrong: the SDK retries each 90 s timeout twice, so a live reading outlasts READING_STALE_MS
 
@@ -184,7 +184,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Pass `maxRetries: 0` with the timeout in the messages.parse request options (extract.ts:36), or size READING_STALE_MS from the real budget (attempts × 90 s + backoff + the optional re-prompt). In runReading, before extractions.finish/items.replaceDrafts, write only when `extractions.latest(db, shopId)?.id === id`, preferably inside the same transaction. Otherwise drop the result, or mark that row failed and leave the drafts alone.
 
-**Status:** open
+**Status:** fixed (`f75b755`): `maxRetries: 1` and a 180 s overall deadline (`READING_DEADLINE_MS`); `READING_STALE_MS` is the deadline plus 60 s, pinned by a test.
 
 ## R13. [setup, low] POST /api/shops reads a chunked JSON body with no size limit (and so do the owner JSON routes)
 
@@ -198,7 +198,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Add a shared readJsonLimited(req, maxBytes) that rejects a declared Content-Length over the cap, streams req.body, and aborts with 413 once the cap is passed. Use it in POST /api/shops (for example 4 KB), in catalog/seller readJson (for example 64 KB), in /api/assistant/[slug] (for example 8 KB) and in the webhook (for example 64 KB).
 
-**Status:** open
+**Status:** fixed (`9f5fa39`): `src/lib/http/read-body.ts` reads JSON and webhook bodies with a 64 KB cap counted on the stream (413 BODY_TOO_LARGE); the tracking route's reader answers 400 for an oversized body.
 
 ## Refuted
 
