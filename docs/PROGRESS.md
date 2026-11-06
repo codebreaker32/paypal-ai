@@ -4,7 +4,15 @@ _Last updated: 2026-11-06 07:21 IST (session 5 running)_
 
 ## Current phase
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
-- the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 unverified candidates; one fixer is verifying and fixing them in a worktree;
+- **done, merged:** the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 candidates; the fixer confirmed and fixed 9 and skipped 1 (CopyRow → CopyButton isn't a clean swap):
+  - keeping one of two copies of an item ("listed twice") now clears only that flag, so the kept item's own unusual-price or deal question still gets its card;
+  - a card keeps its stored explanation when today's normaliser has none;
+  - `screenshots:prod` refuses `..` paths, has no default output folder and deletes nothing if the server never starts;
+  - after a copy, the button's name keeps the link ("Agent door link copied");
+  - more crossed-out wordings ("cross-out", "strikes", "scored out") and method talk ("matched to", "reading order") are caught;
+  - the waiting group's subtotal says "Not paid yet", which is true for approved and payment-pending orders too;
+  - the console keeps its scroller in a ref, with a page-scroll fallback.
+  586 unit tests pass on main; typecheck and lint are clean.
 - **done, merged:** the Claude Code outside-client proof re-run on current main (order SHF-KTZ39C → PayPal `17R81429KU459414P`, `PAYER_ACTION_REQUIRED`, $8.50, `custom_id` matches), with dashboard and order screenshots at 1440 and 390 px in the current design;
 - a fresh-clone walkthrough of the README as a judge would follow it, with doc fixes and an honest "Path to scale" section.
 
