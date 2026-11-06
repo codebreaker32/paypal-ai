@@ -12,7 +12,8 @@ export type OrderErrorCode =
   | 'TOO_MANY_OPEN_ORDERS'
   | 'RATE_LIMITED'
   | 'PAYPAL_UNAVAILABLE'
-  | 'ORDER_NOT_FOUND';
+  | 'ORDER_NOT_FOUND'
+  | 'IDEMPOTENCY_CONFLICT';
 
 const RETRYABLE: ReadonlySet<OrderErrorCode> = new Set(['PAYPAL_UNAVAILABLE', 'RATE_LIMITED']);
 

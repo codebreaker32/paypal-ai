@@ -148,6 +148,38 @@ describe('order service', () => {
       expect(orders.listByShop(db, s.shop.id)).toHaveLength(1);
     });
 
+    it('refuses a reused clientRequestId with different content instead of returning the other order (R6)', async () => {
+      const alice = await createOrderForShop(deps, s.shop, {
+        lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'pickup', clientRequestId: 'order-1',
+      });
+      const variants: Parameters<typeof createOrderForShop>[2][] = [
+        { lines: [{ itemId: s.item['Sourdough loaf'].id, quantity: 5 }], fulfillment: 'shipping', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 3 }], fulfillment: 'pickup', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'shipping', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }, { itemId: s.item['Sourdough loaf'].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'order-1' },
+      ];
+      for (const v of variants) {
+        const e = await rejection(createOrderForShop(deps, s.shop, v));
+        expect(e.code).toBe('IDEMPOTENCY_CONFLICT');
+        expect(e.message).toContain('client_request_id');
+        expect(JSON.stringify(e)).not.toContain(alice.id);
+      }
+      // Concurrent: a different request racing the first one with the same key is refused too.
+      const coffee = s.item['Drip coffee'];
+      const [first, second] = await Promise.allSettled([
+        createOrderForShop(deps, s.shop, { lines: [{ itemId: coffee.id, optionId: coffee.variants[0].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'k2' }),
+        createOrderForShop(deps, s.shop, { lines: [{ itemId: coffee.id, optionId: coffee.variants[1].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'k2' }),
+      ]);
+      expect(first.status).toBe('fulfilled');
+      expect(second.status === 'rejected' && (second.reason as OrderError).code).toBe('IDEMPOTENCY_CONFLICT');
+      // The true retry still returns the same order without a PayPal call.
+      const again = await createOrderForShop(deps, s.shop, {
+        lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'pickup', clientRequestId: 'order-1',
+      });
+      expect(again.id).toBe(alice.id);
+      expect(calls('createOrder')).toHaveLength(2);
+    });
+
     it('treats the same clientRequestId in another shop as a different order', async () => {
       const other = seedShop(db, { name: 'Other' });
       const a = await order({ clientRequestId: 'k' });

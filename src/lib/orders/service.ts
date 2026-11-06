@@ -84,13 +84,35 @@ export async function createOrderForShop(deps: OrderDeps, shop: Shop, input: Cre
   const key = clean(input.clientRequestId, 64);
   if (!key) return createNew(deps, shop, input, null);
   const existing = ordersRepo.byClientRequestId(deps.db, shop.id, key);
-  if (existing) return existing;
+  if (existing) return sameRequestOrConflict(existing, input);
   const slot = `${shop.id}\u0000${key}`;
   const pending = inflight.get(slot);
-  if (pending) return pending;
+  if (pending) return pending.then((order) => sameRequestOrConflict(order, input));
   const p = createNew(deps, shop, input, key).finally(() => inflight.delete(slot));
   inflight.set(slot, p);
   return p;
+}
+
+/**
+ * A client_request_id only makes a retry idempotent: the stored order comes back only when the request has the same
+ * content (items, options, quantities, fulfillment). Anything else is a different order that reused the key, and gets
+ * a conflict instead of someone else's order_ref and approval link.
+ */
+function sameRequestOrConflict(order: Order, input: CreateOrderInput): Order {
+  const same =
+    (input.fulfillment === undefined || input.fulfillment === order.fulfillment) &&
+    input.lines.length === order.lines.length &&
+    input.lines.every((l, i) => {
+      const stored = order.lines[i];
+      // An omitted option means the item's only option, which is what pricing stored.
+      return stored.itemId === l.itemId && stored.qty === l.quantity && (l.optionId === undefined || stored.variantId === l.optionId);
+    });
+  if (same) return order;
+  throw new OrderError(
+    'IDEMPOTENCY_CONFLICT',
+    'This client_request_id was already used for a different order. Use a new one.',
+    'Send a new, unique client_request_id for this order. Reuse a client_request_id only to retry the exact same request.',
+  );
 }
 
 async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, key: string | null): Promise<Order> {
@@ -156,7 +178,9 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   } catch (e) {
     // Lost a cross-process race on UNIQUE(shop_id, client_request_id) or on the PayPal order id: return the winner.
     if (isUniqueViolation(e)) {
-      const winner = (key && ordersRepo.byClientRequestId(db, shop.id, key)) || ordersRepo.byPayPalId(db, created.id);
+      const byKey = key ? ordersRepo.byClientRequestId(db, shop.id, key) : null;
+      if (byKey) return sameRequestOrConflict(byKey, input);
+      const winner = ordersRepo.byPayPalId(db, created.id);
       if (winner) return winner;
     }
     throw e;
