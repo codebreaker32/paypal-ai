@@ -211,6 +211,16 @@ describe('order service', () => {
       expect((await order({ clientKey: '198.51.100.66' })).status).toBe('awaiting_approval');
     });
 
+    it('counts unpaid orders against the injected clock, so they hold their slot until their own expiry', async () => {
+      clock = Date.now() - 2 * 60 * MIN;
+      for (let i = 0; i < MAX_OPEN_ORDERS_PER_CLIENT; i++) await order({ clientKey: 'past-ip' });
+      expect((await rejection(order({ clientKey: 'past-ip' }))).code).toBe('TOO_MANY_OPEN_ORDERS');
+      for (let i = MAX_OPEN_ORDERS_PER_CLIENT; i < 10; i++) await order();
+      expect((await rejection(order())).code).toBe('TOO_MANY_OPEN_ORDERS');
+      clock += 60 * MIN + 1;
+      expect((await order({ clientKey: 'past-ip' })).status).toBe('awaiting_approval');
+    });
+
     it('enforces the per-client and shop-wide caps under concurrent create calls (R7)', async () => {
       const one = await Promise.allSettled(Array.from({ length: 25 }, () => order({ clientKey: 'same-ip' })));
       expect(one.filter((r) => r.status === 'fulfilled')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);

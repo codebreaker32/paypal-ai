@@ -118,13 +118,8 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
   return out;
 }
 
-/** PayPal declined the card the buyer approved with, and the order is waiting for them to pick another (as on the receipt). */
-export function cardDeclined(order: Pick<Order, 'status'>, events: OrderEventRow[]): boolean {
-  return (
-    order.status === 'awaiting_approval' &&
-    events.some((e) => e.type === 'capture_declined' && !(e.detail as { ignored?: boolean } | null)?.ignored)
-  );
-}
+/** PayPal declined the card the buyer approved with (the same rule as the receipt and get_order_status). */
+export { cardDeclined } from '@/lib/orders/declined';
 
 /** Title and text of the order detail's action card for an order the seller can't act on yet (or any more). */
 export function actionWords(order: Pick<Order, 'status' | 'captureRefused'>, declined = false): [string, string] {

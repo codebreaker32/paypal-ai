@@ -4,7 +4,7 @@ import { createTestDb } from '@/lib/db';
 import * as orders from '@/lib/db/repos/orders';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
-import { createOrderForShop, type OrderDeps } from '@/lib/orders/service';
+import { createOrderForShop, syncOrder, type OrderDeps } from '@/lib/orders/service';
 import { pollOnce } from '@/lib/orders/poller';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
 import { seedShop } from '../helpers/shop';
@@ -46,5 +46,26 @@ describe('paypalLooksUnreachable when PayPal reads fail', () => {
     await pollOnce(deps);
     expect(paypalLooksUnreachable(db, [orders.byId(db, open.id)!], clock)).toBe(false);
     warn.mockRestore();
+  });
+
+  it('keeps the banner off when PayPal refuses one order read with a 4xx (PayPal answered)', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const db = createTestDb();
+    const fake = createFakePayPal();
+    const a = seedShop(db, { name: 'Shop A' });
+    const b = seedShop(db, { name: 'Shop B' });
+    let clock = Date.now() + 60 * 60_000;
+    const deps: OrderDeps = { db, paypal: fake, appUrl: 'http://localhost:3000', now: () => clock };
+    const line = (s: typeof a) => ({ lines: [{ itemId: s.item['Almond croissant'].id, quantity: 1 }], fulfillment: 'pickup' as const });
+    const fine = await createOrderForShop(deps, a.shop, line(a));
+    const refused = await createOrderForShop(deps, b.shop, line(b));
+    await syncOrder(deps, fine.id, 'poller');
+
+    clock += 1_000;
+    fake.failNext('getOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'ORDER_NOT_APPROVED', 'dbg', 'refused'));
+    await expect(syncOrder(deps, refused.id, 'poller')).rejects.toMatchObject({ code: 'PAYPAL_UNAVAILABLE' });
+
+    expect(paypalLooksUnreachable(db, [orders.byId(db, fine.id)!], clock)).toBe(false);
+    error.mockRestore();
   });
 });
