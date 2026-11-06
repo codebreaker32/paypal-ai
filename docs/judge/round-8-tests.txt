@@ -57,3 +57,26 @@ SHELFIE_SCREENSHOTS=1 E2E_PORT=3172 npx playwright test e2e/capture.spec.ts --re
 [capture-gate] [platform] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179397185733110.
   2 passed (2.3m)
 ```
+
+## Full e2e suite on e3e4598 (session 8: the AI brief's grey line cut), 19:06-19:16 IST
+SHELFIE_SCREENSHOTS=1 E2E_PORT=3172 npm run e2e, real Claude and the real PayPal sandbox, on an otherwise idle VM. docs/judge/screenshots/capture/ is re-shot from this run.
+```
+[capture-gate] shop shp_ce2vqbsmhtm32uy3 live at /s/marigold-bakehouse-7: 6 PayPal sandbox products (PROD-48333611JB848662A, PROD-9FW41846AX760714H, PROD-2VF60999AD271525A…)
+[capture-gate] [seller] order SHF-4VXCEW (ord_2xdtxrwjdfvzccjd) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [seller] PayPal order 8J01644913847025P
+[capture-gate] [seller] capture 0MJ77163TH7536036 COMPLETED at PayPal, $27.00, payee = PAYPAL_SANDBOX_SELLER_EMAIL
+[capture-gate] [seller] brief (agent): "Ship · 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Wants it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy, but the almond croissant is marked 'contains nuts!'. Check with the buyer before sendin
+[capture-gate] [seller] tracking 9400111179397223757118 saved in Shelfie (no PayPal call)
+[capture-gate] [seller] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179397223757118.
+[capture-gate] [platform] demo shop shp_ldcdtcmukjprfh3c live at /s/marigold-bakehouse: 9 published now, paid to the platform
+[capture-gate] [platform] order SHF-S4WQ5M (ord_aw34quklilia7rio) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [platform] PayPal order 7KR35244X9635210A
+[capture-gate] [platform] capture 7CX95509094755108 COMPLETED at PayPal, $27.00, payee = the app's own account
+[capture-gate] [platform] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA · nut allergy"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Wants it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy, but the almond croissant is marked 'contains nuts!'. Ask the buyer before
+[capture-gate] [platform] PayPal tracker 7CX95509094755108-9400111179397228789568 USPS SHIPPED
+[capture-gate] [platform] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179397228789568.
+
+Running 177 tests using 1 worker
+  3 skipped
+  174 passed (10.0m)
+```
