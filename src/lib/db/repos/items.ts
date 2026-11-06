@@ -1,8 +1,8 @@
 import type { Db } from '@/lib/db';
 import { now } from '@/lib/db';
 import { newId } from '@/lib/domain/ids';
-import { isItemCategory } from '@/lib/domain/category';
-import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVariants, Variant } from '@/lib/domain/types';
+import { isItemCategory, itemCategory, type ItemPicture } from '@/lib/domain/category';
+import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVariants, ShopKind, Variant } from '@/lib/domain/types';
 
 interface ItemRow {
   id: string; shop_id: string; section: string | null; name: string; description: string | null; source_text: string;
@@ -76,6 +76,16 @@ export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemSt
 export function photoUrls(db: Db, shopId: string): Map<string, string | null> {
   const rows = db.prepare('SELECT id, photo_url FROM items WHERE shop_id = ?').all(shopId) as { id: string; photo_url: string | null }[];
   return new Map(rows.map((r) => [r.id, r.photo_url ?? null]));
+}
+
+/** Each of a shop's items' thumbnail (photo, else its drawing's category), without reading their variants: order lines. */
+export function itemPictures(db: Db, shopId: string, shopKind: ShopKind): Map<string, ItemPicture> {
+  const rows = db.prepare('SELECT id, photo_url, category, name, section, description FROM items WHERE shop_id = ?').all(shopId) as {
+    id: string; photo_url: string | null; category: string | null; name: string; section: string | null; description: string | null;
+  }[];
+  return new Map(
+    rows.map((r) => [r.id, { photoUrl: r.photo_url ?? null, category: itemCategory({ ...r, category: isItemCategory(r.category) ? r.category : null }, shopKind) }]),
+  );
 }
 
 /** Item scoped to its shop: never returns another shop's item. */

@@ -1,4 +1,5 @@
 // Order detail (spec §4): one order end to end. Owner only, SQLite only; refreshes itself while payment or the brief is pending.
+import type { ItemPicture } from '@/lib/domain/category';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -201,7 +202,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
   );
 }
 
-function ItemsCard({ order, photos, className }: { order: Order; photos: ReadonlyMap<string, string | null>; className?: string }) {
+function ItemsCard({ order, photos, className }: { order: Order; photos: ReadonlyMap<string, ItemPicture>; className?: string }) {
   return (
     <section aria-labelledby="items-title" className={cx(SECTION, 'gap-4', className)}>
       <SectionTitle id="items-title">Items</SectionTitle>
@@ -209,7 +210,7 @@ function ItemsCard({ order, photos, className }: { order: Order; photos: Readonl
         {order.lines.map((l, i) => (
           <div key={i} className="flex items-center justify-between gap-4">
             <dt className="flex min-w-0 flex-1 items-center gap-3">
-              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId) ?? null} size="sm" decorative eager className="size-11 shrink-0 rounded-(--thumb-radius)" />
+              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId)?.photoUrl ?? null} category={photos.get(l.itemId)?.category ?? 'goods'} size="sm" decorative eager className="size-11 shrink-0 rounded-(--thumb-radius)" />
               <span className="flex min-w-0 flex-col">
                 <span>
                   <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
@@ -309,7 +310,7 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
 const SIDEBAR_ORDERS = 40;
 
 /** Desktop only: the shop's newest orders beside the open one (list + detail), the open one marked. */
-function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, string | null> }) {
+function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, ItemPicture> }) {
   return (
     <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 lg:block">
       <ul className="flex flex-col gap-0.5">
@@ -323,7 +324,7 @@ function OrderList({ shopId, orders, current, photos }: { shopId: string; orders
                 aria-current={here ? 'page' : undefined}
                 className={cx('flex items-center gap-3 rounded-(--thumb-radius) px-3 py-2.5 no-underline hover:bg-surface-sunken', here && 'bg-surface-sunken')}
               >
-                <ItemPhoto name={first?.name ?? o.number} photoUrl={first ? (photos.get(first.itemId) ?? null) : null} size="sm" decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
+                <ItemPhoto name={first?.name ?? o.number} photoUrl={first ? (photos.get(first.itemId)?.photoUrl ?? null) : null} category={(first && photos.get(first.itemId)?.category) || 'goods'} size="sm" decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="type-price text-sm font-bold">{o.number}</span>
@@ -357,7 +358,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   const pending = isOpen(order.status) || ((order.status === 'paid' || order.status === 'fulfilled') && !order.brief);
   // The desktop sidebar shows only the newest orders; this runs on every render and every AutoRefresh tick.
   const allOrders = ordersRepo.listByShop(db, shop.id, { limit: SIDEBAR_ORDERS });
-  const photos = itemsRepo.photoUrls(db, shop.id);
+  const photos = itemsRepo.itemPictures(db, shop.id, shop.kind);
 
   return (
     <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">

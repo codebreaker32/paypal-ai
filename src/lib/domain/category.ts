@@ -1,4 +1,4 @@
-import type { ShopKind } from './types';
+import type { ItemKind, ShopKind } from './types';
 
 /**
  * The pictures Shelfie draws for an item with no photo of its own (src/components/illustrations). Claude picks one per
@@ -59,4 +59,18 @@ export function itemCategory(
 ): ItemCategory {
   if (isItemCategory(item.category)) return item.category;
   return guessCategory({ name: item.name, section: item.section, description: item.description, shopKind });
+}
+
+/** What an item thumbnail shows: the seller's photo, else the drawing of its category. */
+export interface ItemPicture {
+  photoUrl: string | null;
+  category: ItemCategory;
+}
+
+/**
+ * `itemCategory` where the shop's kind isn't at hand (setup and Menu tab rows): the kind only decides the last fallback
+ * (`tool` for services, else `goods`), and a services shop's items are the SERVICE ones.
+ */
+export function categoryOf(item: { category: ItemCategory | null; name: string; section: string | null; description: string | null; kind: ItemKind }): ItemCategory {
+  return itemCategory(item, item.kind === 'SERVICE' ? 'services' : 'goods');
 }

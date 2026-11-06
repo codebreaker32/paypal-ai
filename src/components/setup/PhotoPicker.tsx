@@ -8,6 +8,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Sheet } from '@/components/ui/Sheet';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
+import type { ItemCategory } from '@/lib/domain/category';
 import { startErrorMessage } from '@/lib/client/api';
 import { checkNewPhotos } from '@/lib/client/photos';
 import { removeCover, removeItemPhoto, uploadCover, uploadItemPhoto } from '@/lib/client/item-photos';
@@ -136,6 +137,8 @@ export interface ItemPhotoPickerProps {
   itemId: string;
   name: string;
   photoUrl: string | null;
+  /** The item's drawing while it has no photo (`categoryOf(item)`). */
+  category: ItemCategory;
   /** Menu section index, for the fallback tint. */
   tone?: number;
   onChange: (photoUrl: string | null) => void;
@@ -150,7 +153,7 @@ export interface ItemPhotoPickerProps {
  * An item's thumbnail that is also its photo control. Without a photo, a tap opens the camera or library; with one, a
  * sheet shows it large with Replace and Remove. Errors (a refused file, a failed upload) show under the thumbnail's row.
  */
-export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onChange, onError, size = 'md', className }: ItemPhotoPickerProps) {
+export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, tone = 0, onChange, onError, size = 'md', className }: ItemPhotoPickerProps) {
   const [open, setOpen] = useState(false);
   const actions = usePhotoActions(
     (file) => uploadItemPhoto(shopId, itemId, file),
@@ -175,7 +178,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
         </button>
       ) : (
         <FileLabel label={`Add a photo of ${name}`} onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(box, 'group')}>
-          <ItemPhoto name={name} photoUrl={null} tone={tone} size="sm" decorative className="size-full rounded-(--thumb-radius)" />
+          <ItemPhoto name={name} photoUrl={null} category={category} tone={tone} size="sm" decorative className="size-full rounded-(--thumb-radius)" />
           <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-surface text-ink shadow-sm transition-transform group-hover:scale-110">
             <Icon icon={ImagePlus} size="sm" />
           </span>

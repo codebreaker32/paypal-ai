@@ -26,13 +26,14 @@ describe('pickOne', () => {
 });
 
 describe('ItemPhotoPicker', () => {
-  const props = { shopId: 'shp_1', itemId: 'itm_1', name: 'Cardamom bun', onChange: () => {} };
+  const props = { shopId: 'shp_1', itemId: 'itm_1', name: 'Cardamom bun', category: 'pastry' as const, onChange: () => {} };
 
-  it('without a photo: the tile is a labelled file input showing the monogram', () => {
+  it('without a photo: the tile is a labelled file input showing the item’s drawing, never letters', () => {
     const html = renderToStaticMarkup(createElement(ItemPhotoPicker, { ...props, photoUrl: null }));
     expect(html).toContain('aria-label="Add a photo of Cardamom bun"');
     expect(html).toContain('type="file"');
-    expect(html).toContain('>Cb<');
+    expect(html).toContain('href="/illustrations.svg#pastry"');
+    expect(html).not.toContain('>Cb<');
   });
 
   it('with a photo: the photo (with alt text) opens Replace and Remove', () => {

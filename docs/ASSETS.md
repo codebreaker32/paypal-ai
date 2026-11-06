@@ -34,6 +34,8 @@ Used as the display-case photo for "Snap your counter" in the demo clip and the 
 
 ## Other assets
 
+- Item illustrations (`public/illustrations.svg`, 12 drawings) and their contact sheet `docs/judge/evidence/illustrations.png`: drawn for Shelfie in this repository (run 3), no third-party source; same licence as the code.
+
 - Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
 ## Ravi's Bike Repair (ravi-bike-repair)

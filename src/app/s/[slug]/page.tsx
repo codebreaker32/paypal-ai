@@ -3,9 +3,9 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 /* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
 import { AgentDoor } from '@/components/shop/AgentDoor';
-import { monogram } from '@/components/shop/ItemPhoto';
 import { Menu, menuSections } from '@/components/shop/Menu';
 import { ShopAssistant } from '@/components/shop/ShopAssistant';
+import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { starterPrompts } from '@/components/shop/starters';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
@@ -85,21 +85,11 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
   const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
   return (
     <div className="flex flex-col gap-5">
-      {/* With a cover, the shop's mark sits over its bottom edge, so a shop with photos keeps its identity too. */}
-      {hasCover && (
-        <span
-          aria-hidden="true"
-          className="relative -mt-16 -mb-1 flex size-20 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-3xl font-extrabold text-on-accent ring-4 ring-surface sm:-mt-20 sm:size-24 sm:text-4xl"
-        >
-          {monogram(shop.name)}
-        </span>
-      )}
+      {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
+          stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
+      {hasCover && <ShopAvatar shop={shop} items={items} size="xl" className="relative z-10 -mt-16 -mb-1 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20" />}
       <div className="flex items-start gap-4">
-        {!hasCover && (
-          <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-2xl font-extrabold text-on-accent sm:size-20 sm:text-3xl">
-            {monogram(shop.name)}
-          </span>
-        )}
+        {!hasCover && <ShopAvatar shop={shop} items={items} size="lg" />}
         <div className="min-w-0 flex-1">
           <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">
@@ -171,7 +161,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         initiallyOpen={assistant === '1'}
         cover={<Cover shop={shop} items={items} />}
         intro={<Intro shop={shop} items={items} photoCount={shop.menuPhotoPaths.length} />}
-        menu={<Menu sections={menuSections(items)} />}
+        menu={<Menu sections={menuSections(items)} kind={shop.kind} />}
         door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
         takesOrders={ordersOpen}
       />

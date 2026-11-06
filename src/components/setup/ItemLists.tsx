@@ -1,5 +1,6 @@
 'use client';
 
+import { categoryOf } from '@/lib/domain/category';
 import { useId, useState, type ReactNode } from 'react';
 import { Check, ChevronDown, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -62,6 +63,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, onPhoto }: { item: ItemWithVar
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
+          category={categoryOf(item)}
           tone={tone}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
@@ -162,6 +164,7 @@ function InPersonRow({ item, onUpdate, shopId, onPhoto }: { item: ItemWithVarian
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
+          category={categoryOf(item)}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
         />
