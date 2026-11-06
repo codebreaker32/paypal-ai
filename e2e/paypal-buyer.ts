@@ -6,10 +6,15 @@
 // off, Pay Now, and for shipping orders PayPal's "Continue" on the address-match dialog. PayPal then sends the browser
 // to the order's return URL.
 //
-// Why not log in as the .env sandbox buyer: the sandbox merchant and that buyer are both India accounts, and PayPal
-// refuses IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
+// Guest card works only on orders paid into the platform account (the demo shop with no payee): on an order routed to
+// a seller's own account (payee.email_address) the sandbox declines the card at capture (spike, 6 Nov 2026).
 //
-// Nothing here reads .env. The guest details are PayPal's public sandbox test values.
+// payWithPayPalLogin: PayPal wallet checkout, logged in as a sandbox Personal account. Proven on 6 Nov 2026 with a US
+// buyer paying an order routed to a US seller (capture COMPLETED). The India buyer can't pay the India platform account
+// this way ("This seller doesn't accept payments in your currency"), which is why guest card came first.
+//
+// Nothing here reads .env: the caller passes the login. Never log it. The guest details are PayPal's public sandbox
+// test values.
 import type { Page, TestInfo } from '@playwright/test';
 
 /** PayPal's sandbox test Visa that the spike proved (4012888888881881 is refused by the sandbox). */
@@ -70,7 +75,7 @@ async function failWithEvidence(page: Page, info: TestInfo | undefined, step: st
   const seen = await blocker(page);
   const where = page.url().split('?')[0];
   const why = cause instanceof Error ? cause.message.split('\n')[0] : String(cause);
-  const message = `PayPal guest checkout stopped at "${step}" on ${where}${seen ? ` (${seen})` : ''}: ${why}`;
+  const message = `PayPal checkout stopped at "${step}" on ${where}${seen ? ` (${seen})` : ''}: ${why}`;
   throw seen && /challenge/.test(seen) ? new PayPalBlockedError(message) : new Error(message);
 }
 
@@ -164,6 +169,80 @@ export async function payAsGuest(page: Page, approvalUrl: string, opts: PayAsGue
     return (returnedTo as string).replace(/PayerID=[^&]+/, 'PayerID=…');
   } catch (e) {
     return failWithEvidence(page, testInfo, step.replace(/\s+/g, '-'), e);
+  } finally {
+    page.off('request', onRequest);
+  }
+}
+
+export interface PayWithLoginOptions extends PayAsGuestOptions {
+  /** The sandbox Personal account's login. Passed in by the caller from the environment; never logged. */
+  email: string;
+  password: string;
+}
+
+/**
+ * Approves a PayPal order by logging in to PayPal as a sandbox buyer and paying from the wallet, from the approval
+ * link to the moment the browser is back on `returnOrigin`. Returns the URL PayPal returned to (payer id removed).
+ * Throws with a screenshot on failure (the login values never appear in the message).
+ */
+export async function payWithPayPalLogin(page: Page, approvalUrl: string, opts: PayWithLoginOptions): Promise<string> {
+  const { returnOrigin, shot, testInfo, email, password } = opts;
+  if (!/^https:\/\/www\.sandbox\.paypal\.com\//.test(approvalUrl)) throw new Error(`not a PayPal sandbox approval link: ${approvalUrl}`);
+  let step = 'open';
+  let returnedTo: string | null = null;
+  const onRequest = (r: { url(): string }) => {
+    if (!returnedTo && r.url().startsWith(returnOrigin)) returnedTo = r.url();
+  };
+  page.on('request', onRequest);
+  try {
+    await page.goto(approvalUrl, { waitUntil: 'domcontentloaded', timeout: SLOW });
+    await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+
+    step = 'login email';
+    const emailField = page.locator('#email');
+    if (!(await emailField.isVisible().catch(() => false))) {
+      // Some sessions open on the order summary with a "Log In" button first.
+      const login = page.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
+      if (await login.count()) await login.click();
+    }
+    await emailField.waitFor({ state: 'visible', timeout: SLOW });
+    if (shot) await shot(page, 'paypal-login');
+    await emailField.fill(email);
+    const next = page.locator('#btnNext');
+    if (await next.isVisible().catch(() => false)) await next.click();
+
+    step = 'login password';
+    const pw = page.locator('#password');
+    await pw.waitFor({ state: 'visible', timeout: SLOW });
+    await pw.fill(password);
+    await page.locator('#btnLogin').click();
+
+    step = 'review';
+    const pay = page.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/ }).first();
+    await pay.waitFor({ state: 'visible', timeout: SLOW });
+    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    if (shot) await shot(page, 'paypal-wallet-review');
+
+    step = 'pay';
+    const seen = await blocker(page);
+    if (seen) throw new Error(seen);
+    await pay.click();
+
+    step = 'return';
+    const deadline = Date.now() + 120_000;
+    while (!returnedTo && Date.now() < deadline) {
+      await page.waitForTimeout(1_000);
+      if (returnedTo) break;
+      // A shipping order can ask to confirm the address, or show a second review step.
+      const more = page.locator('button:visible', { hasText: /^(Continue|Complete Purchase|Pay Now)$/ });
+      if (await more.count().catch(() => 0)) await more.first().click().catch(() => {});
+      const stop = await blocker(page);
+      if (stop) throw new Error(stop);
+    }
+    if (!returnedTo) throw new Error(`PayPal did not return to ${returnOrigin} within 120 s`);
+    return (returnedTo as string).replace(/PayerID=[^&]+/, 'PayerID=…');
+  } catch (e) {
+    return failWithEvidence(page, testInfo, `login-${step.replace(/\s+/g, '-')}`, e);
   } finally {
     page.off('request', onRequest);
   }

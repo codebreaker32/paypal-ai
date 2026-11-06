@@ -1,8 +1,18 @@
 # Progress
 
-_Last updated: 2026-11-06 11:05 IST (session 8)_
+_Last updated: 2026-11-06 12:10 IST (run 2, session 1)_
 
 ## Current phase
+**Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended. Two workers are building Task 10 (findable door) and Task 11 (pay each seller) in parallel worktrees.
+- **Verified (spike, 11:20–11:30 IST, real sandbox):**
+  - `.env` now has a US buyer and a US seller email; the platform app is unchanged (it still reads session 7's orders).
+  - **PayPal wallet-login checkout works:** the US buyer logged in to PayPal and paid an order whose `payee.email_address` is the US seller; the platform's capture COMPLETED and PayPal's order shows that payee (order `82Y279425D4017918`, capture `2HU61847PK455934H`, seller protection ELIGIBLE). This was a raw REST order, not yet through the app.
+  - A payee email with no PayPal account: PayPal still takes the payment but holds it (capture PENDING, reason `UNILATERAL`).
+  - PayPal refuses tracking from the platform on a seller's capture (`NOT_AUTHORIZED`).
+  - Guest card checkout on a seller-routed order is declined at capture.
+- **done:** `docs/DEPLOY.md` (exact human steps for Render, environment variables, the PayPal webhook and a smoke test; never run). `render.yaml` asks for the optional `PAYPAL_SANDBOX_SELLER_EMAIL`.
+- **done: secret scan of the entire git history** (12:02 IST) with gitleaks 8.30.1 (`gitleaks git . --log-opts=--all`, 247 commits, every ref): **no leaks found**. A second scan looked for every `.env` value (app keys, Anthropic key, all sandbox logins) in `git log --all -p` and in every tracked file: **0 hits**. One string shaped like a PayPal token is the fake `A21AAexpiredShelfieTestToken` in `tests/sandbox/paypal.sandbox.test.ts` (a test of the 401 refresh), not a secret.
+
 **Session 8 (10:58–11:08 IST, a 10-minute run).** Re-checked main (`a32dd4e`): unit tests, typecheck and lint (results below). Replaced the stale next step 2 (session 6 already did the fresh-clone walkthrough it asked for). Nothing was built: there was no time for a build, a review or a judge round, and every lever left on the rubric needs the human (see "Needs from human").
 - **Verified on main (`a32dd4e`, 10:59 IST):** 670 unit tests pass (55 files); typecheck and lint are clean. The e2e suite was not re-run: session 7 ran it on the same code (122 passed, capture COMPLETED), and only docs changed since.
 
@@ -177,34 +187,19 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. **Every lever left for Part A needs the human** (judge rounds 3, 4 and 5 agree; no score has moved since round 2):
-   - make the repo public, record the video, and deploy;
-   - a decision on amending the spec so the door findability work (counter card with QR, JSON-LD, `<link rel="alternate">`) is in scope;
-   - a second sandbox Business account, plus a spec line, for paying each seller.
-2. Until then, the in-scope work is hardening and demo readiness. Two whole-codebase reviews and three diff reviews have been run and fixed, and the fresh-clone README walkthrough after the `APP_URL` change passed (session 6). Nothing in-scope is open. A longer run could do one more judge round to confirm round 5 still holds after session 7's cancel-wording change.
-3. If the human says yes to the spec amendment, judge round 5's top fix 2 has the plan: a print counter card from the Share tab, JSON-LD and a door `<link>` on the shop page, and a recorded Claude Code run given only the shop URL. About an hour; it touches no money path.
+1. Merge Task 10 (findable door) and Task 11 (pay each seller) after their task reviews.
+2. Task 12: the capture gate with payee routing and wallet login (US buyer → US seller), plus the guest-card gate on the platform-paid demo shop.
+3. Task 13: the Claude Code CLI given only the shop URL finds the door and orders; evidence in `docs/judge/evidence/`.
+4. Code review of the milestone, then judge round 6.
+5. `docs/SUBMISSION.md` (Devpost text, AI tools, testing instructions), `docs/DEMO.md` (door discovery, seller payout) and raw clips in `video/clips/`.
 
 ## Needs from human
-- **Decision: amend the spec so "make the door findable" can be built?** (Judge round 5 says to amend spec §14 first, because its own buyer journey at line 36 already relies on a "QR at the stall".) Judge round 3's only code-doable lever for Innovation (A4), Idea (B1) and B5 is:
-  - a printable counter card with a QR code of the shop link ("Order ahead with any AI assistant, pay on PayPal");
-  - schema.org JSON-LD and a `<link>` to the agent door on the shop page;
-  - an `agents.txt`;
-  - a recorded run of Claude Code given only the shop URL.
-
-  The spec lists QR codes and discovery cards as **non-goals**, and the run brief says not to add features beyond the spec, so it isn't built. It's about an hour of work and touches no money path. Say so in the next run's brief to have it built.
-- Optional: about 1,300 stray SQLite files from earlier unit-test runs (`/tmp/shelfie-{instr,route,webhook,seller-routes,console-key}-*.db*`). The tests no longer create them; deleting the old ones was blocked by the session's permission rules, so `rm` them by hand if you like.
 - **Before 12 Nov 12:00 PT, required for the submission:**
-  - make the GitHub repo **public** (it's private now, as the run brief requires);
+  - make the GitHub repo **public** (it's private now, as the run brief requires); the full-history secret scan on 6 Nov found nothing;
   - record the under-3-minute demo video from `docs/DEMO.md` and post it publicly on YouTube;
   - submit on Devpost.
+- **Deploy (optional but valuable):** follow `docs/DEPLOY.md` (Render from `render.yaml`, the PayPal webhook, the smoke test). It also verifies the webhook path and the Render rate-limit key (review 2, X1), which no local run can.
 - **GitHub About section** (it's empty today; GitHub already detects the MIT license). Suggested description: "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2." Suggested topics: `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
 - **Before recording the video:** run `npm run seed -- --cancel-unpaid` to clear rehearsal orders on the demo shop (one caller can hold 3 unpaid orders).
-- **Deploy (optional but valuable):**
-  - apply `render.yaml` on Render (a paid instance for the persistent disk), paste the secrets, and run `npm run seed` in Render Shell;
-  - create the PayPal webhook for `https://<service>.onrender.com/api/paypal/webhook` and set `PAYPAL_WEBHOOK_ID`; that verifies the webhook path;
-  - put the URL at the top of the README.
-  - check the rate-limit key on Render (review 2, X1): two phones on different networks should not share the console's limit. The fix reads `CF-Connecting-IP` when `RENDER` is set; it is unit-tested but has never run on Render.
-- **To pay each seller directly (judge round 2, top fix 1):** a second **US sandbox Business** account, created in the PayPal Developer Dashboard. Its email would be set as `payee.email_address` on a shop's orders, and the payment and tracking verified against it. Not built in this run, because it can't be verified without that account.
-- (Resolved in session 3.) From 04:52 IST on 6 Nov, `git push` failed with `remote: fatal error in commit_refs`. The REST API still accepted writes, so `.scratch/api-push.py` (gitignored) rebuilt the 15 commits through the Git Data API with identical SHAs and moved `main`. Plain `git push` worked again from 05:05 IST. If it fails again, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main`.
-- Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
-- Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD` in `.env`. It contains `#`, and dotenv cuts the value there.
+- (Resolved in session 3.) If `git push` fails with `remote: fatal error in commit_refs`, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main` (it mirrors the commits through the GitHub API with identical SHAs).
+- Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD_IN` in `.env` if it contains `#` (dotenv cuts the value there). The new US buyer password loads correctly.
