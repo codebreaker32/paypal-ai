@@ -115,8 +115,8 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
 }
 
 /**
- * The text for `<script type="application/ld+json">`. Every `<` becomes `<` (still the same JSON), so seller text
- * such as `</script>` can't close the script element or open a new one.
+ * The text for `<script type="application/ld+json">`. Every `<` becomes the JSON escape `\u003c` (still the same
+ * JSON), so seller text such as `</script>` can't close the script element or open a new one.
  */
 export function jsonLdScript(data: Json): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
