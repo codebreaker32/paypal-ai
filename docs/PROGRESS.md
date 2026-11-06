@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 07:08 IST (end of session 4)_
+_Last updated: 2026-11-06 07:16 IST (end of session 4)_
 
 ## Current phase
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
@@ -27,7 +27,9 @@ _Last updated: 2026-11-06 07:08 IST (end of session 4)_
 - **round-3 fixes A:** size words left out of item names when sizes are options; the start sub-line leads with the seller's outcome; one filled primary on the Share tab; "Retry 2 items"; an original non-menu photo for the retake fixture;
 - **the capture gate re-run on main** (real sandbox, passed), with `capture/` screenshots in the current design.
 
-**Still running at the end of session 4:** r3b, the dev-server reload loop (worktree `.claude/worktrees/agent-a0e41c1dfe981aa6b`, notes in `.superpowers/sdd/2026-11-06-shelfie/s4-r3b-report.md`). It hasn't reproduced the loop in 5 fresh first starts. It did find that `@tailwindcss/turbopack` watches every non-gitignored folder, so a write in `docs/` triggers a CSS rebuild.
+- **round-3 fix B:** Tailwind now scans only `src/` (`source("..")`), so writes in `docs/`, `e2e/` or `tests/` no longer rebuild the dev server. The judge's one-time reload loop was **not reproduced** in 5 fresh first starts, so this isn't claimed as its fix.
+  - Checked after the merge with `npm run screenshots:prod` on main: 66/66 passed, 0 axe violations.
+  - Pixel diffs against round 2 are 0.006–0.42%, which is fixture order numbers and times changing between runs.
 
 **Done in docs:** `docs/DEMO.md` now opens on the Store Sync contrast and adds the Claude Code beat; `npm run screenshots:prod` runs the screenshots against a production build.
 
@@ -80,10 +82,9 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The dashboard loading skeleton has no screenshot.
 
 ## Next steps
-1. Finish r3b and merge it if it has a verified fix (see its report and branch `worktree-agent-a0e41c1dfe981aa6b`).
-2. Re-shoot the outside-client dashboard evidence (`docs/judge/evidence/outside-client-*.png`) in the current design.
-3. A final whole-branch code review. Then judge round 3 with `npm run screenshots:prod -- docs/judge/screenshots/round-3`.
-4. Each round after that takes the next-highest gain from the judge's top 3, limited to what can be done in code and docs in this run.
+1. Re-shoot the outside-client dashboard evidence (`docs/judge/evidence/outside-client-*.png`) in the current design.
+2. A final whole-branch code review. Then judge round 3 with `npm run screenshots:prod -- docs/judge/screenshots/round-3`.
+3. Each round after that takes the next-highest gain from the judge's top 3, limited to what can be done in code and docs in this run.
 
 ## Needs from human
 - **Before 12 Nov 12:00 PT, required for the submission:**
