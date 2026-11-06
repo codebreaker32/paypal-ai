@@ -1,11 +1,16 @@
 # Progress
 
-_Last updated: 2026-11-07 01:55 IST (run 3, session 6)_
+_Last updated: 2026-11-07 02:08 IST (run 3, session 6)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
 
-**Run 3, session 6 (from 01:36 IST).** Session 5 was cut short again. The **code worker's branch is merged** (tasks 1–6: `items.example_photo`, `matchLibraryPhoto`, Claude's pick, example photos on every surface with the buyer/seller notes, unpicked items matched by name, optional live Pexels): verified on it before merging, `tsc` 0 errors, lint clean, 1132 unit passed. The **photo worker is resumed** (51 photos committed, ~70 on disk; missing bike/tool/goods/soup types, Tía Lupe's demo files, ASSETS.md), due by 03:15 IST. A full e2e smoke on the merged code is running on main.
+**Run 3, session 6 (from 01:36 IST).** Part A3 is merged.
+- **done, verified:** the code worker's branch (items.example_photo, matching, Claude's pick, notes, optional Pexels) and the photo worker's (167 Pexels photos in `public/library/` with a catalogue test, Tía Lupe's full demo set + cover, `docs/ASSETS.md` credits; 12 photos rejected for brand text, logos or the wrong food). I viewed all 167 on contact sheets: no brands, logos or faces seen. Full e2e on the code worker's merge (before the photos): **185 passed, 9 skipped, 0 failed, both real captures COMPLETED**. After the photo merge a unit test caught a matching bug (an unmatched bike part showed any bike photo: brakes for "Pedals"); fixed, `bike_part` keeps its drawing when nothing fits. `tsc` 0, lint clean, **1157 unit passed** on `ca56b2d`.
+- **done:** `docs/judge/screenshots/round-11/` (96 screens, **axe 0**, production build of `ca56b2d`) and `docs/judge/recordings/round-11/` (6 passed, production build: also round-10 fix 3, no dev badge).
+- **running:** the full e2e on `ca56b2d` with the capture gate (`/tmp/e2e/round-11-tests.txt`, to be copied to `docs/judge/round-11-tests.txt`) and judge round 11.
+- **Unverified:** the live Pexels search (no `PEXELS_API_KEY`; unit-tested with a fake fetch only).
+- **Next:** judge 11's fixes → final clips (`npm run clips -- --build`) → re-check edit offsets → render → frame check every 2 s → video judge → fixes → completion.
 
 **Run 3, session 5 (from 01:24 IST).** Session 4's two A3 workers were cut off by the session cap: the code worker had committed tasks 1–3 (`example_photo`, `matchLibraryPhoto`, Claude's pick) with the UI uncommitted; the photo worker had 26 bakery photos on disk, uncommitted. Both were restarted in the same worktrees with their work kept, due to commit by 03:05 IST.
 
