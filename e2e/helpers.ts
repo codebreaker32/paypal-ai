@@ -26,18 +26,24 @@ export async function settle(page: Page) {
   // (above) and every image decoded (below).
   await page.waitForLoadState('load');
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+  // A loading="lazy" photo below the fold never loads until it is scrolled to, so it would hold this wait forever:
+  // make every pending image eager first (a full-page capture shows them all anyway), and cap the wait at 15 s.
   await page.evaluate(() =>
-    Promise.all(
-      Array.from(document.images)
-        .filter((img) => !img.complete)
-        .map(
-          (img) =>
-            new Promise((done) => {
-              img.addEventListener('load', done, { once: true });
-              img.addEventListener('error', done, { once: true });
-            }),
-        ),
-    ),
+    Promise.race([
+      Promise.all(
+        Array.from(document.images)
+          .filter((img) => !img.complete)
+          .map(
+            (img) =>
+              new Promise((done) => {
+                img.addEventListener('load', done, { once: true });
+                img.addEventListener('error', done, { once: true });
+                img.loading = 'eager';
+              }),
+          ),
+      ),
+      new Promise((done) => setTimeout(done, 15_000)),
+    ]),
   );
   // Let entrance animations (some delayed) finish; spinners loop forever and are skipped.
   await page.evaluate(() =>
