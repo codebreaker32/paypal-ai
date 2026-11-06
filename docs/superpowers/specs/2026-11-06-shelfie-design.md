@@ -4,6 +4,8 @@ _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`
 
 _Amended 2026-11-06 (run 2) on the human's decisions of 6 Nov: the agent door is made findable (§10a: counter card with QR, JSON-LD, `<link rel="alternate">`, `/agents.txt` and `/llms.txt`), and each shop is paid into its own PayPal account (§8a: `payee.email_address`). §14 no longer lists these as non-goals._
 
+_Amended 2026-11-06 afternoon (run 2) on two more human decisions: the **design reset** to a photo-first storefront (§4b; the "Menu board" look is retired and its patterns are banned by `docs/JUDGING.md` Part C), with a photo per item and a cover per shop (§6), and an **installable PWA** with no offline caching of order, payment or dashboard pages (§4c)._
+
 ## 1. What it is
 
 **One sentence:** snap a photo of your price list and Shelfie turns it into a PayPal-backed shop with an **agent door**, a link any AI assistant can use to browse your menu and order, with the buyer approving payment on PayPal.
@@ -57,6 +59,19 @@ _Amended 2026-11-06 (run 2) on the human's decisions of 6 Nov: the agent door is
 | Counter card `/shops/[id]/card` (owner) | A card for the counter that sends regulars to the shop and its agent door | **Print card** | screen preview; print (toolbar hidden) |
 | Order detail `/shops/[id]/orders/[orderId]` | One order end to end | depends on state | brief generating / ready / fallback (labelled); line items; buyer + ship-to from PayPal; PayPal order and capture IDs; event timeline; tracking form (sending / sent / PayPal error) |
 
+### 4b. Visual direction: photo-first storefront (design reset, approved by the human on 6 Nov)
+The food is the hero, as on the store pages of Toast, DoorDash, Uber Eats and Instagram shops.
+- **Shop:** a cover photo and a header with the shop's identity; items as photo cards (a grid on desktop, rows with thumbnails on phones); a sticky "Order with an assistant" bar on phones; one modern sans-serif family; a modern palette with one warm accent; very little microcopy; desktop uses its width.
+- **Photos:** every item can have a photo (`items.photo_url`) and every shop a cover (`shops.cover_url`). The seller adds them in setup review and on the Menu tab (`POST /api/shops/[id]/items/[itemId]/photo`, `POST /api/shops/[id]/cover`; WebP, metadata stripped, served from `/i/[file]`). The seeded demo shop uses real food photos under the Pexels License, each listed in `docs/ASSETS.md`. An item without a photo gets a designed fallback, never a grey box. A shop made from a sample menu starts with no photos (the seller adds them). The door's `list_products` and the JSON-LD carry `image_url` / `image` for items with a photo. Photos are not sent to the PayPal Catalog: its `image_url` needs a public https URL, which a local run doesn't have.
+- **Start:** a real shop in action, the headline and one action.
+- **Dashboard:** an operations app (a compact order list with thumbnails, status filters, a detail view), with less than half of today's explanatory text.
+- **Brand:** a new wordmark and logo.
+- Two directions were built in separate worktrees and judged side by side with reference screenshots; the winner's tokens live in `src/app/globals.css` and `docs/DESIGN.md`.
+- Stretch, only if time allows: "snap your counter" (Claude matches items in a photo of the display case to menu items).
+
+### 4c. Installable on a phone (PWA, approved by the human on 6 Nov)
+`app/manifest.ts` (name, short name, `start_url`, `display: standalone`, theme and background colours from the design tokens), icons at 192, 512 and maskable 512 px plus an apple-touch-icon drawn from the new brand, iOS meta (`apple-mobile-web-app-capable`, status-bar style) and a theme colour. **No offline caching** of order, payment or dashboard pages: a stale payment page is worse than none. Verified with Chromium's `Page.getInstallabilityErrors` (none).
+
 **Review fixes (one thumb each):**
 
 | Issue | Trigger | Fix buttons | If ignored |
@@ -100,12 +115,12 @@ scripts/                     seed-demo.ts, sandbox-smoke.ts
 ```
 shops(id 'shp_'+16, slug UNIQUE, name, about, kind 'food'|'goods'|'services', fulfillment 'pickup'|'shipping'|'both',
       pickup_notes, shipping_fee_cents DEFAULT 0, status 'draft'|'live'|'paused', order_cap_cents DEFAULT 50000, owner_token_hash, menu_photo_paths JSON,
-      payee_email NULL (run 2; only the demo shop may leave it empty),
+      payee_email NULL (run 2; only the demo shop may leave it empty), cover_url NULL (design reset; site-relative),
       created_at, published_at)
 extractions(id, shop_id, status 'running'|'done'|'failed', model, raw_json, image_quality, warnings_json,
       skipped_lines_json, error, duration_ms, created_at)
 items(id 'itm_'+12, shop_id, section, name, description, source_text, confidence, issues_json,
-      kind 'PHYSICAL'|'SERVICE', status 'draft'|'live'|'in_person'|'removed', sold_out BOOL, sort,
+      kind 'PHYSICAL'|'SERVICE', status 'draft'|'live'|'in_person'|'removed', sold_out BOOL, photo_url NULL (design reset), sort,
       paypal_product_id, published_at, updated_at)
 variants(id 'var_'+12, item_id, label NULL, price_cents NULL, sort)        -- ≥ 1 per item
 orders(id 'ord_'+16 (capability), number 'SHF-'+6, shop_id, status, fulfillment, buyer_name, buyer_note,
@@ -253,7 +268,7 @@ Creating a shop sets an httpOnly `shelfie_owner` cookie holding a random owner t
 | 2:35 | Architecture card: Claude vision → Catalog Products → agent door (MCP) → Orders v2 → capture → Agent Toolkit brief + tracking. "For the sellers PayPal's Agent Ready can't reach." |
 
 ## 14. Out of scope
-Partner Referrals onboarding (each shop is paid by `payee.email_address`, §8a; onboarding sellers without a PayPal account, platform fees and refunds on their behalf are the path to scale), non-USD, refunds and disputes UI, tax and per-address shipping rates (one flat fee only), menu edits after launch other than sold-out and pause, renaming products in PayPal, stock counts (sold-out toggle only), pickup time slots (free-text note), checkout without an assistant, seller accounts and passwords, MCP OAuth, ACP/UCP adapters, email/SMS, a quote/cart step (the agent reads the order back instead), streaming extraction rows, a free-form seller copilot.
+Partner Referrals onboarding (each shop is paid by `payee.email_address`, §8a; onboarding sellers without a PayPal account, platform fees and refunds on their behalf are the path to scale), non-USD, refunds and disputes UI, tax and per-address shipping rates (one flat fee only), menu edits after launch other than sold-out and pause, renaming products in PayPal, stock counts (sold-out toggle only), pickup time slots (free-text note), checkout without an assistant, seller accounts and passwords, MCP OAuth, ACP/UCP adapters, email/SMS, a quote/cart step (the agent reads the order back instead), streaming extraction rows, a free-form seller copilot, offline caching or a service worker for order, payment or dashboard pages (§4c), item photos in the PayPal Catalog (§4b), AI-generated food photos.
 
 ## 15. Risks
 | Risk | Mitigation |
