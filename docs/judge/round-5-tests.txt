@@ -24,3 +24,25 @@ $ npx playwright test (every spec except screenshots; dev server, fresh e2e data
 $ npm run screenshots:prod -- docs/judge/screenshots/round-5   (production build, 68 screens, axe on each)
 68 passed (3.0m)
 axe: 0 violations on 68 screens (axe-results.json)
+
+# After judge round 5 (main 65b925c, 10:30 IST): the B3 conditional-price rule and the session-6 code-review fixes
+
+$ npm test
+ Test Files  55 passed (55)
+      Tests  665 passed (665)
+
+$ npm run typecheck && npm run lint
+exit 0, exit 0
+
+$ npx playwright test (every spec except screenshots; real Claude and the real PayPal sandbox)
+  56 passed, 1 skipped (5.0m)
+  capture gate:
+    [capture-gate] order SHF-KJZT97 (ord_bhd4f4tknn2uotmu) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+    [capture-gate] PayPal order 4FG358017Y8333738
+    [capture-gate] capture 13D896174A6799217 COMPLETED at PayPal, $27.00
+    [capture-gate] PayPal tracker 13D896174A6799217-9400111179394069704075 USPS SHIPPED
+    [capture-gate] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179394069704075.
+    [capture-gate] brief (agent): flags the nut allergy
+
+$ npm run screenshots:prod -- docs/judge/screenshots/round-5
+68 passed (2.9m), axe: 0 violations on 68 screens

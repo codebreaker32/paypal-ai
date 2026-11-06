@@ -17,3 +17,5 @@ The in-between states are **mocked or fixtures** too. The app code is unchanged;
 - `dashboard-loading`: **mocked**. On a production build the test opens an order and clicks back to Orders; the page's RSC request for the dashboard is held in the browser, so `(dashboard)/loading.tsx` stays on screen. Nothing reaches the server.
 
 This set was taken in one run against a production build (`next build` then `next start`, `SHELFIE_TEST=1`) with a fresh e2e database, on main after review 2 (all 14 confirmed findings in `docs/reviews/2026-11-06-review-2.md`, on top of the 13 in `docs/reviews/2026-11-06-whole-codebase.md`). Copy changed by review 2 shows here: the shop page and receipts say "the address you give PayPal". Outside-client evidence (the Claude Code CLI ordering through the agent door) is in `../../evidence/`.
+
+Re-taken at 10:30 IST on main `65b925c`, after judge round 5, with the session-6 code-review fixes merged (68 screens, axe 0). The judge scored the earlier take of this folder; the only visible difference is the review screen's price hint, now "Enter a price like 4.50 ($0.01 to $500)".
