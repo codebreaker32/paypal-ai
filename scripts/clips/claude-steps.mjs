@@ -11,7 +11,8 @@ import readline from 'node:readline';
 
 const WIDTH = 110;
 const C = { reset: '\x1b[0m', bold: '\x1b[1m', muted: '\x1b[90m', ok: '\x1b[32m', warn: '\x1b[33m', call: '\x1b[34m', bad: '\x1b[31m' };
-const scrub = (s) => String(s).replace(/sk-ant-[\w-]+/g, 'sk-ant-…');
+// Key-shaped strings blanked, and home folders shortened to ~ (Claude Code prints where it saved a long tool result).
+const scrub = (s) => String(s).replace(/sk-ant-[\w-]+/g, 'sk-ant-…').replace(/\/home\/[^/\s]+\//g, '~/');
 
 function wrap(text, indent, width = WIDTH) {
   const out = [];

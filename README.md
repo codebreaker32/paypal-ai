@@ -10,7 +10,7 @@ Built for the PayPal AI Hackathon. PayPal **sandbox** only. Licensed MIT ([LICEN
 | **An AI assistant orders through the agent door** | **The seller's orders, with Claude's brief** |
 | <img src="docs/images/assistant-order.webp" alt="The buyer console: Claude placed the order through the shop's agent door and shows an Approve $27.00 on PayPal button" width="420"> | <img src="docs/images/dashboard-orders.webp" alt="The seller dashboard's order list: thumbnails, status filters, paid totals and an AI brief flagging a nut allergy" width="420"> |
 
-Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-7/`](docs/judge/screenshots/round-7/)).
+Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-8/`](docs/judge/screenshots/round-8/)).
 
 ## The problem
 
