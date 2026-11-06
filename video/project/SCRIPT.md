@@ -2,7 +2,7 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 1). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:46.8** (166.77 s): 140.30 s of narration (389 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
+**Runtime 2:45.3** (165.27 s): 140.30 s of narration (389 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
@@ -11,14 +11,14 @@ _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not ed
 | review | 2 | 0:34.7 | 18.23 | 19.67 |
 | counter | 2 | 0:54.4 | 10.42 | 11.87 |
 | card | 2 | 1:06.2 | 7.78 | 8.23 |
-| discovery | 3 | 1:14.5 | 11.65 | 16.10 |
-| console | 4 | 1:30.6 | 13.92 | 16.87 |
-| paypal | 4 | 1:47.4 | 9.09 | 11.53 |
-| tamper | 4 | 1:59.0 | 4.68 | 6.13 |
-| dashboard | 5 | 2:05.1 | 14.37 | 15.83 |
-| tracking | 5 | 2:20.9 | 3.92 | 6.37 |
-| close | 6 | 2:27.3 | 14.52 | 15.97 |
-| end | 6 | 2:42.8 | - | 4.00 |
+| discovery | 3 | 1:14.5 | 11.65 | 14.60 |
+| console | 4 | 1:29.1 | 13.92 | 16.87 |
+| paypal | 4 | 1:45.9 | 9.09 | 11.53 |
+| tamper | 4 | 1:57.5 | 4.68 | 6.13 |
+| dashboard | 5 | 2:03.6 | 14.37 | 15.83 |
+| tracking | 5 | 2:19.4 | 3.92 | 6.37 |
+| close | 6 | 2:25.8 | 14.52 | 15.97 |
+| end | 6 | 2:41.3 | - | 4.00 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -50,7 +50,7 @@ On-screen text: "47% of US accommodation and food-service employer firms reporte
 
 ### counter (10.42 s voice, 11.87 s scene)
 
-**Screen:** Clip 03b: laptop, Menu tab, Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in.
+**Screen:** Clip 03b: laptop, Menu tab: the croissant rows with their example photos and "Example photo, replace with yours", then Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in with her own.
 
 > Items she hasn't photographed show an example photo, labelled as one. Then one more photo, of her display case: Claude finds each item in it, and crops her own.
 
@@ -62,9 +62,9 @@ On-screen text: "47% of US accommodation and food-service employer firms reporte
 
 ## Beat 3: Claude Code, given only the shop's URL, finds the agent door and orders
 
-### discovery (11.65 s voice, 16.10 s scene)
+### discovery (11.65 s voice, 14.60 s scene)
 
-**Screen:** Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.
+**Screen:** Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door in its <head>, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.
 
 > This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.
 

@@ -228,14 +228,14 @@
       "id": "discovery",
       "kind": "demo",
       "beat": 3,
-      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, follows it to the shop's llms.txt, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
+      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door in its <head>, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
       "video": "clips/05-claude-code-discovery.mp4",
       "narration": "This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
       "holdSec": 2.5,
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
       "narrationSec": 11.651,
-      "durationSec": 16.101,
+      "durationSec": 14.601,
       "captionPlacement": "bottom",
       "beats": [
         {
@@ -247,28 +247,28 @@
         {
           "atSec": 3.8,
           "shot": "screen",
-          "videoStartSec": 17.5
+          "videoStartSec": 17.0
         },
         {
           "atSec": 5.2,
           "shot": "screen",
-          "videoStartSec": 25.5
+          "videoStartSec": 30.3
         },
         {
           "atSec": 6.7,
           "shot": "screen",
-          "videoStartSec": 29.5,
+          "videoStartSec": 35.0,
           "playbackRate": 2.5
         },
         {
           "atSec": 8.5,
           "shot": "screen",
-          "videoStartSec": 42.5
+          "videoStartSec": 45.0
         },
         {
           "atSec": 9.9,
           "shot": "screen",
-          "videoStartSec": 48.0
+          "videoStartSec": 52.3
         }
       ]
     },
@@ -305,13 +305,13 @@
         {
           "atSec": 10.4,
           "shot": "screen",
-          "videoStartSec": 22.3,
+          "videoStartSec": 22.5,
           "playbackRate": 2.0
         },
         {
           "atSec": 12.0,
           "shot": "screen",
-          "videoStartSec": 28.9
+          "videoStartSec": 28.2
         }
       ]
     },
@@ -332,17 +332,17 @@
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 2.3
+          "videoStartSec": 1.5
         },
         {
           "atSec": 2.6,
           "shot": "screen",
-          "videoStartSec": 10.8
+          "videoStartSec": 13.5
         },
         {
           "atSec": 9.6,
           "shot": "screen",
-          "videoStartSec": 21.3
+          "videoStartSec": 16.0
         }
       ]
     },
@@ -409,7 +409,7 @@
         {
           "atSec": 1.6,
           "shot": "screen",
-          "videoStartSec": 18.7,
+          "videoStartSec": 19.5,
           "playbackRate": 2.0
         }
       ]

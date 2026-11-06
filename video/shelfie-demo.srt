@@ -127,101 +127,101 @@ It reads the menu, places the order,
 and hands back a PayPal approval link.
 
 33
-00:01:30,787 --> 00:01:32,412
+00:01:29,287 --> 00:01:30,912
 Buyers without an assistant get
 
 34
-00:01:32,412 --> 00:01:34,275
+00:01:30,912 --> 00:01:32,775
 one right on the shop page.
 
 35
-00:01:34,275 --> 00:01:36,462
+00:01:32,775 --> 00:01:34,962
 This buyer wants almond croissants,
 
 36
-00:01:36,462 --> 00:01:38,524
+00:01:34,962 --> 00:01:37,024
 and mentions a nut allergy.
 
 37
-00:01:38,524 --> 00:01:41,312
+00:01:37,024 --> 00:01:39,812
 The assistant warns that they contain nuts.
 
 38
-00:01:41,312 --> 00:01:44,842
+00:01:39,812 --> 00:01:43,342
 The buyer confirms, and it places the order.
 
 39
-00:01:47,628 --> 00:01:50,478
+00:01:46,128 --> 00:01:48,978
 The buyer logs in to PayPal and approves.
 
 40
-00:01:50,478 --> 00:01:52,791
+00:01:48,978 --> 00:01:51,291
 Shelfie captures the payment, and the money
 
 41
-00:01:52,791 --> 00:01:56,883
+00:01:51,291 --> 00:01:55,383
 lands in Rosa's own PayPal account, not ours.
 
 42
-00:01:59,162 --> 00:02:01,212
+00:01:57,662 --> 00:01:59,712
 And agents can't set prices.
 
 43
-00:02:01,212 --> 00:02:03,992
+00:01:59,712 --> 00:02:02,492
 The server checks that, not the model.
 
 44
-00:02:05,345 --> 00:02:08,408
+00:02:03,845 --> 00:02:06,908
 Rosa's dashboard shows the order as paid.
 
 45
-00:02:08,408 --> 00:02:10,832
+00:02:06,908 --> 00:02:09,332
 A Claude agent reads PayPal's record
 
 46
-00:02:10,832 --> 00:02:13,395
+00:02:09,332 --> 00:02:11,895
 of the order through the PayPal Agent Toolkit,
 
 47
-00:02:13,395 --> 00:02:14,920
+00:02:11,895 --> 00:02:13,420
 and writes her a brief.
 
 48
-00:02:14,920 --> 00:02:16,720
+00:02:13,420 --> 00:02:15,220
 It catches the nut allergy,
 
 49
-00:02:16,720 --> 00:02:19,825
+00:02:15,220 --> 00:02:18,325
 so she can check with the buyer before shipping.
 
 50
-00:02:21,153 --> 00:02:22,403
+00:02:19,653 --> 00:02:20,903
 She adds tracking,
 
 51
-00:02:22,403 --> 00:02:25,208
+00:02:20,903 --> 00:02:23,708
 and the buyer's assistant reads it back.
 
 52
-00:02:27,545 --> 00:02:29,733
+00:02:26,045 --> 00:02:28,233
 Shelfie turns a photo of a price list into
 
 53
-00:02:29,733 --> 00:02:32,858
+00:02:28,233 --> 00:02:31,358
 prepaid orders, from any AI assistant,
 
 54
-00:02:32,858 --> 00:02:35,645
+00:02:31,358 --> 00:02:34,145
 paid into the seller's own PayPal account.
 
 55
-00:02:35,645 --> 00:02:36,833
+00:02:34,145 --> 00:02:35,333
 It's for the sellers agent
 
 56
-00:02:36,833 --> 00:02:38,658
+00:02:35,333 --> 00:02:37,158
 commerce hasn't reached yet.
 
 57
-00:02:38,658 --> 00:02:42,175
+00:02:37,158 --> 00:02:40,675
 For Rosa, a sheet of paper is now enough.
