@@ -1,8 +1,12 @@
 # Progress
 
-_Last updated: 2026-11-06 09:10 IST (end of session 5)_
+_Last updated: 2026-11-06 09:20 IST (session 6 running)_
 
 ## Current phase
+**Session 6 (from 09:07 IST; ends by ~11:08 IST).** Running:
+- **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits).
+- **running:** a second whole-codebase review over the areas session 5's review didn't cover: setup (reading, review edits, publish), the seller dashboard (tracking, fulfilment, brief, claim link), the buyer side (shop page, console UI, receipt) and a security sweep. A skeptic checks each area's findings, then a fixer works in its own worktree on a `review2/<area>` branch.
+
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
 - **done, merged:** the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 candidates; the fixer confirmed and fixed 9 and skipped 1 (CopyRow → CopyButton isn't a clean swap):
   - keeping one of two copies of an item ("listed twice") now clears only that flag, so the kept item's own unusual-price or deal question still gets its card;
