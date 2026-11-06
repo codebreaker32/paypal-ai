@@ -6,6 +6,7 @@ import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
 import * as events from '@/lib/db/repos/events';
 import { hashToken } from '@/lib/domain/ids';
+import { LISTED_STATUSES } from '@/lib/domain/listed';
 import type { DraftItem } from '@/lib/domain/types';
 
 const draft = (name: string, prices: (number | null)[], extra: Partial<DraftItem> = {}): DraftItem => ({
@@ -67,6 +68,24 @@ describe('repos', () => {
     expect(orders.listByShop(db, shop.id, { limit: 2 }).map((o) => o.id)).toEqual([ids[2], ids[1]]);
     expect(orders.listByShop(db, shop.id)).toHaveLength(3);
     expect(items.itemPictures(db, shop.id, shop.kind)).toEqual(new Map([[item.id, { photoUrl: '/i/img_a.webp', category: 'pastry' }]]));
+  });
+
+  it('avatarItems: the words of the items the public shop page lists (live and ask-in-person), in menu order, nothing else', () => {
+    const { shop } = shops.create(db, { name: 'Tía Lupe' });
+    const list = items.replaceDrafts(db, shop.id, [
+      draft('Al pastor', [300], { section: 'Tacos', category: 'taco' }),
+      draft('Elote', [null], { section: 'Extras', status: 'in_person' }),
+      draft('Flan', [500], { section: 'Sweets' }),
+      draft('Horchata', [400], { section: 'Drinks', status: 'removed' }),
+    ]);
+    const id = Object.fromEntries(list.map((i) => [i.name, i.id]));
+    items.setPayPalProductId(db, id['Al pastor'], 'PROD-1');
+    expect(items.avatarItems(db, shop.id)).toEqual([
+      { name: 'Al pastor', section: 'Tacos', description: null, category: 'taco' },
+      { name: 'Elote', section: 'Extras', description: null, category: null },
+    ]);
+    // The same items the shop page reads.
+    expect(items.listWithVariants(db, shop.id, { status: [...LISTED_STATUSES] }).map((i) => i.name)).toEqual(['Al pastor', 'Elote']);
   });
 
   it('replaces draft items and keeps variant order', () => {

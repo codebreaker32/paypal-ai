@@ -1,7 +1,8 @@
 import type { Db } from '@/lib/db';
 import { now } from '@/lib/db';
 import { newId } from '@/lib/domain/ids';
-import { isItemCategory, itemCategory, type ItemPicture } from '@/lib/domain/category';
+import { isItemCategory, itemCategory, type ItemCategory, type ItemPicture } from '@/lib/domain/category';
+import { LISTED_STATUSES } from '@/lib/domain/listed';
 import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVariants, ShopKind, Variant } from '@/lib/domain/types';
 
 interface ItemRow {
@@ -80,6 +81,14 @@ export function itemPictures(db: Db, shopId: string, shopKind: ShopKind): Map<st
   return new Map(
     rows.map((r) => [r.id, { photoUrl: r.photo_url ?? null, category: itemCategory({ ...r, category: isItemCategory(r.category) ? r.category : null }, shopKind) }]),
   );
+}
+
+/** The words the shop's picture is drawn from (`shopAvatar`): its listed items only (`LISTED_STATUSES`), in menu order. */
+export function avatarItems(db: Db, shopId: string): { name: string; section: string | null; description: string | null; category: ItemCategory | null }[] {
+  const rows = db
+    .prepare(`SELECT name, section, description, category FROM items WHERE shop_id = ? AND status IN (${LISTED_STATUSES.map(() => '?').join(',')}) ORDER BY sort`)
+    .all(shopId, ...LISTED_STATUSES) as { name: string; section: string | null; description: string | null; category: string | null }[];
+  return rows.map((r) => ({ ...r, category: isItemCategory(r.category) ? r.category : null }));
 }
 
 /** Item scoped to its shop: never returns another shop's item. */

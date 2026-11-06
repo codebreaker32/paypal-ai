@@ -33,6 +33,7 @@ import {
   confirmingWithPayPal,
   consoleReducer,
   consoleToSave,
+  firstFreshEntry,
   initialConsoleState,
   pollEvery,
   refsToCheck,
@@ -50,9 +51,8 @@ const RATE_LIMITED = "You’ve sent a lot of messages in the last hour. Try agai
 export const PAYMENT_CHECK_PROMPT = 'Did my payment go through?';
 
 export interface BuyerConsoleApi {
+  /** Includes `restored`: how many entries came back from sessionStorage (shown without an entrance; 0 after a reset). */
   state: ConsoleState;
-  /** How many entries came back from sessionStorage: those show as they are, without an entrance. */
-  restored: number;
   send: (text: string) => void;
   reset: () => void;
 }
@@ -64,7 +64,6 @@ export interface BuyerConsoleApi {
  */
 export function useBuyerConsole(slug: string): BuyerConsoleApi {
   const [state, dispatch] = useReducer(consoleReducer, initialConsoleState);
-  const [restored, setRestored] = useState(0);
   const storageKey = `shelfie:console:${slug}`;
   const latest = useRef(state);
   const loaded = useRef(false);
@@ -93,10 +92,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
     try {
       const saved = sessionStorage.getItem(storageKey);
       if (saved) {
-        const back = restoreConsoleState(JSON.parse(saved));
-        dispatch({ type: 'restore', state: back });
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- read once from sessionStorage after mount
-        setRestored(back.entries.length);
+        dispatch({ type: 'restore', state: restoreConsoleState(JSON.parse(saved)) });
       }
     } catch {
       // Private mode or bad data: start with an empty conversation.
@@ -190,7 +186,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
   );
 
   const reset = useCallback(() => dispatch({ type: 'reset' }), []);
-  return { state, restored, send, reset };
+  return { state, send, reset };
 }
 
 async function* readNdjson(body: ReadableStream<Uint8Array>): AsyncGenerator<ConsoleEvent> {
@@ -352,8 +348,11 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
   // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
   const anchor = turnStartIndex(state.entries);
-  // How many entries the conversation had when it was first shown (restored from sessionStorage or empty).
-  const [shownAtOpen] = useState(state.entries.length);
+  // How many entries the conversation had when it was first shown (restored from sessionStorage or empty). A reset
+  // empties it, and from then on everything is new (adjusted during render, so the next entry already rises in).
+  const [shownAtOpen, setShownAtOpen] = useState(state.entries.length);
+  if (shownAtOpen > 0 && state.entries.length === 0) setShownAtOpen(0);
+  const freshFrom = firstFreshEntry(state, shownAtOpen);
   // Found once per mount (the log moves between the sheet and the panel by remounting), not on every streamed event.
   const scrollerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -391,10 +390,11 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
         {/* Each new message, Activity card and order card rises in as it arrives (one after another as they stream);
             what was already there when the console opened (a restored conversation) shows as is. */}
         {state.entries.map((entry, i) => {
-          const fresh = i >= Math.max(shownAtOpen, api.restored);
+          const fresh = i >= freshFrom;
           return (
             <m.div
               key={entry.key}
+              data-entrance=""
               initial={fresh ? { opacity: 0, y: 8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: MOTION_S.base, ease: EASE_OUT }}

@@ -137,7 +137,7 @@ export interface ItemPhotoPickerProps {
   itemId: string;
   name: string;
   photoUrl: string | null;
-  /** The item's drawing while it has no photo (`categoryOf(item)`). */
+  /** The item's drawing while it has no photo (`itemCategory(item, shop.kind)`, as on the public menu). */
   category: ItemCategory;
   /** Menu section index, for the fallback tint. */
   tone?: number;
@@ -350,7 +350,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
         </div>
       </div>
       {actions.error && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-medium text-error">
           {actions.error}
         </p>
       )}

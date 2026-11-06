@@ -1,6 +1,7 @@
 'use client';
 
-import { categoryOf } from '@/lib/domain/category';
+import { itemCategory } from '@/lib/domain/category';
+import { listedItems } from '@/lib/domain/listed';
 import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { cx } from '@/components/ui/cx';
 import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { Pressable } from '@/components/motion/pressable';
 import { formatUSD } from '@/lib/domain/money';
-import type { ItemWithVariants } from '@/lib/domain/types';
+import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
 import { setSoldOut } from './api';
 import { CounterSnap } from './menu/CounterSnap';
 import { Switch } from './Switch';
@@ -44,6 +45,7 @@ function MenuRow({
   item,
   tone,
   shopId,
+  shopKind,
   busy,
   error,
   onToggle,
@@ -52,6 +54,7 @@ function MenuRow({
   item: ItemWithVariants;
   tone: number;
   shopId: string;
+  shopKind: ShopKind;
   busy: boolean;
   error?: string;
   onToggle: (next: boolean) => void;
@@ -67,7 +70,7 @@ function MenuRow({
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
-          category={categoryOf(item)}
+          category={itemCategory(item, shopKind)}
           tone={tone}
           size="sm"
           onChange={onPhoto}
@@ -106,6 +109,7 @@ function MenuRow({
 export function MenuPanel({
   items,
   shopId,
+  shopKind,
   slug,
   shopName,
   coverUrl,
@@ -114,6 +118,8 @@ export function MenuPanel({
 }: {
   items: ItemWithVariants[];
   shopId: string;
+  /** Decides an item's drawing while it has no photo, as on the public menu (`itemCategory(item, shopKind)`). */
+  shopKind: ShopKind;
   slug: string;
   /** For the cover's alt text. */
   shopName?: string;
@@ -125,7 +131,7 @@ export function MenuPanel({
   const toast = useToast();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const listed = items.filter((i) => i.status === 'live' || i.status === 'in_person');
+  const listed = listedItems(items);
   const photos = listed.filter((i) => i.photoUrl).length;
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
@@ -192,6 +198,7 @@ export function MenuPanel({
                   item={item}
                   tone={n}
                   shopId={shopId}
+                  shopKind={shopKind}
                   busy={busy.has(item.id)}
                   error={errors[item.id]}
                   onToggle={(next) => void toggle(item, next)}

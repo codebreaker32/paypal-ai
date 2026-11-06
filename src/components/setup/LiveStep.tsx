@@ -28,7 +28,7 @@ export interface LiveProps {
   /** Names of the items still waiting for PayPal (a publish that partly failed). */
   pendingNames: string[];
   /** The shop's picture beside its name (`ShopAvatar`): never letters. */
-  avatar?: Pick<ShopAvatarProps, 'shop' | 'items' | 'menuPhotoSrc'>;
+  avatar?: Pick<ShopAvatarProps, 'shop' | 'items'>;
 }
 
 const subscribeNothing = () => () => {};
@@ -42,6 +42,7 @@ function LiveBeat({ delay = 0, className, children }: { delay?: number; classNam
   const [initial] = useState(clientMount ? { opacity: 0, scale: 0.86 } : false);
   return (
     <m.div
+      data-entrance=""
       className={className}
       initial={initial}
       animate={{ opacity: 1, scale: 1 }}

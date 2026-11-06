@@ -5,6 +5,7 @@ import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
 import { listOwnedShops } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
+import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { StorePreview } from './_start/StorePreview';
 import { StartActions } from './_start/StartActions';
 
@@ -12,7 +13,7 @@ import { StartActions } from './_start/StartActions';
 interface ReturningShop {
   id: string;
   name: string;
-  /** What its picture is made from (never letters): logo, cover, menu photo, else its items' drawing. */
+  /** What its picture is made from (never letters): logo, cover, menu photo, else the drawing of the items its shop page lists. */
   avatar: Pick<ShopAvatarProps, 'shop' | 'items'>;
 }
 
@@ -23,8 +24,8 @@ async function getReturningShops(): Promise<ReturningShop[]> {
       id: s.id,
       name: s.name,
       avatar: {
-        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, slug: s.slug, kind: s.kind, menuPhotoPaths: s.menuPhotoPaths },
-        items: itemsRepo.listWithVariants(db, s.id).map((i) => ({ category: i.category, name: i.name, section: i.section, description: i.description })),
+        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, kind: s.kind, menuPhotoSrc: menuPhotoAvatarSrc(s, 'owner') },
+        items: itemsRepo.avatarItems(db, s.id),
       },
     }));
   } catch (err) {
@@ -43,10 +44,10 @@ function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
         Welcome back
       </h2>
       <ul className="flex flex-col gap-3">
-        {shops.slice(0, 3).map((shop) => (
+        {shops.map((shop) => (
           <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span className="flex min-w-0 items-center gap-3">
-              <ShopAvatar {...shop.avatar} size="sm" menuPhotoSrc={`/api/shops/${shop.id}/photo/1`} />
+              <ShopAvatar {...shop.avatar} size="sm" />
               <span className="truncate text-lg font-bold">{shop.name}</span>
             </span>
             <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>

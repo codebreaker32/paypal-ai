@@ -2,12 +2,13 @@
 // grouping, and the words the screen uses for issues and skipped lines.
 import type { IssueCode, ItemWithVariants, SkipReason, SkippedLine } from '@/lib/domain/types';
 import { formatUSD } from '@/lib/domain/money';
-import { cardKindFor, needsSeller } from '@/lib/catalog/rules';
+import { cardKindFor, needsSeller, renamed } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';
 
 /** The same change the server will make, applied to our copy right away. */
 export function applyLocal(item: ItemWithVariants, u: ItemUpdate): ItemWithVariants {
   const next: ItemWithVariants = { ...item };
+  if (renamed(item, u)) next.category = null;
   if (u.name !== undefined) next.name = u.name;
   if (u.description !== undefined) next.description = u.description;
   if (u.section !== undefined) next.section = u.section;

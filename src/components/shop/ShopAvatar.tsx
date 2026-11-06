@@ -1,17 +1,16 @@
 /* eslint-disable @next/next/no-img-element -- site-relative logos, covers and menu photos of unknown size */
 import { ItemIllustration } from '@/components/illustrations/ItemIllustration';
 import { cx } from '@/components/ui/cx';
-import { shopAvatar } from '@/lib/domain/avatar';
+import { shopAvatar, type AvatarShop } from '@/lib/domain/avatar';
 import type { ItemCategory } from '@/lib/domain/category';
-import type { Shop } from '@/lib/domain/types';
 
 export interface ShopAvatarProps {
-  shop: Pick<Shop, 'logoUrl' | 'coverUrl' | 'slug' | 'menuPhotoPaths' | 'kind'>;
+  /** Its logo, cover, kind and where its first menu photo is shown from (`menuPhotoAvatarSrc`). */
+  shop: AvatarShop;
+  /** The items its shop page lists (`listedItems`, `itemsRepo.avatarItems`). */
   items: { category: ItemCategory | null; name: string; section: string | null; description: string | null }[];
   /** sm: a list row (start page); md: the dashboard header; lg: beside the shop's name; xl: over the shop's cover. */
   size?: 'sm' | 'md' | 'lg' | 'xl';
-  /** Where the first menu photo is served from: owner pages pass the owner route, which also serves drafts. */
-  menuPhotoSrc?: string;
   className?: string;
 }
 
@@ -26,7 +25,7 @@ const SIZE = {
  * The shop's picture in a rounded square: its logo, else its cover or menu photo cropped square, else a Shelfie drawing
  * of what it sells most. Never letters (`shopAvatar`). Decorative: the shop's name always sits beside it.
  */
-export function ShopAvatar({ shop, items, size = 'md', menuPhotoSrc, className }: ShopAvatarProps) {
+export function ShopAvatar({ shop, items, size = 'md', className }: ShopAvatarProps) {
   const source = shopAvatar(shop, items);
   const box = cx('block shrink-0 overflow-hidden', SIZE[size], className);
   if (source.kind === 'illustration') {
@@ -40,6 +39,5 @@ export function ShopAvatar({ shop, items, size = 'md', menuPhotoSrc, className }
       </span>
     );
   }
-  const src = source.kind === 'menu' && menuPhotoSrc ? menuPhotoSrc : source.src;
-  return <img src={src} alt="" aria-hidden="true" data-avatar={source.kind} className={cx(box, 'bg-surface-sunken object-cover')} />;
+  return <img src={source.src} alt="" aria-hidden="true" data-avatar={source.kind} className={cx(box, 'bg-surface-sunken object-cover')} />;
 }

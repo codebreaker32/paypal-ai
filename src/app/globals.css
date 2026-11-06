@@ -570,10 +570,12 @@
 }
 
 /* Motion's features failed to load twice (components/motion/load-features.ts): no entrance will play, so show
-   everything the motion primitives were holding hidden. */
+   everything held hidden for one: the motion primitives, and any other element that starts hidden for an entrance
+   (an `m.*` with an `initial`), which carries `data-entrance` (tests/ui/motion-off.test.ts checks every one does). */
 html[data-motion-off] [data-slot="reveal"],
 html[data-motion-off] [data-slot="stagger-item"],
-html[data-motion-off] [data-slot="status-swap"] > * {
+html[data-motion-off] [data-slot="status-swap"] > *,
+html[data-motion-off] [data-entrance] {
   opacity: 1 !important;
   transform: none !important;
 }

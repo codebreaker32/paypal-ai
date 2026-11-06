@@ -6,6 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { LogoPicker } from '@/components/setup/PhotoPicker';
 import { itemCategory } from '@/lib/domain/category';
+import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { Tabs } from '@/components/ui/tabs';
@@ -28,8 +29,8 @@ export interface DashboardProps {
   /** `payeeEmail`: where buyers' money goes (owner only); `isDemo`: Shelfie's demo shop, which may have none. */
   shop: {
     id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null;
-    /** For the header's picture (`ShopAvatar`): its logo, the kind and whether there is a menu photo to fall back on. */
-    logoUrl?: string | null; kind?: ShopKind; hasMenuPhoto?: boolean;
+    /** For the header's picture (`ShopAvatar`): its logo, the kind and where its first menu photo is shown from, if any. */
+    logoUrl?: string | null; kind?: ShopKind; menuPhotoSrc?: string | null;
   };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
@@ -181,9 +182,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <ShopAvatar
-            shop={{ logoUrl, coverUrl, slug: shop.slug, kind, menuPhotoPaths: shop.hasMenuPhoto ? ['page-1'] : [] }}
-            items={items}
-            menuPhotoSrc={`/api/shops/${shop.id}/photo/1`}
+            shop={{ logoUrl, coverUrl, kind, menuPhotoSrc: shop.menuPhotoSrc ?? null }}
+            items={listedItems(items)}
             className="hidden sm:block"
           />
           <div className="flex min-w-0 flex-col gap-1">
@@ -256,7 +256,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'menu',
             label: 'Menu',
-            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />,
+            content: <MenuPanel items={items} shopId={shop.id} shopKind={kind} slug={shop.slug} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />,
           },
           {
             id: 'share',

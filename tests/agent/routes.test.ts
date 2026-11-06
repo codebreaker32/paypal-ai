@@ -3,6 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi, t
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import sharp from 'sharp';
 import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as orders from '@/lib/db/repos/orders';
@@ -328,6 +329,19 @@ describe('GET /s/[slug]/photo/[n]', () => {
     expect(res.headers.get('content-type')).toBe('image/jpeg');
     expect(Buffer.from(await res.arrayBuffer()).equals(jpeg)).toBe(true);
     expect((await photoGET(get(`/s/${s.shop.slug}/photo/2`), photoCtx(s.shop.slug, '2'))).status).toBe(200);
+  });
+
+  it('?size=avatar: a 160 px square WebP for the shop’s picture, cached publicly like the original', async () => {
+    const res = await photoGET(get(`/s/${s.shop.slug}/photo/1?size=avatar`), photoCtx(s.shop.slug, '1'));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/webp');
+    expect(res.headers.get('cache-control')).toBe('public, max-age=300');
+    const bytes = Buffer.from(await res.arrayBuffer());
+    expect(await sharp(bytes).metadata()).toMatchObject({ format: 'webp', width: 160, height: 160 });
+    expect(bytes.length).toBeLessThan(jpeg.length / 4);
+    // The rules of the original still apply: a photo that isn't there, or isn't served, is 404.
+    expect((await photoGET(get(`/s/${s.shop.slug}/photo/5?size=avatar`), photoCtx(s.shop.slug, '5'))).status).toBe(404);
+    expect((await photoGET(get(`/s/${s.shop.slug}/photo/3?size=avatar`), photoCtx(s.shop.slug, '3'))).status).toBe(404);
   });
 
   it('serves only paths relative to the uploads folder, as the app stores them', async () => {

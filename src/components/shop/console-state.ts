@@ -40,6 +40,8 @@ export interface ConsoleState {
   nextKey: number;
   /** Approval cards wait for the end of the turn, so they sit under the assistant's "tap the PayPal button". */
   held: ApprovalEntry[];
+  /** How many entries came back from sessionStorage: those show as they are, without an entrance. A reset clears it. */
+  restored: number;
 }
 
 export type ConsoleAction =
@@ -51,7 +53,7 @@ export type ConsoleAction =
   /** The order behind an approval card, read from GET /api/orders/[ref]. */
   | { type: 'order_status'; orderRef: string; status: OrderStatus; captureRefused?: boolean };
 
-export const initialConsoleState: ConsoleState = { sessionId: null, entries: [], busy: false, nextKey: 1, held: [] };
+export const initialConsoleState: ConsoleState = { sessionId: null, entries: [], busy: false, nextKey: 1, held: [], restored: 0 };
 
 type NewEntry = Entry extends infer E ? (E extends Entry ? Omit<E, 'key'> : never) : never;
 
@@ -74,7 +76,7 @@ export function consoleReducer(state: ConsoleState, action: ConsoleAction): Cons
     case 'order_status':
       return withOrderStatus(state, action.orderRef, action.status, action.captureRefused);
     case 'restore':
-      return action.state;
+      return { ...action.state, restored: action.state.entries.length };
     case 'reset':
       return initialConsoleState;
     case 'event':
@@ -212,6 +214,14 @@ export function pollEvery(ms: number, check: () => Promise<void>, forMs = Infini
     stopped = true;
     clearTimeout(timer);
   };
+}
+
+/**
+ * The first entry that plays its entrance as it arrives. Entries restored from sessionStorage, or already in the log
+ * when it was shown (`shownAtOpen`), appear as they are; after a reset nothing is restored, so every entry is new.
+ */
+export function firstFreshEntry(state: Pick<ConsoleState, 'restored'>, shownAtOpen: number): number {
+  return Math.max(shownAtOpen, state.restored);
 }
 
 /**
