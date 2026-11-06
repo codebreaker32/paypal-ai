@@ -15,7 +15,7 @@ PayPal's agent checkout reaches merchants who already have a website store. Rosa
   It has no MCP servers configured: it gets **only the shop URL**.
 - A second terminal with the price-tamper `curl` ready (see 1:42), or MCP Inspector on the door URL with a `create_order` call that includes `"price": 0.01`.
 - **Payment:** log in on PayPal's page as the sandbox buyer and click **Complete Purchase**. Rehearse once; on camera, **cut out the login typing** (it shows the sandbox login).
-- For 0:33, a photo of a display case with croissants (the clip uses the Pexels photo listed in `docs/ASSETS.md`); the demo shop's Menu tab already has photos, so remove two items' photos first (tap a photo → **Remove**) to show them filled in.
+- For 0:33, a photo of a display case with croissants (`public/samples/counter-case.jpg`, a Pexels photo credited in `docs/ASSETS.md`); the demo shop's Menu tab already has photos, so remove two items' photos first (tap a photo → **Remove**) to show them filled in.
 - The printed counter card (Share tab → **Print counter card**) and the handwritten Marigold menu for the opening and 0:38 shots.
 
 ## Shots

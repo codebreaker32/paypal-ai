@@ -24,9 +24,17 @@ Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped to 120
 | `public/demo/marigold-bakehouse/seasonal-fruit-galette.jpg` | Rustic peach galette with blueberries on parchment | https://www.pexels.com/photo/cake-with-fruit-slices-19910615/ | [Beyza](https://www.pexels.com/@beyza-555707524/) | Pexels License |
 | `public/demo/marigold-bakehouse/drip-coffee.jpg` | Mug of black coffee on linen beside a croissant | https://www.pexels.com/photo/teal-ceramic-mug-filled-with-coffee-near-baked-bread-1411948/ | [Lisa Fotios](https://www.pexels.com/@fotios-photos/) | Pexels License |
 
+## Snap your counter (demo input)
+
+| File | Shows | Pexels page | Photographer | Licence |
+| --- | --- | --- | --- | --- |
+| `public/samples/counter-case.jpg` | A bakery display case: croissants, almond croissants, filled pastries and a chocolate cake, with plain price cards (product names and "2.50", no shop name or logo) | https://www.pexels.com/photo/19498989/ | [Valeria Boltneva](https://www.pexels.com/@valeriya/) | Pexels License |
+
+Used as the display-case photo for "Snap your counter" in the demo clip and the live check (`docs/AI_TOOLS.md` row 7); it is not shown on any shop. 1600×1067, as downloaded.
+
 ## Other assets
 
-- Fonts: Google Fonts via `next/font` (IBM Plex Mono, Playfair Display, Schibsted Grotesk), SIL Open Font License.
+- Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
 ## Ravi's Bike Repair (ravi-bike-repair)
 
