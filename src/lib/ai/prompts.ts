@@ -28,7 +28,7 @@ Rules:
 function examplePhotoRule(library: readonly LibraryPhoto[]): string {
   if (!library.length) return '- example_photo: always null.';
   const list = library.map((p) => `${p.id}: ${p.shows}`).join('\n');
-  return `- example_photo: the id of the photo below that shows the same kind of thing as the item (a croissant for a croissant, an al pastor taco for an al pastor taco), shown to buyers as an example until the seller adds their own photo. Pick the closest one of the same kind; null when none is close (never a different dish, drink or part). Ids:\n${list}`;
+  return `- example_photo: the id of the photo below that shows the same kind of thing as the item (a croissant for a croissant, an al pastor taco for an al pastor taco), shown to buyers as an example until the seller adds their own photo. Pick the closest one of the same kind; null when none is close (never a different dish, drink or part, and never a photo whose description names a flavour the item doesn't have, such as a chocolate cake for a citrus cake). Ids:\n${list}`;
 }
 
 /** The menu-reading system prompt for a library (the bundled one by default). */

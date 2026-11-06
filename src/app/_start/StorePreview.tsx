@@ -14,7 +14,7 @@ const MENU_PHOTO = '/samples/marigold-bakehouse.jpg';
 const ITEMS = [
   { name: 'Almond croissant', cents: 500, photo: `${DEMO}/almond-croissant.jpg`, category: 'pastry' },
   { name: 'Country sourdough loaf', cents: 900, photo: `${DEMO}/country-sourdough-loaf.jpg`, category: 'bread' },
-  { name: 'Cardamom bun', cents: 450, photo: `${DEMO}/cardamom-bun.jpg`, category: 'pastry' },
+  { name: 'Cardamom bun', cents: 350, photo: `${DEMO}/cardamom-bun.jpg`, category: 'pastry' },
 ] as const;
 const LINES = [
   { qty: 2, name: 'Almond croissant', cents: 500 },

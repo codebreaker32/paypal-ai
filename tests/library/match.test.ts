@@ -215,3 +215,21 @@ describe('bike parts with no tag match', () => {
     expect(matchLibraryPhoto({ name: 'Pedals', category: 'bike_part' }, 'services', { library: LIB })).toBeNull();
   });
 });
+
+describe('flavours', () => {
+  it('an olive oil citrus cake never gets a chocolate photo, and gets the lemon tart (the bundled library)', () => {
+    const p = matchLibraryPhoto({ name: 'Olive oil citrus cake – 8"', section: 'Cakes (24h notice)', category: 'cake' }, 'food');
+    expect(p?.shows.toLowerCase()).not.toContain('chocolate');
+    expect(p?.id).toBe('cake-whole-2');
+  });
+
+  it("Claude's pick is dropped when its photo names a flavour the item doesn't have", () => {
+    const p = matchLibraryPhoto({ name: 'Lemon drizzle cake', category: 'cake' }, 'food', { chosenId: 'cake-whole-3' });
+    expect(p?.id).not.toBe('cake-whole-3');
+    expect(p?.shows.toLowerCase()).not.toContain('chocolate');
+  });
+
+  it('an item that names no flavour may show any', () => {
+    expect(matchLibraryPhoto({ name: 'Birthday cake', category: 'cake' }, 'food')).not.toBeNull();
+  });
+});
