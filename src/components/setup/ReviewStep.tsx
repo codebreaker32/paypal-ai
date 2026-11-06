@@ -13,7 +13,7 @@ import type { ReviewShop } from '@/lib/catalog/setup';
 import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
 import { PAYEE_REQUIRED_MESSAGE, canBePaid } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
-import { IssueCard, type OnUpdate } from './IssueCards';
+import { IssueCard, PhotoContext, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
 import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
@@ -140,6 +140,8 @@ export function ReviewStep(props: ReviewProps) {
   const onPhoto = useCallback((itemId: string, photoUrl: string | null) => {
     setItems((all) => all.map((it) => (it.id === itemId ? { ...it, photoUrl } : it)));
   }, []);
+
+  const photoContext = useMemo(() => ({ shopId, onPhoto }), [shopId, onPhoto]);
 
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
@@ -281,13 +283,15 @@ export function ReviewStep(props: ReviewProps) {
                 </h2>
                 <p className="text-ink-soft">Fix these, or leave them: they stay off your shop until you do.</p>
               </div>
-              <ul className="flex flex-col gap-4">
-                {cards.map((c) => (
-                  <li key={cardId(c)}>
-                    <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
-                  </li>
-                ))}
-              </ul>
+              <PhotoContext value={photoContext}>
+                <ul className="flex flex-col gap-4">
+                  {cards.map((c) => (
+                    <li key={cardId(c)}>
+                      <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
+                    </li>
+                  ))}
+                </ul>
+              </PhotoContext>
             </section>
           ) : (
             <p className="flex items-center gap-2 rounded-md bg-ok-soft px-3.5 py-3 font-semibold text-ok">
