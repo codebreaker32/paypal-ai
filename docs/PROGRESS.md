@@ -1,8 +1,13 @@
 # Progress
 
-_Last updated: 2026-11-06 10:40 IST (end of session 6)_
+_Last updated: 2026-11-06 10:50 IST (session 7)_
 
 ## Current phase
+**Session 7 (10:39–11:08 IST, a short run).** Done:
+- **done, merged (`c32d337`):** session 6's noted follow-up. Orders the shop cancels (`npm run seed -- --cancel-unpaid`) no longer claim "the buyer cancelled on PayPal". `cancelOrder` records the cancel's source (`cancel_url` for PayPal's cancel link, `seller` from the seed). The seller's order page (action card and timeline), the buyer's receipt (`cancelledByShop` on `GET /api/orders/[ref]`) and `get_order_status` read it. TDD: 5 new tests. **670 unit tests pass; typecheck and lint are clean.**
+- **Verified on a running app** (dev server on port 3171, a throwaway seeded database, the real sandbox): an order through the door (SHF-CWXB7G, PayPal `2LN13155YE638222B`, $9.00) → `npm run seed -- --cancel-unpaid` cancelled it → the receipt API said `cancelledByShop: true`, the receipt page said "cancelled by the shop before payment", `get_order_status` said "The shop cancelled this order before payment", and the seller order page showed "The shop cancelled it before the buyer paid" with the timeline line "Cancelled by the shop before payment" (no "buyer cancelled" text). The throwaway database was deleted.
+- **Not run this session:** the full e2e suite and a judge round (a 29-minute run; the change touches only the copy of cancelled orders and one optional argument, and no money path).
+
 **Session 6 (09:07–~10:40 IST).** Done:
 - **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits). GitHub detects the MIT license.
 - **done, merged:** review 2 (`docs/reviews/2026-11-06-review-2.md`) over the areas session 5's review didn't cover. Wave 1 had four areas (setup, seller dashboard, buyer side, a security sweep); wave 2 had two lenses (runtime lifecycle and data integrity, cross-surface consistency). A skeptic tried to refute every finding: **14 confirmed, 5 refuted.** The 9 wave-1 fixes are merged (641 unit tests pass; typecheck and lint are clean):
@@ -34,7 +39,7 @@ _Last updated: 2026-11-06 10:40 IST (end of session 6)_
   - `npm run dev -- --port 3141` and a production `npm start -- -p 3141`, both showing the door at `:3141`;
   - the README's door curl, and `create_order` returning a real `sandbox.paypal.com` approval link that loads.
 
-  Fixed from it: `package-lock.json` still had the scaffold's name, so `npm install` dirtied the tree. The README now explains the seed's port, its 9 of 10 items, and that rehearsal orders cancelled by `--cancel-unpaid` read "cancelled on PayPal" (the product copy has no "cancelled by the seller" wording yet; a small follow-up).
+  Fixed from it: `package-lock.json` still had the scaffold's name, so `npm install` dirtied the tree. The README now explains the seed's port, its 9 of 10 items, and what `--cancel-unpaid` does (rehearsal orders now read "cancelled by the shop"; done in session 7).
 - **Verified (L1 in production mode):** `next start -p 3131` with no `APP_URL`, on a throwaway seeded database, put the door at `http://localhost:3131/s/marigold-bakehouse/mcp` on the shop page (3 places). The seed, which runs outside the server, still prints `:3000`. The throwaway database was deleted afterwards.
 - **done:** `npm run seed` now reports the demo shop's unpaid orders, and `npm run seed -- --cancel-unpaid` cancels rehearsal orders before a recording (one caller can hold 3 unpaid orders per shop). DEMO.md and the README say so.
 
