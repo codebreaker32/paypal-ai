@@ -153,6 +153,7 @@ export function LiveStep(p: LiveProps) {
       <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-x-16">
         <div className="contents lg:col-span-7 lg:flex lg:min-w-0 lg:flex-col lg:gap-8">
           <LinkSection title="Your agent door" className="border-t-0 pt-0">
+            <p className="text-ink-soft">Give it to any AI assistant to order from you.</p>
             <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" primary />
           </LinkSection>
 

@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
@@ -159,7 +159,8 @@ describe('shop setup', () => {
       let release!: () => void;
       const slow = deps({ extract: () => new Promise((r) => { calls++; release = () => r(marigold); }) });
       const first = runReading(slow, shop.id);
-      await new Promise((r) => setTimeout(r, 10));
+      // Wait until the first run has reached Claude (a fixed 10 ms wait flaked when the whole suite loaded the CPU).
+      await vi.waitFor(() => expect(calls).toBe(1));
       expect(await runReading(slow, shop.id)).toEqual({ status: 'running' });
       expect(loadSetupView(db, shops.byId(db, shop.id)!, t)).toMatchObject({ step: 'reading', running: true });
       release();

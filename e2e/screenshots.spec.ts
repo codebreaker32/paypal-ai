@@ -687,7 +687,9 @@ const SCREENS: Screen[] = [
       const res = await answered;
       test.skip(res.status() === 503, 'No ANTHROPIC_API_KEY on the server.');
       expect(res.status()).toBe(200);
-      await expect(page.getByRole('list', { name: 'Photos found' }).locator('li').first()).toBeVisible();
+      // Whatever Claude answered: its crops, or "We couldn't match any items" (a live answer can find none).
+      const sheet = page.getByRole('dialog');
+      await expect(sheet.getByRole('list', { name: 'Photos found' }).locator('li').first().or(sheet.getByText('We couldn’t match any items.'))).toBeVisible();
     },
   },
   {

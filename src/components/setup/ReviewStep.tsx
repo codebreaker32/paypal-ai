@@ -36,30 +36,31 @@ export interface ReviewProps {
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
-  if (state.status === 'error') {
-    return (
-      <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
-        <Icon icon={CircleAlert} size="sm" />
-        {state.retryable ? "Couldn’t save your last change." : state.message}
-        {state.retryable && (
-          <Button variant="ghost" icon={RotateCcw} onClick={onRetry} className="-my-1">
-            Retry
-          </Button>
+  const busy = state.status === 'pending' || state.status === 'saving';
+  // The status region stays mounted through every state (empty while idle or on an error), so screen readers announce
+  // "Saving…" when it appears, including after Retry.
+  return (
+    <>
+      {state.status === 'error' && (
+        <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
+          <Icon icon={CircleAlert} size="sm" />
+          {state.retryable ? "Couldn’t save your last change." : state.message}
+          {state.retryable && (
+            <Button variant="ghost" icon={RotateCcw} onClick={onRetry} className="-my-1">
+              Retry
+            </Button>
+          )}
+        </span>
+      )}
+      <span className="flex items-center gap-1.5 type-meta text-ink-muted" role="status">
+        {(busy || state.status === 'saved') && (
+          <>
+            <Icon icon={busy ? Loader2 : CircleCheck} size="sm" className={cx(busy && 'animate-spin', !busy && 'text-ok')} />
+            {busy ? 'Saving…' : 'Saved'}
+          </>
         )}
       </span>
-    );
-  }
-  const busy = state.status === 'pending' || state.status === 'saving';
-  // The live region stays mounted while idle (empty), so screen readers announce "Saving…" when it appears.
-  return (
-    <span className="flex items-center gap-1.5 type-meta text-ink-muted" role="status">
-      {(busy || state.status === 'saved') && (
-        <>
-          <Icon icon={busy ? Loader2 : CircleCheck} size="sm" className={cx(busy && 'animate-spin', !busy && 'text-ok')} />
-          {busy ? 'Saving…' : 'Saved'}
-        </>
-      )}
-    </span>
+    </>
   );
 }
 
