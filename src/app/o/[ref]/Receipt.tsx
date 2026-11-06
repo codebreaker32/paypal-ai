@@ -1,14 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { ArrowLeft, Bot } from 'lucide-react';
 import { ButtonLink, buttonClasses } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
+import { StatusSwap } from '@/components/motion/status-swap';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';
 import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
+import './receipt-motion.css';
 import { goingToText, paidToText, type ReceiptOrder } from '@/lib/orders/receipt-types';
 
 const POLL_MS = 3000;
@@ -83,11 +85,16 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-16">
       <div className="flex flex-col gap-8">
         <div aria-live="polite" className="flex flex-col items-start gap-4">
-          <span className={cx('inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
+          {/* Keyed by the state, so a change (Waiting → Paid) pops the new icon in again. */}
+          <span key={view.title} className={cx('rc-pop inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
             <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
           </span>
-          <h1 className="type-display">{view.title}</h1>
-          <p className="type-lead text-ink-soft">{view.body}</p>
+          <h1 className="rc-rise type-display" style={{ '--rc-delay': '60ms' } as CSSProperties}>
+            <StatusSwap value={view.title}>{view.title}</StatusSwap>
+          </h1>
+          <p className="rc-rise type-lead text-ink-soft" style={{ '--rc-delay': '120ms' } as CSSProperties}>
+            <StatusSwap value={view.body}>{view.body}</StatusSwap>
+          </p>
         </div>
 
         <div className="flex flex-col gap-3">
@@ -120,7 +127,9 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
             <span className="type-figures">Order {order.number}</span>
             <span aria-hidden="true" className={cx('inline-flex items-center gap-1.5 font-semibold', DOT[view.tone])}>
               <span className="size-2 rounded-full bg-current" />
-              {view.tone === 'danger' ? 'Not paid' : SHORT[order.status]}
+              <StatusSwap value={view.tone === 'danger' ? 'Not paid' : SHORT[order.status]}>
+                {view.tone === 'danger' ? 'Not paid' : SHORT[order.status]}
+              </StatusSwap>
             </span>
           </p>
         </div>

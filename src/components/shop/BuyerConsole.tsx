@@ -8,17 +8,22 @@ import {
   CircleX,
 
   Hourglass,
-  Loader2,
   RotateCcw,
   SendHorizontal,
   type LucideIcon,
 } from 'lucide-react';
+import { m, useReducedMotion } from 'motion/react';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type { OrderStatus } from '@/lib/domain/types';
 import { Button, ButtonLink, buttonClasses } from '@/components/ui/button';
 import { FieldError, TextInput } from '@/components/ui/field';
+import { cx } from '@/components/ui/cx';
 import { Icon } from '@/components/ui/icon';
+import { CountUp } from '@/components/motion/count-up';
+import { Pressable } from '@/components/motion/pressable';
+import { StatusSwap } from '@/components/motion/status-swap';
+import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
 import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
 import {
@@ -38,6 +43,7 @@ import {
   type Entry,
 } from './console-state';
 import { RichText } from './RichText';
+import './console-motion.css';
 
 const SHOP_DIDNT_ANSWER = "The shop didn’t answer. Try again.";
 const RATE_LIMITED = "You’ve sent a lot of messages in the last hour. Try again later.";
@@ -45,6 +51,8 @@ export const PAYMENT_CHECK_PROMPT = 'Did my payment go through?';
 
 export interface BuyerConsoleApi {
   state: ConsoleState;
+  /** How many entries came back from sessionStorage: those show as they are, without an entrance. */
+  restored: number;
   send: (text: string) => void;
   reset: () => void;
 }
@@ -56,6 +64,7 @@ export interface BuyerConsoleApi {
  */
 export function useBuyerConsole(slug: string): BuyerConsoleApi {
   const [state, dispatch] = useReducer(consoleReducer, initialConsoleState);
+  const [restored, setRestored] = useState(0);
   const storageKey = `shelfie:console:${slug}`;
   const latest = useRef(state);
   const loaded = useRef(false);
@@ -83,7 +92,12 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(storageKey);
-      if (saved) dispatch({ type: 'restore', state: restoreConsoleState(JSON.parse(saved)) });
+      if (saved) {
+        const back = restoreConsoleState(JSON.parse(saved));
+        dispatch({ type: 'restore', state: back });
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- read once from sessionStorage after mount
+        setRestored(back.entries.length);
+      }
     } catch {
       // Private mode or bad data: start with an empty conversation.
     }
@@ -176,7 +190,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
   );
 
   const reset = useCallback(() => dispatch({ type: 'reset' }), []);
-  return { state, send, reset };
+  return { state, restored, send, reset };
 }
 
 async function* readNdjson(body: ReadableStream<Uint8Array>): AsyncGenerator<ConsoleEvent> {
@@ -227,8 +241,18 @@ const SETTLED: Record<Extract<ApprovalCardView, { approve: false }>['label'], { 
   Expired: { icon: CircleX, note: 'Nothing was charged.' },
 };
 
-function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'approval' }>; shopName: string }) {
+/**
+ * The order to approve. A card that arrives during the conversation counts its total up from zero once (a card restored
+ * after the trip to PayPal shows its total as is); the PayPal button presses in; a status change crossfades.
+ */
+function ApprovalCard({ entry, shopName, fresh }: { entry: Extract<Entry, { kind: 'approval' }>; shopName: string; fresh: boolean }) {
   const cents = parseAmountToCents(entry.total);
+  const reduce = useReducedMotion();
+  const [countFrom, setCountFrom] = useState(fresh && !reduce && cents !== null ? 0 : cents);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one count-up from zero after the card mounts
+    setCountFrom(cents);
+  }, [cents]);
   const total = cents === null ? `$${entry.total}` : formatUSD(cents);
   const safe = isPayPalApprovalUrl(entry.approvalUrl);
   const view = approvalCard(entry);
@@ -240,14 +264,23 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
           <span className="font-display text-lg leading-6 font-bold">{shopName}</span>
           {entry.orderNumber && <span className="type-meta type-price text-ink-muted">Order {entry.orderNumber}</span>}
         </span>
-        <span className="type-price text-xl font-semibold">{total}</span>
+        {cents === null || countFrom === null ? (
+          <span className="type-price text-xl font-semibold">{total}</span>
+        ) : (
+          <CountUp cents={countFrom} className="type-price text-xl font-semibold" />
+        )}
       </div>
       {view.approve ? (
         <>
           {safe ? (
-            <a href={entry.approvalUrl} className={buttonClasses({ variant: 'paypal', fullWidth: true })}>
+            <Pressable
+              as="a"
+              lift={false}
+              href={entry.approvalUrl}
+              className={cx(buttonClasses({ variant: 'paypal', fullWidth: true }), 'active:scale-[0.97]')}
+            >
               Approve {total} on PayPal
-            </a>
+            </Pressable>
           ) : (
             <FieldError>This approval link doesn’t go to PayPal, so it isn’t shown.</FieldError>
           )}
@@ -256,7 +289,7 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
       ) : (
         <>
           <ButtonLink href={`/o/${encodeURIComponent(entry.orderRef)}`} icon={settled!.icon} fullWidth>
-            {view.label} · View receipt
+            <StatusSwap value={view.label}>{view.label} · View receipt</StatusSwap>
           </ButtonLink>
           {settled!.note && <p className="type-meta text-ink-muted">{settled!.note}</p>}
         </>
@@ -265,7 +298,7 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
   );
 }
 
-function EntryView({ entry, shopName }: { entry: Entry; shopName: string }) {
+function EntryView({ entry, shopName, fresh }: { entry: Entry; shopName: string; fresh: boolean }) {
   switch (entry.kind) {
     case 'user':
       return <UserBubble text={entry.text} />;
@@ -274,7 +307,7 @@ function EntryView({ entry, shopName }: { entry: Entry; shopName: string }) {
     case 'activity':
       return <ActivityPanel calls={entry.calls} />;
     case 'approval':
-      return <ApprovalCard entry={entry} shopName={shopName} />;
+      return <ApprovalCard entry={entry} shopName={shopName} fresh={fresh} />;
     case 'error':
       return <FieldError>{entry.message}</FieldError>;
   }
@@ -289,7 +322,7 @@ function Starters({ prompts, onPick, disabled }: { prompts: string[]; onPick: (p
             type="button"
             disabled={disabled}
             onClick={() => onPick(p)}
-            className="flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-line disabled:opacity-50"
+            className="flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink transition-[background-color,transform] duration-(--duration-fast) ease-out hover:bg-line active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
           >
             <span className="flex-1">{p}</span>
           </button>
@@ -319,6 +352,8 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
   // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
   const anchor = turnStartIndex(state.entries);
+  // How many entries the conversation had when it was first shown (restored from sessionStorage or empty).
+  const [shownAtOpen] = useState(state.entries.length);
   // Found once per mount (the log moves between the sheet and the panel by remounting), not on every streamed event.
   const scrollerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
@@ -353,14 +388,28 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   return (
     <div className="flex flex-col gap-4">
       <div ref={log} role="log" aria-label="Conversation" className="flex flex-col gap-4">
-        {state.entries.map((entry) => (
-          <EntryView key={entry.key} entry={entry} shopName={shopName} />
-        ))}
+        {/* Each new message, Activity card and order card rises in as it arrives (one after another as they stream);
+            what was already there when the console opened (a restored conversation) shows as is. */}
+        {state.entries.map((entry, i) => {
+          const fresh = i >= Math.max(shownAtOpen, api.restored);
+          return (
+            <m.div
+              key={entry.key}
+              initial={fresh ? { opacity: 0, y: 8 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: MOTION_S.base, ease: EASE_OUT }}
+            >
+              <EntryView entry={entry} shopName={shopName} fresh={fresh} />
+            </m.div>
+          );
+        })}
       </div>
       {state.busy && !calling && (
-        <p className="flex items-center gap-2 text-sm text-ink-muted" role="status">
-          <Icon icon={Loader2} size="sm" className="animate-spin" />
-          Thinking…
+        <p className="flex items-center gap-2.5 text-sm text-ink-muted" role="status">
+          <span aria-hidden="true" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
+            <Icon icon={Bot} size="sm" />
+          </span>
+          <span className="bc-thinking font-semibold">Thinking…</span>
         </p>
       )}
       {!state.busy && (

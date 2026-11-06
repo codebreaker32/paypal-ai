@@ -404,6 +404,31 @@ test.describe('console states', () => {
     }
   });
 
+  test('the order card counts its total up once; with reduced motion it shows the total at once', async ({ page }) => {
+    for (const reduced of [false, true]) {
+      await page.setViewportSize(DESKTOP);
+      await replayConsole(page);
+      await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
+      await page.goto(`/s/${SLUG}`);
+      await page.evaluate(() => sessionStorage.clear());
+      const region = await openConsole(page, false);
+      // Sample the total's text as the card appears: with motion it runs from $0.00 up; reduced, it is final at once.
+      await page.evaluate(() => {
+        const seen: string[] = ((window as unknown as { __totals: string[] }).__totals = []);
+        new MutationObserver(() => {
+          const el = document.querySelector('[data-slot="count-up"]');
+          if (el) seen.push(el.textContent ?? '');
+        }).observe(document.body, { subtree: true, childList: true, characterData: true });
+      });
+      await orderThroughConsole(region);
+      const total = region.locator('[data-slot="count-up"]');
+      await expect(total).toHaveText('$27.00');
+      const seen = await page.evaluate(() => (window as unknown as { __totals: string[] }).__totals);
+      if (reduced) expect(seen.every((t) => t === '$27.00'), seen.join(' | ')).toBe(true);
+      else expect(seen.some((t) => t !== '$27.00'), 'counted up').toBe(true);
+    }
+  });
+
   test('on a phone the price sits directly under the item name', async ({ page }) => {
     await page.setViewportSize(PHONE);
     await page.goto(`/s/${SLUG}`);
