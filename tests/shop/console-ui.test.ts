@@ -305,7 +305,7 @@ const marigold = () => [
 
 describe('starterPrompts', () => {
   it('derives three prompts from real menu items', () => {
-    expect(starterPrompts({ kind: 'food', fulfillment: 'both' }, marigold())).toEqual([
+    expect(starterPrompts({ kind: 'food', fulfillment: 'both' }, marigold(), { takesOrders: true })).toEqual([
       'Two butter croissants and a country sourdough loaf, shipped to me',
       'What pastries do you have?',
       'What sizes does the drip coffee come in?',
@@ -319,14 +319,14 @@ describe('starterPrompts', () => {
       item('Horchata', 'Drinks', [300]),
       item('Market fish', 'Specials', [null], { status: 'in_person' }),
     ];
-    const prompts = starterPrompts({ kind: 'food', fulfillment: 'pickup' }, items);
+    const prompts = starterPrompts({ kind: 'food', fulfillment: 'pickup' }, items, { takesOrders: true });
     expect(prompts[0]).toBe('Two al pastor tacos and a horchata, for pickup');
     expect(prompts).toHaveLength(3);
     expect(prompts[2]).toBe('When and where is pickup?');
   });
 
   it('pluralises the last word sensibly', () => {
-    const p = (name: string) => starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item(name, 'A', [100])])[0];
+    const p = (name: string) => starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item(name, 'A', [100])], { takesOrders: true })[0];
     expect(p('Country loaf')).toBe('Two country loaves, shipped to me');
     expect(p('Peach pie')).toBe('Two peach pies, shipped to me');
     expect(p('Cherry tart')).toBe('Two cherry tarts, shipped to me');
@@ -335,13 +335,39 @@ describe('starterPrompts', () => {
   });
 
   it('asks for a service plainly', () => {
-    const prompts = starterPrompts({ kind: 'services', fulfillment: 'pickup' }, [item('Flat tire repair', 'Repairs', [1500], { kind: 'SERVICE' })]);
+    const prompts = starterPrompts({ kind: 'services', fulfillment: 'pickup' }, [item('Flat tire repair', 'Repairs', [1500], { kind: 'SERVICE' })], {
+      takesOrders: true,
+    });
     expect(prompts[0]).toBe('I’d like a flat tire repair. How does it work?');
   });
 
   it('still offers questions for a shop with nothing orderable', () => {
-    const prompts = starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item('Market fish', null, [null], { status: 'in_person' })]);
+    const prompts = starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item('Market fish', null, [null], { status: 'in_person' })], {
+      takesOrders: true,
+    });
     expect(prompts).toEqual(["What’s on the menu today?", 'How much is shipping?']);
+  });
+
+  // A paused shop, or a live one with nowhere to be paid (takesOrders false): the door refuses every order, so the
+  // console doesn't start one.
+  it('offers only questions when the shop isn’t taking orders', () => {
+    expect(starterPrompts({ kind: 'food', fulfillment: 'both' }, marigold(), { takesOrders: false })).toEqual([
+      'What pastries do you have?',
+      'What sizes does the drip coffee come in?',
+    ]);
+    const pickup = [item('Al pastor taco', 'Tacos', [325]), item('Horchata', 'Drinks', [300])];
+    expect(starterPrompts({ kind: 'food', fulfillment: 'pickup' }, pickup, { takesOrders: false })).toEqual([
+      'What tacos do you have?',
+      'When and where is pickup?',
+    ]);
+  });
+
+  it('asks for no service when the shop isn’t taking orders', () => {
+    const repairs = [item('Flat tire repair', 'Repairs', [1500], { kind: 'SERVICE' })];
+    expect(starterPrompts({ kind: 'services', fulfillment: 'pickup' }, repairs, { takesOrders: false })).toEqual([
+      'What repairs do you have?',
+      'When and where is pickup?',
+    ]);
   });
 });
 

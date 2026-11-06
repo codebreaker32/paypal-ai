@@ -91,6 +91,32 @@ describe('shop page "not taking orders" note', () => {
   });
 });
 
+describe('shop page assistant starter prompts', () => {
+  const starters = async (seed: Seed) => {
+    const { nodes } = await pageFor(seed);
+    const layout = nodes.find((n) => (n.props as { starters?: string[] }).starters !== undefined)!;
+    return (layout.props as { starters: string[] }).starters;
+  };
+  /** The one starter that asks to buy something: "Two …, shipped to me" or "…, for pickup". */
+  const ordering = (prompts: string[]) => prompts.filter((p) => /shipped to me|for pickup/.test(p));
+
+  it.each([
+    ['a live shop with its PayPal email', { name: 'Rosa Bakes' }],
+    ['the live demo shop, paid to the platform', { name: 'Marigold Bakehouse' }],
+  ] as [string, Seed][])('include an order for %s', async (_label, seed) => {
+    expect(ordering(await starters(seed))).toHaveLength(1);
+  });
+
+  it.each([
+    ['a live shop with no PayPal email (it refuses every order)', { name: 'Rosa Bakes', payeeEmail: null }],
+    ['a paused shop', { name: 'Rosa Bakes', status: 'paused' }],
+  ] as [string, Seed][])('are only questions for %s', async (_label, seed) => {
+    const prompts = await starters(seed);
+    expect(prompts.length).toBeGreaterThan(0);
+    expect(ordering(prompts)).toEqual([]);
+  });
+});
+
 describe('shop page agent door section', () => {
   /** The page's agent door section as HTML (its copy buttons need the toast provider the root layout mounts). */
   const doorHtml = async (seed: Seed) => {

@@ -27,7 +27,15 @@ function sectionWord(section: string | null | undefined): string | null {
   return s && lower(s) !== 'menu' ? lower(s) : null;
 }
 
-export function starterPrompts(shop: Pick<Shop, 'kind' | 'fulfillment'>, items: ItemWithVariants[]): string[] {
+/**
+ * Up to three: an order made from real items, then questions. `takesOrders` is `takesOrders(shop)`: a shop that refuses
+ * orders (paused, or nowhere to be paid) gets only the questions.
+ */
+export function starterPrompts(
+  shop: Pick<Shop, 'kind' | 'fulfillment'>,
+  items: ItemWithVariants[],
+  { takesOrders }: { takesOrders: boolean },
+): string[] {
   const live = items.filter(orderable);
   const single = live.filter((i) => priced(i).length === 1);
   const pool = single.filter(simple).length ? single.filter(simple) : single;
@@ -43,7 +51,7 @@ export function starterPrompts(shop: Pick<Shop, 'kind' | 'fulfillment'>, items: 
   const ships = shop.fulfillment !== 'pickup';
 
   const prompts: string[] = [];
-  if (a) {
+  if (a && takesOrders) {
     if (shop.kind === 'services') {
       prompts.push(`I’d like ${article(a.name)} ${lower(a.name)}. How does it work?`);
     } else {
