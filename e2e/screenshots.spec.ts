@@ -8,14 +8,18 @@
 // PayPal ids start with "E2E". The console conversation is replayed from a real recorded run
 // (e2e/fixtures/console-turns.json). No Claude or PayPal calls happen here.
 //
+// The in-between states (publishing, a publish that partly failed, the console thinking, rate-limited or failing,
+// tracking PayPal refused) are MOCKED in the browser: Playwright answers those requests instead of the server
+// (page.route, or streamThenHold for a stream that stays open). Each one is listed in the screenshots README.
+//
 // Run: E2E_PORT=3111 npx playwright test e2e/screenshots.spec.ts   (or: npm run screenshots)
 // SCREENSHOTS_DIR=docs/judge/screenshots/round-2 writes a later round's set somewhere else (default: round-1).
 import fs from 'node:fs';
 import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
+import { expect, test, type BrowserContext, type Locator, type Page, type Route } from '@playwright/test';
 import { recordedReading } from '@/lib/ai/samples';
-import { publishShop } from '@/lib/catalog/publish';
+import { itemsToPublish, publishShop, sellerMessageFor } from '@/lib/catalog/publish';
 import { createShopFromSample, runReading } from '@/lib/catalog/setup';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
@@ -23,11 +27,13 @@ import * as eventsRepo from '@/lib/db/repos/events';
 import * as extractions from '@/lib/db/repos/extractions';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
+import * as shopsRepo from '@/lib/db/repos/shops';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import type { Order, OrderBrief } from '@/lib/domain/types';
 import { createFakePayPal } from '@/lib/paypal/fake';
+import { PayPalApiError } from '@/lib/paypal/types';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
-import { DESKTOP, PHONE, samplePhoto, settle } from './helpers';
+import { DESKTOP, PHONE, samplePhoto, settle, streamThenHold } from './helpers';
 import { E2E_DB, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
 const OUT = process.env.SCREENSHOTS_DIR
@@ -50,8 +56,10 @@ interface Setup {
 }
 let demo: FixtureShop;
 let empty: FixtureShop;
+/** A second Marigold Bakehouse (fixture) for an order paid moments ago, kept off the demo shop's dashboard. */
+let briefShop: FixtureShop;
 const orders = {} as Record<'nut' | 'pickup' | 'waiting' | 'pending' | 'shipped' | 'pickedUp' | 'cancelled' | 'expired' | 'refused', Order>;
-const setups = {} as Record<'reading' | 'review' | 'retake' | 'failed' | 'live', Setup>;
+const setups = {} as Record<'reading' | 'review' | 'retake' | 'failed' | 'live' | 'publish', Setup>;
 
 const AUSTIN = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 'Apt 3', city: 'Austin', state: 'TX', postalCode: '78702', countryCode: 'US' };
 
@@ -160,13 +168,22 @@ test.beforeAll(async () => {
   setups.retake = await sampleShop(JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tests/ai/fixtures/not-a-menu.json'), 'utf8')) as MenuExtraction);
   setups.failed = await sampleShop(new Error('Request timed out.'));
   setups.live = await sampleShop(recorded);
-  // What a seller does on review: "Looks right" on the checks, "Ask in person" on the market price; then publish.
-  for (const item of itemsRepo.listWithVariants(db, setups.live.shopId)) {
+  sellerChecked(setups.live.shopId);
+  await publishShop({ db, paypal }, setups.live.shopId);
+  // Created after the others so their slugs stay as on a fresh install.
+  setups.publish = await sampleShop(recorded);
+  sellerChecked(setups.publish.shopId); // ready to publish; the publish itself is mocked per screen
+  briefShop = createFixtureShop('Marigold Bakehouse');
+});
+
+/** What a seller does on review: "Looks right" on the checks, "Ask in person" on the market price. */
+function sellerChecked(shopId: string) {
+  const db = getDb();
+  for (const item of itemsRepo.listWithVariants(db, shopId)) {
     if (!item.issues.length) continue;
     itemsRepo.update(db, item.id, { issues: [], issueDetail: null, ...(item.issues.includes('MARKET_PRICE') ? { status: 'in_person' as const } : {}) });
   }
-  await publishShop({ db, paypal }, setups.live.shopId);
-});
+}
 
 test.afterAll(() => {
   const reading = extractions.latest(getDb(), setups.reading?.shopId ?? '');
@@ -181,6 +198,12 @@ test.afterAll(() => {
  */
 function pollerJustChecked() {
   getDb().prepare('UPDATE orders SET last_checked_at = ? WHERE shop_id = ?').run(new Date().toISOString(), demo.shop.id);
+}
+
+/** The opposite (fixture): PayPal last answered the poller `minutes` ago, so open orders look unchecked. */
+function pollerStalled(minutes: number) {
+  const since = new Date(Date.now() - minutes * 60_000).toISOString();
+  getDb().prepare('UPDATE orders SET last_checked_at = MAX(created_at, ?) WHERE shop_id = ?').run(since, demo.shop.id);
 }
 
 async function signIn(context: BrowserContext, shopId: string, token: string) {
@@ -238,14 +261,48 @@ async function openConsole(page: Page, phone: boolean): Promise<Locator> {
   return region;
 }
 
-async function converse(region: Locator) {
-  const input = region.getByRole('textbox', { name: 'Message to the assistant' });
-  await input.fill(FIXTURE.prompts[0]);
+async function say(region: Locator, text: string) {
+  await region.getByRole('textbox', { name: 'Message to the assistant' }).fill(text);
   await region.getByRole('button', { name: 'Send' }).click();
+}
+
+/** The first turn of the recorded conversation, up to the assistant's question. */
+async function firstTurn(region: Locator) {
+  await say(region, FIXTURE.prompts[0]);
   await expect(region.getByText(/Should I place it\?/)).toBeVisible();
-  await input.fill(FIXTURE.prompts[1]);
-  await region.getByRole('button', { name: 'Send' }).click();
+}
+
+async function converse(region: Locator) {
+  await firstTurn(region);
+  await say(region, FIXTURE.prompts[1]);
   await expect(region.getByRole('link', { name: 'Approve $27.00 on PayPal' })).toBeVisible();
+}
+
+/** MOCKED: the recorded first turn, then `next` answers the buyer's next message. */
+async function firstTurnThen(page: Page, next: (route: Route) => Promise<void>) {
+  let n = 0;
+  await page.route(`**/api/assistant/${SLUG}`, async (route) => {
+    if (n++ > 0) return next(route);
+    await route.fulfill({ status: 200, contentType: 'application/x-ndjson', body: ndjson(FIXTURE.turns[0]) });
+  });
+}
+
+// ---- publish (mocked) -----------------------------------------------------------------------------------------
+
+/** The `publish` setup's items as the server's publish stream lists them, and its line for an item PayPal took. */
+function publishStart() {
+  const items = itemsToPublish(getDb(), setups.publish.shopId).map((i) => ({ itemId: i.id, name: i.name }));
+  const added = (itemId: string, n: number) => ({ type: 'item', itemId, ok: true, paypalProductId: `PROD-E2E${n}` });
+  return { items, start: { type: 'start', items }, added };
+}
+
+/** What the seller reads for an item PayPal answered with a 5xx (the app's own copy). */
+const PAYPAL_OUTAGE = sellerMessageFor(new PayPalApiError(503, 'SERVICE_UNAVAILABLE', null, 'E2E', 'Service Unavailable'));
+
+async function openReview(page: Page, context: BrowserContext) {
+  await signIn(context, setups.publish.shopId, setups.publish.ownerToken);
+  await page.goto(`/shops/${setups.publish.shopId}/setup`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Check your menu' })).toBeVisible();
 }
 
 // ---- screens --------------------------------------------------------------------------------------------------
@@ -314,6 +371,37 @@ const SCREENS: Screen[] = [
       await page.goto(`/shops/${setups.review.shopId}/setup`);
       await expect(page.getByRole('heading', { level: 1, name: 'Check your menu' })).toBeVisible();
       await expect(page.getByText('10 items · 4 need you')).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: the publish stream has answered for 6 items and stays open.
+    name: 'setup-publishing',
+    run: async (page, { context }) => {
+      const { items, start, added } = publishStart();
+      await streamThenHold(page, `/api/shops/${setups.publish.shopId}/publish`, [start, ...items.slice(0, 6).map((i, n) => added(i.itemId, n + 1))]);
+      await openReview(page, context);
+      await page.getByRole('button', { name: `Publish ${items.length} items to PayPal` }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Adding your menu to PayPal' })).toBeVisible();
+      await expect(page.getByRole('status').filter({ hasText: `Adding to PayPal… 6/${items.length}` })).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: a finished publish stream where PayPal answered 503 for 2 items; the shop went live with the rest.
+    name: 'setup-publish-retry',
+    run: async (page, { context }) => {
+      const { items, start, added } = publishStart();
+      const failed = new Set([items[2].itemId, items[5].itemId]);
+      const lines = items.map((i, n) => (failed.has(i.itemId) ? { type: 'item', itemId: i.itemId, ok: false, message: PAYPAL_OUTAGE } : added(i.itemId, n + 1)));
+      const slug = shopsRepo.byId(getDb(), setups.publish.shopId)!.slug;
+      const done = { type: 'done', published: items.length - 2, failed: [...failed].map((itemId) => ({ itemId, message: PAYPAL_OUTAGE })), shop: { status: 'live', slug } };
+      await page.route(`**/api/shops/${setups.publish.shopId}/publish`, (route) =>
+        route.fulfill({ status: 200, contentType: 'application/x-ndjson', body: ndjson([start, ...lines, done]) }),
+      );
+      await openReview(page, context);
+      await page.getByRole('button', { name: `Publish ${items.length} items to PayPal` }).click();
+      await expect(page.getByRole('heading', { level: 1, name: 'Almost there' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Retry 2' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Continue to your live shop' })).toBeVisible();
     },
   },
   {
@@ -386,6 +474,54 @@ const SCREENS: Screen[] = [
       });
     },
   },
+  {
+    // MOCKED: the turn's stream has opened (its session line) and stays open.
+    name: 'console-thinking',
+    viewport: true,
+    run: async (page, { phone }) => {
+      await streamThenHold(page, `/api/assistant/${SLUG}`, [FIXTURE.turns[0][0]]);
+      await page.goto(`/s/${SLUG}`);
+      const region = await openConsole(page, phone);
+      await say(region, FIXTURE.prompts[0]);
+      await expect(region.getByRole('status').filter({ hasText: 'Thinking…' })).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: the recorded first turn, then the server's 429 (20 turns per IP per hour) for the next message.
+    name: 'console-rate-limited',
+    viewport: true,
+    run: async (page, { phone }) => {
+      await firstTurnThen(page, (route) =>
+        route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You've sent a lot of messages in the last hour. Try again later." } } }),
+      );
+      await page.goto(`/s/${SLUG}`);
+      const region = await openConsole(page, phone);
+      await firstTurn(region);
+      await say(region, FIXTURE.prompts[1]);
+      await expect(region.getByRole('alert')).toHaveText("You've sent a lot of messages in the last hour. Try again later.");
+      await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: the recorded first turn, then the stream the server sends when the assistant fails mid-turn.
+    name: 'console-error',
+    viewport: true,
+    run: async (page, { phone }) => {
+      await firstTurnThen(page, (route) =>
+        route.fulfill({
+          status: 200,
+          contentType: 'application/x-ndjson',
+          body: ndjson([FIXTURE.turns[1][0], { type: 'error', message: "The shop didn't answer. Try again." }]),
+        }),
+      );
+      await page.goto(`/s/${SLUG}`);
+      const region = await openConsole(page, phone);
+      await firstTurn(region);
+      await say(region, FIXTURE.prompts[1]);
+      await expect(region.getByRole('alert')).toHaveText("The shop didn't answer. Try again.");
+      await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+    },
+  },
   // Receipt
   receipt('waiting', 'Waiting for your approval'),
   receipt('nut', 'Paid. Marigold Bakehouse has your order.'),
@@ -438,7 +574,32 @@ const SCREENS: Screen[] = [
       await expect(page.getByRole('heading', { name: 'No orders yet' })).toBeVisible();
     },
   },
+  {
+    // FIXTURE: the open orders' last PayPal check is stamped 5 minutes ago (what a stalled poller leaves behind).
+    name: 'dashboard-paypal-unreachable',
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerStalled(5);
+      await page.goto(`/shops/${demo.shop.id}`);
+      await expect(page.getByRole('status').filter({ hasText: "We can't reach PayPal right now." })).toBeVisible();
+    },
+  },
   // Order detail
+  {
+    // FIXTURE: the nut-allergy order on a second Marigold Bakehouse, paid just now, before the brief agent answers.
+    name: 'order-brief-writing',
+    run: async (page, { context }) => {
+      const order = addFixtureOrder(briefShop, {
+        status: 'paid', fulfillment: 'shipping', minutesAgo: 2, buyerName: 'Dana',
+        buyerNote: 'Nut allergy in the house. Would love it by Friday!',
+        lines: [['Almond croissant', 2], ['Country sourdough loaf', 1]],
+        payer: { name: 'Dana Whitfield', email: 'dana.whitfield@example.com' }, shipTo: AUSTIN,
+      });
+      await signIn(context, briefShop.shop.id, briefShop.ownerToken);
+      await page.goto(`/shops/${briefShop.shop.id}/orders/${order.id}`);
+      await expect(page.getByText('Writing the brief…')).toBeVisible();
+    },
+  },
   {
     name: 'order-paid-with-brief',
     run: async (page, { context }) => {
@@ -447,6 +608,21 @@ const SCREENS: Screen[] = [
       await page.goto(`/shops/${demo.shop.id}/orders/${orders.nut.id}`);
       await expect(page.getByTestId('brief-headline')).toHaveText(NUT_BRIEF.headline);
       await expect(page.getByRole('form', { name: 'Add tracking' })).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: the tracking POST answers 502 PAYPAL_REJECTED (a UPS number sent as USPS).
+    name: 'order-tracking-error',
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      await page.route(`**/api/shops/${demo.shop.id}/orders/${orders.nut.id}/tracking`, (route) =>
+        route.fulfill({ status: 502, json: { error: { code: 'PAYPAL_REJECTED', message: 'PayPal said: Tracking number is invalid for carrier USPS.' } } }),
+      );
+      await page.goto(`/shops/${demo.shop.id}/orders/${orders.nut.id}`);
+      await page.getByLabel('Tracking number').fill('1Z 999 AA1 0123 4567 84');
+      await page.getByRole('button', { name: 'Send tracking to PayPal' }).click();
+      await expect(page.getByRole('main').getByRole('alert')).toHaveText('PayPal said: Tracking number is invalid for carrier USPS.');
     },
   },
   {
