@@ -17,7 +17,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { parse } from 'dotenv';
 import type { Frame, Locator, Page } from '@playwright/test';
-import { cancelUnpaid, readState, startApp, writeState, WORK, type App } from './app';
+import { cancelUnpaid, readState, resetDemoShop, startApp, writeState, WORK, type App } from './app';
 import { leaks, redactorScript } from './redact';
 import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDisplay, type Display, type Stage } from './stage';
 
@@ -271,7 +271,9 @@ async function terminalClip(display: Display, id: string, cwd: string, steps: Te
 
 async function sceneDiscovery(display: Display, app: App): Promise<void> {
   if (!env('ANTHROPIC_API_KEY')) throw new Error('05 needs ANTHROPIC_API_KEY in .env');
-  cancelUnpaid(app, LOGINS); // one caller can hold 3 unpaid orders, and this run's 05 adds one
+  // A demo shop with no orders: a made-up client_request_id that an earlier take used would replay that take's order.
+  console.log('  resetting the demo shop (npm run seed -- --reset)…');
+  await resetDemoShop(app, LOGINS);
   const shopUrl = `${app.origin}/s/${DEMO_SLUG}`;
   const command =
     `claude --bare -p "There's a bakery I like at ${shopUrl} . Please order two almond croissants for pickup, under the name Sam. ` +
@@ -402,7 +404,8 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
       await hold(1000);
       await sayToConsole(CONSOLE_ASK);
       await hold(3500); // the read-back, with the $8 shipping
-      for (const reply of ['Yes, the almond croissants. Please place it.', 'Yes, please place it.', 'Yes, place the order.']) {
+      // The allergy goes on the order as a note, so the seller's AI brief can flag it (08).
+      for (const reply of ['Yes, the almond croissants. Please place it, with a note about my nut allergy.', 'Yes, please place it.', 'Yes, place the order.']) {
         if (await approve.count()) break;
         await sayToConsole(reply, 90);
         await hold(1500);
@@ -555,9 +558,11 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
       await form.getByLabel('Tracking number').pressSequentially(tracking, { delay: 45 });
       await hold(600);
       await press(form.getByRole('button', { name: /Save tracking|Send tracking to PayPal/ }));
-      const saved = p.getByRole('status').filter({ hasText: /Saved|Sent to PayPal/ }).first();
-      await saved.waitFor({ timeout: 60_000 });
-      await bring(saved, 'center', 800);
+      // "Saved…" shows for a moment, then the form becomes the "Shipped" card with the number and the PayPal note.
+      await p.getByText(tracking).first().waitFor({ timeout: 60_000 });
+      await sleep(1500);
+      const shipped = p.getByRole('heading', { name: 'Shipped' }).first();
+      await bring((await shipped.count()) ? shipped : p.getByText(tracking).first(), 'center', 800);
       await hold(4000);
 
       // The buyer's console: "Where's my order?"

@@ -163,6 +163,18 @@ export async function startApp(opts: { baseUrl?: string; port: number; build: bo
   }
 }
 
+/**
+ * `npm run seed -- --reset`: the demo shop again, with no orders, and a new owner link (used to log in, never shown).
+ * Before 05: Claude Code tends to make up the same client_request_id for the same prompt, and the door then answers
+ * with the earlier take's order (cancelled or expired by now) instead of placing one.
+ */
+export async function resetDemoShop(app: App, logins: string[]): Promise<void> {
+  const link = seed(app.seedEnv, ['--reset'], logins).match(/https?:\/\/\S+\/claim\/[A-Za-z0-9_-]+/)?.[0];
+  if (!link) throw new Error('the seed printed no owner link');
+  app.demoShopId = await claim(app.origin, link);
+  writeState({ origin: app.origin, demoShopId: app.demoShopId, order: undefined, console: undefined });
+}
+
 /** `npm run seed -- --cancel-unpaid`: one caller can hold 3 unpaid orders, so clear rehearsal orders before ordering. */
 export function cancelUnpaid(app: App, logins: string[]): void {
   seed(app.seedEnv, ['--cancel-unpaid'], logins);
