@@ -3,6 +3,18 @@
 _Last updated: 2026-11-06 19:00 IST (run 2, session 7)_
 
 ## Current phase
+**Run 2 is complete (6 Nov 2026, 19:05 IST).** Final summary, verified unless marked:
+- **Design reset (human decision):** the rubric is amended (13 banned patterns plus the real-product check); the photo-first Storefront direction won directions round 2 and is carried to every screen, with item photos and a designed fallback, a cover per shop, snap your counter (live Claude), the operations dashboard and a new mark. Judge rounds 7 and 8 found 0 Part C fails; round 8 found no screen with 2 banned patterns and only the order detail with 1.
+- **Item 1, a findable door:** counter card with QR, JSON-LD with an `OrderAction`, `<link rel="alternate">`, `/agents.txt`, `/llms.txt`; Claude Code found the door from the shop URL alone and ordered (`docs/judge/evidence/discovery-claude-code.md`).
+- **Item 2, paying each seller:** the payee email from setup or Settings is on PayPal's own order record; held (UNILATERAL) payments are explained; the demo shop alone may be platform-paid (spec §8a).
+- **Item 3, US sandbox accounts:** PayPal wallet-login checkout is verified end to end by the capture gate (latest: capture `03Y96254LM5176327` COMPLETED to the seller).
+- **Decision 4, PWA:** manifest and icons from the new mark; Chromium's `getInstallabilityErrors` returns none; no service worker.
+- **Item 4, judging:** round 6 raised the score to A 24 / B 24; rounds 7 and 8 held it there with "ship". The judge's reason: A5 and B4 wait on the public repo, the deploy and the video, all the human's.
+- **Item 5:** `docs/DEPLOY.md` (never run). **Item 6:** full-history secret scans clean (latest 19:01 IST: gitleaks, 483 commits, no leaks; every `.env` value: 0 hits); `docs/SUBMISSION.md` complete except the 3 links only the human can fill; the repo stays private. **Item 7:** `docs/DEMO.md` and 12 raw clips on the new UI in `video/clips/` (listed in `video/clips/README.md`).
+- **Tests on the final code:** 942 unit tests, typecheck and lint clean; full e2e 173 passed, 3 skipped, 1 failed on a PayPal sandbox error page, and the capture gate re-run passed 2/2; 96 screens at 0 axe violations.
+- **Unverified:** webhook delivery and the Render deploy (need a public URL); see "Unverified" below.
+- **What's left is the human checklist under "Needs from human"** (public repo, video, Devpost, optional deploy).
+
 **Run 2, session 7 (from 17:35 IST).**
 - **done: judge round 7: ship, A 24 / B 24, 0 Part C fails** under the amended rubric (`docs/judge/round-7.md`). Held, not raised: A5 and B4 wait on the public repo, the deploy and the video (all the human's). The judge checked snap your counter live (4.3 s, correct crops), the PWA, payee routing and the door on its own production build.
 - **done: round-7 fix 1's change of approach:** "Needs from human" is one ~20-minute checklist with exact commands.
