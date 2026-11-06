@@ -191,29 +191,25 @@ She adds tracking,
 and the buyer's assistant reads it back.
 
 49
-00:02:18,045 --> 00:02:20,045
-Shelfie turns a paper price list into
+00:02:18,045 --> 00:02:20,233
+Shelfie turns a photo of a price list into
 
 50
-00:02:20,045 --> 00:02:22,820
-a shop that any AI assistant can find,
+00:02:20,233 --> 00:02:23,358
+prepaid orders, from any AI assistant,
 
 51
-00:02:22,820 --> 00:02:25,507
-order from, and pay with PayPal.
+00:02:23,358 --> 00:02:26,145
+paid into the seller's own PayPal account.
 
 52
-00:02:25,507 --> 00:02:27,607
-The money goes straight to the seller.
+00:02:26,145 --> 00:02:27,333
+It's for the sellers agent
 
 53
-00:02:27,607 --> 00:02:28,908
-Agent shopping shouldn't be
+00:02:27,333 --> 00:02:29,158
+commerce hasn't reached yet.
 
 54
-00:02:28,908 --> 00:02:30,958
-only for shops with a website.
-
-55
-00:02:30,958 --> 00:02:34,225
-For Rosa, a sheet of paper is enough.
+00:02:29,158 --> 00:02:32,675
+For Rosa, a sheet of paper is now enough.

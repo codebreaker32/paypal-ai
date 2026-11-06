@@ -1,9 +1,9 @@
 {
-  "text": "Shelfie turns a paper price list into a shop that any AI assistant can find, order from, and pay with PayPal. The money goes straight to the seller. Agent shopping shouldn't be only for shops with a website. For Rosa, a sheet of paper is enough.",
+  "text": "Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "bdfacab3cc500a19",
+  "cacheKey": "631867c8d3488988",
   "timestamps": [
     {
       "text": "Shelfie",
@@ -18,222 +18,192 @@
     {
       "text": "a",
       "startSec": 1.062,
-      "endSec": 1.125
+      "endSec": 1.137
     },
     {
-      "text": "paper",
-      "startSec": 1.125,
-      "endSec": 1.5
+      "text": "photo",
+      "startSec": 1.137,
+      "endSec": 1.55
     },
     {
-      "text": "price",
-      "startSec": 1.5,
-      "endSec": 1.825
-    },
-    {
-      "text": "list",
-      "startSec": 1.825,
-      "endSec": 2.087
-    },
-    {
-      "text": "into",
-      "startSec": 2.087,
-      "endSec": 2.325
+      "text": "of",
+      "startSec": 1.55,
+      "endSec": 1.637
     },
     {
       "text": "a",
-      "startSec": 2.325,
-      "endSec": 2.45
+      "startSec": 1.637,
+      "endSec": 1.7
     },
     {
-      "text": "shop",
-      "startSec": 2.45,
-      "endSec": 2.8
+      "text": "price",
+      "startSec": 1.7,
+      "endSec": 2.025
     },
     {
-      "text": "that",
-      "startSec": 2.8,
-      "endSec": 2.987
+      "text": "list",
+      "startSec": 2.025,
+      "endSec": 2.263
+    },
+    {
+      "text": "into",
+      "startSec": 2.263,
+      "endSec": 2.513
+    },
+    {
+      "text": "prepaid",
+      "startSec": 2.513,
+      "endSec": 3.05
+    },
+    {
+      "text": "orders,",
+      "startSec": 3.05,
+      "endSec": 3.8
+    },
+    {
+      "text": "from",
+      "startSec": 3.8,
+      "endSec": 4.013
     },
     {
       "text": "any",
-      "startSec": 2.987,
-      "endSec": 3.288
+      "startSec": 4.013,
+      "endSec": 4.312
     },
     {
       "text": "AI",
-      "startSec": 3.288,
-      "endSec": 3.7
+      "startSec": 4.312,
+      "endSec": 4.725
     },
     {
-      "text": "assistant",
-      "startSec": 3.7,
-      "endSec": 4.175
+      "text": "assistant,",
+      "startSec": 4.725,
+      "endSec": 5.638
     },
     {
-      "text": "can",
-      "startSec": 4.175,
-      "endSec": 4.362
-    },
-    {
-      "text": "find,",
-      "startSec": 4.362,
-      "endSec": 5.1
-    },
-    {
-      "text": "order",
-      "startSec": 5.1,
-      "endSec": 5.45
-    },
-    {
-      "text": "from,",
-      "startSec": 5.45,
+      "text": "paid",
+      "startSec": 5.638,
       "endSec": 5.938
     },
     {
-      "text": "and",
+      "text": "into",
       "startSec": 5.938,
       "endSec": 6.112
     },
     {
-      "text": "pay",
+      "text": "the",
       "startSec": 6.112,
-      "endSec": 6.5
+      "endSec": 6.213
     },
     {
-      "text": "with",
-      "startSec": 6.5,
+      "text": "seller's",
+      "startSec": 6.213,
       "endSec": 6.675
     },
     {
-      "text": "PayPal.",
+      "text": "own",
       "startSec": 6.675,
-      "endSec": 7.787
+      "endSec": 6.912
     },
     {
-      "text": "The",
-      "startSec": 7.787,
-      "endSec": 7.925
+      "text": "PayPal",
+      "startSec": 6.912,
+      "endSec": 7.425
     },
     {
-      "text": "money",
-      "startSec": 7.925,
-      "endSec": 8.25
+      "text": "account.",
+      "startSec": 7.425,
+      "endSec": 8.425
     },
     {
-      "text": "goes",
-      "startSec": 8.25,
-      "endSec": 8.5
-    },
-    {
-      "text": "straight",
-      "startSec": 8.5,
-      "endSec": 8.8
-    },
-    {
-      "text": "to",
-      "startSec": 8.8,
-      "endSec": 8.887
-    },
-    {
-      "text": "the",
-      "startSec": 8.887,
-      "endSec": 8.988
-    },
-    {
-      "text": "seller.",
-      "startSec": 8.988,
-      "endSec": 9.887
-    },
-    {
-      "text": "Agent",
-      "startSec": 9.887,
-      "endSec": 10.312
-    },
-    {
-      "text": "shopping",
-      "startSec": 10.312,
-      "endSec": 10.787
-    },
-    {
-      "text": "shouldn't",
-      "startSec": 10.787,
-      "endSec": 11.012
-    },
-    {
-      "text": "be",
-      "startSec": 11.012,
-      "endSec": 11.188
-    },
-    {
-      "text": "only",
-      "startSec": 11.188,
-      "endSec": 11.5
+      "text": "It's",
+      "startSec": 8.425,
+      "endSec": 8.613
     },
     {
       "text": "for",
-      "startSec": 11.5,
-      "endSec": 11.675
+      "startSec": 8.613,
+      "endSec": 8.713
     },
     {
-      "text": "shops",
-      "startSec": 11.675,
-      "endSec": 12.062
+      "text": "the",
+      "startSec": 8.713,
+      "endSec": 8.812
     },
     {
-      "text": "with",
-      "startSec": 12.062,
-      "endSec": 12.188
+      "text": "sellers",
+      "startSec": 8.812,
+      "endSec": 9.238
     },
     {
-      "text": "a",
-      "startSec": 12.188,
-      "endSec": 12.25
+      "text": "agent",
+      "startSec": 9.238,
+      "endSec": 9.613
     },
     {
-      "text": "website.",
-      "startSec": 12.25,
-      "endSec": 13.238
+      "text": "commerce",
+      "startSec": 9.613,
+      "endSec": 10.1
+    },
+    {
+      "text": "hasn't",
+      "startSec": 10.1,
+      "endSec": 10.4
+    },
+    {
+      "text": "reached",
+      "startSec": 10.4,
+      "endSec": 10.725
+    },
+    {
+      "text": "yet.",
+      "startSec": 10.725,
+      "endSec": 11.438
     },
     {
       "text": "For",
-      "startSec": 13.238,
-      "endSec": 13.4
+      "startSec": 11.438,
+      "endSec": 11.625
     },
     {
       "text": "Rosa,",
-      "startSec": 13.4,
-      "endSec": 14.137
+      "startSec": 11.625,
+      "endSec": 12.325
     },
     {
       "text": "a",
-      "startSec": 14.137,
-      "endSec": 14.287
+      "startSec": 12.325,
+      "endSec": 12.463
     },
     {
       "text": "sheet",
-      "startSec": 14.287,
-      "endSec": 14.537
+      "startSec": 12.463,
+      "endSec": 12.713
     },
     {
       "text": "of",
-      "startSec": 14.537,
-      "endSec": 14.625
+      "startSec": 12.713,
+      "endSec": 12.8
     },
     {
       "text": "paper",
-      "startSec": 14.625,
-      "endSec": 15.0
+      "startSec": 12.8,
+      "endSec": 13.2
     },
     {
       "text": "is",
-      "startSec": 15.0,
-      "endSec": 15.125
+      "startSec": 13.2,
+      "endSec": 13.35
+    },
+    {
+      "text": "now",
+      "startSec": 13.35,
+      "endSec": 13.55
     },
     {
       "text": "enough.",
-      "startSec": 15.125,
-      "endSec": 15.925
+      "startSec": 13.55,
+      "endSec": 14.375
     }
   ]
 }

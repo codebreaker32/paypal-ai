@@ -2,7 +2,7 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 1). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:38.8** (158.80 s): 132.34 s of narration (365 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
+**Runtime 2:37.3** (157.27 s): 130.79 s of narration (359 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
@@ -17,8 +17,8 @@ _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not ed
 | tamper | 4 | 1:49.5 | 4.68 | 6.13 |
 | dashboard | 5 | 1:55.6 | 14.37 | 15.83 |
 | tracking | 5 | 2:11.4 | 3.92 | 6.37 |
-| close | 6 | 2:17.8 | 16.07 | 17.50 |
-| end | 6 | 2:34.8 | - | 4.00 |
+| close | 6 | 2:17.8 | 14.52 | 15.97 |
+| end | 6 | 2:33.3 | - | 4.00 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -102,11 +102,11 @@ On-screen text: "47% of US accommodation and food-service employer firms reporte
 
 ## Beat 6: Why it matters, and close
 
-### close (16.07 s voice, 17.52 s scene)
+### close (14.52 s voice, 15.97 s scene)
 
 **Screen:** Clip 10: the architecture card: photo, Claude vision, PayPal catalog, agent door found from the shop page, PayPal Orders v2 paid to the seller, capture, Agent Toolkit brief.
 
-> Shelfie turns a paper price list into a shop that any AI assistant can find, order from, and pay with PayPal. The money goes straight to the seller. Agent shopping shouldn't be only for shops with a website. For Rosa, a sheet of paper is enough.
+> Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.
 
 ### end (4 s, no voice)
 

@@ -213,12 +213,12 @@
       "beat": 6,
       "screen": "Clip 10: the architecture card: photo, Claude vision, PayPal catalog, agent door found from the shop page, PayPal Orders v2 paid to the seller, capture, Agent Toolkit brief.",
       "video": "clips/10-architecture.mp4",
-      "narration": "Shelfie turns a paper price list into a shop that any AI assistant can find, order from, and pay with PayPal. The money goes straight to the seller. Agent shopping shouldn't be only for shops with a website. For Rosa, a sheet of paper is enough.",
+      "narration": "Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.",
       "holdSec": 0.5,
       "audio": "audio/close.mp3",
       "words": "audio/close.words.json",
-      "narrationSec": 16.065,
-      "durationSec": 17.515
+      "narrationSec": 14.524,
+      "durationSec": 15.974
     },
     {
       "id": "end",
