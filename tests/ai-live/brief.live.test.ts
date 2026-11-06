@@ -37,6 +37,7 @@ describe.skipIf(!READY)('live order brief', () => {
         fulfillment: 'shipping',
         returnUrl: `http://localhost:3000/api/paypal/return?o=${id}`,
         cancelUrl: `http://localhost:3000/api/paypal/cancel?o=${id}`,
+        payeeEmail: null,
       },
       `ord-live-brief-${id}`,
     );

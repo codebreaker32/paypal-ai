@@ -6,6 +6,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import * as eventsRepo from '@/lib/db/repos/events';
 import { newId, orderNumber } from '@/lib/domain/ids';
 import { toPayPalValue } from '@/lib/domain/money';
+import { maskEmail } from '@/lib/domain/payee';
 import type { EventSource, Fulfillment, Order, OrderEvent, ShipTo, Shop } from '@/lib/domain/types';
 import { PayPalApiError, type PayPalOrder, type PayPalPort } from '@/lib/paypal/types';
 import { OrderError } from './errors';
@@ -191,6 +192,8 @@ async function createReserved(
   const id = newId('ord');
   const number = orderNumber();
   const requestId = `ord-${id}`;
+  // The shop's PayPal email as of now: PayPal's order and our row get the same one, and a later change never moves it.
+  const payeeEmail = shop.payeeEmail;
   let created: Awaited<ReturnType<PayPalPort['createOrder']>>;
   try {
     created = await deps.paypal.createOrder(
@@ -203,6 +206,7 @@ async function createReserved(
         fulfillment: priced.fulfillment,
         returnUrl: `${deps.appUrl}/api/paypal/return?o=${id}`,
         cancelUrl: `${deps.appUrl}/api/paypal/cancel?o=${id}`,
+        payeeEmail,
       },
       requestId,
     );
@@ -234,6 +238,7 @@ async function createReserved(
           paypalOrderId: created.id,
           approvalUrl: created.approveUrl,
           expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
+          payeeEmail,
         },
         priced.lines,
       );
@@ -478,7 +483,9 @@ function settle(deps: OrderDeps, order: Order, pp: PayPalOrder, source: EventSou
   }
   const cap = pp.purchase_units[0]?.payments?.captures?.[0];
   if (!cap) return order;
-  const detail = { captureId: cap.id, captureStatus: cap.status, ...extra };
+  const detail: Record<string, unknown> = { captureId: cap.id, captureStatus: cap.status, ...extra };
+  // Why PayPal holds a payment (UNILATERAL: the payee email has no PayPal account yet); the seller's page explains it.
+  if (cap.status === 'PENDING' && cap.status_details?.reason) detail.pendingReason = cap.status_details.reason;
 
   if (cap.status === 'COMPLETED') {
     if (order.status !== 'approved' && order.status !== 'payment_pending') return order;
@@ -515,14 +522,25 @@ export function lastCaptureFailure(db: Db, order: Order): { status: number | nul
   return last?.type === 'capture_failed' ? (last.detail as { status: number | null; issue: string | null; debugId: string | null }) : null;
 }
 
+/**
+ * Before capturing: PayPal's amount, currency, custom_id and (for a seller's order) payee must be ours. The payee is
+ * compared lower-cased; a seller's order whose PayPal record names no payee is a mismatch too. An order with no payee
+ * (the demo shop, paid to the platform) has nothing to compare: PayPal names the platform merchant there.
+ */
 function findMismatch(order: Order, pp: PayPalOrder): Record<string, unknown> | null {
   const unit = pp.purchase_units[0];
   const expectedAmount = toPayPalValue(order.totalCents);
   const paypalAmount = unit?.amount?.value ?? null;
   const paypalCurrency = unit?.amount?.currency_code ?? null;
   const paypalCustomId = unit?.custom_id ?? null;
-  if (paypalAmount === expectedAmount && paypalCurrency === 'USD' && paypalCustomId === order.id) return null;
-  return { paypalAmount, expectedAmount, paypalCurrency, paypalCustomId };
+  const paypalPayee = unit?.payee?.email_address ?? null;
+  const payeeMatches = order.payeeEmail === null || paypalPayee?.trim().toLowerCase() === order.payeeEmail.toLowerCase();
+  if (paypalAmount === expectedAmount && paypalCurrency === 'USD' && paypalCustomId === order.id && payeeMatches) return null;
+  const payee =
+    order.payeeEmail === null
+      ? {}
+      : { payeeMatches, expectedPayee: maskEmail(order.payeeEmail), paypalPayee: paypalPayee === null ? null : maskEmail(paypalPayee) };
+  return { paypalAmount, expectedAmount, paypalCurrency, paypalCustomId, ...payee };
 }
 
 function payerPatch(pp: PayPalOrder): Pick<ordersRepo.OrderPatch, 'payerName' | 'payerEmail' | 'shipTo'> {

@@ -11,6 +11,7 @@ const input = {
   fulfillment: 'pickup' as const,
   returnUrl: 'http://x/return',
   cancelUrl: 'http://x/cancel',
+  payeeEmail: null,
 };
 
 describe('token handling', () => {

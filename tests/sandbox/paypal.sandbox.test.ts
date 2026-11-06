@@ -23,6 +23,7 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     fulfillment: 'pickup' as const,
     returnUrl: 'http://localhost:3000/return',
     cancelUrl: 'http://localhost:3000/cancel',
+    payeeEmail: null,
   };
   const requestId = `test-${randomUUID()}`;
 

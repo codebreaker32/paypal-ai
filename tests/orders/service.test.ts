@@ -3,6 +3,7 @@ import { createTestDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
 import * as events from '@/lib/db/repos/events';
+import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError, type CreatePayPalOrderInput } from '@/lib/paypal/types';
 import { MAX_OPEN_ORDERS_PER_CLIENT, cancelOrder, createOrderForShop, markFulfilled, syncOrder, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
@@ -86,7 +87,10 @@ describe('order service', () => {
         fulfillment: 'shipping',
         returnUrl: `${APP}/api/paypal/return?o=${o.id}`,
         cancelUrl: `${APP}/api/paypal/cancel?o=${o.id}`,
+        // The demo shop with no PayPal email: paid to the platform account.
+        payeeEmail: null,
       });
+      expect(o.payeeEmail).toBeNull();
       expect(fake.orders.get(o.paypalOrderId)?.purchase_units[0].amount?.value).toBe('21.50');
       const ev = events.list(db, o.id);
       expect(ev.map((e) => [e.type, e.source])).toEqual([['created', 'mcp']]);
@@ -640,6 +644,109 @@ describe('order service', () => {
 
     it('reports ORDER_NOT_FOUND for an unknown order', async () => {
       expect((await rejection(syncOrder(deps, 'ord_nope', 'mcp'))).code).toBe('ORDER_NOT_FOUND');
+    });
+  });
+
+  describe("paying the seller's own PayPal account (spec §8a)", () => {
+    let seller: SeededShop;
+    beforeEach(() => {
+      seller = seedShop(db, { name: 'Rosa Bakes', payeeEmail: 'rosa@example.com' });
+    });
+    const sellerOrder = (shop = seller.shop) =>
+      createOrderForShop(deps, shop, {
+        lines: [{ itemId: seller.item['Almond croissant'].id, quantity: 2 }],
+        fulfillment: 'pickup',
+        agentName: 'claude-code',
+      });
+
+    it("sends the shop's email as the payee and keeps it on the order", async () => {
+      const o = await sellerOrder();
+      expect(o.payeeEmail).toBe('rosa@example.com');
+      expect((calls('createOrder')[0].args[0] as CreatePayPalOrderInput).payeeEmail).toBe('rosa@example.com');
+      fake.approve(o.paypalOrderId);
+      const paid = await syncOrder(deps, o.id, 'return_url');
+      expect(paid.status).toBe('paid');
+      expect(paid.payeeEmail).toBe('rosa@example.com');
+    });
+
+    it('an order waiting for approval still pays the email it was created with after the seller changes it', async () => {
+      const o = await sellerOrder();
+      const changed = shops.update(db, seller.shop.id, { payeeEmail: 'rosa.new@example.com' });
+      fake.approve(o.paypalOrderId);
+      const paid = await syncOrder(deps, o.id, 'return_url');
+      expect(paid.status).toBe('paid');
+      expect(paid.payeeEmail).toBe('rosa@example.com');
+      expect(fake.orders.get(o.paypalOrderId)!.purchase_units[0].payee).toEqual({ email_address: 'rosa@example.com' });
+      // A new order uses the new email.
+      const next = await sellerOrder(changed);
+      expect(next.payeeEmail).toBe('rosa.new@example.com');
+      expect((calls('createOrder')[1].args[0] as CreatePayPalOrderInput).payeeEmail).toBe('rosa.new@example.com');
+    });
+
+    it('accepts PayPal echoing the payee in other letter case', async () => {
+      const o = await sellerOrder();
+      fake.orders.get(o.paypalOrderId)!.purchase_units[0].payee = { email_address: 'Rosa@Example.COM' };
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('paid');
+    });
+
+    it('fails without capturing when PayPal would pay a different account', async () => {
+      const o = await sellerOrder();
+      fake.orders.get(o.paypalOrderId)!.purchase_units[0].payee = { email_address: 'mallory@example.com' };
+      fake.approve(o.paypalOrderId);
+      const after = await syncOrder(deps, o.id, 'return_url');
+      expect(after.status).toBe('failed');
+      expect(calls('captureOrder')).toHaveLength(0);
+      const ev = events.list(db, o.id).at(-1)!;
+      expect(ev).toMatchObject({ type: 'mismatch', detail: { payeeMatches: false, expectedPayee: 'r•••@example.com', paypalPayee: 'm•••@example.com' } });
+      // Amount and custom_id were fine: the detail says it was the payee.
+      expect(ev.detail).toMatchObject({ paypalAmount: '9.50', expectedAmount: '9.50', paypalCustomId: o.id });
+      // A later sync never captures it either.
+      await syncOrder(deps, o.id, 'poller');
+      expect(calls('captureOrder')).toHaveLength(0);
+    });
+
+    it("fails without capturing when PayPal's record has no payee but the order has one", async () => {
+      const o = await sellerOrder();
+      delete fake.orders.get(o.paypalOrderId)!.purchase_units[0].payee;
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('failed');
+      expect(calls('captureOrder')).toHaveLength(0);
+      expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'mismatch', detail: { payeeMatches: false, paypalPayee: null } });
+    });
+
+    it("an email with no PayPal account: PayPal holds the payment (UNILATERAL), the order waits in payment_pending with the reason", async () => {
+      const o = await sellerOrder();
+      fake.nextCapture = 'PENDING_UNILATERAL';
+      fake.approve(o.paypalOrderId);
+      const after = await syncOrder(deps, o.id, 'return_url');
+      expect(after.status).toBe('payment_pending');
+      expect(after.paidAt).toBeNull();
+      expect(events.list(db, o.id).at(-1)).toMatchObject({
+        type: 'capture_pending',
+        detail: { captureStatus: 'PENDING', pendingReason: 'UNILATERAL' },
+      });
+    });
+
+    it("refuses a shop that isn't the demo shop and has no PayPal email (a shop from before this change), before PayPal", async () => {
+      const old = seedShop(db, { name: 'Before Payees', payeeEmail: null });
+      const e = await rejection(sellerOrder(old.shop));
+      expect(e.code).toBe('SHOP_NOT_ACCEPTING_ORDERS');
+      expect(e.message).toBe("Before Payees hasn't set up where to be paid yet, so it can't take online orders.");
+      expect(calls('createOrder')).toHaveLength(0);
+      expect(orders.listByShop(db, old.shop.id)).toHaveLength(0);
+    });
+
+    it('the demo shop with no PayPal email is paid to the platform account', async () => {
+      expect(s.shop.slug).toBe('marigold-bakehouse');
+      expect(s.shop.payeeEmail).toBeNull();
+      const o = await order();
+      expect(o.payeeEmail).toBeNull();
+      expect('payee' in fake.orders.get(o.paypalOrderId)!.purchase_units[0]).toBe(false);
+      fake.approve(o.paypalOrderId);
+      // PayPal names the platform merchant as the payee; an order without a payee doesn't check it.
+      fake.orders.get(o.paypalOrderId)!.purchase_units[0].payee = { email_address: 'platform@business.example.com', merchant_id: 'PLATFORM1' };
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('paid');
     });
   });
 
