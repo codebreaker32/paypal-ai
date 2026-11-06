@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-07 02:45 IST (run 3, session 6)_
+_Last updated: 2026-11-07 02:58 IST (run 3, session 6)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
@@ -10,7 +10,9 @@ _Last updated: 2026-11-07 02:45 IST (run 3, session 6)_
 - **done:** `docs/judge/screenshots/round-11/` (96 screens, **axe 0**, production build of `ca56b2d`) and `docs/judge/recordings/round-11/` (6 passed, production build: also round-10 fix 3, no dev badge).
 - **Verified: full e2e on `9acb4cc` (same src as `ca56b2d`): 185 passed, 9 skipped, 0 failed, both real captures COMPLETED** (`docs/judge/round-11-tests.txt`).
 - **Judge round 11: ship, A 25 / B 24, 0 Part C fails** (`docs/judge/round-11.md`): A5 4 → 5 on the rendered video. Fix 2 done (flavour-safe example photos: the citrus cake gets the lemon tart, Claude's pick too; "1 item"; hero bun $3.50; README). Fixes 1 and 3 (publish, public repo, SUBMISSION, Render deploy) are the human's. Round-11 screenshots re-shot after fix 2 (96, axe 0).
-- **running:** the final clips (`npm run clips -- --build`, log `/tmp/clips-final.log`) on `f073227`+.
+- **Verified: final clips** (`npm run clips -- --build` on `f073227`, 02:10–02:30 IST): all 12, 1920x1080 at 30 fps, 0 dup / 0 drop. Cut points re-aligned by frame matching; the counter line now introduces the example photos; the discovery line fits this take (door found via the page's `llms.txt`).
+- **Verified: the video is rendered: `video/out/shelfie-demo.mp4`, 166.78 s (2:46.8), 1920x1080, H.264 30 fps + AAC**, poster `video/out/poster.png`, captions `video/shelfie-demo.srt` (gitignored mp4/poster, at `~/paypal-ai/video/out/`). Frame check every 2 s (84 frames): `docs/judge/video-frames-check.md`.
+- **running:** the video judge round and the final full e2e (`/tmp/e2e/final-tests.txt`).
 - **Unverified:** the live Pexels search (no `PEXELS_API_KEY`; unit-tested with a fake fetch only).
 - **Next:** judge 11's fixes → final clips (`npm run clips -- --build`) → re-check edit offsets → render → frame check every 2 s → video judge → fixes → completion.
 
@@ -328,7 +330,7 @@ Run 3: see "Current phase" above.
 **One checklist, about 20 minutes, before 12 Nov 2026 12:00 PT.** Judge rounds 2–7 held A5 and B4 at 4 for these steps alone, and without steps 1 and 4 the entry fails Stage One. No worker can do them: they need your GitHub, Render, YouTube and Devpost accounts.
 1. **Make the repo public** (about 3 min). `gh auth login`, then `gh repo edit codebreaker32/paypal-ai --visibility public --accept-visibility-change-consequences`. Check with `gh repo view codebreaker32/paypal-ai --json visibility,licenseInfo` (expect `PUBLIC` and `mit`). The full-history secret scan was clean on 6 Nov (gitleaks: 393 commits, no leaks; every `.env` value: 0 hits in history and in tracked files).
 2. **Deploy to Render** (about 10 min, optional but it moves B4). Follow `docs/DEPLOY.md`: New → Blueprint from `render.yaml`, enter the env vars (include `PAYPAL_SANDBOX_SELLER_EMAIL`), run `npm run seed` in the service shell, create the PayPal webhook for the service URL and set `PAYPAL_WEBHOOK_ID`, then run the smoke test there. From any machine: `curl -s https://<service>/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'` and `curl -s https://<service>/llms.txt` should show the https door.
-3. **Cut and post the video** (the longest step). The raw clips are in `video/clips/` (`video/clips/README.md` maps each to a `docs/DEMO.md` shot); before re-recording anything, run `npm run seed -- --cancel-unpaid`. Cut the ~320 s of raw clips to ≤ 2:50 (judge round 8's list: add the voice-over from `docs/DEMO.md`, the opening quote card, zoom the phone clips, and trim clip 05's refused tool calls; speed 05 up 2×), no third-party music, and post it **public** on YouTube.
+3. **Upload the video** (about 5 min). It is rendered: `~/paypal-ai/video/out/shelfie-demo.mp4` (2:46.8, 1920x1080, captions burned in; the SRT is `video/shelfie-demo.srt`, the poster `video/out/poster.png`). Upload it to YouTube as **public** (title e.g. "Shelfie: a paper price list becomes a PayPal shop any AI assistant can order from"); optionally add the SRT as captions. No music is used.
 4. **Fill in the 3 TODOs** in `docs/SUBMISSION.md` (`## Links`: video, repo, hosted demo) and replace README "Deploy to Render" → "**Not yet run.**" with the URL and the date you checked it. Then submit on Devpost with `docs/SUBMISSION.md`.
 5. **GitHub About section** (1 min): description "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2."; topics `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
 
