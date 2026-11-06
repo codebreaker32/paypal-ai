@@ -52,6 +52,13 @@ export function parsePriceInput(raw: string): number | null {
   return cents > 0 && cents <= MAX_PRICE_CENTS ? cents : null;
 }
 
+/** The flat shipping fee: like a price, except blank or 0 means the seller ships for free. */
+export function parseFeeInput(raw: string): number | null {
+  const s = raw.trim().replace(/^\$\s*/, '');
+  if (s === '' || /^0*(\.0{0,2})?$/.test(s)) return 0;
+  return parsePriceInput(raw);
+}
+
 /** Cents → what goes back into a price field: 450 → "4.50", 1200 → "12". */
 export function priceInputValue(cents: number | null): string {
   if (cents == null) return '';

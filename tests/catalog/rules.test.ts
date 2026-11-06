@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_PRICE_CENTS, cardKindFor, firstAmountIn, isPublishable, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
+import { MAX_PRICE_CENTS, cardKindFor, firstAmountIn, isPublishable, parseFeeInput, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import type { IssueCode, ItemStatus } from '@/lib/domain/types';
@@ -65,5 +65,15 @@ describe('catalog rules', () => {
     expect(cardKindFor(item(['DUPLICATE', 'MISSING_PRICE'], [null]))).toBe('price');
     expect(cardKindFor(item(['DUPLICATE'], [500]))).toBe('duplicate');
     expect(cardKindFor(item(['CHECK'], [800]))).toBe('check');
+  });
+});
+
+describe('parseFeeInput (the flat shipping fee)', () => {
+  it('lets a seller ship for free: blank or 0 is $0, unlike an item price', () => {
+    expect(parseFeeInput('')).toBe(0);
+    expect(parseFeeInput('0')).toBe(0);
+    expect(parseFeeInput('$0.00')).toBe(0);
+    expect(parseFeeInput('8.50')).toBe(850);
+    expect(parseFeeInput('eight')).toBeNull();
   });
 });
