@@ -7,8 +7,7 @@ export const metadata: Metadata = { title: 'Not found · Shelfie', robots: { ind
 
 export default function NotFound() {
   return (
-    <div className="mx-auto flex w-full max-w-measure flex-col items-start gap-4 px-gutter pt-12 pb-section lg:pt-16">
-      <p className="type-label text-ink-muted">404</p>
+    <div className="mx-auto flex w-full max-w-page flex-col *:max-w-measure items-start gap-4 px-gutter pt-12 pb-section lg:pt-16">
       <h1 className="type-display">Nothing here</h1>
       <p className="type-lead text-ink-soft">This page doesn’t exist, or it belongs to someone else’s shop. Check the link you were given.</p>
       <div className="flex w-full flex-col gap-3 sm:flex-row">
