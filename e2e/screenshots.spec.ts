@@ -255,11 +255,13 @@ function pollerStalled(minutes: number) {
 
 /**
  * Picks a photo for Snap your counter and waits for its sheet. A file set before React has hydrated the Menu tab loses
- * its change event (the sheet never opens), so the file is set again until the sheet is up.
+ * its change event (the sheet never opens) and stays in the input, and Chromium fires no change for the same file
+ * again, so each try clears the input first.
  */
 async function snapCounter(page: Page, file: string) {
   const input = page.locator('input[aria-label="Snap your counter"]');
   await expect(async () => {
+    await input.setInputFiles([]);
     await input.setInputFiles(file);
     await expect(page.getByRole('dialog')).toBeVisible({ timeout: 1500 });
   }).toPass({ timeout: 20_000 });
