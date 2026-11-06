@@ -542,7 +542,7 @@ const SCREENS: Screen[] = [
       await signIn(context, demo.shop.id, demo.ownerToken);
       pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}`);
-      await expect(page.getByText("We can't reach PayPal right now")).toHaveCount(0);
+      await expect(page.getByText("We can’t reach PayPal right now")).toHaveCount(0);
       await expect(page.locator(`[data-order="${orders.nut.number}"]`)).toContainText('almond croissants contain nuts');
       await page.locator('details[data-group="waiting"] summary').click();
       await expect(page.locator('details[data-group="waiting"]')).toHaveAttribute('open', '');
@@ -581,7 +581,7 @@ const SCREENS: Screen[] = [
       await signIn(context, demo.shop.id, demo.ownerToken);
       pollerStalled(5);
       await page.goto(`/shops/${demo.shop.id}`);
-      await expect(page.getByRole('status').filter({ hasText: "We can't reach PayPal right now." })).toBeVisible();
+      await expect(page.getByRole('status').filter({ hasText: "We can’t reach PayPal right now." })).toBeVisible();
     },
   },
   // Order detail
