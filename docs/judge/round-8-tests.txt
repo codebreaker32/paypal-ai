@@ -1,0 +1,30 @@
+# Round-8 test log
+
+## Full e2e suite on main 68a2c64 (after round 7's fixes and the clips merge), 17:58-18:09 IST
+SHELFIE_SCREENSHOTS=1 E2E_PORT=3172 npm run e2e, real Claude and the real PayPal sandbox, on an otherwise idle VM. SHELFIE_SCREENSHOTS=1 re-shot docs/judge/screenshots/capture/ in the Storefront design.
+```
+[capture-gate] shop shp_kb4kurvdktnogika live at /s/marigold-bakehouse-4: 6 PayPal sandbox products (PROD-83T25894YF416261S, PROD-89X35224P0835660G, PROD-96B746196C552630K…)
+[capture-gate] [seller] order SHF-PXUQHF (ord_wm4f6fyhqgdgrbu7) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [seller] PayPal order 5BS40454W45644825
+[capture-gate] [seller] capture 9RX261380T155022Y COMPLETED at PayPal, $27.00, payee = PAYPAL_SANDBOX_SELLER_EMAIL
+[capture-gate] [seller] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA · nut allergy"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Would like it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy, but the almond croissant contains nuts. Check with the buyer before se
+[capture-gate] [seller] tracking 9400111179396822164273 saved in Shelfie (no PayPal call)
+[capture-gate] [seller] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179396822164273.
+[capture-gate] [platform] demo shop shp_pylib2ucmpu5pdst live at /s/marigold-bakehouse: 9 published now, paid to the platform
+[capture-gate] [platform] order SHF-S6EX9E (ord_ihfg7qxmhhrufnet) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [platform] PayPal order 1KY14200PH607015N
+[capture-gate] [platform] capture 1TK16972JJ957364J COMPLETED at PayPal, $27.00, payee = the app's own account
+[capture-gate] [platform] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Would like it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy but the almond croissant contains nuts. Contact the buyer to confirm before shipping
+[capture-gate] [platform] PayPal tracker 1TK16972JJ957364J-9400111179396827824416 USPS SHIPPED
+[capture-gate] [platform] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179396827824416.
+
+Running 176 tests using 1 worker
+  3 skipped
+  173 passed (10.3m)
+```
+
+## Unit tests on c7a7593
+```
+npm test (no network): Test Files 76 passed (76), Tests 942 passed (942)
+npx vitest run (adds tests/sandbox and tests/ai-live): Test Files 80 passed (80), Tests 957 passed (957)
+```
