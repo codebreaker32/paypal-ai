@@ -1,8 +1,15 @@
 # Progress
 
-_Last updated: 2026-11-06 07:16 IST (end of session 4)_
+_Last updated: 2026-11-06 07:21 IST (session 5 running)_
 
 ## Current phase
+**Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
+- the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 unverified candidates; one fixer is verifying and fixing them in a worktree;
+- re-running the Claude Code outside-client proof on current main, so `docs/judge/evidence/` matches the shipped design;
+- a fresh-clone walkthrough of the README as a judge would follow it, with doc fixes and an honest "Path to scale" section.
+
+Then: merge, `npm run screenshots:prod -- docs/judge/screenshots/round-3`, and judge round 3.
+
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
 - **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
   - the order number never splits;

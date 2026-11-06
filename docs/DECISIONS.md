@@ -77,3 +77,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **Round-2 fix 3 (deploy, video, public repo) is a human step.** Reason: the run brief puts all three out of scope.
 - **Tailwind scans only `src/` (`@import "tailwindcss" source("..")`).** Reason: `@tailwindcss/turbopack` watches every non-gitignored folder, so each screenshot or doc written into `docs/` rebuilt the dev server. The judge's one-time reload loop was not reproduced in 5 fresh first starts, so this change is not claimed as its fix. The default DB stays in `data/`, because writes there were shown to trigger nothing.
 - **The capture gate was re-run on main after the restyle (real sandbox, passed).** Reason: the judge noted that `capture/` showed the old design, and a video recorded on the current UI must match the evidence.
+
+## Session 5 (2026-11-06 IST)
+- **Removed the 3 leftover worktrees from session 4.** All were merged into main and clean.
+- **Session 5 order: code review, evidence re-shoot and a fresh-clone README walkthrough in parallel, then judge round 3.** Reason: the round-2 judge's remaining in-scope gaps are the old-design evidence and the scale path; a judge who can't run the repo from the README fails Stage One, so the README is checked from a clean clone.
+- **Round-2 fix 1 (payee routing) stays out of this run.** Reason: unchanged since session 4: it needs a second sandbox Business account (a human step), and unverified money-path code breaks the "never claim what you didn't run" rule. The README gets an honest "Path to scale" section instead.
