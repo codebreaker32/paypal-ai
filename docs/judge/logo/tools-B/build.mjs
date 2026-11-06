@@ -226,6 +226,8 @@ export function lockupSvg(id, c = colours.full) {
   const mark = `<g transform="translate(0 ${f(-160)}) scale(${f(m)})">${concepts[id].mark(c)}</g>`;
   const word = `<g transform="translate(${f(190 + gap + 16)} 0)">${body}</g>`;
   const w = 190 + gap + 16 + W.width + 4;
+  // FINAL: the art box (awning top -148, print foot 18.2, the last e), so the files place exactly
+  if (id === "FINAL") return { svg: svg(`10 -150 ${f(w - 12)} 170`, mark + word), w: w - 12, h: 170 };
   return { svg: svg(`-2 -164 ${f(w)} 196`, mark + word), w, h: 196 };
 }
 

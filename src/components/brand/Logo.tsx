@@ -8,8 +8,6 @@ export interface LogoProps {
   label?: string;
 }
 
-/** The lockup's art box: the mark's awning top (y -148) and the print's foot (y 18) to the wordmark's last e. */
-const LOCKUP_BOX = '10 -152 838 172';
 const LOCKUP_H = { sm: 'h-6', md: 'h-7' } as const;
 
 /**
@@ -38,7 +36,7 @@ export function LogoMark({ className, label }: { className?: string; label?: str
 export function Logo({ size = 'md', className, label = 'Shelfie' }: LogoProps) {
   return (
     <svg
-      viewBox={LOCKUP_BOX}
+      viewBox={LOCKUP.viewBox}
       role="img"
       aria-label={label}
       focusable="false"
