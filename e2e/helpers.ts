@@ -21,7 +21,24 @@ export async function settle(page: Page) {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
   await page.evaluate(() => document.fonts.ready);
-  await page.waitForLoadState('networkidle');
+  // networkidle is a hint, not a gate: on a CPU-starved machine the browser can take minutes to report it even when
+  // every request finished in under a second (round-6 trace). What a screenshot needs is the load event, the fonts
+  // (above) and every image decoded (below).
+  await page.waitForLoadState('load');
+  await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from(document.images)
+        .filter((img) => !img.complete)
+        .map(
+          (img) =>
+            new Promise((done) => {
+              img.addEventListener('load', done, { once: true });
+              img.addEventListener('error', done, { once: true });
+            }),
+        ),
+    ),
+  );
   // Let entrance animations (some delayed) finish; spinners loop forever and are skipped.
   await page.evaluate(() =>
     Promise.all(
