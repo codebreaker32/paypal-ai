@@ -17,8 +17,8 @@ export const FPS = 30;
 export const PHONE = { width: 390, height: 844 };
 /** The terminal clips' xterm: 16x32 px cells at 19 pt on Xvfb, so 115x31 cells and 40 px of padding fill 1920x1080. */
 export const TERMINAL = { fontSize: 19, padding: 40, cols: 115, rows: 31 };
-/** The backdrop behind phone shots: the app's sunken paper (--paper-100, docs/DESIGN.md), a shade darker than the page. */
-const BACKDROP = '#e7e2d6';
+/** The backdrop behind phone shots: the app's grey (--grey-100, docs/DESIGN.md), a shade darker than the white page. */
+const BACKDROP = '#eceef1';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -167,7 +167,7 @@ export async function openStage(
       route.fulfill({
         contentType: 'text/html',
         body: `<!doctype html><html><body style="margin:0;background:${BACKDROP};width:100vw;height:100vh;overflow:hidden;display:grid;place-items:center">
-<iframe id="phone" src="about:blank" style="width:${PHONE.width}px;height:${PHONE.height}px;border:0;border-radius:28px;background:#fff;transform:scale(${scale});box-shadow:0 18px 50px rgba(40,30,10,.18)"></iframe></body></html>`,
+<iframe id="phone" src="about:blank" style="width:${PHONE.width}px;height:${PHONE.height}px;border:0;border-radius:28px;background:#fff;transform:scale(${scale});box-shadow:0 18px 50px rgba(17,18,20,.16)"></iframe></body></html>`,
       }),
     );
     await page.goto(stageUrl);
@@ -204,12 +204,12 @@ export interface Terminal {
   close(): Promise<void>;
 }
 
-/** The xterm's look: the app's receipt paper and blackboard ink, ANSI colours from its status hues (docs/DESIGN.md). */
+/** The xterm's look: the app's white page and ink, ANSI colours from its status hues (src/app/globals.css). */
 const XTERM_LOOK = [
   '-fa', 'DejaVu Sans Mono', '-fs', String(TERMINAL.fontSize), '-b', String(TERMINAL.padding), '-bw', '0', '+sb',
-  '-bg', '#fffefa', '-fg', '#1a1f1b', '-cr', '#1a1f1b',
-  '-xrm', 'XTerm*color1: #9b1e1b', '-xrm', 'XTerm*color2: #2e6a3d', '-xrm', 'XTerm*color3: #9c3f0b',
-  '-xrm', 'XTerm*color4: #33506b', '-xrm', 'XTerm*color8: #6b7069', '-xrm', 'XTerm*color10: #2e6a3d', '-xrm', 'XTerm*boldColors: false',
+  '-bg', '#ffffff', '-fg', '#111214', '-cr', '#111214',
+  '-xrm', 'XTerm*color1: #b42318', '-xrm', 'XTerm*color2: #1e7a45', '-xrm', 'XTerm*color3: #9a4a00',
+  '-xrm', 'XTerm*color4: #2457a6', '-xrm', 'XTerm*color8: #5e636c', '-xrm', 'XTerm*color10: #1e7a45', '-xrm', 'XTerm*boldColors: false',
   '-xrm', 'XTerm*cursorBlink: false',
 ];
 
