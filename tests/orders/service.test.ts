@@ -5,7 +5,7 @@ import * as orders from '@/lib/db/repos/orders';
 import * as events from '@/lib/db/repos/events';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError, type CreatePayPalOrderInput } from '@/lib/paypal/types';
-import { cancelOrder, createOrderForShop, markFulfilled, syncOrder, type OrderDeps } from '@/lib/orders/service';
+import { MAX_OPEN_ORDERS_PER_CLIENT, cancelOrder, createOrderForShop, markFulfilled, syncOrder, type OrderDeps } from '@/lib/orders/service';
 import { isPollerRunning, pollOnce, startPoller, stopPoller } from '@/lib/orders/poller';
 import { OrderError } from '@/lib/orders/errors';
 import { InvalidTransition } from '@/lib/orders/state';
@@ -191,6 +191,33 @@ describe('order service', () => {
       for (let i = 0; i < 10; i++) await order();
       const e = await rejection(order());
       expect(e.code).toBe('TOO_MANY_OPEN_ORDERS');
+      expect(calls('createOrder')).toHaveLength(10);
+    });
+
+    it('caps unpaid orders per client, so one caller cannot block the shop for everyone (R7)', async () => {
+      const mine: Order[] = [];
+      for (let i = 0; i < MAX_OPEN_ORDERS_PER_CLIENT; i++) mine.push(await order({ clientKey: '198.51.100.66' }));
+      const e = await rejection(order({ clientKey: '198.51.100.66' }));
+      expect(e.code).toBe('TOO_MANY_OPEN_ORDERS');
+      expect(e.details).toMatchObject({ max_open_orders_per_client: MAX_OPEN_ORDERS_PER_CLIENT });
+      expect(calls('createOrder')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      const other = await order({ clientKey: 'console:203.0.113.200' });
+      expect(other.status).toBe('awaiting_approval');
+      // A paid order no longer counts against its client.
+      const first = mine[0];
+      fake.approve(first.paypalOrderId);
+      expect((await syncOrder(deps, first.id, 'return_url')).status).toBe('paid');
+      expect((await order({ clientKey: '198.51.100.66' })).status).toBe('awaiting_approval');
+    });
+
+    it('enforces the per-client and shop-wide caps under concurrent create calls (R7)', async () => {
+      const one = await Promise.allSettled(Array.from({ length: 25 }, () => order({ clientKey: 'same-ip' })));
+      expect(one.filter((r) => r.status === 'fulfilled')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      expect(calls('createOrder')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      const many = await Promise.allSettled(Array.from({ length: 25 }, (_, i) => order({ clientKey: `ip-${i}` })));
+      const refused = many.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(refused.every((r) => (r.reason as OrderError).code === 'TOO_MANY_OPEN_ORDERS')).toBe(true);
+      expect(orders.countOpen(db, s.shop.id)).toBe(10);
       expect(calls('createOrder')).toHaveLength(10);
     });
 

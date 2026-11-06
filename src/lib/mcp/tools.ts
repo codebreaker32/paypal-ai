@@ -280,6 +280,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         buyerNote: args.buyer_note,
         agentName: agentName(),
         clientRequestId: args.client_request_id,
+        clientKey: deps.clientIp ?? 'unknown',
       });
       return orderView(order);
     },

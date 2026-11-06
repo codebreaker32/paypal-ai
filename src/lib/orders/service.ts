@@ -1,5 +1,6 @@
 // Order service: create (idempotent), sync with PayPal (capture claim), cancel, fulfil.
 // advanceOrder() is the only writer of orders.status (compare-and-set, spec §7).
+import { createHash } from 'node:crypto';
 import type { Db } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as eventsRepo from '@/lib/db/repos/events';
@@ -26,9 +27,13 @@ export interface CreateOrderInput {
   buyerNote?: string | null;
   agentName?: string | null;
   clientRequestId?: string | null;
+  /** The caller's rate-limit identity (client IP, or `console:<buyer ip>`), for the per-client unpaid-order cap. */
+  clientKey?: string | null;
 }
 
 export const MAX_OPEN_ORDERS_PER_SHOP = 10;
+/** One caller can hold at most this many unpaid orders per shop, so it cannot use up the shop-wide cap alone. */
+export const MAX_OPEN_ORDERS_PER_CLIENT = 3;
 export const APPROVAL_WINDOW_MS = 60 * 60_000;
 
 const clock = (deps: Pick<OrderDeps, 'now'>) => deps.now?.() ?? Date.now();
@@ -119,7 +124,47 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   const { db } = deps;
   const nowMs = clock(deps);
   const priced = priceOrder(db, shop, input.lines, input.fulfillment);
-  if (ordersRepo.countOpen(db, shop.id) >= MAX_OPEN_ORDERS_PER_SHOP) {
+  const clientKey = input.clientKey ? createHash('sha256').update(input.clientKey).digest('hex').slice(0, 32) : null;
+  // Reserve the slot before the PayPal await so concurrent calls can't all pass the count; the insert re-checks
+  // the database count in the same transaction (another process may have inserted meanwhile).
+  checkOpenCaps(db, shop, clientKey, true);
+  const release = reserveOpenSlot(shop.id, clientKey);
+  try {
+    return await createReserved(deps, shop, input, key, priced, clientKey, nowMs);
+  } finally {
+    release();
+  }
+}
+
+/** In-process reservations: create calls that passed the open-order caps and are waiting on PayPal. */
+const reservedOpen = new Map<string, number>();
+const shopSlot = (shopId: string) => `shop\u0000${shopId}`;
+const clientSlot = (shopId: string, clientKey: string) => `client\u0000${shopId}\u0000${clientKey}`;
+
+function reserveOpenSlot(shopId: string, clientKey: string | null): () => void {
+  const slots = clientKey ? [shopSlot(shopId), clientSlot(shopId, clientKey)] : [shopSlot(shopId)];
+  for (const s of slots) reservedOpen.set(s, (reservedOpen.get(s) ?? 0) + 1);
+  return () => {
+    for (const s of slots) {
+      const n = (reservedOpen.get(s) ?? 1) - 1;
+      if (n > 0) reservedOpen.set(s, n);
+      else reservedOpen.delete(s);
+    }
+  };
+}
+
+/** Throws TOO_MANY_OPEN_ORDERS when the caller or the shop is at its unpaid-order cap (counting reservations if asked). */
+function checkOpenCaps(db: Db, shop: Shop, clientKey: string | null, withReserved: boolean): void {
+  const reserved = (slot: string) => (withReserved ? reservedOpen.get(slot) ?? 0 : 0);
+  if (clientKey && ordersRepo.countOpenForClient(db, shop.id, clientKey) + reserved(clientSlot(shop.id, clientKey)) >= MAX_OPEN_ORDERS_PER_CLIENT) {
+    throw new OrderError(
+      'TOO_MANY_OPEN_ORDERS',
+      `You already have ${MAX_OPEN_ORDERS_PER_CLIENT} orders waiting for payment at ${shopLabel(shop)}.`,
+      'Ask the user to pay for an order they already started (share its approval_url again), or wait: unpaid orders expire after 60 minutes.',
+      { max_open_orders_per_client: MAX_OPEN_ORDERS_PER_CLIENT },
+    );
+  }
+  if (ordersRepo.countOpen(db, shop.id) + reserved(shopSlot(shop.id)) >= MAX_OPEN_ORDERS_PER_SHOP) {
     throw new OrderError(
       'TOO_MANY_OPEN_ORDERS',
       `${shopLabel(shop)} already has ${MAX_OPEN_ORDERS_PER_SHOP} orders waiting for payment.`,
@@ -127,6 +172,18 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
       { max_open_orders: MAX_OPEN_ORDERS_PER_SHOP },
     );
   }
+}
+
+async function createReserved(
+  deps: OrderDeps,
+  shop: Shop,
+  input: CreateOrderInput,
+  key: string | null,
+  priced: ReturnType<typeof priceOrder>,
+  clientKey: string | null,
+  nowMs: number,
+): Promise<Order> {
+  const { db } = deps;
   const next = transition(null, 'created');
   if ('ignored' in next || next.next !== 'awaiting_approval') throw new Error('state table: created must start awaiting_approval');
 
@@ -155,26 +212,31 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   const agentName = clean(input.agentName, 60);
   let order: Order;
   try {
-    order = ordersRepo.insert(
-      db,
-      {
-        id,
-        number,
-        shopId: shop.id,
-        fulfillment: priced.fulfillment,
-        buyerName: clean(input.buyerName, 60),
-        buyerNote: clean(input.buyerNote, 280, true),
-        agentName,
-        clientRequestId: key,
-        itemsCents: priced.itemsCents,
-        shippingCents: priced.shippingCents,
-        totalCents: priced.totalCents,
-        paypalOrderId: created.id,
-        approvalUrl: created.approveUrl,
-        expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
-      },
-      priced.lines,
-    );
+    // Count and insert atomically. In this process our reservation guarantees room; this catches other processes.
+    order = db.transaction(() => {
+      checkOpenCaps(db, shop, clientKey, false);
+      return ordersRepo.insert(
+        db,
+        {
+          id,
+          number,
+          shopId: shop.id,
+          fulfillment: priced.fulfillment,
+          buyerName: clean(input.buyerName, 60),
+          buyerNote: clean(input.buyerNote, 280, true),
+          agentName,
+          clientRequestId: key,
+          clientKey,
+          itemsCents: priced.itemsCents,
+          shippingCents: priced.shippingCents,
+          totalCents: priced.totalCents,
+          paypalOrderId: created.id,
+          approvalUrl: created.approveUrl,
+          expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
+        },
+        priced.lines,
+      );
+    }).immediate();
   } catch (e) {
     // Lost a cross-process race on UNIQUE(shop_id, client_request_id) or on the PayPal order id: return the winner.
     if (isUniqueViolation(e)) {

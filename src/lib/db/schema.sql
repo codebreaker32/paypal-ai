@@ -90,6 +90,7 @@ CREATE TABLE IF NOT EXISTS orders (
   last_checked_at TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
+  client_key TEXT, -- hashed caller identity (rate-limit key) for the per-client unpaid-order cap; added by applySchema on older databases
   UNIQUE (shop_id, client_request_id)
 );
 CREATE INDEX IF NOT EXISTS orders_shop ON orders(shop_id, created_at);

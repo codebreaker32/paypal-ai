@@ -269,9 +269,20 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
   });
 
   it('caps unpaid orders per shop', async () => {
+    for (let i = 0; i < 10; i++) {
+      const client = await connect(s.shop.id, { clientIp: `198.51.100.${i + 10}` });
+      ok('create_order', await call(client, 'create_order', defaultOrder()));
+    }
+    const late = await connect(s.shop.id, { clientIp: '198.51.100.99' });
+    expect(fail(await call(late, 'create_order', defaultOrder()))).toMatchObject({ code: 'TOO_MANY_OPEN_ORDERS', max_open_orders: 10 });
+  });
+
+  it('caps unpaid orders per caller, so one IP cannot block the shop for other buyers (R7)', async () => {
     const client = await connect();
-    for (let i = 0; i < 10; i++) ok('create_order', await call(client, 'create_order', defaultOrder()));
-    expect(fail(await call(client, 'create_order', defaultOrder())).code).toBe('TOO_MANY_OPEN_ORDERS');
+    for (let i = 0; i < 3; i++) ok('create_order', await call(client, 'create_order', defaultOrder()));
+    expect(fail(await call(client, 'create_order', defaultOrder()))).toMatchObject({ code: 'TOO_MANY_OPEN_ORDERS', max_open_orders_per_client: 3 });
+    const other = await connect(s.shop.id, { clientIp: '198.51.100.1' });
+    ok('create_order', await call(other, 'create_order', defaultOrder()));
   });
 
   it('rate-limits create_order to 30 calls per IP per hour', async () => {

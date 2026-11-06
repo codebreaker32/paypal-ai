@@ -192,6 +192,8 @@ export interface NewOrder {
   buyerNote: string | null;
   agentName: string | null;
   clientRequestId: string | null;
+  /** Hashed caller identity for the per-client unpaid-order cap (null when unknown). */
+  clientKey?: string | null;
   itemsCents: number;
   shippingCents: number;
   totalCents: number;

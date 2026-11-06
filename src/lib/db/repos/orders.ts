@@ -43,10 +43,10 @@ export function insert(db: Db, o: NewOrder, orderLines: OrderLine[]): Order {
   const tx = db.transaction(() => {
     db.prepare(
       `INSERT INTO orders (id, number, shop_id, status, fulfillment, buyer_name, buyer_note, agent_name, client_request_id,
-        items_cents, shipping_cents, total_cents, paypal_order_id, approval_url, expires_at, created_at, updated_at)
+        client_key, items_cents, shipping_cents, total_cents, paypal_order_id, approval_url, expires_at, created_at, updated_at)
        VALUES (@id, @number, @shopId, 'awaiting_approval', @fulfillment, @buyerName, @buyerNote, @agentName, @clientRequestId,
-        @itemsCents, @shippingCents, @totalCents, @paypalOrderId, @approvalUrl, @expiresAt, @ts, @ts)`,
-    ).run({ ...o, id, number: o.number ?? orderNumber(), ts });
+        @clientKey, @itemsCents, @shippingCents, @totalCents, @paypalOrderId, @approvalUrl, @expiresAt, @ts, @ts)`,
+    ).run({ ...o, id, number: o.number ?? orderNumber(), clientKey: o.clientKey ?? null, ts });
     const ins = db.prepare(
       `INSERT INTO order_items (order_id, item_id, variant_id, name, label, unit_cents, qty, paypal_product_id, sort)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -89,6 +89,13 @@ export function listOpen(db: Db, sinceIso: string): Order[] {
 
 export function countOpen(db: Db, shopId: string): number {
   return (db.prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND status = 'awaiting_approval'`).get(shopId) as { n: number }).n;
+}
+
+/** Unpaid orders one caller (hashed rate-limit identity) has open at a shop. */
+export function countOpenForClient(db: Db, shopId: string, clientKey: string): number {
+  return (
+    db.prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND client_key = ? AND status = 'awaiting_approval'`).get(shopId, clientKey) as { n: number }
+  ).n;
 }
 
 export type OrderPatch = Partial<Pick<Order, 'captureId' | 'payerName' | 'payerEmail' | 'shipTo' | 'brief' | 'briefSource' | 'paidAt' | 'fulfilledAt' | 'lastCheckedAt' | 'captureClaimedAt'>>;
