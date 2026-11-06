@@ -38,8 +38,9 @@ export function getConfig(): Config {
     paypalWebhookId: opt('PAYPAL_WEBHOOK_ID'),
     anthropicApiKey: opt('ANTHROPIC_API_KEY'),
     recordedSamples: opt('SHELFIE_RECORDED_SAMPLES') === '1',
-    // RENDER_EXTERNAL_URL is set by Render at runtime (https://<service>.onrender.com).
-    appUrl: (opt('APP_URL') ?? opt('RENDER_EXTERNAL_URL') ?? 'http://localhost:3000').replace(/\/+$/, ''),
+    // RENDER_EXTERNAL_URL is set by Render at runtime (https://<service>.onrender.com). PORT is the port the server
+    // bound (next dev moves to 3001 when 3000 is taken and sets PORT before any request runs).
+    appUrl: (opt('APP_URL') ?? opt('RENDER_EXTERNAL_URL') ?? `http://localhost:${opt('PORT') ?? '3000'}`).replace(/\/+$/, ''),
     databasePath: opt('DATABASE_PATH') ?? 'data/shelfie.db',
     uploadsDir: opt('UPLOADS_DIR') ?? 'data/uploads',
     buyerEmail: opt('PAYPAL_SANDBOX_BUYER_EMAIL'),
