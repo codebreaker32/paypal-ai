@@ -1,9 +1,16 @@
 # Progress
 
-_Last updated: 2026-11-06 17:40 IST (run 2, session 7)_
+_Last updated: 2026-11-06 18:10 IST (run 2, session 7)_
 
 ## Current phase
-**Run 2, session 7 (from 17:35 IST).** Running at once: **judge round 7** (a fresh judge subagent, `.scratch/judge7-prompt.md`) and the **clips worker** (its own worktree: the recorder's selectors for the new UI, the new `03b-snap-counter` clip, `npm run clips`, `video/clips/README.md`). Then: the judge's in-scope top fixes, one full e2e run on the final main, and the completion check.
+**Run 2, session 7 (from 17:35 IST).**
+- **done: judge round 7: ship, A 24 / B 24, 0 Part C fails** under the amended rubric (`docs/judge/round-7.md`). Held, not raised: A5 and B4 wait on the public repo, the deploy and the video (all the human's). The judge checked snap your counter live (4.3 s, correct crops), the PWA, payee routing and the door on its own production build.
+- **done: round-7 fix 1's change of approach:** "Needs from human" is one ~20-minute checklist with exact commands.
+- **done: round-7 fix 3:** about half the grey lines are gone from setup review, the live step and the Share tab (which stay, and why: DECISIONS); the README opens with 4 screenshots (`docs/images/`); screenshot entries for the counter sheet's reading, none-found and error states and one live Claude answer.
+- **done, verified: the demo clips (item 7) on the new UI.** 12 clips, 1920x1080 at a constant 30 fps, 0 duplicated and 0 dropped frames, every clip's frames viewed by the worker and spot-checked by the coordinator (03b, 03, 08): the new UI, the seller email typed as dots, the payee masked, no owner token or key. New: `03b-snap-counter` (a live Claude call found both croissants in about 3.5 s; Use on each). This take: Claude Code placed SHF-JH58AZ in 28.4 s; the console order SHF-RU3CTH → PayPal `59S52578CM472772V` → capture `66272875295764339` ($27.00), the brief flagged the allergy, and the console read back USPS tracking. `video/architecture.html` is restyled to Storefront. The MP4s are in `video/clips/` (gitignored); `video/clips/README.md` lists them.
+- **done:** a `code-review` (medium) of the session's diff found 9 items (fixes below).
+- **Unit test count:** `npm test` runs **942** tests in 76 files (no network); `npx vitest run` adds the 15 sandbox and live-Claude tests (**957**). Both pass on `c7a7593`.
+- **done:** secret scan of the entire git history (17:45 IST): gitleaks `gitleaks git . --log-opts=--all`, 393 commits, **no leaks found**; every `.env` value (9): 0 hits in `git log --all -p` (5.9 MB) and in 1,144 tracked files.
 
 **Run 2, session 6 (15:46–17:45 IST). The design reset is built, merged and verified; judge round 7 is next.** (spec §4b, plan Wave 5). Session 5's three workers were killed by a VM reboot at about 15:40 IST; their WIP is committed on their branches.
 - **done, merged (`fe52c56`, `b8eb94e`):** the photo worker (Task 15): Pexels photos for Marigold Bakehouse and Ravi (`docs/ASSETS.md`), the seed sets the demo shop's cover and item photos, `POST/DELETE` item photo and cover routes, `GET /i/[file]`, `image_url` in `list_products` and `image` in the JSON-LD. Tía Lupe has no photos on purpose (the fixture for the designed fallback).
