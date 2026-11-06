@@ -1,5 +1,5 @@
 // BASE_URL=http://localhost:3000 npx tsx scripts/illustration-sheet.ts [out.png]
-// Renders the contact sheet of the item drawings in public/illustrations.svg (one per category, plus the pastry variants) against a running app, so it uses the
+// Renders the contact sheet of the item drawings in public/illustrations.svg (one per category, plus the bread and pastry variants) against a running app, so it uses the
 // real tokens from globals.css: each drawing at 56 px and 224 px wide on the four section tints, plus the dimmed
 // (sold out) state. Default output: docs/judge/evidence/illustrations.png.
 import { chromium } from '@playwright/test';

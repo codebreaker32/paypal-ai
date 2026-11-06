@@ -17,7 +17,7 @@ export const ILLUSTRATION_SHEET = '/illustrations.svg';
 
 export interface ItemIllustrationProps {
   category: ItemCategory;
-  /** The item's name, which picks a variant within its category (a bun, a tart, a pain au chocolat for `pastry`). */
+  /** The item's name, which picks a variant within its category (a bun, a tart, a pain au chocolat for `pastry`; a boule, a baguette, a focaccia for `bread`). */
   name?: string | null;
   /** Section index for the tint; omit for no tile (the drawing alone, on whatever is behind it). */
   tone?: number;

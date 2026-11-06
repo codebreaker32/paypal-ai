@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { CATEGORIES } from '@/lib/domain/category';
-import { DRAWING_IDS, drawingId, pastryVariant } from '@/lib/domain/drawing';
+import { breadVariant, DRAWING_IDS, drawingId, pastryVariant } from '@/lib/domain/drawing';
 
 describe('pastryVariant', () => {
   it.each([
@@ -25,6 +25,35 @@ describe('pastryVariant', () => {
   });
 });
 
+describe('breadVariant', () => {
+  it.each([
+    ['Country sourdough loaf', 'boule'],
+    ['Sourdough', 'boule'],
+    ['Pain de campagne', 'boule'],
+    ['Miche', 'boule'],
+    ['Round levain', 'boule'],
+    ['Focaccia – rosemary & sea salt', 'focaccia'],
+    ['Focaccia', 'focaccia'],
+    ['Sourdough focaccia', 'focaccia'],
+    ['Schiacciata with grapes', 'focaccia'],
+    ['Baguette', 'baguette'],
+    ['Sourdough baguette', 'baguette'],
+    ['Seeded bâtard', 'baguette'],
+    ['Ficelle', 'baguette'],
+    ['Seeded rye', 'loaf'],
+    ['Sandwich loaf', 'loaf'],
+    ['Cinnamon raisin loaf', 'loaf'],
+    ['Something crusty', 'loaf'],
+  ] as const)('%s -> %s', (name, variant) => {
+    expect(breadVariant(name)).toBe(variant);
+  });
+
+  it('gives the three Marigold breads three different drawings', () => {
+    const ids = ['Country sourdough loaf', 'Seeded rye', 'Focaccia – rosemary & sea salt'].map((n) => drawingId('bread', n));
+    expect(new Set(ids).size).toBe(3);
+  });
+});
+
 describe('drawingId', () => {
   it('picks the pastry variant from the name', () => {
     expect(drawingId('pastry', 'Cardamom bun')).toBe('pastry-bun');
@@ -38,8 +67,16 @@ describe('drawingId', () => {
     expect(drawingId('pastry')).toBe('pastry');
   });
 
-  it('leaves every other category as its own drawing', () => {
+  it('picks the bread variant from the name, the loaf when nothing matches', () => {
+    expect(drawingId('bread', 'Country sourdough loaf')).toBe('bread-boule');
+    expect(drawingId('bread', 'Focaccia – rosemary & sea salt')).toBe('bread-focaccia');
+    expect(drawingId('bread', 'Baguette')).toBe('bread-baguette');
     expect(drawingId('bread', 'Cinnamon raisin loaf')).toBe('bread');
+    expect(drawingId('bread', 'Seeded rye')).toBe('bread');
+    expect(drawingId('bread')).toBe('bread');
+  });
+
+  it('leaves every other category as its own drawing', () => {
     expect(drawingId('dessert', 'Apple pie')).toBe('dessert');
   });
 });
