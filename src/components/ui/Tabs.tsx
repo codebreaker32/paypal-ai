@@ -51,7 +51,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
   return (
     <div className={className}>
       {/* Tabs wrap instead of scrolling, so no label is ever clipped on a phone. */}
-      <div role="tablist" aria-label={label} className="flex flex-wrap gap-x-1 border-b border-ink">
+      <div role="tablist" aria-label={label} className="flex flex-wrap gap-x-1 border-b border-line">
         {items.map((item, i) => {
           const selected = item.id === active;
           return (
@@ -76,7 +76,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
             >
               {item.label}
               {item.count !== undefined && (
-                <span className="type-receipt rounded-xs border border-line-strong px-1.5 text-xs leading-5 text-ink-soft">
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-bold text-on-accent tabular-nums">
                   {item.count}
                 </span>
               )}

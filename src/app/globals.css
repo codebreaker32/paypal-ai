@@ -164,6 +164,8 @@
   --spacing-section: clamp(3rem, 8vw, 6rem);
 
   --container-page: 76rem;
+  /* Operations screens (the dashboard, order detail) use more of a wide desktop */
+  --container-wide: 88rem;
   --container-measure: 36rem;
   --container-narrow: 64rem;
   /* The counter card: 5 × 7 in, the size of a standard frame or acrylic sign holder. */

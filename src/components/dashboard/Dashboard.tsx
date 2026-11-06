@@ -153,8 +153,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const paused = status === 'paused';
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-6 pb-section lg:pt-8">
-      <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto flex w-full max-w-wide flex-col gap-6 px-gutter pt-6 pb-section lg:pt-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <span aria-hidden="true" className="hidden size-14 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-xl font-extrabold text-on-accent sm:inline-flex">
             {monogram(shop.name)}

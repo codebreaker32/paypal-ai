@@ -69,7 +69,7 @@ export function OrderCard({
       data-order={order.number}
       className={cx(
         'relative grid grid-cols-[3.5rem_1fr_auto] gap-x-4 gap-y-2 px-4 py-4 transition-colors hover:bg-surface-subtle sm:px-5',
-        'lg:grid-cols-[3.5rem_minmax(11rem,14rem)_1fr_6rem_10rem_11rem] lg:items-center',
+        'lg:grid-cols-[3.5rem_13rem_minmax(0,1fr)_5.5rem_10rem_10.5rem] lg:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >

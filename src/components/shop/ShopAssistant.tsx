@@ -85,7 +85,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   return (
     <>
       {cover}
-      <div className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-32 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
+      <div className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-10 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
         <div className="flex min-w-0 flex-col gap-8 lg:col-span-8">
           {intro}
           {menu}
@@ -136,8 +136,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
         </aside>
       </div>
 
-      {/* Phones: the order bar stays at the bottom of the screen. */}
-      <div className="fixed inset-x-0 bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+      {/* Phones: the order bar sticks to the bottom of the screen while the page scrolls. */}
+      <div className="sticky bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)] lg:hidden">
         <Button size="lg" icon={Bot} fullWidth onClick={show}>
           {title}
         </Button>
