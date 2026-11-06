@@ -321,9 +321,12 @@ test.describe('order detail', () => {
     await page.getByLabel('Tracking number').fill('9400 1118 9922 3100 0000 77');
     // The real route: no PayPal call is made for this order, so nothing here is mocked.
     await page.getByRole('button', { name: 'Save tracking' }).click();
-    await expect(page.getByRole('status').filter({ hasText: 'PayPal only lets the account that was paid add tracking' })).toBeVisible();
-    await expect(page.getByRole('status').filter({ hasText: 'Saved. The buyer’s assistant can see it now.' })).toBeVisible();
+    // The form's own "Saved" line lasts only until the page refreshes into the Shipped view, so check what stays: the
+    // toast, and the PayPal note (in the form's line or, after the refresh, under the tracking).
+    await expect(page.getByRole('status').filter({ hasText: 'Tracking saved' })).toBeVisible();
+    await expect(page.getByText('PayPal only lets the account that was paid add tracking').first()).toBeVisible();
     await page.reload();
+    await expect(page.getByText('PayPal only lets the account that was paid add tracking').first()).toBeVisible();
     const action = page.locator('section[aria-labelledby="action-title"]');
     await expect(action.getByRole('heading', { name: 'Shipped' })).toBeVisible();
     await expect(action).toContainText('Saved in Shelfie');
