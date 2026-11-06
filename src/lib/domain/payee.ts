@@ -65,7 +65,8 @@ export const isDemoShop = (shop: { slug: string }): boolean => shop.slug === RES
 
 /**
  * The one rule for where a shop's money goes (spec §8a): into the seller's own PayPal account, so it needs their email.
- * Only the demo shop may have none, and is then paid to the platform account. Publishing, taking orders, clearing the
- * email and the dashboard's warning all ask this; `listOrderableForIndex` repeats it in SQL.
+ * Only the demo shop may have none, and is then paid to the platform account. Publishing, taking orders and the
+ * dashboard's warning ask this; whether the email may be left empty or cleared is its other half, `isDemoShop`.
+ * `listOrderableForIndex` repeats it in SQL.
  */
 export const canBePaid = (shop: { slug: string; payeeEmail: string | null }): boolean => shop.payeeEmail !== null || isDemoShop(shop);

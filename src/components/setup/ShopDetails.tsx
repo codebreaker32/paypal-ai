@@ -9,7 +9,7 @@ import { cx } from '@/components/ui/cx';
 import type { ShopFulfillment } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { parseFeeInput, priceInputValue } from '@/lib/catalog/rules';
-import { canBePaid, parsePayeeEmail } from '@/lib/domain/payee';
+import { isDemoShop, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ShopPatch } from './api';
 import { PriceInput } from './PriceInput';
 
@@ -40,7 +40,7 @@ export function ShopDetails({
   const [payeeTouched, setPayeeTouched] = useState(false);
   const payeeParsed = parsePayeeEmail(payee);
   // Only the demo shop may have no email (it is then paid to Shelfie's demo account), so only its field is optional.
-  const payeeOptional = canBePaid({ slug: shop.slug, payeeEmail: null });
+  const payeeOptional = isDemoShop(shop);
   const payeeBlank = payee.trim() === '';
   const [name, setName] = useState(shop.name);
   const [about, setAbout] = useState(shop.about);
