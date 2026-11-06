@@ -2,7 +2,7 @@
 
 import type { ItemPicture } from '@/lib/domain/category';
 import { useState } from 'react';
-import { Bot, ChevronDown, CloudOff } from 'lucide-react';
+import { ChevronDown, CloudOff } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
@@ -45,7 +45,7 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
       <h2 className="type-title">No orders yet</h2>
       <p className="max-w-measure text-ink-soft">Orders from AI assistants land here, ready to prepare once the buyer pays on PayPal.</p>
       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-        <ButtonLink href={`/s/${slug}?assistant=1`} variant="primary" icon={Bot} className="w-full sm:w-auto">
+        <ButtonLink href={`/s/${slug}?assistant=1`} variant="primary" className="w-full sm:w-auto">
           Watch an AI order from you
         </ButtonLink>
         <button

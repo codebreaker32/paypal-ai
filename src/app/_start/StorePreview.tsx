@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- bundled demo photos in a decorative mock-up */
 import type { CSSProperties } from 'react';
-import { Bot, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
+import { LogoMark } from '@/components/brand/Logo';
 import { Icon } from '@/components/ui/icon';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { cx } from '@/components/ui/cx';
@@ -88,7 +89,7 @@ export function StorePreview() {
           {/* Pressed, it gives way to the order card below (which covers where it was). */}
           <div className="px-4 pt-1 pb-5">
             <span className={cx('flex h-11 items-center justify-center gap-2 rounded-full bg-ink text-sm font-semibold text-surface', 'hs-order-button')}>
-              <Icon icon={Bot} size="sm" /> Order with an assistant
+              Order with an assistant
             </span>
           </div>
 
@@ -114,9 +115,7 @@ export function StorePreview() {
           {ASK}
         </p>
         <div className={cx('flex items-center gap-2', 'hs-rise')} style={at(4.9)}>
-          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
-            <Icon icon={Bot} size="sm" />
-          </span>
+          <LogoMark className="size-7" />
           <span className="grid text-sm font-bold text-ink">
             <span className={cx('[grid-area:1/1]', 'hs-before')} style={at(PAID_AT)}>
               Ready to pay

@@ -1,11 +1,11 @@
 // Renders one comparison sheet per concept to docs/judge/logo/concepts/B/<id>-sheet.png.
-// Usage: node docs/judge/logo/tools-B/sheet.mjs [B1 B2 B3]
+// Usage: node docs/judge/logo/tools-B/sheet.mjs [B1 B2 B3 | FINAL]   (FINAL writes docs/judge/logo/final/sheet.png)
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { chromium } from 'playwright';
-import { writeAll, markSvg, wordmarkSvg, lockupSvg, appIconSvg, colours, concepts, INK, POM } from './build.mjs';
+import { writeAll, writeFinal, FINAL_DIR, markSvg, wordmarkSvg, lockupSvg, appIconSvg, colours, concepts, INK, POM } from './build.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..', '..', '..');
@@ -45,7 +45,7 @@ async function html(id) {
   const header = (w, l, id) => `<div class="hdr" style="width:${w}px">
       <img src="${uri(l.svg)}" style="height:${(w < 500 ? 26 : 30) * (id === "B3" ? 1.25 : 1)}px">
       <nav>${w < 500 ? '<b class="pill dark">Start</b>' : '<a>How it works</a><a>For AI assistants</a><a>Pricing</a><b class="pill dark">Snap your price list</b>'}</nav></div>`;
-  const app = appIconSvg(id), mask = appIconSvg(id, { maskable: true });
+  const app = appIconSvg(id), mask = appIconSvg(id, { maskable: true, maskScale: id === 'FINAL' ? 0.9 : 1 });
   return `<!doctype html><html><head><style>${faces}
   *{box-sizing:border-box;margin:0}
   body{font-family:Figtree,sans-serif;background:#f4f5f7;color:#111214;padding:32px;width:1600px;text-rendering:geometricPrecision}
@@ -74,7 +74,13 @@ async function html(id) {
     <div style="background:#141414;padding:16px 20px;border-radius:10px;display:flex;gap:20px;align-items:flex-end"><img src="${uri(monoWhite)}" width="64"><img src="${uri(monoWhite)}" width="32"><img src="${uri(monoWhite)}" width="16"></div>
     <div style="background:${POM};padding:16px 20px;border-radius:10px;display:flex;gap:20px;align-items:flex-end"><img src="${uri(monoWhite)}" width="64"><img src="${uri(monoWhite)}" width="32"></div>
     <img src="${uri(wordmarkSvg(id, { accent: INK, ink: INK }).svg)}" style="height:40px">
-  </div>
+  </div>${id === 'FINAL' ? `<div class="row" style="background:#fff;gap:28px;margin-top:12px">
+    <img src="${uri(lockupSvg(id, { accent: INK, ink: INK }).svg)}" style="height:32px">
+    <div style="background:#141414;padding:14px 20px;border-radius:10px"><img src="${uri(lockupSvg(id, colours.white).svg)}" style="height:32px"></div>
+    <div style="background:#141414;padding:14px 20px;border-radius:10px"><img src="${uri(lockupSvg(id, colours.reverse).svg)}" style="height:32px"></div>
+    <div style="background:${POM};padding:14px 20px;border-radius:10px"><img src="${uri(lockupSvg(id, colours.white).svg)}" style="height:32px"></div>
+    <img src="${uri(lockupSvg(id, { accent: POM, ink: POM }).svg)}" style="height:32px">
+  </div>` : ''}
   <h2>Site header, 64 px tall, at 1440 and 390</h2>${header(1440, lock, id)}<div style="height:16px"></div>${header(390, lock, id)}
   <h2>Counter card · app icon 512 · maskable (dashed: 80% safe zone) · beside PayPal</h2>
   <div class="grid">
@@ -97,13 +103,15 @@ async function html(id) {
 }
 
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : ['B1', 'B2', 'B3'];
-writeAll();
+if (ids.includes('FINAL')) writeFinal();
+if (ids.some((i) => i !== 'FINAL')) writeAll();
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1664, height: 800 } });
 for (const id of ids) {
   await page.setContent(await html(id), { waitUntil: 'load' });
   await page.evaluate(() => document.fonts.ready);
-  await page.screenshot({ path: join(OUT, `${id}-sheet.png`), fullPage: true });
-  console.log('wrote', `${id}-sheet.png`);
+  const file = id === 'FINAL' ? join(FINAL_DIR, 'sheet.png') : join(OUT, `${id}-sheet.png`);
+  await page.screenshot({ path: file, fullPage: true });
+  console.log('wrote', file);
 }
 await browser.close();

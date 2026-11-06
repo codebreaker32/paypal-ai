@@ -28,7 +28,8 @@ const arcEnd = (cx, cy, rx, ry, t) => [cx + rx * Math.cos(rad(t)), cy + ry * Mat
 // ---------- the wordmark ----------
 // opts: w = stroke weight, round = round terminals, dot = 'circle' | 'square', gap = letter spacing
 export function wordmarkParts(opts) {
-  const { w, round = false, dot = 'circle', gap = 16 } = opts;
+  const { w, round = false, dot = 'circle', gap = 16, fiShelf = false } = opts;
+  let fBarEnd = 0; // fiShelf: where the f's crossbar ends, so the i can run it on as a shelf
   const X = 100, ASC = 150;
   const R = (X - w) / 2;
   const ink = [], accent = [];
@@ -69,12 +70,22 @@ export function wordmarkParts(opts) {
       if (round) cap(...arcEnd(cx, cy, rf, rf, 285));
       const bh = w * 0.84, bx0 = x - 8, bx1 = sx + 34;
       ink.push(rect(bx0, -X, bx1 - bx0, bh));
+      fBarEnd = bx1;
       if (round) { cap(bx0, -X + bh / 2); cap(bx1, -X + bh / 2); }
       return w + 34;
     },
     i() {
       stem(x + w / 2, -X, 0);
       const cy = -X - 24 - w * 0.6;
+      if (fiShelf) {
+        // the f's crossbar runs on over the i as a short shelf (A3's join); a small pomegranate
+        // print (taller than wide, like an instant photo) stands just above it as the dot
+        const ix = x + w / 2, pw = opts.dotW ?? w * 1.4, ph = pw * 1.12, end = ix + pw / 2 + 4, bh = w * 0.84;
+        ink.push(rect(fBarEnd - 1, -X, end - fBarEnd + 1, bh));
+        const gapY = w * 0.3;
+        accent.push(rect(ix - pw / 2, -X - gapY - ph, pw, ph));
+        return Math.max(w, end - x);
+      }
       if (dot === 'square') { const s = w * 1.25; accent.push(rect(x + w / 2 - s / 2, cy - s / 2, s, s)); }
       else if (dot === 'scallop') {
         // a single awning scallop: flat top, round belly
@@ -150,6 +161,28 @@ export const concepts = {
   },
 };
 
+// ---------- the final logo: B1 refined once with the judge's five changes ----------
+// (1) the print is closed: a thin top band of the ink frame shows under the scallops, chin 3x the
+//     sides; a paper gap keeps the awning apart from the print, so the one-colour mark still reads
+// (2)/(3) the wordmark's f crossbar runs on over the i as a shelf with a pom dome on it; strokes +15%
+// (4) mono wordmark and lockup, and a dark-aware favicon; (5) the maskable mark at 90%
+export const FINAL = {
+  name: 'Awning (final)',
+  mark(c) {
+    const a = c.accent, k = c.ink;
+    const r = 28 / 3; // three equal scallops across 4..60
+    const sc = (x) => `A${f(r)} ${f(r)} 0 0 1 ${f(x)} 12`;
+    const awning = `M4 4H60V12${sc(60 - 2 * r)}${sc(60 - 4 * r)}${sc(4)}Z`;
+    // the print: 8..56 x 24..60, sides and top 4, chin 12; the window 12..52 x 28..48
+    const front = 'M8 24H56V60H8Z M12 28V48H52V28Z';
+    return p(awning, a) + `<path fill="${k}" fill-rule="evenodd" d="${front}"/>`;
+  },
+  // stroke 23 (B1's 20 + 15%); the dot (34 x 38) is over 1.4x the old 32 x 16 scallop
+  word: { w: 23, round: false, gap: 15, fiShelf: true, dotW: 34 },
+  bbox: [4, 4, 60, 60],
+};
+concepts.FINAL = FINAL;
+
 export const colours = {
   full: { accent: POM, ink: INK },
   reverse: { accent: POM, ink: '#ffffff' },
@@ -193,16 +226,18 @@ export function lockupSvg(id, c = colours.full) {
   const mark = `<g transform="translate(0 ${f(-160)}) scale(${f(m)})">${concepts[id].mark(c)}</g>`;
   const word = `<g transform="translate(${f(190 + gap + 16)} 0)">${body}</g>`;
   const w = 190 + gap + 16 + W.width + 4;
+  // FINAL: the art box (awning top -148, print foot 18.2, the last e), so the files place exactly
+  if (id === "FINAL") return { svg: svg(`10 -150 ${f(w - 12)} 170`, mark + word), w: w - 12, h: 170 };
   return { svg: svg(`-2 -164 ${f(w)} 196`, mark + word), w, h: 196 };
 }
 
-const BBOX = { B1: [4, 6, 60, 61], B2: [4, 10, 60, 60], B3: [4, 4, 60, 60] };
-export function appIconSvg(id, { maskable = false } = {}) {
+const BBOX = { FINAL: FINAL.bbox, B1: [4, 6, 60, 61], B2: [4, 10, 60, 60], B3: [4, 4, 60, 60] };
+export function appIconSvg(id, { maskable = false, maskScale = 1 } = {}) {
   // white tile, full-colour mark centred on its bounding box; the maskable one fits the
   // box's half-diagonal inside the central 80% circle (radius 204.8)
   const [x0, y0, x1, y1] = BBOX[id];
   const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-  const s = maskable ? 204.8 / Math.hypot((x1 - x0) / 2, (y1 - y0) / 2) : (512 * 0.74) / Math.max(x1 - x0, y1 - y0);
+  const s = maskable ? (maskScale * 204.8) / Math.hypot((x1 - x0) / 2, (y1 - y0) / 2) : (512 * 0.74) / Math.max(x1 - x0, y1 - y0);
   const tx = 256 - cx * s, ty = 256 - cy * s;
   const bg = maskable ? `<rect width="512" height="512" fill="#ffffff"/>` : `<rect width="512" height="512" rx="112" fill="#ffffff"/>`;
   return svg('0 0 512 512', `${bg}<g transform="translate(${f(tx)} ${f(ty)}) scale(${f(s)})">${concepts[id].mark(colours.full)}</g>`);
@@ -228,4 +263,63 @@ export function writeAll() {
   }
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) writeAll();
+// A favicon whose ink turns white when the browser UI is dark.
+export function faviconSvg(id = 'FINAL') {
+  const body = concepts[id].mark({ accent: POM, ink: INK }).replace(`fill="${INK}"`, 'class="k"');
+  return svg('0 0 64 64', `<style>.k{fill:${INK}}@media (prefers-color-scheme:dark){.k{fill:#fff}}</style>${body}`);
+}
+
+export const FINAL_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'final');
+export function writeFinal() {
+  const id = 'FINAL', dir = FINAL_DIR;
+  mkdirSync(dir, { recursive: true });
+  const files = {
+    'mark.svg': markSvg(id),
+    'mark-mono.svg': markSvg(id, colours.mono),
+    'mark-reverse.svg': markSvg(id, colours.reverse),
+    'wordmark.svg': wordmarkSvg(id).svg,
+    'wordmark-mono.svg': wordmarkSvg(id, colours.mono).svg,
+    'lockup.svg': lockupSvg(id).svg,
+    'lockup-mono.svg': lockupSvg(id, colours.mono).svg,
+    'lockup-reverse.svg': lockupSvg(id, colours.reverse).svg,
+    'favicon.svg': faviconSvg(id),
+    'app-icon-512.svg': appIconSvg(id),
+    'app-icon-maskable.svg': appIconSvg(id, { maskable: true, maskScale: 0.9 }),
+  };
+  for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text);
+  return files;
+}
+
+// The same geometry as plain path data for the app (src/components/brand/logo-paths.ts), so the
+// React logo, the OG image and the SVG files can't drift apart.
+export function writeAppPaths(file) {
+  const k = { accent: '@A', ink: '@K' };
+  const pick = (body, tag) => [...body.matchAll(/<path fill="([^"]+)"(?: fill-rule="evenodd")? d="([^"]+)"\/>/g)].filter((m) => m[1] === tag).map((m) => m[2]);
+  const mark = FINAL.mark(k);
+  const W = wordmarkParts(FINAL.word);
+  const lock = lockupSvg('FINAL', colours.full).svg;
+  const word = wordmarkSvg('FINAL').svg;
+  const vb = (t) => t.match(/viewBox="([^"]+)"/)[1];
+  const ts = `// Generated by docs/judge/logo/tools-B/build.mjs (node docs/judge/logo/tools-B/build.mjs final). Do not edit by hand.
+// The Shelfie logo (B1 "Awning", final): a pomegranate scalloped awning over an ink instant print, and the drawn
+// lowercase wordmark whose f crossbar runs on over the i as a shelf, with a pomegranate print as the dot.
+
+/** The mark, in a 64-unit box (art 4..60 on both axes). The print path uses fill-rule evenodd (the window is a hole). */
+export const MARK = { viewBox: '0 0 64 64', awning: ${JSON.stringify(pick(mark, '@A')[0])}, print: ${JSON.stringify(pick(mark, '@K')[0])} } as const;
+
+/** The wordmark: ink stroke outlines and the pomegranate i-dot, baseline at y = 0, ascender at y = -150. */
+export const WORDMARK = { viewBox: ${JSON.stringify(vb(word))}, ink: ${JSON.stringify(W.ink)}, dot: ${JSON.stringify(W.accent[0])} } as const;
+
+/** The lockup: the mark scaled to 190 units on the left, the wordmark after it. */
+export const LOCKUP = { viewBox: ${JSON.stringify(vb(lock))}, mark: 'translate(0 -160) scale(2.97)', word: 'translate(250 0)' } as const;
+`;
+  writeFileSync(file, ts);
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  if (process.argv[2] === 'final') {
+    console.log(Object.keys(writeFinal()).join(' '));
+    writeAppPaths(join(FINAL_DIR, '..', '..', '..', '..', 'src', 'components', 'brand', 'logo-paths.ts'));
+  }
+  else writeAll();
+}

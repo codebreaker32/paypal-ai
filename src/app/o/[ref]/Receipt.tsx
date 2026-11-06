@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type CSSProperties } from 'react';
-import { ArrowLeft, Bot } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { ButtonLink, buttonClasses } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -108,7 +108,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
               Back to shop
             </ButtonLink>
             {fromAssistant && (
-              <ButtonLink href={`${shopHref}?assistant=1`} variant={approvalUrl ? 'ghost' : 'secondary'} icon={Bot}>
+              <ButtonLink href={`${shopHref}?assistant=1`} variant={approvalUrl ? 'ghost' : 'secondary'}>
                 Back to the assistant
               </ButtonLink>
             )}
