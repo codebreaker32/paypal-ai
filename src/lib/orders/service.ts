@@ -301,7 +301,9 @@ export async function syncOrder(
         pp = null;
         paypalReads.lastOkMs = nowMs;
       } else {
-        paypalReads.lastFailMs = nowMs;
+        // Any other 4xx is PayPal answering (a refusal for this order), so only network, 429 and 5xx count as failing.
+        if (isTransient(e)) paypalReads.lastFailMs = nowMs;
+        else paypalReads.lastOkMs = nowMs;
         throw paypalUnavailable(e, 'get order');
       }
     }
