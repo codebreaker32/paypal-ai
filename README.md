@@ -55,7 +55,7 @@ Fill in `.env`. No credentials are committed; here is how to get yours.
 |---|---|
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` | [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → Create App. Use the app's Client ID, and its **Secret** as `PAYPAL_SECRET_KEY`. |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys. Without it, sample menus still work (recorded reading), but your own photos, order briefs and the buyer console do not. |
-| `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:3000`; on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
+| `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:<port>`, the port the server runs on (normally 3000); on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
 | `SHELFIE_RECORDED_SAMPLES` (optional) | Set to `1` and the sample menus use Claude's saved reading of the sample photo even when a key is set: instant, for recording a demo. Your own photos are always read live. |
 | `PAYPAL_WEBHOOK_ID` (optional) | Only once deployed on a public HTTPS URL: the webhook id from your PayPal app. Locally the 15 s poller confirms payments. |
 | `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` (optional) | Leave empty. A sandbox Personal account for a future wallet-login test; no test or app path uses them today (the end-to-end tests pay by guest card). Not needed to pay (see below). |

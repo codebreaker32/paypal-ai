@@ -110,4 +110,19 @@ describe('repos', () => {
     events.add(db, o.id, 'paypal_approved', 'return_url');
     expect(events.list(db, o.id).map((e) => [e.type, e.source])).toEqual([['created', 'mcp'], ['paypal_approved', 'return_url']]);
   });
+
+  it('counts only unexpired unpaid orders toward the open-order caps, so they never wait on the poller', () => {
+    const { shop } = shops.create(db, { name: 'Marigold' });
+    const add = (paypalOrderId: string, expiresInMs: number) =>
+      orders.insert(db, {
+        shopId: shop.id, fulfillment: 'pickup', buyerName: null, buyerNote: null, agentName: null, clientRequestId: null,
+        clientKey: 'console:198.51.100.7', itemsCents: 100, shippingCents: 0, totalCents: 100, paypalOrderId,
+        approvalUrl: 'https://x', expiresAt: new Date(Date.now() + expiresInMs).toISOString(),
+      }, []);
+    add('PP-live', 3600e3);
+    add('PP-old-1', -60e3);
+    add('PP-old-2', -24 * 3600e3);
+    expect(orders.countOpen(db, shop.id)).toBe(1);
+    expect(orders.countOpenForClient(db, shop.id, 'console:198.51.100.7')).toBe(1);
+  });
 });

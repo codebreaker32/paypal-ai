@@ -21,7 +21,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { actionWords, agentLabel, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, cardDeclined, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -38,7 +38,7 @@ function SectionTitle({ id, children }: { id: string; children: React.ReactNode 
   );
 }
 
-function ActionCard({ shop, order, trackers, className }: { shop: Shop; order: Order; trackers: Tracker[]; className?: string }) {
+function ActionCard({ shop, order, trackers, declined, className }: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; className?: string }) {
   const body = (() => {
     if (order.status === 'paid' && order.fulfillment === 'pickup') {
       return (
@@ -90,7 +90,7 @@ function ActionCard({ shop, order, trackers, className }: { shop: Shop; order: O
         </>
       );
     }
-    const [title, text] = actionWords(order);
+    const [title, text] = actionWords(order, declined);
     return (
       <>
         <SectionTitle id="action-title">{title}</SectionTitle>
@@ -288,7 +288,8 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   // A paid order whose brief never arrived (restart mid-write) shows the labelled template and stops polling.
   const order = withFallbackBrief(stored);
   const trackers = ordersRepo.trackers(db, order.id);
-  const entries = timelineEntries(eventsRepo.list(db, order.id), order);
+  const events = eventsRepo.list(db, order.id);
+  const entries = timelineEntries(events, order);
   const pending = isOpen(order.status) || ((order.status === 'paid' || order.status === 'fulfilled') && !order.brief);
 
   return (
@@ -330,7 +331,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
           <TimelineCard entries={entries} className="order-5 lg:order-none" />
         </div>
         <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
-          <ActionCard shop={shop} order={order} trackers={trackers} className="order-2 lg:order-none" />
+          <ActionCard shop={shop} order={order} trackers={trackers} declined={cardDeclined(order, events)} className="order-2 lg:order-none" />
           <BuyerCard shop={shop} order={order} className="order-3 lg:order-none" />
           <PayPalCard order={order} className="order-6 lg:order-none" />
         </div>
