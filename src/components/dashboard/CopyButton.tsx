@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Check, Copy } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 
 async function copyText(text: string): Promise<boolean> {

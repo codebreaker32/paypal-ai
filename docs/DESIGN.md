@@ -1,12 +1,12 @@
 # Shelfie design system: "Storefront"
 
-The tokens live in `src/app/globals.css`, the components in `src/components/ui`. Storefront won directions round 2 (`docs/judge/directions-2.md`). This file replaces the retired "Menu board" system (cream paper, serif display, mustard buttons, receipt slips).
+The tokens live in `src/app/globals.css`, the primitives in `src/components/ui` (shadcn-based, lowercase files) and the motion primitives in `src/components/motion`. Storefront won directions round 2 (`docs/judge/directions-2.md`). This file replaces the retired "Menu board" system (cream paper, serif display, mustard buttons, receipt slips).
 
 ## Rationale
 
 A small seller's shop should look like their store on Toast or Square: a white page, their own photos, near-black type and one quiet accent. Food photos supply the colour, so the interface stays neutral and gets out of their way:
 - **White page, near-black ink.** No cream, no paper texture.
-- **One pomegranate accent**, used only for the logo, the active tab and filter, counts and the odd price emphasis. It never fills a button.
+- **One pomegranate accent**, used only for the logo, the active tab and filter, counts and the odd price emphasis. It never fills a button and never signals an error or a negative state: errors have their own vermilion, and "Sold out today" is ink.
 - **Black pill primary buttons** (like Toast's Pickup toggle). PayPal's own blue is used only on "Approve $X on PayPal".
 - **Status is a dot and a word** ("● Paid") in lists, not a boxed chip.
 - **Sections are separated by space and rules**, not outlined boxes. A raised card (soft shadow) is kept for things that really are cards: menu items and the order list's grouped rows.
@@ -27,7 +27,7 @@ The tokens come in three layers, and components only use the second and third:
 |---|---|---|---|
 | `surface`, `surface-raised` | white | `#ffffff` | Page and cards |
 | `surface-subtle` | grey-25 | `#fafafb` | Row hover |
-| `surface-sunken` | grey-50 | `#f4f5f7` | Wells: the AI brief, the receipt summary, the console's activity and approval panels, starter prompts, secondary buttons |
+| `surface-sunken` | grey-50 | `#f4f5f7` | Wells: the receipt summary, the console's activity and approval panels, starter prompts, secondary buttons |
 | `line` | grey-100 | `#eceef1` | Rules and dividers |
 | `line-strong` | grey-300 | `#d4d6dc` | Scrollbars, strong dividers |
 | `control` | grey-500 | `#8a8f98` | Input borders (3.25:1, a non-text UI contrast) |
@@ -35,12 +35,13 @@ The tokens come in three layers, and components only use the second and third:
 | `ink-soft` | ink-700 | `#3d4148` | Body copy on a white page |
 | `ink-muted` | ink-600 | `#5e636c` | Meta text |
 | `ink-faint` | ink-400 | `#a3a7ae` | Decoration only (2.41:1, never text) |
-| `accent`, `accent-ink` | pom-600 | `#c21a4b` | Logo, active tab, tab counts, selected filter count |
+| `accent`, `accent-ink` | pom-600 | `#c21a4b` | Logo, active tab and filter, counts, price emphasis. Never an error, a failed state or "Sold out" |
 | `accent-hover` / `accent-active` | pom-700 / pom-800 | `#a3153f` / `#861235` | |
 | `accent-soft`, `selection` | pom-50 / pom-100 | `#fdeaf0` / `#f9d3df` | Text selection |
 | `ok` / `ok-soft` | green-700 / green-50 | `#1e7a45` / `#e4f3ea` | Paid, live |
 | `warn` / `warn-soft` | amber-800 / amber-50 | `#9a4a00` / `#fff0de` | Waiting, a brief's warning, the "Can't reach PayPal" banner |
-| `danger` / `danger-soft` | red-700 / red-50 | `#b42318` / `#fde8e6` | Refused, failed |
+| `error` / `error-soft` | vermilion-700 / vermilion-50 | `#b5380c` / `#fdebe5` | Error messages, invalid fields, refused and failed states. `danger` / `danger-soft` are older names for the same values |
+| `note` / `note-soft` / `note-ink` | slate-600 / slate-50 / ink-900 | `#475569` / `#eef2f6` / `#111214` | Helpful notes: the AI brief's well (`Card tone="note"`), its "AI brief" label, the allergy chip (`Badge tone="note"`). Calm help, not a warning: a cool tint and ink text |
 | `info` / `info-soft` | blue-700 / blue-50 | `#2457a6` / `#e7eefa` | Shipped, picked up |
 | `paypal` (hover, active) | paypal-500 (700, 900) | `#0070ba` (`#005ea6`, `#003087`) | The PayPal approve button only |
 | `tile-rose`, `-sage`, `-sky`, `-lilac` | | `#fce7ee`/`#8e1a43`, `#e3f1e8`/`#1f5a37`, `#e5eefa`/`#1e4c8a`, `#eee9fb`/`#4b3091` | The photo fallback, one tint per menu section |
@@ -59,12 +60,24 @@ The tokens come in three layers, and components only use the second and third:
 | ok on ok-soft | 4.66:1 |
 | warn on white | 6.26:1 |
 | warn on warn-soft | 5.60:1 |
-| danger on white | 6.57:1 |
-| danger on danger-soft | 5.59:1 |
+| error on white, white on error | 5.94:1 |
+| error on error-soft | 5.14:1 |
+| error on surface-sunken | 5.44:1 |
+| note on white | 7.58:1 |
+| note on note-soft | 6.74:1 |
+| note-ink on note-soft | 16.66:1 |
+| ink-soft on note-soft | 9.11:1 |
+| ink-muted on note-soft | 5.37:1 |
+| info on note-soft | 6.25:1 |
+| error-soft on ink (the toast's error icon) | 16.24:1 |
 | info on white | 7.03:1 |
 | the tile inks on their tints | 6.99 to 8.30:1 |
 
 A dimmed fallback tile (a cancelled or expired order) switches to ink-muted on surface-sunken (5.54:1) instead of fading with opacity.
+
+**Error against the brand.** Pomegranate is a blue-leaning crimson (OKLCH hue 12°); the error vermilion leans orange (hue 37°, the old `#b42318` was 30°), so an error never reads as the brand. It stays redder and more saturated than `warn` (amber, hue 53°, chroma 0.13 against 0.17), and status always pairs the colour with a word.
+
+**shadcn names.** `components.json` points shadcn at these tokens. Its semantic names are mapped in `@theme`: `background`, `card`, `popover` = white; `foreground`, `*-foreground` = ink (white on `primary` and `destructive`); `primary` = ink (the black pill); `secondary`, `muted` = grey-50; `muted-foreground` = ink-600; `destructive` = error; `border` = line; `input` = control; `ring` = focus. `accent` keeps Shelfie's meaning (pomegranate): a shadcn component that uses `bg-accent` as a hover fill must be changed to `bg-muted` when it is added. No shadcn palette or oklch variables are imported, and the palette stays closed.
 
 ### Type
 
@@ -92,21 +105,39 @@ The mono stack (system mono, no webfont) is only for code: the agent door addres
 - **Containers:** `page` is 76rem (the start page, shop, receipt, setup). `wide` is 88rem (the dashboard and order detail). The header and footer follow the page below them (`brand/Frame.tsx`), so the logo lines up with the content. `measure` is 36rem, for prose.
 - **Radius:** xs 6, sm 8, md 10 (thumbnails, fields), lg 14 (cards, photos), xl 20 (cover, starter prompts), 2xl 28 (sheet), full (buttons, filters).
 - **Elevation:** shadows are ink-tinted, each an offset plus a soft blur. `shadow-sm` (cards) has a 5 % ink ring, so it reads as a lift, not an outline. Use it only on true cards, never on page sections.
-- **Motion:** 90, 140, 220 and 360 ms with ease-out. Rows and toasts rise in. All of it stops under `prefers-reduced-motion`.
+- **Motion:** 90, 140, 220 and 360 ms with ease-out (`--ease-out`, `MOTION_S` and `EASE_OUT` in `src/components/motion/tokens.ts`). Only transform and opacity move. Under `prefers-reduced-motion` nothing moves: CSS animations stop, `MotionConfig reducedMotion="user"` drops transforms (fades stay), and totals and statuses show their final value at once.
 
 ## Components (`src/components/ui`)
+
+Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`, `cardVariants`), `data-slot` attributes, and `cn()` from `@/lib/utils` (clsx + tailwind-merge, so a caller's class wins over the default; `cx` is an alias). Files are lowercase (`@/components/ui/button`); never add a second file that differs only by case.
+
 
 | Component | Notes |
 |---|---|
 | `Button`, `ButtonLink`, `buttonClasses()` | Pills. `primary` is a near-black fill with white text; `secondary` is a grey fill; `ghost` has no fill; `paypal` is PayPal blue, only for "Approve $X on PayPal". 44 px (`md`) and 52 px (`lg`). One primary per screen. `loading` shows a spinner and sets `aria-busy`. |
-| `Card` | `raised`: white with `shadow-sm`, no border. `sunken`/`flat`: a grey well. Use it for menu items, grouped order rows and wells. Page sections are not cards: separate them with `border-t border-line` and space. Don't nest cards. |
-| `Badge` | A soft pill with no outline. Use it sparingly, for one-off facts ("Sent to PayPal", "Allergy"). Never use it for order status in lists. |
+| `Card` | `raised`: white with `shadow-sm`, no border. `sunken`/`flat`: a grey well. `note`: the slate note well (the AI brief). Use it for menu items, grouped order rows and wells. Page sections are not cards: separate them with `border-t border-line` and space. Don't nest cards. |
+| `Badge` | A soft pill with no outline. Tones: neutral, accent, ok, warn, error (`danger`), info, note. Use it sparingly, for one-off facts ("Sent to PayPal", "Allergy"). Never use it for order status in lists. |
 | `Tabs` | WAI-ARIA tabs with an ink underline under the active tab and a pomegranate count pill. |
-| `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline and name the fix. |
+| `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
 | `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
 | `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. |
 | `Skeleton` | Shaped like the content it replaces, with a shimmer. |
 | `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
+
+`Sheet` stays a native `<dialog>` (shadcn's Radix sheet would lose the phone bottom sheet and the native focus return), and the toast stays ours: sonner's region is a focusable list with a hotkey, ours is a polite `role="status"` that never takes focus.
+
+## Motion (`src/components/motion`)
+
+`MotionProvider` (root layout) is `LazyMotion features={domAnimation} strict` plus `MotionConfig reducedMotion="user"`. Inside it, use `m.div` from `motion/react`, never `motion.div` (strict mode throws). Server HTML is never hidden: content visible at hydration stays put; only content below the fold, or mounted later on the client, plays an entrance.
+
+| Component | Props | Does |
+|---|---|---|
+| `Reveal` | `as?`, `delay?` (s), `y?` (16 px), `once?` (true), `className`, `children` | Fades and rises in when scrolled into view (360 ms). One block per screen, not every section. |
+| `Stagger`, `StaggerItem` | `as?`, `gap?` (0.04 s), `className`; item: `as?`, `y?` (8 px) | A list whose items rise in one after another (220 ms each, the whole list within 400 ms). An item added after the list has shown (a new order) rises in on its own. |
+| `Pressable` | `as?` (any element or component), `lift?` (true), `className`, `...rest` | CSS only, server-safe: −2 px hover lift with `shadow-md` fading in on a pseudo-element, and a 0.98 press. Don't put `overflow-hidden` on it (that clips the shadow); clip the photo inside. |
+| `CountUp` | `cents`, `format?` (formatUSD; client callers only), `className` | Counts from the previous value to the new one (360 ms). The final text is always the accessible text (`aria-live="off"`; the running count is an aria-hidden overlay). |
+| `StatusSwap` | `value`, `className`, `children` | `AnimatePresence mode="popLayout"` crossfade with a 4 px rise when `value` changes; the leaving copy is aria-hidden. |
+
 
 Order status (`dashboard/status.tsx`): `OrderStatusText` is a coloured dot and the word, and it is the default everywhere. `OrderStatusBadge` remains for compatibility.
 
@@ -134,7 +165,7 @@ The shop cover is the seller's own photo, or a strip of up to four item photos. 
 - **Order detail:**
   - On desktop, a master list on the left: rows on white with a rule on their right, and the open order on grey.
   - The header shows the number, the status dot and word, who placed it and the big total.
-  - Left column: the AI brief as the one grey well, then Items and What happened. Right column: the action (hand over, add tracking, the explanation), Buyer and PayPal.
+  - Left column: the AI brief as the one slate note well (`note-soft`), then Items and What happened. Right column: the action (hand over, add tracking, the explanation), Buyer and PayPal.
   - Sections are divided by rules on the white page. Copy is trimmed to one line where a seller would otherwise be stuck.
 - **Receipt `/o/[ref]`:** the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), beside a grey summary panel. The panel shows the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
 

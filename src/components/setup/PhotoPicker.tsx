@@ -3,9 +3,9 @@
 /* eslint-disable @next/next/no-img-element -- site-relative uploads of unknown size, as in ItemPhoto */
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { Sheet } from '@/components/ui/Sheet';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { startErrorMessage } from '@/lib/client/api';
@@ -215,7 +215,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
       >
         {photoUrl && <img src={photoUrl} alt={name} className="aspect-[4/3] w-full rounded-(--photo-radius) object-cover" />}
         {actions.error && (
-          <p role="alert" className="mt-3 text-sm font-medium text-danger">
+          <p role="alert" className="mt-3 text-sm font-medium text-error">
             {actions.error}
           </p>
         )}
@@ -228,7 +228,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
 export function PhotoError({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <p role="alert" className="text-sm font-medium text-danger">
+    <p role="alert" className="text-sm font-medium text-error">
       {error}
     </p>
   );
@@ -285,7 +285,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
         </div>
       )}
       {actions.error && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-medium text-error">
           {actions.error}
         </p>
       )}

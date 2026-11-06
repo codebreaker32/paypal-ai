@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Check } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 
 const STEPS = ['Read', 'Check', 'Publish'] as const;

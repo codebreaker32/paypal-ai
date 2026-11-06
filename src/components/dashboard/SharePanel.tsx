@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { Bot, ExternalLink, Printer } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { CopyButton } from './CopyButton';
 

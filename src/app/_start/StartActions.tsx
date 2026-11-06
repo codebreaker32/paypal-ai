@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Camera, Loader2, Plus, ScanText, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { FieldError } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
+import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import {
   StartError,

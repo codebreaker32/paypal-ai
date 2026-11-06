@@ -3,9 +3,9 @@
 /* eslint-disable @next/next/no-img-element -- data-URL crops and a local preview, not optimisable */
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { Sheet } from '@/components/ui/Sheet';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
 import { FILE_INPUT, PHOTO_ACCEPT, pickOne, usePickedBeforeHydration } from '@/components/setup/PhotoPicker';
 import { ApiError } from '@/lib/client/http';
@@ -120,7 +120,7 @@ export function CounterSnap({
         )}
 
         {run.phase === 'error' && (
-          <p role="alert" className="font-medium text-danger">
+          <p role="alert" className="font-medium text-error">
             {run.message}
           </p>
         )}
@@ -162,7 +162,7 @@ export function CounterSnap({
                     </div>
                   )}
                   {typeof choice === 'object' && (
-                    <p role="alert" className="text-sm font-medium text-danger">
+                    <p role="alert" className="text-sm font-medium text-error">
                       {choice.error}
                     </p>
                   )}

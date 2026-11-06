@@ -6,7 +6,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, TriangleAlert } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';

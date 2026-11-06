@@ -2,10 +2,10 @@
 
 import { Check, ChevronDown, Copy } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { Tabs } from '@/components/ui/Tabs';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Tabs } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/toast';
 
 function CopyButton({ text, label, what }: { text: string; label: string; what: string }) {
   const toast = useToast();

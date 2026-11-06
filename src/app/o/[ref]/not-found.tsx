@@ -1,6 +1,6 @@
 import { ArrowLeft, SearchX } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 
 export default function OrderNotFound() {
   return (

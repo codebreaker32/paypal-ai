@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Loader2, Truck } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { formatUSD } from '@/lib/domain/money';
@@ -30,7 +30,7 @@ function BriefLine({ order }: { order: Order }) {
   return (
     <div className="flex flex-col gap-0.5 text-sm">
       <p className="font-semibold">
-        <span className="mr-1.5 font-bold text-accent-ink">{order.briefSource === 'agent' ? 'AI brief' : 'Summary'}</span>
+        <span className="mr-1.5 font-bold text-note">{order.briefSource === 'agent' ? 'AI brief' : 'Summary'}</span>
         {order.brief.headline}
       </p>
       {warns[0] && (

@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { buttonClasses } from '@/components/ui/Button';
-import { FieldError } from '@/components/ui/Field';
-import { useToast } from '@/components/ui/Toast';
+import { buttonClasses } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
+import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { formatUSD } from '@/lib/domain/money';

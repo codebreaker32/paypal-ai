@@ -1,6 +1,6 @@
 import { unstable_rethrow } from 'next/navigation';
 import { LayoutDashboard } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/button';
 import { monogram } from '@/components/shop/ItemPhoto';
 import { listOwnedShops } from '@/lib/auth/owner';
 import { StorePreview } from './_start/StorePreview';

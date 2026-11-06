@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Bot } from 'lucide-react';
-import { ButtonLink, buttonClasses } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink, buttonClasses } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';
@@ -16,7 +16,7 @@ const POLL_MS = 3000;
 const TONE: Record<Tone, string> = {
   ok: 'bg-ok-soft text-ok',
   warn: 'bg-warn-soft text-warn',
-  danger: 'bg-danger-soft text-danger',
+  danger: 'bg-error-soft text-error',
   info: 'bg-info-soft text-info',
   neutral: 'bg-surface-sunken text-ink-soft',
 };
@@ -24,7 +24,7 @@ const TONE: Record<Tone, string> = {
 const DOT: Record<Tone, string> = {
   ok: 'text-ok',
   warn: 'text-warn',
-  danger: 'text-danger',
+  danger: 'text-error',
   info: 'text-info',
   neutral: 'text-ink-muted',
 };

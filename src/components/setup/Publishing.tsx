@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ApiError, publish, type PublishEvent } from './api';
 import { publishCounts } from './review-model';
@@ -96,7 +96,7 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
           {failed > 0 && (
             <div
               data-part="failed"
-              className="absolute inset-0 origin-left bg-danger transition-transform duration-(--duration-base) motion-reduce:transition-none"
+              className="absolute inset-0 origin-left bg-error transition-transform duration-(--duration-base) motion-reduce:transition-none"
               style={{ transform: `scaleX(${finishedShare})` }}
             />
           )}
@@ -104,7 +104,7 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
             data-part="added"
             className={cx(
               'absolute inset-0 origin-left transition-transform duration-(--duration-base) motion-reduce:transition-none',
-              run.phase === 'running' ? 'bg-accent' : 'bg-ok',
+              run.phase === 'running' ? 'bg-ink' : 'bg-ok',
             )}
             style={{ transform: `scaleX(${addedShare})` }}
           />
@@ -119,11 +119,11 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
               ) : r.state === 'ok' ? (
                 <Icon icon={CircleCheck} className="mt-0.5 text-ok" label="Added" />
               ) : (
-                <Icon icon={CircleAlert} className="mt-0.5 text-danger" label="Not added" />
+                <Icon icon={CircleAlert} className="mt-0.5 text-error" label="Not added" />
               )}
               <span className="flex flex-1 flex-col">
                 <span className={cx('[overflow-wrap:anywhere]', r.state === 'pending' && 'text-ink-soft')}>{r.name}</span>
-                {r.state === 'failed' && r.message && <span className="text-sm text-danger">{r.message}</span>}
+                {r.state === 'failed' && r.message && <span className="text-sm text-error">{r.message}</span>}
               </span>
             </li>
           ))}

@@ -2,9 +2,9 @@
 
 import { useId, useState, type ReactNode } from 'react';
 import { Check, ChevronDown, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Field, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
+import { Button } from '@/components/ui/button';
+import { Field, TextInput } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
@@ -316,7 +316,7 @@ function SkippedRow({
             error={touched && priceBad ? PRICE_ERROR : null}
             className="w-48"
           />
-          {error && <p role="alert" className="text-sm font-medium text-danger">{error}</p>}
+          {error && <p role="alert" className="text-sm font-medium text-error">{error}</p>}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" variant="secondary" icon={Plus} loading={busy} loadingLabel="Adding…">
               Add to menu

@@ -2,8 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { CircleAlert, CircleCheck, Info, X, type LucideIcon } from 'lucide-react';
-import { Icon } from './Icon';
-import { cx } from './cx';
+import { Icon } from './icon';
+import { cn } from '@/lib/utils';
 
 export type ToastTone = 'neutral' | 'ok' | 'danger';
 
@@ -25,7 +25,7 @@ const ToastContext = createContext<((t: ToastInput) => void) | null>(null);
 const TONE_ICON: Record<ToastTone, { icon: LucideIcon; className: string }> = {
   neutral: { icon: Info, className: 'text-info-soft' },
   ok: { icon: CircleCheck, className: 'text-ok-soft' },
-  danger: { icon: CircleAlert, className: 'text-danger-soft' },
+  danger: { icon: CircleAlert, className: 'text-error-soft' },
 };
 
 /** Mount once (the root layout does). Toasts never take focus; they are announced politely. */
@@ -68,12 +68,12 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
   const tone = TONE_ICON[toast.tone];
   return (
     <div
-      className={cx(
+      className={cn(
         'pointer-events-auto flex items-start gap-3 rounded-(--toast-radius) bg-(--toast-bg) py-3 pl-4 pr-1',
         'text-(--toast-fg) shadow-(--toast-shadow) animate-rise-in',
       )}
     >
-      <Icon icon={tone.icon} className={cx('mt-0.5', tone.className)} />
+      <Icon icon={tone.icon} className={cn('mt-0.5', tone.className)} />
       <div className="flex-1 py-0.5">
         <p className="font-semibold">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm opacity-85">{toast.description}</p>}

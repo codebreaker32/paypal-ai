@@ -3,9 +3,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, CircleCheck, Mail, Settings, TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { Badge } from '@/components/ui/badge';
+import { ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { BriefCard } from '@/components/dashboard/BriefCard';
 import { CopyButton } from '@/components/dashboard/CopyButton';
@@ -243,7 +243,7 @@ const DOT: Record<TimelineEntry['tone'], string> = {
   neutral: 'bg-control',
   ok: 'bg-ok',
   warn: 'bg-warn',
-  danger: 'bg-danger',
+  danger: 'bg-error',
   info: 'bg-info',
 };
 

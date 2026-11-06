@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element -- bundled demo photos in a decorative mock-up */
 import { Bot } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { formatUSD } from '@/lib/domain/money';
 

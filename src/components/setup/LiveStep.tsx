@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import { Bot, Check, ChevronDown, Copy, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
-import { Button, ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { useToast } from '@/components/ui/Toast';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 import { PublishProgress, usePublish } from './Publishing';
 

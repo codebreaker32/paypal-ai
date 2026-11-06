@@ -1,7 +1,7 @@
 'use client';
 
 import type { ComponentProps } from 'react';
-import { Field, TextInput } from '@/components/ui/Field';
+import { Field, TextInput } from '@/components/ui/field';
 import { cx } from '@/components/ui/cx';
 
 export const PRICE_ERROR = 'Enter a price like 4.50 ($0.01 to $500)';

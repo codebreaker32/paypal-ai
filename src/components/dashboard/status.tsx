@@ -9,7 +9,7 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
-import type { BadgeTone } from '@/components/ui/Badge';
+import type { BadgeTone } from '@/components/ui/badge';
 import type { Order } from '@/lib/domain/types';
 import { cx } from '@/components/ui/cx';
 
@@ -50,7 +50,9 @@ const DOT_TONE: Record<BadgeTone, string> = {
   accent: 'text-accent-ink',
   ok: 'text-ok',
   warn: 'text-warn',
-  danger: 'text-danger',
+  danger: 'text-error',
+  error: 'text-error',
+  note: 'text-note',
   info: 'text-info',
 };
 

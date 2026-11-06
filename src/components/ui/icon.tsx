@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { cx } from './cx';
+import { cn } from '@/lib/utils';
 
 export type IconSize = 'sm' | 'md' | 'lg';
 
@@ -21,7 +21,7 @@ export interface IconProps {
 export function Icon({ icon: Glyph, size = 'md', label, className }: IconProps) {
   return (
     <Glyph
-      className={cx('shrink-0 [stroke-width:var(--icon-stroke)]', SIZE[size], className)}
+      className={cn('shrink-0 [stroke-width:var(--icon-stroke)]', SIZE[size], className)}
       aria-hidden={label ? undefined : true}
       aria-label={label}
       role={label ? 'img' : undefined}

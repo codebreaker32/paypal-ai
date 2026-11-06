@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { Bot, ChevronDown, CloudOff } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order } from '@/lib/domain/types';
