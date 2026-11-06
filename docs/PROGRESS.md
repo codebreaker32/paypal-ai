@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 22:40 IST (run 3, session 2)_
+_Last updated: 2026-11-06 22:50 IST (run 3, session 2)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
@@ -15,7 +15,7 @@ _Last updated: 2026-11-06 22:40 IST (run 3, session 2)_
 - **done, verified:** the image optimizer's `localPatterns` also allows `/samples/**` (the start page's sample chips went through `next/image` and got a 400; found by the screenshot run and by the clip worker); `tests/images/local-patterns.test.ts` keeps every optimized path allowed (red without the fix).
 - **done: `docs/judge/screenshots/round-9/`** on a production build of `bbf7db3`: **96 screens, 0 axe violations** (1 flaky on the first try, passed on retry), with a README that labels fixtures and mocks and says what run 3 changed. **Motion recordings** for the judge: `docs/judge/recordings/round-9/` (start, shop, dashboard at 1440 and 390; 6 passed).
 - **done, merged (`5f7a853`): the clip recorder on the run-3 UI** (Part B Task 7, trial): waits for entrances and count-ups to settle and for pictures to load instead of fixed sleeps; 08 now opens on the new-paid-order toast and glow (the dashboard window waits hidden behind the buyer's and comes forward after 06b); the terminal clips end clean. **Trial of all 12 clips into `/tmp/clips-trial`: every clip 1920x1080, constant 30 fps, 0 repeated and 0 dropped frames;** the worker viewed one frame every 2 s per clip: new UI on screen (drawings, the shop picture, the AI brief as a note), no sandbox login, owner token or key. Trial orders: SHF-M7DXY2 → PayPal `43B085869U4097126` → capture `6LL97195GL7343250` ($27.00). Seen by the worker: the toast title wraps at 1440 px (to fix with the judge's fixes).
-- **running:** judge round 9 (`.scratch/judge9-prompt.md`).
+- **done: judge round 9: ship, A 24 / B 24, 0 Part C fails** (`docs/judge/round-9.md`). Every item of the human's feedback is visibly delivered (pictures in every slot, the story hero, purposeful motion, error and note colours, the phone fixes); reduced motion and the phone section jumps checked live on its own production build; the door ordered SHF-EVBPB2 in 1.32 s. Held, not raised: A5 and B4 wait on the rendered video (Part B, under way), the public repo and the deploy (the human's). Its fix 3 (the coder's): the phone toast covers the row it announces; the hero's order beat has no chat line and its card is empty for a moment; five pastries share one croissant; e2e on the shipping commit; the README pointing at round 9 (done, with the README's four images re-made from round 9). Fix 3's UI items and the final anti-slop pass are with a fixer in a worktree.
 - **Next:** judge round 9's fixes (+ the toast width) and the anti-slop pass → the final full e2e with the capture gate → Part B: the final clips (`npm run clips`), the edit in `video/project/demo.json` (`beats`/`videoStartSec`/`playbackRate` per scene), render, a frame every 2 s checked, the video judge round.
 
 **Run 3, session 1 (from 20:02 IST).**
