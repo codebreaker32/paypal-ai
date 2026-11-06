@@ -14,6 +14,7 @@ import { normalizeExtraction } from '@/lib/ai/normalize';
 import { parseStoredReading, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, SAMPLES, recordedReading, samplePhotoPath, type SampleId } from '@/lib/ai/samples';
 import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from '@/lib/uploads';
+import { startLiveExamples } from '@/lib/library/pexels';
 
 /** Shown until the menu (or the seller) gives the shop a name. */
 export const PLACEHOLDER_NAME = 'My shop';
@@ -193,6 +194,8 @@ export async function runReading(deps: ReadingDeps, shopId: string): Promise<Rea
     items.replaceDrafts(db, shopId, result.items);
     applyShopDraft(db, shop, result);
   })();
+  // With PEXELS_API_KEY set, a closer live example for items Claude gave none; in the background, never waited on.
+  startLiveExamples(db, shopId);
   return { status: 'done', catalog: result };
 }
 
