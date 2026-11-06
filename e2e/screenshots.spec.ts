@@ -492,13 +492,13 @@ const SCREENS: Screen[] = [
     viewport: true,
     run: async (page, { phone }) => {
       await firstTurnThen(page, (route) =>
-        route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You've sent a lot of messages in the last hour. Try again later." } } }),
+        route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You’ve sent a lot of messages in the last hour. Try again later." } } }),
       );
       await page.goto(`/s/${SLUG}`);
       const region = await openConsole(page, phone);
       await firstTurn(region);
       await say(region, FIXTURE.prompts[1]);
-      await expect(region.getByRole('alert')).toHaveText("You've sent a lot of messages in the last hour. Try again later.");
+      await expect(region.getByRole('alert')).toHaveText("You’ve sent a lot of messages in the last hour. Try again later.");
       await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
     },
   },
@@ -511,14 +511,14 @@ const SCREENS: Screen[] = [
         route.fulfill({
           status: 200,
           contentType: 'application/x-ndjson',
-          body: ndjson([FIXTURE.turns[1][0], { type: 'error', message: "The shop didn't answer. Try again." }]),
+          body: ndjson([FIXTURE.turns[1][0], { type: 'error', message: "The shop didn’t answer. Try again." }]),
         }),
       );
       await page.goto(`/s/${SLUG}`);
       const region = await openConsole(page, phone);
       await firstTurn(region);
       await say(region, FIXTURE.prompts[1]);
-      await expect(region.getByRole('alert')).toHaveText("The shop didn't answer. Try again.");
+      await expect(region.getByRole('alert')).toHaveText("The shop didn’t answer. Try again.");
       await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
     },
   },
