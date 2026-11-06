@@ -106,7 +106,7 @@ function FileLabel({
 
 function Busy({ label }: { label: string }) {
   return (
-    <span className="absolute inset-0 flex items-center justify-center bg-surface/70" role="status">
+    <span className="absolute inset-0 flex items-center justify-center rounded-[inherit] bg-surface/70" role="status">
       <Icon icon={Loader2} className="animate-spin text-ink" />
       <span className="sr-only">{label}</span>
     </span>
@@ -140,7 +140,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
     onChange,
     onError,
   );
-  const box = cx('relative block shrink-0 overflow-hidden rounded-(--thumb-radius) bg-surface-sunken', size === 'md' ? 'size-16' : 'size-14', className);
+  const box = cx('relative block shrink-0 rounded-(--thumb-radius) bg-surface-sunken', size === 'md' ? 'size-16' : 'size-14', className);
 
   return (
     <div className="flex flex-col gap-1" data-photo-picker={itemId}>
@@ -152,13 +152,13 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
           onClick={() => setOpen(true)}
           className={cx(box, 'transition-[filter] hover:brightness-95')}
         >
-          <img src={photoUrl} alt={name} className="size-full object-cover" />
+          <img src={photoUrl} alt={name} className="size-full rounded-(--thumb-radius) object-cover" />
           {actions.busy && <Busy label={`Saving the photo of ${name}`} />}
         </button>
       ) : (
         <FileLabel label={`Add a photo of ${name}`} onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(box, 'group')}>
-          <ItemPhoto name={name} photoUrl={null} tone={tone} size="sm" decorative className="size-full" />
-          <span className="absolute right-1 bottom-1 flex size-6 items-center justify-center rounded-full bg-surface text-ink shadow-xs transition-transform group-hover:scale-110">
+          <ItemPhoto name={name} photoUrl={null} tone={tone} size="sm" decorative className="size-full rounded-(--thumb-radius)" />
+          <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-surface text-ink shadow-sm transition-transform group-hover:scale-110">
             <Icon icon={ImagePlus} size="sm" />
           </span>
           {actions.busy && <Busy label={`Saving the photo of ${name}`} />}

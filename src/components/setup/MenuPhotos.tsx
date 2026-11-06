@@ -10,7 +10,7 @@ import { cx } from '@/components/ui/cx';
 export const photoUrl = (shopId: string, page: number, version = 0) =>
   `/api/shops/${shopId}/photo/${page}${version ? `?v=${version}` : ''}`;
 
-/** One page of the seller's menu photo, framed like a sheet of paper. */
+/** One page of the seller's menu photo, as a plain rounded photo on a grey well. */
 export function MenuPhoto({
   shopId,
   page,
@@ -32,7 +32,7 @@ export function MenuPhoto({
   children?: ReactNode;
 }) {
   return (
-    <div className={cx('relative overflow-hidden border-6 border-surface-raised bg-surface-sunken shadow-lg', className)}>
+    <div className={cx('relative overflow-hidden rounded-(--photo-radius) bg-surface-sunken', className)}>
       <Image
         src={src ?? photoUrl(shopId, page, version)}
         alt={`Your menu photo, page ${page}`}
@@ -60,7 +60,7 @@ export function PhotoStrip({ shopId, count, version, className }: { shopId: stri
               type="button"
               onClick={() => setOpen(page)}
               aria-label={`See page ${page} of your menu photo full size`}
-              className="group relative block h-24 w-18 overflow-hidden rounded-md border border-line-strong bg-surface-sunken shadow-xs"
+              className="group relative block h-24 w-18 overflow-hidden rounded-(--thumb-radius) bg-surface-sunken"
             >
               <Image src={photoUrl(shopId, page, version)} alt="" fill unoptimized sizes="72px" className="object-cover" />
               <span className="absolute right-1 bottom-1 inline-flex size-6 items-center justify-center rounded-full bg-surface-raised/90 text-ink shadow-xs">
