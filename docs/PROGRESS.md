@@ -1,9 +1,9 @@
 # Progress
 
-_Last updated: 2026-11-06 10:35 IST (end of session 6)_
+_Last updated: 2026-11-06 10:40 IST (end of session 6)_
 
 ## Current phase
-**Session 6 (09:07–~10:35 IST).** Done:
+**Session 6 (09:07–~10:40 IST).** Done:
 - **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits). GitHub detects the MIT license.
 - **done, merged:** review 2 (`docs/reviews/2026-11-06-review-2.md`) over the areas session 5's review didn't cover. Wave 1 had four areas (setup, seller dashboard, buyer side, a security sweep); wave 2 had two lenses (runtime lifecycle and data integrity, cross-surface consistency). A skeptic tried to refute every finding: **14 confirmed, 5 refuted.** The 9 wave-1 fixes are merged (641 unit tests pass; typecheck and lint are clean):
   - X1: on Render the rate-limit key is `CF-Connecting-IP`, because the rightmost `X-Forwarded-For` entry there is a shared Cloudflare edge address (unit-tested; **unverified until deployed**);
@@ -27,6 +27,14 @@ _Last updated: 2026-11-06 10:35 IST (end of session 6)_
 - **done, after round 5:** the judge's one in-scope miss. A live reading turned "Kids bike safety check FREE w/ tune-up, else $10" into a plain $10 with no question. A condition in `deal_text`, or an ", else $10" clause in the printed line, now asks the seller. No card changed on the 61 recorded sample and fixture items.
 - **done, after round 5:** `code-review` (high) over this session's own changes found 10 items; 8 are fixed and 2 kept with reasons (table at the end of `docs/reviews/2026-11-06-review-2.md`). A $0 item price is refused at input, but a $0 shipping fee is still allowed. Publish skips an item changed mid-run. The outage banner counts only transient failures. There is one shared `cardDeclined` rule. `--cancel-unpaid` asks PayPal first. The caps use the service clock. The console's confirm poll stops after 2 minutes. **665 unit tests pass; typecheck and lint are clean.**
 - **Verified on the final main (10:30 IST):** 665 unit tests pass; typecheck and lint are clean. The full e2e suite gave **56 passed, 1 skipped** (5.0 min). The capture gate passed: SHF-KJZT97 → PayPal `4FG358017Y8333738` → capture `13D896174A6799217` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED, and `get_order_status` read it back. `npm run screenshots:prod` re-took `docs/judge/screenshots/round-5/`: 68/68, axe 0 violations; 30 PNGs changed against the judged take, each by 0.41% of pixels or less.
+- **Verified: a fresh-clone README walkthrough** (a local clone of main, Node 22, only the 3 keys copied in, `APP_URL` left commented out). Every step passed:
+  - `npm install` and `npm ci`;
+  - 665 unit tests, typecheck and lint;
+  - `npm run seed` (9 real Catalog products in 3.6 s) and `--cancel-unpaid`;
+  - `npm run dev -- --port 3141` and a production `npm start -- -p 3141`, both showing the door at `:3141`;
+  - the README's door curl, and `create_order` returning a real `sandbox.paypal.com` approval link that loads.
+
+  Fixed from it: `package-lock.json` still had the scaffold's name, so `npm install` dirtied the tree. The README now explains the seed's port, its 9 of 10 items, and that rehearsal orders cancelled by `--cancel-unpaid` read "cancelled on PayPal" (the product copy has no "cancelled by the seller" wording yet; a small follow-up).
 - **Verified (L1 in production mode):** `next start -p 3131` with no `APP_URL`, on a throwaway seeded database, put the door at `http://localhost:3131/s/marigold-bakehouse/mcp` on the shop page (3 places). The seed, which runs outside the server, still prints `:3000`. The throwaway database was deleted afterwards.
 - **done:** `npm run seed` now reports the demo shop's unpaid orders, and `npm run seed -- --cancel-unpaid` cancels rehearsal orders before a recording (one caller can hold 3 unpaid orders per shop). DEMO.md and the README say so.
 
