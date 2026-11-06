@@ -231,12 +231,13 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 4. Final PROGRESS summary and the completion check (`.run-complete`).
 
 ## Needs from human
-- **Before 12 Nov 12:00 PT, required for the submission:**
-  - make the GitHub repo **public** (it's private now, as the run brief requires); the full-history secret scan on 6 Nov found nothing;
-  - record the under-3-minute demo video from `docs/DEMO.md` and post it publicly on YouTube;
-  - submit on Devpost.
-- **Deploy (optional but valuable):** follow `docs/DEPLOY.md` (Render from `render.yaml`, the PayPal webhook, the smoke test). It also verifies the webhook path and the Render rate-limit key (review 2, X1), which no local run can.
-- **GitHub About section** (it's empty today; GitHub already detects the MIT license). Suggested description: "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2." Suggested topics: `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
-- **Before recording the video:** run `npm run seed -- --cancel-unpaid` to clear rehearsal orders on the demo shop (one caller can hold 3 unpaid orders).
+**One checklist, about 20 minutes, before 12 Nov 2026 12:00 PT.** Judge rounds 2–7 held A5 and B4 at 4 for these steps alone, and without steps 1 and 4 the entry fails Stage One. No worker can do them: they need your GitHub, Render, YouTube and Devpost accounts.
+1. **Make the repo public** (about 3 min). `gh auth login`, then `gh repo edit codebreaker32/paypal-ai --visibility public --accept-visibility-change-consequences`. Check with `gh repo view codebreaker32/paypal-ai --json visibility,licenseInfo` (expect `PUBLIC` and `mit`). The full-history secret scan was clean on 6 Nov (gitleaks: 393 commits, no leaks; every `.env` value: 0 hits in history and in tracked files).
+2. **Deploy to Render** (about 10 min, optional but it moves B4). Follow `docs/DEPLOY.md`: New → Blueprint from `render.yaml`, enter the env vars (include `PAYPAL_SANDBOX_SELLER_EMAIL`), run `npm run seed` in the service shell, create the PayPal webhook for the service URL and set `PAYPAL_WEBHOOK_ID`, then run the smoke test there. From any machine: `curl -s https://<service>/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'` and `curl -s https://<service>/llms.txt` should show the https door.
+3. **Cut and post the video** (the longest step). The raw clips are in `video/clips/` (`video/clips/README.md` maps each to a `docs/DEMO.md` shot); before re-recording anything, run `npm run seed -- --cancel-unpaid`. Cut to ≤ 2:50, no third-party music, and post it **public** on YouTube.
+4. **Fill in the 3 TODOs** in `docs/SUBMISSION.md` (`## Links`: video, repo, hosted demo) and replace README "Deploy to Render" → "**Not yet run.**" with the URL and the date you checked it. Then submit on Devpost with `docs/SUBMISSION.md`.
+5. **GitHub About section** (1 min): description "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2."; topics `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
+
+Notes:
 - (Resolved in session 3.) If `git push` fails with `remote: fatal error in commit_refs`, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main` (it mirrors the commits through the GitHub API with identical SHAs).
 - Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD_IN` in `.env` if it contains `#` (dotenv cuts the value there). The new US buyer password loads correctly.
