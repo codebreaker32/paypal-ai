@@ -1,9 +1,10 @@
 # Progress
 
-_Last updated: 2026-11-06 13:55 IST (run 2, session 3)_
+_Last updated: 2026-11-06 14:35 IST (run 2, session 3)_
 
 ## Current phase
-**Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Session 2's milestone review fixes are merged (8 by its fixer, items 9–10 by the coordinator; 840 unit tests pass on `7dde5e1`). Running now: a fixer for 6 items from a review of those fixes, the clip recorder (item 7), and the full e2e suite for judge round 6. Next: judge round 6, then its top fixes, then the clips on the final main.
+**Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: the round-6 screenshots on a production build, the capture gate alone, and the shop and discovery specs; the clip recorder (item 7) is being built in a worktree. Next: judge round 6.
+- **Full e2e suite on `7dde5e1` (13:44–14:08 IST): 141 passed, 3 skipped, 9 failed.** All 9 failures are 60 s `waitForLoadState` timeouts in the shop and screenshot specs on the dev server, while the clip recorder and the review fixer ran on the same 4 CPUs (the run took 23.6 min against the usual 5–9). Both capture gates passed in that run; they and the timed-out specs are being re-run alone.
 
 **Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended.
 - **Verified (spike, 11:20–11:30 IST, real sandbox):**
