@@ -73,8 +73,8 @@ async function clip(display: Display, id: string, body: () => Promise<void>, opt
     await sleep(opts.tail ?? 1200);
     ok = true;
   } finally {
-    const c = await cap.stop();
     const seconds = (Date.now() - t0) / 1000;
+    const c = await cap.stop();
     if (ok) {
       fs.renameSync(partial, file);
       results.push({ id, seconds, ...c });
