@@ -43,13 +43,29 @@ export class UploadError extends Error {
   }
 }
 
+// The most pixels one photo may decode to: a 50 MP phone photo fits. A few hundred KB of PNG can
+// claim far more, and decoding it would take hundreds of MB of memory (a decompression bomb).
+export const MAX_PHOTO_PIXELS = 50 * 1024 * 1024;
+const TOO_MANY_PIXELS = 'That photo is too big for us to read. Take it again at your camera’s normal size, or pick a smaller copy.';
+
+// Photos are decoded one at a time across the whole process, so parallel uploads can't stack up memory.
+let decoding: Promise<unknown> = Promise.resolve();
+
 /** Decodes, rotates, shrinks and re-encodes one photo. Throws UploadError('BAD_IMAGE') for anything else. */
 export async function normalizePhoto(input: Buffer): Promise<Buffer> {
   if (input.length > MAX_PHOTO_BYTES) throw new UploadError('PHOTO_TOO_LARGE');
+  const run = decoding.then(() => decodePhoto(input));
+  decoding = run.catch(() => undefined);
+  return run;
+}
+
+async function decodePhoto(input: Buffer): Promise<Buffer> {
   try {
+    // metadata() reads only the header, so the size check happens before any pixels are decoded.
     const meta = await sharp(input).metadata();
     if (!meta.format || !PHOTO_FORMATS.has(meta.format) || !meta.width || !meta.height) throw new UploadError('BAD_IMAGE');
-    return await sharp(input)
+    if (meta.width * meta.height > MAX_PHOTO_PIXELS) throw new UploadError('PHOTO_TOO_LARGE', TOO_MANY_PIXELS);
+    return await sharp(input, { limitInputPixels: MAX_PHOTO_PIXELS })
       .rotate()
       .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 85 })
