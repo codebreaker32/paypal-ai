@@ -7,13 +7,14 @@
 //       BAD_IMAGE (or HTTP 415)              → "We couldn't open that photo. Try a JPG or PNG."
 //       TOO_MANY_PHOTOS                      → up to 4 photos
 //       PHOTO_TOO_LARGE (or HTTP 413)        → over 15 MB
+//       RATE_LIMITED (or HTTP 429)           → too many shops from this address in the last hour
 //     Anything else is shown as a generic "try again".
 
 import { MAX_PHOTOS, MAX_PHOTO_BYTES } from './photos';
 
 export type SampleId = 'marigold-bakehouse' | 'tia-lupe-chalkboard' | 'ravi-bike-repair';
 
-export type StartErrorKind = 'bad_file' | 'too_many' | 'too_large' | 'network' | 'server';
+export type StartErrorKind = 'bad_file' | 'too_many' | 'too_large' | 'busy' | 'network' | 'server';
 
 export class StartError extends Error {
   readonly kind: StartErrorKind;
@@ -30,6 +31,7 @@ const MESSAGES: Record<StartErrorKind, string> = {
   bad_file: "We couldn’t open that photo. Try a JPG or PNG.",
   too_many: `Shelfie reads up to ${MAX_PHOTOS} photos at a time. Pick the clearest pages.`,
   too_large: `That photo is over ${MAX_MB} MB. Take it again or pick a smaller copy.`,
+  busy: 'You’ve started a lot of shops in the last hour. Try again later.',
   network: "We couldn’t reach Shelfie. Check your connection and try again.",
   server: 'Something went wrong on our side. Try again in a moment.',
 };
@@ -47,6 +49,7 @@ const CODE_TO_KIND: Record<string, StartErrorKind> = {
   BAD_IMAGE: 'bad_file',
   TOO_MANY_PHOTOS: 'too_many',
   PHOTO_TOO_LARGE: 'too_large',
+  RATE_LIMITED: 'busy',
 };
 
 async function readErrorKind(res: Response): Promise<StartErrorKind> {
@@ -60,6 +63,7 @@ async function readErrorKind(res: Response): Promise<StartErrorKind> {
   if (typeof code === 'string' && CODE_TO_KIND[code]) return CODE_TO_KIND[code];
   if (res.status === 413) return 'too_large';
   if (res.status === 415) return 'bad_file';
+  if (res.status === 429) return 'busy';
   return 'server';
 }
 

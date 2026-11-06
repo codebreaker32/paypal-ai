@@ -38,6 +38,8 @@ describe('startFromPhotos', () => {
       [413, { error: { code: 'PHOTO_TOO_LARGE', message: 'x' } }, 'too_large'],
       [413, {}, 'too_large'],
       [415, {}, 'bad_file'],
+      [429, { error: { code: 'RATE_LIMITED', message: 'x' } }, 'busy'],
+      [429, {}, 'busy'],
       [500, { error: { code: 'EXTRACTION_FAILED' } }, 'server'],
       [502, 'not json', 'server'],
     ];
@@ -88,5 +90,6 @@ describe('startErrorMessage', () => {
     expect(startErrorMessage('too_large')).toMatch(/15 MB/);
     expect(startErrorMessage('network')).toMatch(/connection/i);
     expect(startErrorMessage('server')).toMatch(/try again/i);
+    expect(startErrorMessage('busy')).toBe('You’ve started a lot of shops in the last hour. Try again later.');
   });
 });

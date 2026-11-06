@@ -92,16 +92,18 @@ export interface ReadingDeps {
   now?: () => number;
   /** A short pause so a recorded reading still shows the reading screen. */
   recordedDelayMs?: number;
+  /** Asked just before a live (paid) reading starts; false refuses it as BUSY (per-address rate limit). */
+  allowLive?: () => boolean;
 }
 
 export type ReadingOutcome =
   | { status: 'running' }
   | { status: 'done'; catalog: DraftCatalog }
   | { status: 'unreadable'; reason: UnreadableReason; tip: string }
-  | { status: 'failed'; message: string };
+  | { status: 'failed'; message: string; code?: 'BUSY' };
 
 // Stored in extractions.error as "<CODE>: <detail>"; only the code reaches the seller.
-type FailCode = 'NO_AI_KEY' | 'TIMEOUT' | 'AI_ERROR' | 'NO_PHOTOS';
+type FailCode = 'NO_AI_KEY' | 'TIMEOUT' | 'AI_ERROR' | 'NO_PHOTOS' | 'BUSY';
 
 const FRIENDLY: Record<FailCode | 'STALE', string> = {
   NO_AI_KEY:
@@ -109,6 +111,7 @@ const FRIENDLY: Record<FailCode | 'STALE', string> = {
   TIMEOUT: 'Reading took too long. Long menus sometimes do. Try again.',
   AI_ERROR: "We couldn’t finish reading your menu. Your photos are saved, so you can try again.",
   NO_PHOTOS: 'This shop has no photos to read. Start again with a photo of your price list.',
+  BUSY: 'You’ve read a lot of menus in the last hour. Your photos are saved, so try again later.',
   STALE: "Reading stopped before it finished. Your photos are saved, so you can try again.",
 };
 
@@ -154,11 +157,12 @@ export async function runReading(deps: ReadingDeps, shopId: string): Promise<Rea
   const id = extractions.start(db, shopId, recorded ? `${RECORDED_PREFIX}${MODEL_ID}` : MODEL_ID);
   const fail = (code: FailCode, detail: string): ReadingOutcome => {
     extractions.fail(db, id, `${code}: ${detail}`);
-    return { status: 'failed', message: FRIENDLY[code] };
+    return code === 'BUSY' ? { status: 'failed', message: FRIENDLY[code], code } : { status: 'failed', message: FRIENDLY[code] };
   };
 
   if (!deps.hasAiKey && !sample) return fail('NO_AI_KEY', 'ANTHROPIC_API_KEY is not set');
   if (shop.menuPhotoPaths.length === 0) return fail('NO_PHOTOS', 'shop has no photos');
+  if (!recorded && deps.allowLive && !deps.allowLive()) return fail('BUSY', 'over the per-address reading limit');
 
   let raw: MenuExtraction;
   try {
