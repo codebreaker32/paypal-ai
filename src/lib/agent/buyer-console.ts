@@ -228,8 +228,12 @@ export async function* runBuyerConsoleTurn(input: BuyerConsoleTurnInput): AsyncG
         let last: { stop_reason: string | null } | null = null;
         for await (const message of runner) {
           last = message;
-          for (const block of message.content) {
-            if (block.type === 'text' && block.text.trim()) emit({ type: 'text', text: block.text });
+          // Text alongside a tool call is Claude thinking aloud ("They said yes, I'll proceed."): it stays in the
+          // history for Claude, but the person only sees the message that ends the turn.
+          if (!message.content.some((block) => block.type === 'tool_use')) {
+            for (const block of message.content) {
+              if (block.type === 'text' && block.text.trim()) emit({ type: 'text', text: block.text });
+            }
           }
           if (message.stop_reason === 'refusal') emit({ type: 'error', message: REFUSAL_MESSAGE });
         }

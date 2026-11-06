@@ -616,6 +616,26 @@ describe('runBuyerConsoleTurn', () => {
     });
   });
 
+  it("doesn't stream what Claude says alongside a tool call as chat, only the answer that ends the turn", async () => {
+    const narration = "The user already said yes to placing it, with a clear total derivable ($27). I'll proceed.";
+    const { client } = stubClaude([
+      reply([text(narration), toolUse('toolu_n', 'list_products', { query: 'croissant' })], 'tool_use'),
+      reply([text('Almond croissants are $4.75 each.')]),
+    ]);
+    const mcp = stubMcp({ list_products: ok(MENU) });
+    const events = await collect(
+      runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId: null, userText: 'Croissants?', mcpUrl: MCP_URL, client, mcpClientFactory: mcp.factory, db }),
+    );
+    expect(events.map((e) => e.type)).toEqual(['session', 'tool_call', 'tool_result', 'text', 'done']);
+    expect(events.filter((e) => e.type === 'text')).toEqual([{ type: 'text', text: 'Almond croissants are $4.75 each.' }]);
+    // Claude keeps its own words in the history; the replayable events never had them.
+    const id = (events[0] as Extract<ConsoleEvent, { type: 'session' }>).id;
+    const stored = assistant.get(db, id)!;
+    expect(stored.messages[1]).toEqual({ role: 'assistant', content: [text(narration), toolUse('toolu_n', 'list_products', { query: 'croissant' })] });
+    expect(JSON.stringify(stored.events)).not.toContain('I’ll proceed');
+    expect(JSON.stringify(stored.events)).not.toContain("I'll proceed");
+  });
+
   describe('without an Anthropic key', () => {
     const saved = process.env.ANTHROPIC_API_KEY;
     beforeEach(() => {
