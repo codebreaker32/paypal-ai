@@ -16,7 +16,7 @@ describe('ShopAvatar', () => {
   });
 
   it('a draft with nothing at all still gets a picture', () => {
-    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: bare, items: [] }))).toContain('href="/illustrations.svg#goods"');
+    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: bare, items: [] }))).toContain('href="/illustrations.svg#meal"');
   });
 
   it('the logo, the cover and the menu photo are images; owner pages can point the menu photo at the owner route', () => {

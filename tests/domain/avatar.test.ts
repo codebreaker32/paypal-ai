@@ -40,12 +40,13 @@ describe('shopAvatar', () => {
   it('a bakery with no photos is a loaf or a pastry, never a string of letters', () => {
     const items = [item('Country sourdough loaf', 'Breads'), item('Seeded rye', 'Breads'), item('Butter croissant', 'Pastries'), item('Drip coffee', 'Coffee')];
     const avatar = shopAvatar(shop(), items);
-    expect(avatar.kind).toBe('illustration');
-    expect(avatar.kind === 'illustration' && ['bread', 'pastry']).toContain(avatar.kind === 'illustration' ? avatar.category : '');
+    if (avatar.kind !== 'illustration') throw new Error(`expected a drawing, got ${avatar.kind}`);
+    expect(['bread', 'pastry']).toContain(avatar.category);
   });
 
   it('a shop with no items and no photos still gets a picture: its kind’s default', () => {
-    expect(shopAvatar(shop(), [])).toEqual({ kind: 'illustration', category: 'goods' });
+    expect(shopAvatar(shop(), [])).toEqual({ kind: 'illustration', category: 'meal' });
+    expect(shopAvatar(shop({ kind: 'goods' }), [])).toEqual({ kind: 'illustration', category: 'goods' });
     expect(shopAvatar(shop({ kind: 'services' }), [])).toEqual({ kind: 'illustration', category: 'tool' });
   });
 });

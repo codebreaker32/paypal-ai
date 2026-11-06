@@ -4,7 +4,7 @@ import type { ItemKind, ShopKind } from './types';
  * The pictures Shelfie draws for an item with no photo of its own (src/components/illustrations). Claude picks one per
  * item when it reads the menu; rows without one (older shops, the demo seed) fall back to `guessCategory`.
  */
-export const CATEGORIES = ['bread', 'pastry', 'cake', 'coffee', 'tea', 'taco', 'burrito', 'drink', 'dessert', 'bike_part', 'tool', 'goods'] as const;
+export const CATEGORIES = ['bread', 'pastry', 'cake', 'coffee', 'tea', 'taco', 'burrito', 'drink', 'dessert', 'meal', 'bike_part', 'tool', 'goods'] as const;
 export type ItemCategory = (typeof CATEGORIES)[number];
 
 export const isItemCategory = (value: unknown): value is ItemCategory => typeof value === 'string' && (CATEGORIES as readonly string[]).includes(value);
@@ -35,21 +35,30 @@ const plain = (text: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ');
 
-function match(text: string | null | undefined): ItemCategory | null {
+/** Pictures a food shop's item never gets from a keyword: "Brie wheel" is cheese, "Catering service" is food. */
+const NOT_FOOD: ReadonlySet<ItemCategory> = new Set(['tool', 'bike_part']);
+
+function match(text: string | null | undefined, shopKind: ShopKind): ItemCategory | null {
   if (!text) return null;
   const words = ` ${plain(text)} `;
-  for (const [category, rule] of RULES) if (rule.test(words)) return category;
+  for (const [category, rule] of RULES) {
+    if (shopKind === 'food' && NOT_FOOD.has(category)) continue;
+    if (rule.test(words)) return category;
+  }
   return null;
 }
 
+/** The picture for an item nothing matched, and for a shop with no items: a dish, a job, or a shopping bag. */
+export const kindDefault = (shopKind: ShopKind): ItemCategory => (shopKind === 'food' ? 'meal' : shopKind === 'services' ? 'tool' : 'goods');
+
 /**
  * The best-fitting picture for an item from its words alone: the name first, then its description, then its section
- * heading. A services shop's unmatched item is a job (`tool`); anything else falls back to `goods`.
+ * heading. A food shop never gets `tool` or `bike_part` from a keyword. Unmatched: a food shop's item is a dish
+ * (`meal`), a services shop's a job (`tool`), anything else `goods`.
  */
 export function guessCategory(input: { name: string; section?: string | null; description?: string | null; shopKind: ShopKind }): ItemCategory {
-  const found = match(input.name) ?? match(input.description) ?? match(input.section);
-  if (found) return found;
-  return input.shopKind === 'services' ? 'tool' : 'goods';
+  const { shopKind } = input;
+  return match(input.name, shopKind) ?? match(input.description, shopKind) ?? match(input.section, shopKind) ?? kindDefault(shopKind);
 }
 
 /** The item's stored category when it has a known one, else the keyword guess. */
@@ -68,9 +77,12 @@ export interface ItemPicture {
 }
 
 /**
- * `itemCategory` where the shop's kind isn't at hand (setup and Menu tab rows): the kind only decides the last fallback
- * (`tool` for services, else `goods`), and a services shop's items are the SERVICE ones.
+ * `itemCategory` where only the item is at hand (setup and Menu tab rows): a services shop's items are the SERVICE
+ * ones; anything else is read as a food or goods shop's (`shopKind`, food when not known).
  */
-export function categoryOf(item: { category: ItemCategory | null; name: string; section: string | null; description: string | null; kind: ItemKind }): ItemCategory {
-  return itemCategory(item, item.kind === 'SERVICE' ? 'services' : 'goods');
+export function categoryOf(
+  item: { category: ItemCategory | null; name: string; section: string | null; description: string | null; kind: ItemKind },
+  shopKind: ShopKind = 'food',
+): ItemCategory {
+  return itemCategory(item, item.kind === 'SERVICE' ? 'services' : shopKind);
 }

@@ -25,11 +25,22 @@ describe('guessCategory', () => {
     expect(guessCategory({ name: 'House special', description: 'A flaky butter danish', shopKind: 'food' })).toBe('pastry');
   });
 
-  it('an unknown food item falls back to a food picture, an unknown service to a tool, anything else to goods', () => {
-    expect(CATEGORIES).toContain(guessCategory({ name: 'Mystery plate', shopKind: 'food' }));
-    expect(guessCategory({ name: 'Mystery plate', shopKind: 'food' })).not.toBe('bike_part');
+  it('an unknown food item falls back to a food picture (meal), an unknown service to a tool, anything else to goods', () => {
+    expect(CATEGORIES).toContain('meal');
+    expect(guessCategory({ name: 'Mystery plate', shopKind: 'food' })).toBe('meal');
+    // Tía Lupe's extras were drawn as a shopping bag before `meal` existed.
+    expect(guessCategory({ name: 'Guac + chips', section: 'EXTRAS', shopKind: 'food' })).toBe('meal');
+    expect(guessCategory({ name: 'Elote', section: 'EXTRAS', shopKind: 'food' })).toBe('meal');
     expect(guessCategory({ name: 'Consultation', shopKind: 'services' })).toBe('tool');
     expect(guessCategory({ name: 'Thing', shopKind: 'goods' })).toBe('goods');
+  });
+
+  it('a food shop never gets a part or a tool from a keyword ("Brie wheel", "Catering service")', () => {
+    for (const name of ['Brie wheel', 'Catering service', 'Chain of sausages', 'Tube of frosting']) {
+      expect(['bike_part', 'tool']).not.toContain(guessCategory({ name, shopKind: 'food' }));
+    }
+    expect(guessCategory({ name: 'Inner tube 700c', shopKind: 'goods' })).toBe('bike_part');
+    expect(guessCategory({ name: 'Wheel true', shopKind: 'services' })).toBe('tool');
   });
 
   it('matches whole words, not fragments ("Teapot stand" is not tea, "Bunting" is not a bun)', () => {

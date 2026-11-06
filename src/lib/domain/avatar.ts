@@ -1,4 +1,4 @@
-import { itemCategory, type ItemCategory } from './category';
+import { itemCategory, kindDefault, type ItemCategory } from './category';
 import type { Shop } from './types';
 
 export type ShopAvatarSource = { kind: 'logo' | 'cover' | 'menu'; src: string } | { kind: 'illustration'; category: ItemCategory };
@@ -24,5 +24,5 @@ export function shopAvatar(shop: Pick<Shop, 'logoUrl' | 'coverUrl' | 'slug' | 'm
   }
   let best: ItemCategory | null = null;
   for (const [category, count] of counts) if (best === null || count > counts.get(best)!) best = category;
-  return { kind: 'illustration', category: best ?? (shop.kind === 'services' ? 'tool' : 'goods') };
+  return { kind: 'illustration', category: best ?? kindDefault(shop.kind) };
 }
