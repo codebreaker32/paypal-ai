@@ -140,7 +140,7 @@ describe('Receipt slip', () => {
     expect(render(null)).not.toContain('Paid to');
   });
 
-  it('while PayPal still holds the payment, says where it is going and that PayPal is confirming it, never "Paid to"', () => {
+  it('while PayPal still holds the payment, says where it is going and (once) that PayPal is clearing it, never "Paid to"', () => {
     const html = renderToStaticMarkup(
       createElement(Receipt, {
         orderRef: 'ord_1',
@@ -150,7 +150,10 @@ describe('Receipt slip', () => {
         tracking: null,
       }),
     );
-    expect(html).toContain('Going to Marigold Bakehouse’s own PayPal account (r•••@example.com). PayPal is still confirming it.');
+    expect(html).toContain('Going to Marigold Bakehouse’s own PayPal account (r•••@example.com).');
+    // The status above already says "PayPal is still clearing this payment"; the line under it doesn't say it again.
+    expect(html.match(/PayPal is still clearing this payment/g)).toHaveLength(1);
+    expect(html).not.toContain('still confirming');
     expect(html).not.toContain('Paid to');
   });
 });

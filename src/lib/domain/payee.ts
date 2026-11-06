@@ -22,14 +22,22 @@ export type PayeeEmailResult = { ok: true; email: string } | { ok: false; messag
 // The plain addresses PayPal takes as a payee (anything else is a 422 on every order): no quoted or bracketed forms.
 /** Name part: letters, digits and ! # $ % & ' * + / = ? ^ _ ` { | } ~ -, in dot-separated runs (no leading, trailing or double dot). */
 const LOCAL_PART = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+/** RFC 5321's limits: the name part, and each label of the domain. */
+const MAX_LOCAL_LENGTH = 64;
+const MAX_LABEL_LENGTH = 63;
 /** A domain label: letters, digits and hyphens, not starting or ending with a hyphen. */
 const DOMAIN_LABEL = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
-/** The last label: two letters or more (so not an IP address). */
-const TOP_LABEL = /^[a-z]{2,}$/;
+/**
+ * The last label (so not an IP address): two letters or more, or an internationalised ending in its ASCII form, `xn--`
+ * then letters, digits and hyphens, not ending in a hyphen (`xn--p1ai` is .рф).
+ */
+const TOP_LABEL = /^([a-z]{2,}|xn--[a-z0-9-]*[a-z0-9])$/;
+
+const isLabel = (label: string): boolean => label.length <= MAX_LABEL_LENGTH && DOMAIN_LABEL.test(label);
 
 /**
- * Trimmed and lower-cased; at most 254 characters, one `@`, a plain name part, and a domain of two labels or more
- * that ends in two letters or more.
+ * Trimmed and lower-cased; at most 254 characters, one `@`, a plain name part of at most 64, and a domain of two labels
+ * or more, each at most 63, that ends in two letters or more (or an `xn--` ending).
  */
 export function parsePayeeEmail(raw: unknown): PayeeEmailResult {
   const bad: PayeeEmailResult = { ok: false, message: PAYEE_EMAIL_MESSAGE };
@@ -39,8 +47,9 @@ export function parsePayeeEmail(raw: unknown): PayeeEmailResult {
   const parts = email.split('@');
   if (parts.length !== 2) return bad;
   const [local, domain] = parts;
+  if (local.length > MAX_LOCAL_LENGTH || !LOCAL_PART.test(local)) return bad;
   const labels = domain.split('.');
-  if (!LOCAL_PART.test(local) || labels.length < 2 || !labels.every((l) => DOMAIN_LABEL.test(l))) return bad;
+  if (labels.length < 2 || !labels.every(isLabel)) return bad;
   if (!TOP_LABEL.test(labels[labels.length - 1])) return bad;
   return { ok: true, email };
 }
@@ -56,7 +65,8 @@ export const isDemoShop = (shop: { slug: string }): boolean => shop.slug === RES
 
 /**
  * The one rule for where a shop's money goes (spec §8a): into the seller's own PayPal account, so it needs their email.
- * Only the demo shop may have none, and is then paid to the platform account. Publishing, taking orders, clearing the
- * email and the dashboard's warning all ask this; `listOrderableForIndex` repeats it in SQL.
+ * Only the demo shop may have none, and is then paid to the platform account. Publishing, taking orders and the
+ * dashboard's warning ask this; whether the email may be left empty or cleared is its other half, `isDemoShop`.
+ * `listOrderableForIndex` repeats it in SQL.
  */
 export const canBePaid = (shop: { slug: string; payeeEmail: string | null }): boolean => shop.payeeEmail !== null || isDemoShop(shop);

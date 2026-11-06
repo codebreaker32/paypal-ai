@@ -124,13 +124,15 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
   const items = itemsRepo.listWithVariants(getDb(), shop.id, { status: ['live', 'in_person'] });
   const shopUrl = `${getConfig().appUrl}/s/${shop.slug}`;
   const doorUrl = `${shopUrl}/mcp`;
+  // Live, and it can be paid: otherwise the door refuses every order, so nothing on the page offers one.
+  const ordersOpen = takesOrders(shop);
 
   return (
     <>
       {/* For agents that read the page itself (spec §10a): React hoists the link into <head>; the JSON-LD is the menu
           as schema.org offers. Both name the agent door only while the shop takes orders (live, and it can be paid),
           like /agents.txt and /llms.txt. */}
-      {takesOrders(shop) && <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />}
+      {ordersOpen && <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(shopJsonLd(shop, items, { shopUrl, doorUrl })) }}
@@ -138,11 +140,11 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
       <ShopAssistant
         slug={shop.slug}
         shopName={shop.name}
-        starters={starterPrompts(shop, items)}
+        starters={starterPrompts(shop, items, { takesOrders: ordersOpen })}
         initiallyOpen={assistant === '1'}
         intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
         menu={<Menu sections={menuSections(items)} />}
-        door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} />}
+        door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
       />
     </>
   );
