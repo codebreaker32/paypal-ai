@@ -21,8 +21,11 @@ export function menuSections(items: ItemWithVariants[]): MenuSection[] {
   return [...sections].map(([name, list]) => ({ name, items: list }));
 }
 
-export const sectionId = (name: string, i: number) =>
-  `section-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || i}`;
+/** A readable id that is unique on the page: the slug alone is lossy ("Coffee & Tea", "Coffee/Tea"), so the index goes on. */
+export const sectionId = (name: string, i: number) => {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  return slug ? `section-${slug}-${i}` : `section-${i}`;
+};
 
 function Prices({ item }: { item: ItemWithVariants }) {
   const priced = item.variants.filter((v) => v.priceCents !== null && v.priceCents > 0);

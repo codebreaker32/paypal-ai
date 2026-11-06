@@ -58,9 +58,18 @@ export function AgentDoor({ slug, shopName, url, takesOrders }: AgentDoorProps) 
     const follow = () => {
       if (window.location.hash === '#agent-door') setOpen(true);
     };
+    // A click on a link here when the address already ends in #agent-door fires no hashchange, so clicks open it too.
+    const click = (e: MouseEvent) => {
+      const a = e.target instanceof Element ? e.target.closest('a') : null;
+      if (a && a.hash === '#agent-door' && a.pathname === window.location.pathname) setOpen(true);
+    };
     follow();
     window.addEventListener('hashchange', follow);
-    return () => window.removeEventListener('hashchange', follow);
+    document.addEventListener('click', click);
+    return () => {
+      window.removeEventListener('hashchange', follow);
+      document.removeEventListener('click', click);
+    };
   }, []);
   return (
     <section id="agent-door" aria-labelledby="agent-door-title" className="scroll-mt-6 border-t border-line pt-4">

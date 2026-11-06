@@ -9,7 +9,7 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
-import { Badge, type BadgeTone } from '@/components/ui/Badge';
+import type { BadgeTone } from '@/components/ui/Badge';
 import type { Order } from '@/lib/domain/types';
 import { cx } from '@/components/ui/cx';
 
@@ -43,15 +43,6 @@ export function orderStatusMeta(order: Pick<Order, 'status' | 'fulfillment' | 'c
     case 'expired':
       return { label: 'Expired', tone: 'neutral', icon: TimerOff };
   }
-}
-
-export function OrderStatusBadge({ order, className }: { order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>; className?: string }) {
-  const m = orderStatusMeta(order);
-  return (
-    <Badge tone={m.tone} icon={m.icon} className={className}>
-      {m.label}
-    </Badge>
-  );
 }
 
 const DOT_TONE: Record<BadgeTone, string> = {

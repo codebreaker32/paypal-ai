@@ -42,6 +42,11 @@ test.describe('on a phone', () => {
     await page.getByLabel('Add a cover photo').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
     await expect(page.getByRole('img', { name: /cover$/ })).toBeVisible();
     expect(shopsRepo.byId(getDb(), shop.shop.id)!.coverUrl).toMatch(/^\/i\//);
+    // Leaving the tab and coming back keeps the new cover (the dashboard holds it, like the items).
+    const coverSrc = shopsRepo.byId(getDb(), shop.shop.id)!.coverUrl!;
+    await page.getByRole('tab', { name: /Orders/ }).click();
+    await page.getByRole('tab', { name: 'Menu' }).click();
+    await expect(page.getByRole('img', { name: /cover$/ })).toHaveAttribute('src', coverSrc);
     // A reload reads the cover back.
     await page.reload();
     await expect(page.getByRole('img', { name: /cover$/ })).toBeVisible();
@@ -79,6 +84,29 @@ test.describe('on a phone', () => {
     await expect(page.locator('li[data-item="Almond croissant"]').getByRole('img', { name: 'Almond croissant' })).toHaveAttribute('src', /^\/i\//);
     expect(photoOf(shop, 'Almond croissant')).toMatch(/^\/i\//);
     expect(photoOf(shop, 'Country sourdough loaf')).toBe('/demo/marigold-bakehouse/country-sourdough-loaf.jpg');
+  });
+
+  test('Snap your counter: closing the sheet while it reads drops the late answer', async ({ page }) => {
+    let release!: () => void;
+    const held = new Promise<void>((r) => (release = r));
+    await page.route(`**/api/shops/${shop.shop.id}/counter`, async (route) => {
+      await held;
+      await route.fulfill({
+        json: { proposals: [{ itemId: shop.items['Almond croissant'].id, name: 'Almond croissant', confidence: 'high', image: dataUrl('almond-croissant.jpg') }] },
+      });
+    });
+    await page.goto(`/shops/${shop.shop.id}?tab=menu`);
+    await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
+    const sheet = page.getByRole('dialog', { name: 'Snap your counter' });
+    await expect(sheet.getByRole('status')).toContainText('Finding your items…');
+    await sheet.getByRole('button', { name: 'Done' }).click();
+    await expect(sheet).toBeHidden();
+
+    const answered = page.waitForResponse(`**/api/shops/${shop.shop.id}/counter`);
+    release();
+    await answered;
+    await page.waitForTimeout(300);
+    await expect(sheet).toBeHidden();
   });
 
   test('Snap your counter: none found, and the server’s error (no AI key)', async ({ page }) => {

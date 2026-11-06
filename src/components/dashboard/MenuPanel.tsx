@@ -1,13 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
-import { fetchCover } from '@/lib/client/item-photos';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants } from '@/lib/domain/types';
 import { setSoldOut } from './api';
@@ -106,35 +105,25 @@ export function MenuPanel({
   shopId,
   slug,
   shopName,
-  coverUrl: initialCover,
+  coverUrl,
   onItemsChange,
+  onCoverChange,
 }: {
   items: ItemWithVariants[];
   shopId: string;
   slug: string;
   /** For the cover's alt text. */
   shopName?: string;
-  /** The shop's cover; when the dashboard doesn't pass it, the tab reads it once (GET /api/shops/[id]/cover). */
-  coverUrl?: string | null;
+  /** The shop's cover, kept by the dashboard (like the items) so it survives switching tabs. */
+  coverUrl: string | null;
   onItemsChange: (update: (items: ItemWithVariants[]) => ItemWithVariants[]) => void;
+  onCoverChange: (url: string | null) => void;
 }) {
   const toast = useToast();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [cover, setCover] = useState<string | null | undefined>(initialCover);
   const listed = items.filter((i) => i.status === 'live' || i.status === 'in_person');
   const photos = listed.filter((i) => i.photoUrl).length;
-
-  useEffect(() => {
-    if (initialCover !== undefined) return;
-    let gone = false;
-    fetchCover(shopId)
-      .then((url) => !gone && setCover(url))
-      .catch(() => !gone && setCover(null));
-    return () => {
-      gone = true;
-    };
-  }, [shopId, initialCover]);
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
     onItemsChange((all) => all.map((i) => (i.id === id ? { ...i, ...patch } : i)));
@@ -230,11 +219,7 @@ export function MenuPanel({
         <h2 id="cover-title" className="type-heading">
           Cover photo
         </h2>
-        {cover === undefined ? (
-          <div aria-hidden="true" className="aspect-[16/7] w-full rounded-(--cover-radius) bg-surface-sunken sm:aspect-[3/1]" />
-        ) : (
-          <CoverPicker shopId={shopId} shopName={shopName ?? 'Your shop'} coverUrl={cover} onChange={setCover} />
-        )}
+        <CoverPicker shopId={shopId} shopName={shopName ?? 'Your shop'} coverUrl={coverUrl} onChange={onCoverChange} />
       </section>
     </div>
   );

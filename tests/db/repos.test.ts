@@ -50,6 +50,25 @@ describe('repos', () => {
     expect(shops.update(db, shop.id, { payeeEmail: null }).payeeEmail).toBeNull();
   });
 
+  it('lists only the most recent orders when asked for a limit, and maps item photos without their variants', () => {
+    const { shop } = shops.create(db, { name: 'Rosa' });
+    const [item] = items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425])]);
+    items.update(db, item.id, { photoUrl: '/i/img_a.webp' });
+    const base = {
+      shopId: shop.id, fulfillment: 'pickup' as const, buyerName: null, buyerNote: null, agentName: null, clientRequestId: null,
+      itemsCents: 425, shippingCents: 0, totalCents: 425, approvalUrl: 'https://x', expiresAt: new Date(Date.now() + 3600e3).toISOString(),
+    };
+    const line = [{ itemId: item.id, variantId: item.variants[0].id, name: 'Butter croissant', label: null, unitCents: 425, qty: 1, paypalProductId: null }];
+    const ids = ['PP-1', 'PP-2', 'PP-3'].map((pp, i) => {
+      const o = orders.insert(db, { ...base, paypalOrderId: pp }, line);
+      db.prepare('UPDATE orders SET created_at = ? WHERE id = ?').run(`2026-11-0${i + 1}T10:00:00.000Z`, o.id);
+      return o.id;
+    });
+    expect(orders.listByShop(db, shop.id, { limit: 2 }).map((o) => o.id)).toEqual([ids[2], ids[1]]);
+    expect(orders.listByShop(db, shop.id)).toHaveLength(3);
+    expect(items.photoUrls(db, shop.id)).toEqual(new Map([[item.id, '/i/img_a.webp']]));
+  });
+
   it('replaces draft items and keeps variant order', () => {
     const { shop } = shops.create(db, { name: 'Marigold' });
     items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425]), draft('Drip coffee', [300, 400])]);

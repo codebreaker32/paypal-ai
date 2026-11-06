@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element -- data-URL crops and a local preview, not optimisable */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -37,21 +37,30 @@ export function CounterSnap({
 }) {
   const [run, setRun] = useState<Run>({ phase: 'idle' });
   const [choices, setChoices] = useState<Record<string, Choice>>({});
+  // Each reading has a number; closing the sheet or starting another one moves it on, so a late answer is dropped.
+  const current = useRef(0);
   const preview = run.phase === 'reading' ? run.preview : null;
   useEffect(() => (preview ? () => URL.revokeObjectURL(preview) : undefined), [preview]);
 
   const start = async (files: FileList | null) => {
     const picked = pickOne(files);
     if (!picked) return;
+    const id = ++current.current;
     setChoices({});
     if ('error' in picked) return setRun({ phase: 'error', message: picked.error });
     setRun({ phase: 'reading', preview: URL.createObjectURL(picked.file) });
     try {
-      setRun({ phase: 'done', proposals: await proposeFromCounter(shopId, picked.file) });
+      const proposals = await proposeFromCounter(shopId, picked.file);
+      if (id === current.current) setRun({ phase: 'done', proposals });
     } catch (e) {
       const message = e instanceof ApiError || e instanceof Error ? e.message : 'Something went wrong. Try again.';
-      setRun({ phase: 'error', message });
+      if (id === current.current) setRun({ phase: 'error', message });
     }
+  };
+
+  const close = () => {
+    current.current++;
+    setRun({ phase: 'idle' });
   };
 
   const use = async (p: CounterProposal) => {
@@ -86,10 +95,10 @@ export function CounterSnap({
 
       <Sheet
         open={run.phase !== 'idle'}
-        onClose={() => setRun({ phase: 'idle' })}
+        onClose={close}
         title="Snap your counter"
         footer={
-          <Button fullWidth variant="secondary" onClick={() => setRun({ phase: 'idle' })}>
+          <Button fullWidth variant="secondary" onClick={close}>
             Done
           </Button>
         }

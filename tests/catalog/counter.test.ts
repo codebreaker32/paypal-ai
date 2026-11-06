@@ -32,15 +32,48 @@ describe('proposeCounterPhotos', () => {
     photo = await sharp({ create: { width: 1600, height: 1200, channels: 3, background: { r: 210, g: 170, b: 110 } } }).jpeg().toBuffer();
   });
 
-  it('sends Claude the shop’s items (not removed ones) and the photo at its upright size', async () => {
+  it('sends Claude the shop’s items (not removed ones) and a copy of the photo it will not scale down, with its size', async () => {
     const match = vi.fn<(p: CounterPhoto, i: CounterItem[]) => Promise<CounterMatch[]>>(async () => []);
     await proposeCounterPhotos(db, shopId, photo, { match });
     const [sent, list] = match.mock.calls[0];
     expect(list.map((i) => i.id).sort()).toEqual([almond, butter].sort());
     expect(list.map((i) => i.id)).not.toContain(gone);
     expect(sent.mediaType).toBe('image/jpeg');
-    expect([sent.width, sent.height]).toEqual([1600, 1200]);
-    expect((await sharp(sent.data).metadata()).width).toBe(1600);
+    // Claude scales down a long edge over 1568 px or over ~1.15 MP first, and its boxes would be in that smaller space.
+    expect(Math.max(sent.width, sent.height)).toBeLessThanOrEqual(1568);
+    expect(sent.width * sent.height).toBeLessThanOrEqual(1_150_000);
+    expect(Math.abs(sent.width / sent.height - 4 / 3)).toBeLessThan(0.01);
+    expect(sent.width).toBeGreaterThan(1200);
+    const meta = await sharp(sent.data).metadata();
+    expect([meta.width, meta.height]).toEqual([sent.width, sent.height]);
+  });
+
+  it('a wide photo is held to 1568 px on its long edge', async () => {
+    const wide = await sharp({ create: { width: 3000, height: 1000, channels: 3, background: '#d2aa6e' } }).jpeg().toBuffer();
+    const match = vi.fn<(p: CounterPhoto, i: CounterItem[]) => Promise<CounterMatch[]>>(async () => []);
+    await proposeCounterPhotos(db, shopId, wide, { match });
+    const [sent] = match.mock.calls[0];
+    expect(sent.width).toBe(1568);
+    expect(sent.width * sent.height).toBeLessThanOrEqual(1_150_000);
+  });
+
+  it('scales Claude’s boxes back to the 2000 px photo, so a crop shows what Claude boxed', async () => {
+    // A red tile at x 1200–1600, y 800–1200 of a 2000 × 1500 photo.
+    const red = await sharp({ create: { width: 400, height: 400, channels: 3, background: '#e01010' } }).png().toBuffer();
+    const big = await sharp({ create: { width: 2000, height: 1500, channels: 3, background: '#d2aa6e' } })
+      .composite([{ input: red, left: 1200, top: 800 }])
+      .jpeg()
+      .toBuffer();
+    const match = async (p: CounterPhoto): Promise<CounterMatch[]> => {
+      const k = p.width / 2000;
+      return [{ itemId: almond, box: { x0: 1200 * k, y0: 800 * k, x1: 1600 * k, y1: 1200 * k }, confidence: 'high' }];
+    };
+    const [proposal] = await proposeCounterPhotos(db, shopId, big, { match });
+    const crop = sharp(Buffer.from(proposal.image.split(',')[1], 'base64'));
+    const { width, height } = await crop.metadata();
+    const { data } = await crop.extract({ left: Math.round(width! / 2) - 5, top: Math.round(height! / 2) - 5, width: 10, height: 10 }).raw().toBuffer({ resolveWithObject: true });
+    expect(data[0]).toBeGreaterThan(180); // red
+    expect(data[1]).toBeLessThan(80);
   });
 
   it('turns each match into a 4:3 WebP crop with the item’s name and confidence', async () => {

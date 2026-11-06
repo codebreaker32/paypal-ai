@@ -7,7 +7,7 @@
 // Stored paths are relative to UPLOADS_DIR: "<shopId>/page-<n>.jpg". Use readUpload() to read one.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import sharp from 'sharp';
+import sharp, { type Sharp } from 'sharp';
 import { getConfig } from '@/lib/config';
 
 export const MAX_PHOTOS = 4;
@@ -58,18 +58,46 @@ const TOO_MANY_PIXELS = 'That photo is too big for us to read. Take it again at 
 // Photos are decoded one at a time across the whole process, so parallel uploads can't stack up memory.
 let decoding: Promise<unknown> = Promise.resolve();
 
+/** Runs a decode after every earlier one has finished. */
+function inLine<T>(job: () => Promise<T>): Promise<T> {
+  const run = decoding.then(job);
+  decoding = run.catch(() => undefined);
+  return run;
+}
+
 /**
  * Decodes, rotates, shrinks and re-encodes one photo (a menu photo, JPEG, unless told otherwise). Throws
  * UploadError('BAD_IMAGE') for anything else.
  */
 export async function normalizePhoto(input: Buffer, encoding: PhotoEncoding = MENU_PHOTO): Promise<Buffer> {
   if (input.length > MAX_PHOTO_BYTES) throw new UploadError('PHOTO_TOO_LARGE');
-  const run = decoding.then(() => decodePhoto(input, encoding));
-  decoding = run.catch(() => undefined);
-  return run;
+  const { maxEdge, format, quality } = encoding;
+  return inLine(() => decodePhoto(input, maxEdge, (s) => (format === 'webp' ? s.webp({ quality }) : s.jpeg({ quality })).toBuffer()));
 }
 
-async function decodePhoto(input: Buffer, { maxEdge, format, quality }: PhotoEncoding): Promise<Buffer> {
+/** A decoded photo's pixels, row by row, `channels` bytes each. */
+export interface PhotoPixels {
+  data: Buffer;
+  width: number;
+  height: number;
+  channels: 1 | 2 | 3 | 4;
+}
+
+/**
+ * As normalizePhoto (same checks, same one-at-a-time line), but to raw pixels, so several crops can be cut from one
+ * decode: `sharp(p.data, { raw: p })`.
+ */
+export async function decodePhotoPixels(input: Buffer, maxEdge: number): Promise<PhotoPixels> {
+  if (input.length > MAX_PHOTO_BYTES) throw new UploadError('PHOTO_TOO_LARGE');
+  return inLine(() =>
+    decodePhoto(input, maxEdge, async (s) => {
+      const { data, info } = await s.raw().toBuffer({ resolveWithObject: true });
+      return { data, width: info.width, height: info.height, channels: info.channels };
+    }),
+  );
+}
+
+async function decodePhoto<T>(input: Buffer, maxEdge: number, finish: (resized: Sharp) => Promise<T>): Promise<T> {
   try {
     // metadata() reads only the header, so the size check happens before any pixels are decoded.
     const meta = await sharp(input).metadata();
@@ -79,7 +107,7 @@ async function decodePhoto(input: Buffer, { maxEdge, format, quality }: PhotoEnc
     const resized = sharp(input, { limitInputPixels: MAX_PHOTO_PIXELS })
       .rotate()
       .resize({ width: maxEdge, height: maxEdge, fit: 'inside', withoutEnlargement: true });
-    return await (format === 'webp' ? resized.webp({ quality }) : resized.jpeg({ quality })).toBuffer();
+    return await finish(resized);
   } catch (err) {
     if (err instanceof UploadError) throw err;
     throw new UploadError('BAD_IMAGE');

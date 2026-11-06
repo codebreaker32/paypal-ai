@@ -138,10 +138,10 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
 
       {/* Phones: the order bar sticks to the bottom of the screen while the page scrolls. */}
       <div className="sticky bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)] lg:hidden">
-        {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping. */}
+        {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping (only when the shop takes orders). */}
         <Button size="lg" icon={Bot} fullWidth onClick={show}>
           {title}
-          <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>
+          {takesOrders && <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>}
         </Button>
       </div>
 

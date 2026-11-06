@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MAX_PHOTO_BYTES, MAX_PHOTO_PIXELS, UploadError, normalizePhoto, readFileLimited, readUpload, writeUpload } from '@/lib/uploads';
+import { MAX_PHOTO_BYTES, MAX_PHOTO_PIXELS, UploadError, decodePhotoPixels, normalizePhoto, readFileLimited, readUpload, writeUpload } from '@/lib/uploads';
 
 const solid = (width: number, height: number) =>
   sharp({ create: { width, height, channels: 3, background: { r: 200, g: 150, b: 90 } } });
@@ -89,5 +89,19 @@ describe('uploads', () => {
   it('refuses to read outside the uploads folder', async () => {
     expect(await codeOf(readUpload('../../etc/passwd'))).toMatch(/other: /);
     await expect(readUpload('/etc/passwd')).rejects.toThrow();
+  });
+});
+
+describe('decodePhotoPixels', () => {
+  it('decodes once to raw pixels, upright and fitted to the long edge', async () => {
+    // A 3000 × 1000 photo stored sideways (EXIF orientation 6) is 1000 × 3000 upright.
+    const sideways = await sharp({ create: { width: 3000, height: 1000, channels: 3, background: '#c8965a' } }).jpeg().withMetadata({ orientation: 6 }).toBuffer();
+    const raw = await decodePhotoPixels(sideways, 2000);
+    expect([raw.width, raw.height]).toEqual([667, 2000]);
+    expect(raw.data.length).toBe(raw.width * raw.height * raw.channels);
+  });
+
+  it('refuses a file that is not a photo', async () => {
+    await expect(decodePhotoPixels(Buffer.from('nope'), 2000)).rejects.toMatchObject({ code: 'BAD_IMAGE' });
   });
 });
