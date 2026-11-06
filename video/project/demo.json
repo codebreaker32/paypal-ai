@@ -322,7 +322,7 @@
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 0.8
+          "videoStartSec": 2.3
         },
         {
           "atSec": 2.6,
@@ -400,7 +400,7 @@
           "atSec": 1.6,
           "shot": "screen",
           "videoStartSec": 19.0,
-          "playbackRate": 1.5
+          "playbackRate": 2.0
         }
       ]
     },
