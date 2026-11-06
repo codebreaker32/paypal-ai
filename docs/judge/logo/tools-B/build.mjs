@@ -43,7 +43,7 @@ export function wordmarkParts(opts) {
     s() {
       const rx = 44 - w / 2, ry = (X - w) / 4, cx = x + 44;
       const cy1 = -X + w / 2 + ry, cy2 = -w / 2 - ry;
-      ink.push(arc(cx, cy1, rx, ry, w, 90, 335), arc(cx, cy2, rx, ry, w, -90, 155));
+      ink.push(arc(cx, cy1, rx, ry, w, 84, 335), arc(cx, cy2, rx, ry, w, -96, 155)); // lobes overlap at the spine
       if (round) { cap(...arcEnd(cx, cy1, rx, ry, 335)); cap(...arcEnd(cx, cy2, rx, ry, 155)); }
       return 88;
     },
@@ -51,7 +51,7 @@ export function wordmarkParts(opts) {
       const sx = x + w / 2, cx = sx + R, cy = -X + w / 2 + R;
       stem(sx, -ASC, 0);
       ink.push(arc(cx, cy, R, R, w, 180, 360));
-      stem(cx + R, cy, 0, false);
+      stem(cx + R, cy - 2, 0, false); // overlaps the arch: no hairline seam
       return 2 * R + w;
     },
     e() {
@@ -64,7 +64,7 @@ export function wordmarkParts(opts) {
     l() { stem(x + w / 2, -ASC, 0); return w; },
     f() {
       const rf = 26, sx = x + w / 2, cx = sx + rf, cy = -ASC + w / 2 + rf;
-      stem(sx, cy, 0, false);
+      stem(sx, cy - 2, 0, false);
       ink.push(arc(cx, cy, rf, rf, w, 180, 285));
       if (round) cap(...arcEnd(cx, cy, rf, rf, 285));
       const bh = w * 0.84, bx0 = x - 8, bx1 = sx + 34;
@@ -76,7 +76,11 @@ export function wordmarkParts(opts) {
       stem(x + w / 2, -X, 0);
       const cy = -X - 24 - w * 0.6;
       if (dot === 'square') { const s = w * 1.25; accent.push(rect(x + w / 2 - s / 2, cy - s / 2, s, s)); }
-      else ink.push(circle(x + w / 2, cy, w * 0.62));
+      else if (dot === 'scallop') {
+        // a single awning scallop: flat top, round belly
+        const r = w * 0.8, cx = x + w / 2, ty = cy - r / 2;
+        accent.push(`M${f(cx - r)} ${f(ty)}h${f(2 * r)}a${f(r)} ${f(r)} 0 0 1 ${f(-2 * r)} 0z`);
+      } else ink.push(circle(x + w / 2, cy, w * 0.62));
       return w;
     },
   };
@@ -111,7 +115,7 @@ export const concepts = {
       const front = 'M11 18H53V61H11Z M16 18V47H48V18Z';
       return p(awning, a) + `<path fill="${k}" fill-rule="evenodd" d="${front}"/>`;
     },
-    word: { w: 20, round: false, dot: 'circle', gap: 15 },
+    word: { w: 20, round: false, dot: 'scallop', gap: 15 },
     appBg: '#ffffff',
   },
   B2: {
@@ -137,7 +141,7 @@ export const concepts = {
       // the mark is the wordmark's own "s" standing on the shelf, with the square "snapshot" dot
       const w = 11, X = 36, cx = 30, rx = 17 - w / 2, ry = (X - w) / 4;
       const cy1 = 52 - X + w / 2 + ry, cy2 = 52 - w / 2 - ry;
-      const s = arc(cx, cy1, rx, ry, w, 90, 335) + arc(cx, cy2, rx, ry, w, -90, 155);
+      const s = arc(cx, cy1, rx, ry, w, 84, 335) + arc(cx, cy2, rx, ry, w, -96, 155);
       const corners = 'M4 4H24V12H12V24H4Z M60 60H8V52H52V40H60Z';
       return p(s, k) + p(corners, a);
     },
@@ -166,15 +170,16 @@ export function wordmarkSvg(id, c = colours.full, { shelf = false } = {}) {
   let bottom = 2;
   if (shelf) {
     // the shelf: a plank under the baseline, overhanging both ends, with two bracket ticks
-    // crop corners: top-left above the s, bottom-right under "fie" (letters stand on its arm)
-    const t = 16, L = -40, Rr = W.width + 34, T = W.top - 26, arm = 130, up = 80;
-    body += p(`M${f(L)} ${f(T)}h${arm}v${t}h${-arm + t}v${up - t}h${-t}z`, c.accent);
-    body += p(`M${f(Rr)} ${t}h${-W.width * 0.5}v${-t}h${W.width * 0.5 - t}v${-up + t}h${t}z`, c.accent);
-    bottom = t + 2;
+    // crop corners: top-left over the s; the bottom-right corner's long arm is the shelf
+    // the whole word stands on, its upright the shelf's end bracket
+    const t = 26, L = -44, Rr = W.width + 50, T = W.top - 30, arm = 130, up = 132, shelfL = -8;
+    body += p(`M${f(L)} ${f(T)}h${arm}v${t}h${-arm + t}v${up - 30 - t}h${-t}z`, c.accent);
+    body += p(`M${f(Rr)} ${t}H${f(shelfL)}v${-t}H${f(Rr - t)}v${-up + t}h${t}z`, c.accent);
+    bottom = 28;
   }
-  const x0 = shelf ? -40 - pad : -16 - pad;
-  const top = shelf ? W.top - 26 : W.top;
-  const w = (shelf ? W.width + 74 : W.width + 16) + 2 * pad;
+  const x0 = shelf ? -44 - pad : -16 - pad;
+  const top = shelf ? W.top - 30 : W.top;
+  const w = (shelf ? W.width + 94 : W.width + 16) + 2 * pad;
   return { svg: svg(`${f(x0)} ${f(top - pad)} ${f(w)} ${f(bottom - top + 2 * pad)}`, body), w, h: bottom - top + pad };
 }
 
@@ -182,7 +187,7 @@ export function lockupSvg(id, c = colours.full) {
   if (id === 'B3') return wordmarkSvg(id, c, { shelf: true });
   const o = concepts[id].word;
   const W = wordmarkParts(o);
-  const body = W.ink.map((d) => p(d, c.ink)).join('');
+  const body = W.ink.map((d) => p(d, c.ink)).join('') + W.accent.map((d) => p(d, c.accent)).join('');
   // mark sized to the ascender height (150) + 30, sitting on the baseline
   const m = 190 / 64, gap = 44;
   const mark = `<g transform="translate(0 ${f(-160)}) scale(${f(m)})">${concepts[id].mark(c)}</g>`;
@@ -206,7 +211,7 @@ export function appIconSvg(id, { maskable = false } = {}) {
 const NOTES = {
   B1: '**Awning.** A scalloped shop awning over an instant-photo print: the print\'s deep chin is the shop counter and its window is the shopfront, so one snapshot becomes a shop, which is what Shelfie does with one photo of a price list.\nIt reads as a shop at 16 px (three scallops over a framed window), pomegranate awning over an ink print, no camera and no rounded app tile.',
   B2: '**Propped print.** An instant-photo print leaning on a shelf beside a bun: the goods, their snapshot and the shelf they sell from in one small still life.\nThe tilted print gives a silhouette no other app icon has, the shelf grounds it as retail, and the bun keeps it a small food seller rather than a photo app.',
-  B3: '**On the shelf.** A wordmark-led logo: the lowercase "shelfie" stands on a pomegranate shelf, and the i\'s dot is a small square snapshot (the moment the shelf becomes a shop).\nThe name is the logo, so it is memorable without a symbol; the favicon is the wordmark\'s own "s" on its shelf with the snapshot square.',
+  B3: '**On the shelf.** A wordmark-led logo: two pomegranate crop corners frame the lowercase "shelfie" like a snapshot, and the bottom corner\'s long arm is the shelf the letters stand on; the i\'s dot is a small square print.\nThe name is the logo (shelf + selfie in one frame), and the favicon is the wordmark\'s own "s" standing in the same two corners.',
 };
 
 export function writeAll() {

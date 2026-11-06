@@ -42,8 +42,8 @@ async function html(id) {
       <div class="cell"><div class="tab" style="background:${bg === '#ffffff' ? '#dee1e6' : '#2a2b2e'}"><img class="pix" src="${z16}" width="16" height="16"><b style="color:${bg === '#ffffff' ? '#111' : '#eee'}">Marigold Bakehouse · Shelfie</b></div><span>browser tab</span></div>
     </div>`;
   };
-  const header = (w, l) => `<div class="hdr" style="width:${w}px">
-      <img src="${uri(l.svg)}" style="height:${w < 500 ? 26 : 30}px">
+  const header = (w, l, id) => `<div class="hdr" style="width:${w}px">
+      <img src="${uri(l.svg)}" style="height:${(w < 500 ? 26 : 30) * (id === "B3" ? 1.25 : 1)}px">
       <nav>${w < 500 ? '<b class="pill dark">Start</b>' : '<a>How it works</a><a>For AI assistants</a><a>Pricing</a><b class="pill dark">Snap your price list</b>'}</nav></div>`;
   const app = appIconSvg(id), mask = appIconSvg(id, { maskable: true });
   return `<!doctype html><html><head><style>${faces}
@@ -75,7 +75,7 @@ async function html(id) {
     <div style="background:${POM};padding:16px 20px;border-radius:10px;display:flex;gap:20px;align-items:flex-end"><img src="${uri(monoWhite)}" width="64"><img src="${uri(monoWhite)}" width="32"></div>
     <img src="${uri(wordmarkSvg(id, { accent: INK, ink: INK }).svg)}" style="height:40px">
   </div>
-  <h2>Site header, 64 px tall, at 1440 and 390</h2>${header(1440, lock)}<div style="height:16px"></div>${header(390, lock)}
+  <h2>Site header, 64 px tall, at 1440 and 390</h2>${header(1440, lock, id)}<div style="height:16px"></div>${header(390, lock, id)}
   <h2>Counter card · app icon 512 · maskable (dashed: 80% safe zone) · beside PayPal</h2>
   <div class="grid">
     <div class="card"><img src="${uri(lock.svg)}" style="height:30px"><div style="font-size:26px;font-weight:700;margin-top:8px">Marigold Bakehouse</div><div style="font-size:15px;color:#3d4148">Scan to order. Or ask your AI assistant for Marigold Bakehouse on Shelfie.</div><div class="qr"></div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#5e636c"><img src="${uri(full)}" width="18">shelfie.shop/s/marigold-bakehouse</div></div>
