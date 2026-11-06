@@ -85,35 +85,33 @@ export async function clearItemPhoto(db: Db, shopId: string, itemId: string): Pr
   await deleteUploaded(item.photoUrl);
 }
 
-/** Stores `input` as the shop's cover photo and returns its URL. Throws UploadError like setItemPhoto. */
-export async function setShopCover(db: Db, shopId: string, input: Buffer): Promise<string> {
-  const url = await savePhoto(input, COVER_PHOTO);
-  const previous = shopsRepo.byId(db, shopId)?.coverUrl ?? null;
-  shopsRepo.update(db, shopId, { coverUrl: url });
+/** The shop's own pictures: the wide cover at the top of its page, and the square logo its avatar shows. */
+export type ShopImage = 'cover' | 'logo';
+
+const SHOP_IMAGES = {
+  cover: { field: 'coverUrl', encoding: COVER_PHOTO },
+  logo: { field: 'logoUrl', encoding: LOGO_PHOTO },
+} as const satisfies Record<ShopImage, { field: 'coverUrl' | 'logoUrl'; encoding: PhotoEncoding }>;
+
+/**
+ * Stores `input` as the shop's cover (fitted to 2000 px) or logo (its centre square at 512 px) and returns its URL;
+ * the upload it replaces is deleted. Throws UploadError like setItemPhoto.
+ */
+export async function setShopImage(db: Db, shopId: string, image: ShopImage, input: Buffer): Promise<string> {
+  const { field, encoding } = SHOP_IMAGES[image];
+  const url = await savePhoto(input, encoding);
+  // Read and swap with no await in between, as for an item photo.
+  const previous = shopsRepo.byId(db, shopId)?.[field] ?? null;
+  shopsRepo.update(db, shopId, { [field]: url });
   await deleteUploaded(previous);
   return url;
 }
 
-/** Clears the shop's cover photo and deletes the uploaded file. */
-export async function clearShopCover(db: Db, shopId: string): Promise<void> {
-  const previous = shopsRepo.byId(db, shopId)?.coverUrl ?? null;
-  shopsRepo.update(db, shopId, { coverUrl: null });
-  await deleteUploaded(previous);
-}
-
-/** Stores `input` as the shop's logo (a centred square) and returns its URL. Throws UploadError like setItemPhoto. */
-export async function setShopLogo(db: Db, shopId: string, input: Buffer): Promise<string> {
-  const url = await savePhoto(input, LOGO_PHOTO);
-  const previous = shopsRepo.byId(db, shopId)?.logoUrl ?? null;
-  shopsRepo.update(db, shopId, { logoUrl: url });
-  await deleteUploaded(previous);
-  return url;
-}
-
-/** Clears the shop's logo (the avatar falls back to the cover, a menu photo or a drawing) and deletes the file. */
-export async function clearShopLogo(db: Db, shopId: string): Promise<void> {
-  const previous = shopsRepo.byId(db, shopId)?.logoUrl ?? null;
-  shopsRepo.update(db, shopId, { logoUrl: null });
+/** Clears the shop's cover or logo and deletes the uploaded file (the avatar falls back to its next picture). */
+export async function clearShopImage(db: Db, shopId: string, image: ShopImage): Promise<void> {
+  const { field } = SHOP_IMAGES[image];
+  const previous = shopsRepo.byId(db, shopId)?.[field] ?? null;
+  shopsRepo.update(db, shopId, { [field]: null });
   await deleteUploaded(previous);
 }
 
