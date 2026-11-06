@@ -58,6 +58,11 @@ export interface Item {
   photoUrl: string | null;
   /** The picture drawn for the item when it has no photo (Claude's pick); null on older rows: `itemCategory` guesses. */
   category: ItemCategory | null;
+  /**
+   * The example photo shown while the item has no photo of its own: a library id (`src/lib/library`) or `pexels:<id>`
+   * (a cached live match). Claude's pick; null = matched from the item's words (`examplePhotos`). Never sent to agents.
+   */
+  examplePhoto: string | null;
   sort: number;
   paypalProductId: string | null;
   publishedAt: string | null;
@@ -85,6 +90,8 @@ export interface DraftItem {
   status: 'draft' | 'in_person' | 'removed';
   /** Claude's picture for the item; null or absent when the reading has none (older recordings, hand-added items). */
   category?: ItemCategory | null;
+  /** Claude's example photo (a library id), checked against the library in normalize; null or absent when none. */
+  examplePhoto?: string | null;
   variants: DraftVariant[];
 }
 

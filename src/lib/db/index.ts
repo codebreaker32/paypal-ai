@@ -24,6 +24,7 @@ function addMissingColumns(db: Db): void {
   if (!has('shops', 'cover_url')) db.exec('ALTER TABLE shops ADD COLUMN cover_url TEXT');
   if (!has('shops', 'logo_url')) db.exec('ALTER TABLE shops ADD COLUMN logo_url TEXT');
   if (!has('items', 'category')) db.exec('ALTER TABLE items ADD COLUMN category TEXT');
+  if (!has('items', 'example_photo')) db.exec('ALTER TABLE items ADD COLUMN example_photo TEXT');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

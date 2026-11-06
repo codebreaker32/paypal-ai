@@ -8,7 +8,7 @@ import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVa
 interface ItemRow {
   id: string; shop_id: string; section: string | null; name: string; description: string | null; source_text: string;
   confidence: Confidence; issues_json: string; issue_detail: string | null; kind: ItemKind; status: ItemStatus;
-  sold_out: number; photo_url: string | null; category: string | null; sort: number; paypal_product_id: string | null; published_at: string | null; updated_at: string;
+  sold_out: number; photo_url: string | null; category: string | null; example_photo: string | null; sort: number; paypal_product_id: string | null; published_at: string | null; updated_at: string;
 }
 interface VariantRow { id: string; item_id: string; label: string | null; price_cents: number | null; sort: number }
 
@@ -24,7 +24,7 @@ function withVariants(db: Db, rows: ItemRow[]): ItemWithVariants[] {
     id: r.id, shopId: r.shop_id, section: r.section, name: r.name, description: r.description, sourceText: r.source_text,
     confidence: r.confidence, issues: JSON.parse(r.issues_json) as IssueCode[], issueDetail: r.issue_detail, kind: r.kind,
     status: r.status, soldOut: r.sold_out === 1, photoUrl: r.photo_url ?? null,
-    category: isItemCategory(r.category) ? r.category : null, sort: r.sort, paypalProductId: r.paypal_product_id,
+    category: isItemCategory(r.category) ? r.category : null, examplePhoto: r.example_photo ?? null, sort: r.sort, paypalProductId: r.paypal_product_id,
     publishedAt: r.published_at, updatedAt: r.updated_at,
     variants: vs.filter((v) => v.item_id === r.id).map(toVariant),
   }));
@@ -34,12 +34,12 @@ function withVariants(db: Db, rows: ItemRow[]): ItemWithVariants[] {
 function insertItem(db: Db, shopId: string, d: DraftItem, sort: number, ts: string): string {
   const id = newId('itm', 12);
   db.prepare(
-    `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, category, sort, updated_at)
-     VALUES (@id, @shopId, @section, @name, @description, @sourceText, @confidence, @issues, @issueDetail, @kind, @status, @category, @sort, @ts)`,
+    `INSERT INTO items (id, shop_id, section, name, description, source_text, confidence, issues_json, issue_detail, kind, status, category, example_photo, sort, updated_at)
+     VALUES (@id, @shopId, @section, @name, @description, @sourceText, @confidence, @issues, @issueDetail, @kind, @status, @category, @examplePhoto, @sort, @ts)`,
   ).run({
     id, shopId, section: d.section, name: d.name, description: d.description, sourceText: d.sourceText,
     confidence: d.confidence, issues: JSON.stringify(d.issues), issueDetail: d.issueDetail, kind: d.kind,
-    status: d.status, category: isItemCategory(d.category) ? d.category : null, sort, ts,
+    status: d.status, category: isItemCategory(d.category) ? d.category : null, examplePhoto: d.examplePhoto ?? null, sort, ts,
   });
   const insVar = db.prepare('INSERT INTO variants (id, item_id, label, price_cents, sort) VALUES (?, ?, ?, ?, ?)');
   d.variants.forEach((v, j) => insVar.run(newId('var', 12), id, v.label, v.priceCents, j));
@@ -97,11 +97,11 @@ export function byIdForShop(db: Db, shopId: string, itemId: string): ItemWithVar
   return r ? withVariants(db, [r])[0] : null;
 }
 
-export type ItemPatch = Partial<Pick<ItemWithVariants, 'section' | 'name' | 'description' | 'issues' | 'issueDetail' | 'kind' | 'status' | 'soldOut' | 'photoUrl' | 'category' | 'sort' | 'publishedAt'>>;
+export type ItemPatch = Partial<Pick<ItemWithVariants, 'section' | 'name' | 'description' | 'issues' | 'issueDetail' | 'kind' | 'status' | 'soldOut' | 'photoUrl' | 'category' | 'examplePhoto' | 'sort' | 'publishedAt'>>;
 
 const COLS: Record<keyof ItemPatch, string> = {
   section: 'section', name: 'name', description: 'description', issues: 'issues_json', issueDetail: 'issue_detail',
-  kind: 'kind', status: 'status', soldOut: 'sold_out', photoUrl: 'photo_url', category: 'category', sort: 'sort', publishedAt: 'published_at',
+  kind: 'kind', status: 'status', soldOut: 'sold_out', photoUrl: 'photo_url', category: 'category', examplePhoto: 'example_photo', sort: 'sort', publishedAt: 'published_at',
 };
 
 export function update(db: Db, id: string, patch: ItemPatch): void {

@@ -8,7 +8,10 @@ import type { ItemUpdate } from './api';
 /** The same change the server will make, applied to our copy right away. */
 export function applyLocal(item: ItemWithVariants, u: ItemUpdate): ItemWithVariants {
   const next: ItemWithVariants = { ...item };
-  if (renamed(item, u)) next.category = null;
+  if (renamed(item, u)) {
+    next.category = null;
+    next.examplePhoto = null;
+  }
   if (u.name !== undefined) next.name = u.name;
   if (u.description !== undefined) next.description = u.description;
   if (u.section !== undefined) next.section = u.section;
