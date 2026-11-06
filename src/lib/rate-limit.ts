@@ -1,5 +1,5 @@
 // In-memory sliding-window rate limiter (one process; resets on restart). Used by the agent door, the buyer console
-// and the setup routes (starting shops, retakes, menu readings).
+// and the setup routes (starting shops, retakes, menu readings, item photos and covers).
 
 type Buckets = Map<string, number[]>;
 const g = globalThis as unknown as { __shelfieRateLimits?: Buckets };
@@ -29,14 +29,16 @@ export function resetRateLimits(): void {
 const HOUR = 60 * 60_000;
 
 /**
- * Per-address limits on starting shops, uploading retakes and live menu readings (spec §15: they
- * spend the Anthropic key and the disk). The e2e and screenshot servers run with SHELFIE_TEST and
+ * Per-address limits on starting shops, uploading retakes, live menu readings and item photos or covers (spec §15:
+ * they spend the Anthropic key and the disk). The e2e and screenshot servers run with SHELFIE_TEST and
  * start dozens of shops from one address, so they skip these limits.
  */
 export const SETUP_RATES = {
   shops: { limit: 10, windowMs: HOUR },
   retakes: { limit: 20, windowMs: HOUR },
   readings: { limit: 20, windowMs: HOUR },
+  /** Item photos and shop covers (POST /api/shops/[id]/items/[itemId]/photo, /api/shops/[id]/cover). */
+  photos: { limit: 120, windowMs: HOUR },
 } as const;
 
 /** Records a setup hit for `ip`; false once the address is over its hourly limit. */

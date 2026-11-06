@@ -46,7 +46,7 @@ async function createDraftShop(
 
 /** `photos` are raw uploads; each is normalised (and rejected if it isn't a photo) before the shop exists. */
 export async function createShopFromPhotos(db: Db, photos: Buffer[]): Promise<CreatedShop> {
-  const jpegs = await Promise.all(photos.map(normalizePhoto));
+  const jpegs = await Promise.all(photos.map((p) => normalizePhoto(p)));
   return createDraftShop(db, PLACEHOLDER_NAME, (id) =>
     Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
   );
@@ -66,7 +66,7 @@ export async function setShopPhotos(db: Db, shop: Shop, photos: Buffer[], mode: 
   const kept = mode === 'add' ? shop.menuPhotoPaths : [];
   if (photos.length === 0) throw new UploadError('NO_PHOTOS');
   if (kept.length + photos.length > MAX_PHOTOS) throw new UploadError('TOO_MANY_PHOTOS');
-  const jpegs = await Promise.all(photos.map(normalizePhoto));
+  const jpegs = await Promise.all(photos.map((p) => normalizePhoto(p)));
   // A fresh name per upload, so a retaken page never collides with (or caches as) the old one.
   const stamp = Date.now().toString(36);
   const added = await Promise.all(

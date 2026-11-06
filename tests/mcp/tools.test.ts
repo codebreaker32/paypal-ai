@@ -184,6 +184,19 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(JSON.stringify(out)).not.toMatch(/24\.00|16\.00/);
   });
 
+  it('list_products gives an absolute image_url for items with a photo, and none for the rest', async () => {
+    items.update(db, almond().id, { photoUrl: '/demo/marigold-bakehouse/almond-croissant.jpg' });
+    items.update(db, loaf().id, { photoUrl: '/i/img_abcdefghijklmnopqrst.webp' });
+    const out = ok<{ sections: { items: { name: string; image_url?: string }[] }[] }>(
+      'list_products', await call(await connect(), 'list_products'));
+    const all = out.sections.flatMap((x) => x.items);
+    expect(all.find((i) => i.name === 'Almond croissant')!.image_url).toBe('http://localhost:3000/demo/marigold-bakehouse/almond-croissant.jpg');
+    expect(all.find((i) => i.name === 'Sourdough loaf')!.image_url).toBe('http://localhost:3000/i/img_abcdefghijklmnopqrst.webp');
+    expect(all.find((i) => i.name === 'Drip coffee')).not.toHaveProperty('image_url');
+    const tools = (await (await connect()).listTools()).tools;
+    expect(tools.find((t) => t.name === 'list_products')!.description).toMatch(/image_url/);
+  });
+
   it('list_products filters by query and by section', async () => {
     const client = await connect();
     const q = ok<{ sections: { items: { name: string }[] }[] }>('list_products', await call(client, 'list_products', { query: 'croissant' }));

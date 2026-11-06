@@ -1,7 +1,9 @@
 // Schema.org JSON-LD for the public shop page (spec §10a): what search engines and AI agents read from the page itself.
-// The menu goes in as offers (prices from the shop's rows, as PayPal strings), PayPal as the way to pay, and, while
-// the shop takes orders, an OrderAction whose EntryPoint is the agent door.
+// The menu goes in as offers (prices from the shop's rows, as PayPal strings) with each item's photo, the cover as
+// the shop's image, PayPal as the way to pay, and, while the shop takes orders, an OrderAction whose EntryPoint is the
+// agent door.
 import { toPayPalValue } from '@/lib/domain/money';
+import { absolutePhotoUrl } from '@/lib/domain/photo-url';
 import type { ItemWithVariants, Shop, ShopKind } from '@/lib/domain/types';
 import { isListed, pricedOptions, takesOrders } from '@/lib/orders/pricing';
 
@@ -30,12 +32,14 @@ function offers(item: ItemWithVariants): Json | Json[] | undefined {
   return list.length === 1 ? list[0] : list;
 }
 
-function entry(type: string, item: ItemWithVariants): Json {
+function entry(type: string, item: ItemWithVariants, siteUrl: string): Json {
   const o = offers(item);
+  const image = absolutePhotoUrl(siteUrl, item.photoUrl);
   return {
     '@type': type,
     name: item.name,
     ...(item.description ? { description: item.description } : {}),
+    ...(image ? { image } : {}),
     ...(o ? { offers: o } : {}),
   };
 }
@@ -54,6 +58,7 @@ function sections(items: ItemWithVariants[]): [string, ItemWithVariants[]][] {
 
 export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls): Json {
   const grouped = sections(items);
+  const cover = absolutePhotoUrl(urls.shopUrl, shop.coverUrl);
   const catalog =
     shop.kind === 'food'
       ? {
@@ -63,7 +68,7 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
             hasMenuSection: grouped.map(([name, list]) => ({
               '@type': 'MenuSection',
               name,
-              hasMenuItem: list.map((item) => entry('MenuItem', item)),
+              hasMenuItem: list.map((item) => entry('MenuItem', item, urls.shopUrl)),
             })),
           },
         }
@@ -74,7 +79,7 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
             itemListElement: grouped.map(([name, list]) => ({
               '@type': 'OfferCatalog',
               name,
-              itemListElement: list.map((item) => entry(item.kind === 'SERVICE' ? 'Service' : 'Product', item)),
+              itemListElement: list.map((item) => entry(item.kind === 'SERVICE' ? 'Service' : 'Product', item, urls.shopUrl)),
             })),
           },
         };
@@ -86,7 +91,8 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
     name: shop.name,
     description: shop.about || `Order from ${shop.name} with any AI assistant, and pay with PayPal.`,
     url: urls.shopUrl,
-    ...(shop.menuPhotoPaths.length ? { image: `${urls.shopUrl}/photo/1` } : {}),
+    // The cover photo; without one, the menu photo the shop was made from.
+    ...(cover ? { image: cover } : shop.menuPhotoPaths.length ? { image: `${urls.shopUrl}/photo/1` } : {}),
     currenciesAccepted: 'USD',
     paymentAccepted: 'PayPal',
     ...catalog,

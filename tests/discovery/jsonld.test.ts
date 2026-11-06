@@ -75,6 +75,23 @@ describe('shopJsonLd', () => {
     });
   });
 
+  it('gives the shop its cover and each item with a photo its image, as absolute URLs', async () => {
+    const db = createTestDb();
+    const { shop } = await seedDemoShop({ db, paypal: createFakePayPal(), uploadsDir });
+    const listed = items.listWithVariants(db, shop.id, { status: ['live', 'in_person'] });
+    const ld = ldFor(shop, listed, urlsFor(shop.slug));
+    expect(ld.image).toBe(`${APP}/demo/marigold-bakehouse/cover.jpg`);
+    expect(menuItemsOf(ld).find((m) => m.name === 'Almond croissant')!.image).toBe(`${APP}/demo/marigold-bakehouse/almond-croissant.jpg`);
+    for (const m of menuItemsOf(ld)) expect(m.image).toMatch(new RegExp(`^${APP}/demo/marigold-bakehouse/[a-z0-9-]+\\.jpg$`));
+
+    // No photo: no image on the item. No cover: the menu photo stands in for the shop.
+    const almond = listed.find((i) => i.name === 'Almond croissant')!;
+    const plain = ldFor({ ...shop, coverUrl: null }, listed.map((i) => (i.id === almond.id ? { ...i, photoUrl: null } : i)), urlsFor(shop.slug));
+    expect(menuItemsOf(plain).find((m) => m.name === 'Almond croissant')).not.toHaveProperty('image');
+    expect(plain.image).toBe(`${APP}/s/${shop.slug}/photo/1`);
+    expect(ldFor({ ...shop, coverUrl: null, menuPhotoPaths: [] }, listed, urlsFor(shop.slug))).not.toHaveProperty('image');
+  });
+
   it('marks sold-out items SoldOut and leaves removed and unpublished items out', () => {
     const db = createTestDb();
     const { shop } = seedShop(db);
