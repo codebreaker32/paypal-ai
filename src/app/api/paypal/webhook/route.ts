@@ -3,7 +3,7 @@
 import { getConfig } from '@/lib/config';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
-import { syncOrder } from '@/lib/orders/service';
+import { syncOrder, syncOrderShared } from '@/lib/orders/service';
 import { getPayPal } from '@/lib/paypal';
 import { getOrderDeps } from '@/lib/services';
 import { jsonError } from '@/lib/http/json-error';
@@ -16,6 +16,7 @@ let warnedUnverified = false;
 interface WebhookEvent {
   id?: unknown;
   event_type?: unknown;
+  create_time?: unknown;
   resource?: { id?: unknown; supplementary_data?: { related_ids?: { order_id?: unknown } } } | null;
 }
 
@@ -73,7 +74,12 @@ export async function POST(req: Request): Promise<Response> {
   if (!order) return json({ ok: true, ignored: 'unknown_order' });
 
   try {
-    const synced = await syncOrder(deps, order.id, 'webhook');
+    // With the event's time, an approval that predates our last declined/refused capture doesn't capture again.
+    // Without it, webhook syncs for an order are throttled like the return URL's.
+    const eventTime = str(event.create_time);
+    const synced = eventTime
+      ? await syncOrder(deps, order.id, 'webhook', { eventTime })
+      : await syncOrderShared(deps, order.id, 'webhook', { throttle: true });
     return json({ ok: true, status: synced.status });
   } catch (e) {
     // Un-record the event and answer 5xx so PayPal redelivers it (the poller only covers recent orders).

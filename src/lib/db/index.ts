@@ -9,7 +9,15 @@ export type Db = Database.Database;
 function applySchema(db: Db): Db {
   db.pragma('foreign_keys = ON');
   db.exec(SCHEMA_SQL);
+  addMissingColumns(db);
   return db;
+}
+
+/** Columns added after the first release: CREATE TABLE IF NOT EXISTS leaves an existing table as it was. */
+function addMissingColumns(db: Db): void {
+  const has = (table: string, column: string) =>
+    (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
+  if (!has('orders', 'client_key')) db.exec('ALTER TABLE orders ADD COLUMN client_key TEXT');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

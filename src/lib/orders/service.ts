@@ -1,5 +1,6 @@
 // Order service: create (idempotent), sync with PayPal (capture claim), cancel, fulfil.
 // advanceOrder() is the only writer of orders.status (compare-and-set, spec §7).
+import { createHash } from 'node:crypto';
 import type { Db } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as eventsRepo from '@/lib/db/repos/events';
@@ -26,9 +27,13 @@ export interface CreateOrderInput {
   buyerNote?: string | null;
   agentName?: string | null;
   clientRequestId?: string | null;
+  /** The caller's rate-limit identity (client IP, or `console:<buyer ip>`), for the per-client unpaid-order cap. */
+  clientKey?: string | null;
 }
 
 export const MAX_OPEN_ORDERS_PER_SHOP = 10;
+/** One caller can hold at most this many unpaid orders per shop, so it cannot use up the shop-wide cap alone. */
+export const MAX_OPEN_ORDERS_PER_CLIENT = 3;
 export const APPROVAL_WINDOW_MS = 60 * 60_000;
 
 const clock = (deps: Pick<OrderDeps, 'now'>) => deps.now?.() ?? Date.now();
@@ -84,20 +89,82 @@ export async function createOrderForShop(deps: OrderDeps, shop: Shop, input: Cre
   const key = clean(input.clientRequestId, 64);
   if (!key) return createNew(deps, shop, input, null);
   const existing = ordersRepo.byClientRequestId(deps.db, shop.id, key);
-  if (existing) return existing;
+  if (existing) return sameRequestOrConflict(existing, input);
   const slot = `${shop.id}\u0000${key}`;
   const pending = inflight.get(slot);
-  if (pending) return pending;
+  if (pending) return pending.then((order) => sameRequestOrConflict(order, input));
   const p = createNew(deps, shop, input, key).finally(() => inflight.delete(slot));
   inflight.set(slot, p);
   return p;
+}
+
+/**
+ * A client_request_id only makes a retry idempotent: the stored order comes back only when the request has the same
+ * content (items, options, quantities, fulfillment). Anything else is a different order that reused the key, and gets
+ * a conflict instead of someone else's order_ref and approval link.
+ */
+function sameRequestOrConflict(order: Order, input: CreateOrderInput): Order {
+  const same =
+    (input.fulfillment === undefined || input.fulfillment === order.fulfillment) &&
+    input.lines.length === order.lines.length &&
+    input.lines.every((l, i) => {
+      const stored = order.lines[i];
+      // An omitted option means the item's only option, which is what pricing stored.
+      return stored.itemId === l.itemId && stored.qty === l.quantity && (l.optionId === undefined || stored.variantId === l.optionId);
+    });
+  if (same) return order;
+  throw new OrderError(
+    'IDEMPOTENCY_CONFLICT',
+    'This client_request_id was already used for a different order. Use a new one.',
+    'Send a new, unique client_request_id for this order. Reuse a client_request_id only to retry the exact same request.',
+  );
 }
 
 async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, key: string | null): Promise<Order> {
   const { db } = deps;
   const nowMs = clock(deps);
   const priced = priceOrder(db, shop, input.lines, input.fulfillment);
-  if (ordersRepo.countOpen(db, shop.id) >= MAX_OPEN_ORDERS_PER_SHOP) {
+  const clientKey = input.clientKey ? createHash('sha256').update(input.clientKey).digest('hex').slice(0, 32) : null;
+  // Reserve the slot before the PayPal await so concurrent calls can't all pass the count; the insert re-checks
+  // the database count in the same transaction (another process may have inserted meanwhile).
+  checkOpenCaps(db, shop, clientKey, true);
+  const release = reserveOpenSlot(shop.id, clientKey);
+  try {
+    return await createReserved(deps, shop, input, key, priced, clientKey, nowMs);
+  } finally {
+    release();
+  }
+}
+
+/** In-process reservations: create calls that passed the open-order caps and are waiting on PayPal. */
+const reservedOpen = new Map<string, number>();
+const shopSlot = (shopId: string) => `shop\u0000${shopId}`;
+const clientSlot = (shopId: string, clientKey: string) => `client\u0000${shopId}\u0000${clientKey}`;
+
+function reserveOpenSlot(shopId: string, clientKey: string | null): () => void {
+  const slots = clientKey ? [shopSlot(shopId), clientSlot(shopId, clientKey)] : [shopSlot(shopId)];
+  for (const s of slots) reservedOpen.set(s, (reservedOpen.get(s) ?? 0) + 1);
+  return () => {
+    for (const s of slots) {
+      const n = (reservedOpen.get(s) ?? 1) - 1;
+      if (n > 0) reservedOpen.set(s, n);
+      else reservedOpen.delete(s);
+    }
+  };
+}
+
+/** Throws TOO_MANY_OPEN_ORDERS when the caller or the shop is at its unpaid-order cap (counting reservations if asked). */
+function checkOpenCaps(db: Db, shop: Shop, clientKey: string | null, withReserved: boolean): void {
+  const reserved = (slot: string) => (withReserved ? reservedOpen.get(slot) ?? 0 : 0);
+  if (clientKey && ordersRepo.countOpenForClient(db, shop.id, clientKey) + reserved(clientSlot(shop.id, clientKey)) >= MAX_OPEN_ORDERS_PER_CLIENT) {
+    throw new OrderError(
+      'TOO_MANY_OPEN_ORDERS',
+      `You already have ${MAX_OPEN_ORDERS_PER_CLIENT} orders waiting for payment at ${shopLabel(shop)}.`,
+      'Ask the user to pay for an order they already started (share its approval_url again), or wait: unpaid orders expire after 60 minutes.',
+      { max_open_orders_per_client: MAX_OPEN_ORDERS_PER_CLIENT },
+    );
+  }
+  if (ordersRepo.countOpen(db, shop.id) + reserved(shopSlot(shop.id)) >= MAX_OPEN_ORDERS_PER_SHOP) {
     throw new OrderError(
       'TOO_MANY_OPEN_ORDERS',
       `${shopLabel(shop)} already has ${MAX_OPEN_ORDERS_PER_SHOP} orders waiting for payment.`,
@@ -105,6 +172,18 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
       { max_open_orders: MAX_OPEN_ORDERS_PER_SHOP },
     );
   }
+}
+
+async function createReserved(
+  deps: OrderDeps,
+  shop: Shop,
+  input: CreateOrderInput,
+  key: string | null,
+  priced: ReturnType<typeof priceOrder>,
+  clientKey: string | null,
+  nowMs: number,
+): Promise<Order> {
+  const { db } = deps;
   const next = transition(null, 'created');
   if ('ignored' in next || next.next !== 'awaiting_approval') throw new Error('state table: created must start awaiting_approval');
 
@@ -133,30 +212,37 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   const agentName = clean(input.agentName, 60);
   let order: Order;
   try {
-    order = ordersRepo.insert(
-      db,
-      {
-        id,
-        number,
-        shopId: shop.id,
-        fulfillment: priced.fulfillment,
-        buyerName: clean(input.buyerName, 60),
-        buyerNote: clean(input.buyerNote, 280, true),
-        agentName,
-        clientRequestId: key,
-        itemsCents: priced.itemsCents,
-        shippingCents: priced.shippingCents,
-        totalCents: priced.totalCents,
-        paypalOrderId: created.id,
-        approvalUrl: created.approveUrl,
-        expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
-      },
-      priced.lines,
-    );
+    // Count and insert atomically. In this process our reservation guarantees room; this catches other processes.
+    order = db.transaction(() => {
+      checkOpenCaps(db, shop, clientKey, false);
+      return ordersRepo.insert(
+        db,
+        {
+          id,
+          number,
+          shopId: shop.id,
+          fulfillment: priced.fulfillment,
+          buyerName: clean(input.buyerName, 60),
+          buyerNote: clean(input.buyerNote, 280, true),
+          agentName,
+          clientRequestId: key,
+          clientKey,
+          itemsCents: priced.itemsCents,
+          shippingCents: priced.shippingCents,
+          totalCents: priced.totalCents,
+          paypalOrderId: created.id,
+          approvalUrl: created.approveUrl,
+          expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
+        },
+        priced.lines,
+      );
+    }).immediate();
   } catch (e) {
     // Lost a cross-process race on UNIQUE(shop_id, client_request_id) or on the PayPal order id: return the winner.
     if (isUniqueViolation(e)) {
-      const winner = (key && ordersRepo.byClientRequestId(db, shop.id, key)) || ordersRepo.byPayPalId(db, created.id);
+      const byKey = key ? ordersRepo.byClientRequestId(db, shop.id, key) : null;
+      if (byKey) return sameRequestOrConflict(byKey, input);
+      const winner = ordersRepo.byPayPalId(db, created.id);
       if (winner) return winner;
     }
     throw e;
@@ -180,7 +266,12 @@ function paypalItemName(l: PricedLine): string {
  * Reads the order from PayPal and moves ours forward: APPROVED → claim → capture; COMPLETED → reconcile;
  * not approved after 60 minutes → expired. Settled orders are returned as they are: no PayPal call, no write.
  */
-export async function syncOrder(deps: OrderDeps, orderId: string, source: EventSource): Promise<Order> {
+export async function syncOrder(
+  deps: OrderDeps,
+  orderId: string,
+  source: EventSource,
+  opts: { /** Webhook only: PayPal's create_time for the event. */ eventTime?: string | null } = {},
+): Promise<Order> {
   const { db } = deps;
   const order = ordersRepo.byId(db, orderId);
   if (!order) throw orderNotFound(orderId);
@@ -195,11 +286,64 @@ export async function syncOrder(deps: OrderDeps, orderId: string, source: EventS
       if (e instanceof PayPalApiError && e.status === 404) pp = null;
       else throw paypalUnavailable(e, 'get order');
     }
-    await reconcile(deps, order, pp, source, nowMs);
+    // PayPal keeps saying APPROVED after a declined capture. A webhook about an approval we already tried (it was
+    // created before the decline) is not a new approval, so it must not trigger another capture.
+    const staleApproval = source === 'webhook' && pp?.status === 'APPROVED' && predatesLastRefusal(db, order.id, opts.eventTime);
+    if (!staleApproval) await reconcile(deps, order, pp, source, nowMs);
   } finally {
     ordersRepo.update(db, orderId, { lastCheckedAt: iso(nowMs) });
   }
   return ordersRepo.byId(db, orderId)!;
+}
+
+/** A sync started by a trigger anyone can repeat runs at most this often per order (with `throttle`). */
+export const SYNC_MIN_INTERVAL_MS = 5_000;
+
+/** Syncs in progress per (trigger, order), shared by concurrent callers. */
+const syncsInFlight = new Map<string, Promise<Order>>();
+/** When the last throttled sync per (trigger, order) started. */
+const lastThrottledSync = new Map<string, number>();
+
+/**
+ * syncOrder for triggers anyone can repeat (get_order_status, the return URL): concurrent calls for one order share
+ * one sync, so a burst of calls (e.g. a JSON-RPC batch) costs one PayPal read instead of one each. With `throttle`, a
+ * new sync for this trigger and order starts at most every SYNC_MIN_INTERVAL_MS; calls in between get the stored order.
+ * The throttle is per trigger so an agent polling get_order_status never delays the buyer's own return from PayPal.
+ */
+export async function syncOrderShared(deps: OrderDeps, orderId: string, source: EventSource, opts: { throttle?: boolean } = {}): Promise<Order> {
+  const slot = `${source}\u0000${orderId}`;
+  const pending = syncsInFlight.get(slot);
+  if (pending) return pending;
+  if (opts.throttle) {
+    const nowMs = clock(deps);
+    const last = lastThrottledSync.get(slot);
+    if (last !== undefined && nowMs >= last && nowMs - last < SYNC_MIN_INTERVAL_MS) {
+      const order = ordersRepo.byId(deps.db, orderId);
+      if (!order) throw orderNotFound(orderId);
+      return order;
+    }
+    if (lastThrottledSync.size > 10_000) {
+      for (const [k, t] of lastThrottledSync) if (nowMs - t >= SYNC_MIN_INTERVAL_MS) lastThrottledSync.delete(k);
+    }
+    lastThrottledSync.set(slot, nowMs);
+  }
+  const p = syncOrder(deps, orderId, source).finally(() => syncsInFlight.delete(slot));
+  syncsInFlight.set(slot, p);
+  return p;
+}
+
+/**
+ * True when a webhook event was created no later than the order's last declined or refused capture: the approval it
+ * reports was already tried, so capturing again would only retry the same funding source.
+ */
+function predatesLastRefusal(db: Db, orderId: string, eventTime: string | null | undefined): boolean {
+  const eventMs = eventTime ? Date.parse(eventTime) : NaN;
+  if (Number.isNaN(eventMs)) return false;
+  const last = eventsRepo
+    .list(db, orderId)
+    .filter((e) => (e.type === 'capture_declined' || e.type === 'capture_failed') && !(e.detail as { ignored?: boolean } | null)?.ignored)
+    .at(-1);
+  return last !== undefined && eventMs <= Date.parse(last.createdAt);
 }
 
 async function reconcile(deps: OrderDeps, order: Order, pp: PayPalOrder | null, source: EventSource, nowMs: number): Promise<Order> {

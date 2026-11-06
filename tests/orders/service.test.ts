@@ -5,7 +5,7 @@ import * as orders from '@/lib/db/repos/orders';
 import * as events from '@/lib/db/repos/events';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError, type CreatePayPalOrderInput } from '@/lib/paypal/types';
-import { cancelOrder, createOrderForShop, markFulfilled, syncOrder, type OrderDeps } from '@/lib/orders/service';
+import { MAX_OPEN_ORDERS_PER_CLIENT, cancelOrder, createOrderForShop, markFulfilled, syncOrder, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
 import { isPollerRunning, pollOnce, startPoller, stopPoller } from '@/lib/orders/poller';
 import { OrderError } from '@/lib/orders/errors';
 import { InvalidTransition } from '@/lib/orders/state';
@@ -149,6 +149,38 @@ describe('order service', () => {
       expect(orders.listByShop(db, s.shop.id)).toHaveLength(1);
     });
 
+    it('refuses a reused clientRequestId with different content instead of returning the other order (R6)', async () => {
+      const alice = await createOrderForShop(deps, s.shop, {
+        lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'pickup', clientRequestId: 'order-1',
+      });
+      const variants: Parameters<typeof createOrderForShop>[2][] = [
+        { lines: [{ itemId: s.item['Sourdough loaf'].id, quantity: 5 }], fulfillment: 'shipping', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 3 }], fulfillment: 'pickup', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'shipping', clientRequestId: 'order-1' },
+        { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }, { itemId: s.item['Sourdough loaf'].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'order-1' },
+      ];
+      for (const v of variants) {
+        const e = await rejection(createOrderForShop(deps, s.shop, v));
+        expect(e.code).toBe('IDEMPOTENCY_CONFLICT');
+        expect(e.message).toContain('client_request_id');
+        expect(JSON.stringify(e)).not.toContain(alice.id);
+      }
+      // Concurrent: a different request racing the first one with the same key is refused too.
+      const coffee = s.item['Drip coffee'];
+      const [first, second] = await Promise.allSettled([
+        createOrderForShop(deps, s.shop, { lines: [{ itemId: coffee.id, optionId: coffee.variants[0].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'k2' }),
+        createOrderForShop(deps, s.shop, { lines: [{ itemId: coffee.id, optionId: coffee.variants[1].id, quantity: 1 }], fulfillment: 'pickup', clientRequestId: 'k2' }),
+      ]);
+      expect(first.status).toBe('fulfilled');
+      expect(second.status === 'rejected' && (second.reason as OrderError).code).toBe('IDEMPOTENCY_CONFLICT');
+      // The true retry still returns the same order without a PayPal call.
+      const again = await createOrderForShop(deps, s.shop, {
+        lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'pickup', clientRequestId: 'order-1',
+      });
+      expect(again.id).toBe(alice.id);
+      expect(calls('createOrder')).toHaveLength(2);
+    });
+
     it('treats the same clientRequestId in another shop as a different order', async () => {
       const other = seedShop(db, { name: 'Other' });
       const a = await order({ clientRequestId: 'k' });
@@ -160,6 +192,33 @@ describe('order service', () => {
       for (let i = 0; i < 10; i++) await order();
       const e = await rejection(order());
       expect(e.code).toBe('TOO_MANY_OPEN_ORDERS');
+      expect(calls('createOrder')).toHaveLength(10);
+    });
+
+    it('caps unpaid orders per client, so one caller cannot block the shop for everyone (R7)', async () => {
+      const mine: Order[] = [];
+      for (let i = 0; i < MAX_OPEN_ORDERS_PER_CLIENT; i++) mine.push(await order({ clientKey: '198.51.100.66' }));
+      const e = await rejection(order({ clientKey: '198.51.100.66' }));
+      expect(e.code).toBe('TOO_MANY_OPEN_ORDERS');
+      expect(e.details).toMatchObject({ max_open_orders_per_client: MAX_OPEN_ORDERS_PER_CLIENT });
+      expect(calls('createOrder')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      const other = await order({ clientKey: 'console:203.0.113.200' });
+      expect(other.status).toBe('awaiting_approval');
+      // A paid order no longer counts against its client.
+      const first = mine[0];
+      fake.approve(first.paypalOrderId);
+      expect((await syncOrder(deps, first.id, 'return_url')).status).toBe('paid');
+      expect((await order({ clientKey: '198.51.100.66' })).status).toBe('awaiting_approval');
+    });
+
+    it('enforces the per-client and shop-wide caps under concurrent create calls (R7)', async () => {
+      const one = await Promise.allSettled(Array.from({ length: 25 }, () => order({ clientKey: 'same-ip' })));
+      expect(one.filter((r) => r.status === 'fulfilled')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      expect(calls('createOrder')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
+      const many = await Promise.allSettled(Array.from({ length: 25 }, (_, i) => order({ clientKey: `ip-${i}` })));
+      const refused = many.filter((r): r is PromiseRejectedResult => r.status === 'rejected');
+      expect(refused.every((r) => (r.reason as OrderError).code === 'TOO_MANY_OPEN_ORDERS')).toBe(true);
+      expect(orders.countOpen(db, s.shop.id)).toBe(10);
       expect(calls('createOrder')).toHaveLength(10);
     });
 
@@ -310,6 +369,43 @@ describe('order service', () => {
       // Buyer picks another funding source on the same link; the return URL captures with a fresh request id.
       const paid = await syncOrder(deps, o.id, 'return_url');
       expect(paid.status).toBe('paid');
+      expect(calls('captureOrder').map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
+    });
+
+    it('throttles return-URL syncs per order, so reloads cannot drive repeated captures on a declined card (R4)', async () => {
+      const o = await order();
+      fake.nextCapture = 'DECLINED_422';
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('awaiting_approval');
+      for (let i = 0; i < 5; i++) {
+        clock += 900;
+        expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('awaiting_approval');
+      }
+      expect(calls('captureOrder')).toHaveLength(1);
+      expect(calls('getOrder')).toHaveLength(1);
+      // Concurrent hits share one sync.
+      clock += 5_000;
+      fake.nextCapture = 'DECLINED_422';
+      await Promise.all(Array.from({ length: 5 }, () => syncOrderShared(deps, o.id, 'return_url', { throttle: true })));
+      expect(calls('captureOrder')).toHaveLength(2);
+      // After 5 s the buyer coming back (re-approved with another card) captures as before.
+      clock += 5_000;
+      expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('paid');
+      expect(calls('captureOrder')).toHaveLength(3);
+    });
+
+    it('skips the capture for a webhook approval older than the last declined capture, but not for a newer one (R4)', async () => {
+      const o = await order();
+      const approvedAt = new Date(Date.now() - 60_000).toISOString();
+      fake.nextCapture = 'DECLINED_422';
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('awaiting_approval');
+      // The CHECKOUT.ORDER.APPROVED webhook for that same approval arrives after the decline: no second capture.
+      expect((await syncOrder(deps, o.id, 'webhook', { eventTime: approvedAt })).status).toBe('awaiting_approval');
+      expect(calls('captureOrder')).toHaveLength(1);
+      // A webhook for a new approval (after the decline) captures.
+      const reapprovedAt = new Date(Date.now() + 60_000).toISOString();
+      expect((await syncOrder(deps, o.id, 'webhook', { eventTime: reapprovedAt })).status).toBe('paid');
       expect(calls('captureOrder').map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
     });
 
