@@ -1,5 +1,76 @@
 import { describe, expect, it } from 'vitest';
-import { COUNT_UP_MS, easeOutCount, stepCents } from '@/components/motion/count-up-step';
+import { COUNT_UP_MS, easeOutCount, finishCount, startCount, stepCents } from '@/components/motion/count-up-step';
+
+describe('startCount', () => {
+  function fakeClock() {
+    let t = 0;
+    let next = 1;
+    const queue = new Map<number, (now: number) => void>();
+    return {
+      clock: {
+        now: () => t,
+        request: (cb: (now: number) => void) => {
+          queue.set(next, cb);
+          return next++;
+        },
+        cancel: (id: number) => void queue.delete(id),
+      },
+      /** Advances time and runs the frames queued so far. */
+      frame(ms: number) {
+        t += ms;
+        const due = [...queue.values()];
+        queue.clear();
+        for (const cb of due) cb(t);
+      },
+      pending: () => queue.size,
+    };
+  }
+  const fmt = (c: number) => `$${(c / 100).toFixed(2)}`;
+  const targets = () => ({ final: { style: { opacity: '' } }, tween: { textContent: '' as string | null } });
+
+  it('shows the old value and hides the new text synchronously, before any frame runs', () => {
+    const { clock } = fakeClock();
+    const t = targets();
+    startCount(t, 1250, 5571, fmt, clock, () => {});
+    expect(t.final.style.opacity).toBe('0');
+    expect(t.tween.textContent).toBe('$12.50');
+  });
+
+  it('steps through frames and lands on the new value, then hands back to the final text', () => {
+    const c = fakeClock();
+    const t = targets();
+    const seen: number[] = [];
+    startCount(t, 1250, 5571, fmt, c.clock, (v) => seen.push(v));
+    c.frame(100);
+    expect(t.final.style.opacity).toBe('0');
+    expect(seen.at(-1)).toBeGreaterThan(1250);
+    expect(seen.at(-1)).toBeLessThan(5571);
+    c.frame(COUNT_UP_MS);
+    expect(seen.at(-1)).toBe(5571);
+    expect(t.tween.textContent).toBe('');
+    expect(t.final.style.opacity).toBe('');
+    expect(c.pending()).toBe(0);
+  });
+
+  it('stops when cancelled, leaving the overlay for the next count to take over', () => {
+    const c = fakeClock();
+    const t = targets();
+    const stop = startCount(t, 0, 1000, fmt, c.clock, () => {});
+    c.frame(50);
+    stop();
+    expect(c.pending()).toBe(0);
+    expect(t.final.style.opacity).toBe('0');
+  });
+});
+
+describe('finishCount', () => {
+  it('clears the overlay and shows the final text', () => {
+    const t = { final: { style: { opacity: '0' } }, tween: { textContent: '$3.00' as string | null } };
+    finishCount(t);
+    expect(t.final.style.opacity).toBe('');
+    expect(t.tween.textContent).toBe('');
+  });
+});
 
 describe('stepCents', () => {
   it('starts at `from` and ends exactly at `to`', () => {

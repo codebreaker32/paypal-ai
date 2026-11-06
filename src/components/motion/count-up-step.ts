@@ -17,3 +17,52 @@ export function stepCents(from: number, to: number, progress: number): number {
   // Round toward `from` so the count never reaches `to` before the end and never overshoots.
   return to >= from ? Math.floor(value) : Math.ceil(value);
 }
+
+/** The two spans a count drives: the final text (hidden while counting) and the aria-hidden running overlay. */
+export interface CountTargets {
+  final: { style: { opacity: string } };
+  tween: { textContent: string | null };
+}
+
+/** requestAnimationFrame and the clock, injectable for tests. */
+export interface FrameClock {
+  now(): number;
+  request(cb: (now: number) => void): number;
+  cancel(id: number): void;
+}
+
+/** Ends a count: the overlay empties and the final text shows again. */
+export function finishCount(t: CountTargets): void {
+  t.tween.textContent = '';
+  t.final.style.opacity = '';
+}
+
+/**
+ * Counts from `from` to `to`. The setup is synchronous, so a caller in a layout effect hides the new text and shows the
+ * old value before the browser paints: the first frame on screen is never the new total. Each frame reports the value
+ * shown through `onValue`. Returns a stop function that cancels the next frame and leaves the overlay as it is, so a
+ * new count can carry on from the value on screen.
+ */
+export function startCount(
+  t: CountTargets,
+  from: number,
+  to: number,
+  format: (cents: number) => string,
+  clock: FrameClock,
+  onValue: (cents: number) => void,
+): () => void {
+  t.final.style.opacity = '0';
+  t.tween.textContent = format(from);
+  const start = clock.now();
+  let frame = 0;
+  const tick = (now: number) => {
+    const progress = (now - start) / COUNT_UP_MS;
+    const value = stepCents(from, to, progress);
+    onValue(value);
+    t.tween.textContent = format(value);
+    if (progress < 1) frame = clock.request(tick);
+    else finishCount(t);
+  };
+  frame = clock.request(tick);
+  return () => clock.cancel(frame);
+}
