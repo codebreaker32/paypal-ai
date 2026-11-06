@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { cardKindFor, firstAmountIn, isPublishable, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
+import { MAX_PRICE_CENTS, cardKindFor, firstAmountIn, isPublishable, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
+import { createTestDb } from '@/lib/db';
+import * as shops from '@/lib/db/repos/shops';
 import type { IssueCode, ItemStatus } from '@/lib/domain/types';
 
 const item = (issues: IssueCode[], prices: (number | null)[], status: ItemStatus = 'draft') => ({
@@ -14,8 +16,8 @@ describe('catalog rules', () => {
     expect(parsePriceInput(' 3,25 ')).toBe(325);
     expect(parsePriceInput('.75')).toBe(75);
     expect(parsePriceInput('0')).toBe(0);
-    expect(parsePriceInput('1000')).toBe(100_000);
-    for (const bad of ['', 'abc', '4.555', '1000.01', '-2', '4.5.0', '12 dollars']) expect(parsePriceInput(bad)).toBeNull();
+    expect(parsePriceInput('500')).toBe(50_000);
+    for (const bad of ['', 'abc', '4.555', '500.01', '1000', '-2', '4.5.0', '12 dollars']) expect(parsePriceInput(bad)).toBeNull();
   });
 
   it('turns cents back into an editable value', () => {
@@ -36,6 +38,20 @@ describe('catalog rules', () => {
     expect(isPublishable(item([], [300, null]))).toBe(false);
     expect(isPublishable(item([], [425], 'in_person'))).toBe(false);
     expect(isPublishable(item([], [425], 'removed'))).toBe(false);
+  });
+
+  it('never publishes a price the shop cannot sell online ($0, or over the $500 order cap)', () => {
+    expect(isPublishable(item([], [MAX_PRICE_CENTS]))).toBe(true);
+    expect(isPublishable(item([], [0]))).toBe(false);
+    expect(isPublishable(item([], [425, MAX_PRICE_CENTS + 1]))).toBe(false);
+    // Such an item asks for a price again, even after "Looks right".
+    expect(cardKindFor(item(['CHECK'], [65_000]))).toBe('price');
+  });
+
+  it('keeps the highest review price within a new shop’s online order cap', () => {
+    const db = createTestDb();
+    const { shop } = shops.create(db, { name: 'Cap check' });
+    expect(MAX_PRICE_CENTS).toBeLessThanOrEqual(shop.orderCapCents);
   });
 
   it('picks the one-thumb fix for a flagged card', () => {

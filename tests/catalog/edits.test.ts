@@ -109,13 +109,13 @@ describe('edits', () => {
       expect(items.byIdForShop(db, other, theirs.id)!.status).toBe('draft');
     });
 
-    it('validates prices as whole cents between 0 and $1,000', () => {
+    it('validates prices as whole cents between 0 and $500 (the online order cap)', () => {
       const up = (priceCents: unknown) => ({ updates: [{ itemId: ids['Butter croissant'], variants: [{ label: null, priceCents }] }] });
       expect(errorOf(() => parseItemUpdates(up(4.5)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up(-1)))?.code).toBe('INVALID_REQUEST');
-      expect(errorOf(() => parseItemUpdates(up(100_001)))?.code).toBe('INVALID_REQUEST');
+      expect(errorOf(() => parseItemUpdates(up(50_001)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up('4.50')))?.code).toBe('INVALID_REQUEST');
-      expect(parseItemUpdates(up(100_000)).updates[0].variants![0].priceCents).toBe(100_000);
+      expect(parseItemUpdates(up(50_000)).updates[0].variants![0].priceCents).toBe(50_000);
       expect(errorOf(() => parseItemUpdates({ updates: [{ itemId: ids['Butter croissant'], price: 1 }] }))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates({ updates: [] }))?.code).toBe('INVALID_REQUEST');
     });

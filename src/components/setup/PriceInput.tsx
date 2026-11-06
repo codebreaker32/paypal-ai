@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react';
 import { Field, TextInput } from '@/components/ui/Field';
 import { cx } from '@/components/ui/cx';
 
-export const PRICE_ERROR = 'Enter a price like 4.50 (up to $1,000)';
+export const PRICE_ERROR = 'Enter a price like 4.50 (up to $500)';
 
 /**
  * A dollar amount on the phone's decimal keypad. The parent keeps the text and turns it into cents

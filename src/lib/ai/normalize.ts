@@ -1,3 +1,4 @@
+import { MAX_PRICE_CENTS } from '@/lib/catalog/rules';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type {
   DraftCatalog,
@@ -12,7 +13,6 @@ import type { ExtractedItem, MenuExtraction, Problem } from './schemas';
 const MAX_NAME = 127;
 const MAX_DESCRIPTION = 256;
 const MAX_SOURCE = 500;
-const MAX_PRICE_CENTS = 100_000; // $1,000
 
 // Spec §9. Matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
@@ -147,6 +147,9 @@ function dealDetail(it: ExtractedItem, unit: number | null | undefined): string 
 function unusualDetail(variants: DraftVariant[]): string {
   const odd = variants.find((v) => v.priceCents !== null && isUnusual(v.priceCents))!;
   const which = variants.length > 1 && odd.label ? ` for ${quoted(odd.label, 30)}` : '';
+  if (odd.priceCents! > MAX_PRICE_CENTS) {
+    return `We read ${formatUSD(odd.priceCents!)}${which}. Online orders go up to ${formatUSD(MAX_PRICE_CENTS).replace(/\.00$/, '')}, so set a lower price or remove it.`;
+  }
   return `We set ${formatUSD(odd.priceCents!)}${which}, which looks unusual. Is that right?`;
 }
 
