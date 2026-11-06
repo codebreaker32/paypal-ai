@@ -75,7 +75,7 @@ async function decodePhoto(input: Buffer, { maxEdge, format, quality }: PhotoEnc
     const meta = await sharp(input).metadata();
     if (!meta.format || !PHOTO_FORMATS.has(meta.format) || !meta.width || !meta.height) throw new UploadError('BAD_IMAGE');
     if (meta.width * meta.height > MAX_PHOTO_PIXELS) throw new UploadError('PHOTO_TOO_LARGE', TOO_MANY_PIXELS);
-    // sharp writes no metadata (EXIF, GPS, ICC) unless asked to, so none of the phone's survives.
+    // sharp writes no EXIF (camera, GPS, orientation) unless asked to, so none of the phone's survives.
     const resized = sharp(input, { limitInputPixels: MAX_PHOTO_PIXELS })
       .rotate()
       .resize({ width: maxEdge, height: maxEdge, fit: 'inside', withoutEnlargement: true });
