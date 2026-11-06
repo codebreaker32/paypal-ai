@@ -11,6 +11,7 @@ import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import * as orders from '@/lib/db/repos/orders';
 import { createOrderForShop } from '@/lib/orders/service';
+import { DEMO_PHOTOS } from '@/lib/demo/photos';
 import { DEMO_PHOTO, DEMO_SHOP, seedDemoShop } from '../../scripts/seed-demo';
 
 const uploadsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shelfie-seed-'));
@@ -175,6 +176,40 @@ describe('seedDemoShop', () => {
     expect(orders.byId(fresh, approved.id)!.status).toBe('paid');
     expect(orders.byId(fresh, abandoned.id)!.status).toBe('cancelled');
     expect(r).toMatchObject({ unpaid: 0, cancelled: 1 });
+  });
+
+  it('gives the demo shop its bundled cover and a photo on every item', async () => {
+    const fresh = createTestDb();
+    const { shop } = await seedDemoShop({ db: fresh, paypal: createFakePayPal(), uploadsDir });
+    const set = DEMO_PHOTOS[DEMO_SHOP.slug];
+    expect(shop.coverUrl).toBe(set.cover);
+    const all = items.listWithVariants(fresh, shop.id);
+    expect(all.length).toBeGreaterThan(0);
+    for (const item of all) expect(item.photoUrl, item.name).toBe(set.items[item.name]);
+  });
+
+  it("a re-run restores missing photos and keeps the seller's own uploads, changing nothing else", async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const { shop } = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    const [first, second] = items.listWithVariants(fresh, shop.id);
+    items.update(fresh, first.id, { photoUrl: null });
+    items.update(fresh, second.id, { photoUrl: '/i/abcdefghijklmnop.webp' });
+    shops.update(fresh, shop.id, { coverUrl: '/i/qrstuvwxyz234567.webp' });
+    const before = items.listWithVariants(fresh, shop.id);
+
+    const again = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    expect(again).toMatchObject({ created: false, published: 0 });
+    expect(again.shop.coverUrl).toBe('/i/qrstuvwxyz234567.webp');
+    const after = items.listWithVariants(fresh, shop.id);
+    expect(after.find((i) => i.id === first.id)!.photoUrl).toBe(DEMO_PHOTOS[DEMO_SHOP.slug].items[first.name]);
+    expect(after.find((i) => i.id === second.id)!.photoUrl).toBe('/i/abcdefghijklmnop.webp');
+    const strip = (list: typeof before) => list.map(({ photoUrl: _p, ...rest }) => rest);
+    expect(strip(after)).toEqual(strip(before));
+
+    // Cleared cover: the next run puts the bundled one back.
+    shops.update(fresh, shop.id, { coverUrl: null });
+    expect((await seedDemoShop({ db: fresh, paypal: pp, uploadsDir })).shop.coverUrl).toBe(DEMO_PHOTOS[DEMO_SHOP.slug].cover);
   });
 
   it('does not count orders past their expiry as waiting (they no longer hold the cap)', async () => {

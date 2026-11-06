@@ -1,7 +1,7 @@
 // npm run seed [-- --reset | --cancel-unpaid]
 // Creates the demo shop "Marigold Bakehouse" from the recorded menu reading, resolves its review issues as a seller
-// would, publishes its items to the real PayPal sandbox catalog with the setup flow's own publishShop, and marks it
-// live. Idempotent: a second run reuses the shop and only publishes what is missing (an item PayPal turned down last
+// would, gives it the bundled cover and item photos (public/demo/marigold-bakehouse), publishes its items to the real
+// PayPal sandbox catalog with the setup flow's own publishShop, and marks it live. Idempotent: a second run reuses the shop and only publishes what is missing (an item PayPal turned down last
 // time, say). --reset deletes the shop (and its orders) and starts again. Every run reports the demo shop's orders still
 // waiting for payment (one caller can hold 3); --cancel-unpaid cancels them before a recording.
 import { config } from 'dotenv';
@@ -11,6 +11,7 @@ import { normalizeExtraction } from '@/lib/ai/normalize';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { RESERVED_SLUG, publishShop, type PublishResult } from '@/lib/catalog/publish';
 import { ConfigError, getConfig } from '@/lib/config';
+import { demoCoverFor, demoPhotoFor } from '@/lib/demo/photos';
 import { maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 import { getDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
@@ -121,6 +122,7 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   const payeeEmail = opts.payeeEmail ?? null;
   // Every run follows the env var: a changed or removed PAYPAL_SANDBOX_SELLER_EMAIL changes where new orders are paid.
   shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)], payeeEmail });
+  applyDemoPhotos(db, shopId);
   // The setup flow's own publish: same products, same request ids, and it makes the shop live.
   const result = await publishShop({ db, paypal: opts.paypal }, shopId, (e) => {
     const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
@@ -154,6 +156,21 @@ function resolveLikeASeller(db: Db, shopId: string): void {
     } else {
       items.update(db, item.id, { issues: [], issueDetail: null });
     }
+  }
+}
+
+/**
+ * The bundled cover and item photos (src/lib/demo/photos.ts) on every run. A photo the seller uploaded (an /i/ URL)
+ * is kept; an empty one or an older bundled one is set.
+ */
+function applyDemoPhotos(db: Db, shopId: string): void {
+  const replaceable = (url: string | null) => url === null || url.startsWith('/demo/');
+  const shop = shops.byId(db, shopId)!;
+  const cover = demoCoverFor(DEMO_SHOP.slug);
+  if (replaceable(shop.coverUrl) && shop.coverUrl !== cover) shops.update(db, shopId, { coverUrl: cover });
+  for (const item of items.listWithVariants(db, shopId)) {
+    const photo = demoPhotoFor(DEMO_SHOP.slug, item.name);
+    if (photo && replaceable(item.photoUrl) && item.photoUrl !== photo) items.update(db, item.id, { photoUrl: photo });
   }
 }
 
