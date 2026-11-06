@@ -119,10 +119,11 @@ export const concepts = {
     // a snapshot print leaning on a shelf, next to a bun: products on a shelf, photographed
     mark(c) {
       const a = c.accent, k = c.ink;
-      // the print: outer 30x36, window inset 4 (sides/top) and 10 at the chin; rotated about its foot
-      const print = `<path fill="${a}" fill-rule="evenodd" transform="rotate(-10 8 50)" d="M8 12h32v38H8z M13 17v21h22V17z"/>`;
-      const shelf = p(rect(2, 50, 60, 8), k);
-      const bun = p('M42 50a9 9 0 0 1 18 0z', a);
+      // the print: a portrait instant photo (28x38, chin 12), tipped back on the shelf
+      // about its foot's left corner; a bun sits on the shelf to its left
+      const print = `<path fill="${a}" fill-rule="evenodd" transform="rotate(-8 30 52)" d="M30 14h28v38H30z M34 18v20h20V18z"/>`;
+      const shelf = p(rect(4, 52, 56, 8), k);
+      const bun = p('M6 52a10 10 0 0 1 20 0z', a);
       return print + shelf + bun;
     },
     word: { w: 18, round: true, dot: 'circle', gap: 14 },
@@ -190,17 +191,21 @@ export function lockupSvg(id, c = colours.full) {
   return { svg: svg(`-2 -164 ${f(w)} 196`, mark + word), w, h: 196 };
 }
 
+const BBOX = { B1: [4, 6, 60, 61], B2: [4, 10, 60, 60], B3: [4, 4, 60, 60] };
 export function appIconSvg(id, { maskable = false } = {}) {
-  // white tile, full-colour mark; maskable keeps the mark's 52-unit box inside the central 80% circle
-  const s = maskable ? (0.8 * 512) / (52 * Math.SQRT2) : 512 / 64 * 0.78;
-  const t = 256 - 32 * s;
+  // white tile, full-colour mark centred on its bounding box; the maskable one fits the
+  // box's half-diagonal inside the central 80% circle (radius 204.8)
+  const [x0, y0, x1, y1] = BBOX[id];
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const s = maskable ? 204.8 / Math.hypot((x1 - x0) / 2, (y1 - y0) / 2) : (512 * 0.74) / Math.max(x1 - x0, y1 - y0);
+  const tx = 256 - cx * s, ty = 256 - cy * s;
   const bg = maskable ? `<rect width="512" height="512" fill="#ffffff"/>` : `<rect width="512" height="512" rx="112" fill="#ffffff"/>`;
-  return svg('0 0 512 512', `${bg}<g transform="translate(${f(t)} ${f(t)}) scale(${f(s)})">${concepts[id].mark(colours.full)}</g>`);
+  return svg('0 0 512 512', `${bg}<g transform="translate(${f(tx)} ${f(ty)}) scale(${f(s)})">${concepts[id].mark(colours.full)}</g>`);
 }
 
 const NOTES = {
   B1: '**Awning.** A scalloped shop awning over an instant-photo print: the print\'s deep chin is the shop counter and its window is the shopfront, so one snapshot becomes a shop, which is what Shelfie does with one photo of a price list.\nIt reads as a shop at 16 px (three scallops over a framed window), pomegranate awning over an ink print, no camera and no rounded app tile.',
-  B2: '**Propped print.** A snapshot print leaning on a shelf beside a bun: the product, its photo and the shelf it sells from in one small still life.\nThe tilted print gives a silhouette no other app icon has, the shelf grounds it as retail, and the bun keeps it a small food seller rather than a photo app.',
+  B2: '**Propped print.** An instant-photo print leaning on a shelf beside a bun: the goods, their snapshot and the shelf they sell from in one small still life.\nThe tilted print gives a silhouette no other app icon has, the shelf grounds it as retail, and the bun keeps it a small food seller rather than a photo app.',
   B3: '**On the shelf.** A wordmark-led logo: the lowercase "shelfie" stands on a pomegranate shelf, and the i\'s dot is a small square snapshot (the moment the shelf becomes a shop).\nThe name is the logo, so it is memorable without a symbol; the favicon is the wordmark\'s own "s" on its shelf with the snapshot square.',
 };
 
