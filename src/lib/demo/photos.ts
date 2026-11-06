@@ -1,7 +1,7 @@
 // Bundled photos for the three sample menus (public/demo/<shop-slug>/; sources and licences in docs/ASSETS.md).
 // Every URL is site-relative, the form Item.photoUrl and Shop.coverUrl store. Only the seeded demo shop
 // (marigold-bakehouse, scripts/seed-demo.ts) gets them automatically: a shop started from a sample menu in setup has
-// no photos until its seller adds some. The other two sets are for screenshot fixtures and the design work.
+// no photos until its seller adds some. Ravi's set is for screenshot fixtures and the design work; Tía Lupe has none on purpose, so the fixtures show the designed no-photo fallback.
 //
 // Keys are item names exactly as the recorded readings spell them (src/lib/ai/samples/*.json). An item with no clean
 // photo (a branded drink, a service with no good shot) is left out and shows the designed fallback.
@@ -29,21 +29,8 @@ export const DEMO_PHOTOS: Record<string, DemoPhotoSet> = {
       'Drip coffee': '/demo/marigold-bakehouse/drip-coffee.jpg',
     },
   },
-  'tia-lupe-chalkboard': {
-    cover: '/demo/tia-lupe-chalkboard/cover.jpg',
-    items: {
-      'Al pastor': '/demo/tia-lupe-chalkboard/al-pastor.jpg',
-      Carnitas: '/demo/tia-lupe-chalkboard/carnitas.jpg',
-      'Pollo asado': '/demo/tia-lupe-chalkboard/pollo-asado.jpg',
-      'Hongos (veg)': '/demo/tia-lupe-chalkboard/hongos-veg.jpg',
-      'Guac + chips': '/demo/tia-lupe-chalkboard/guac-chips.jpg',
-      Elote: '/demo/tia-lupe-chalkboard/elote.jpg',
-      'Burrito grande': '/demo/tia-lupe-chalkboard/burrito-grande.jpg',
-      'Bean & cheese': '/demo/tia-lupe-chalkboard/bean-cheese.jpg',
-      Horchata: '/demo/tia-lupe-chalkboard/horchata.jpg',
-      'Agua fresca del día': '/demo/tia-lupe-chalkboard/agua-fresca-del-dia.jpg',
-    },
-  },
+  // No photos on purpose: the fixtures need a shop that shows the designed fallback.
+  'tia-lupe-chalkboard': { cover: null, items: {} },
   'ravi-bike-repair': {
     cover: '/demo/ravi-bike-repair/cover.jpg',
     items: {

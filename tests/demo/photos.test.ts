@@ -32,8 +32,9 @@ describe('DEMO_PHOTOS', () => {
     expect(Object.keys(set.items).sort()).toEqual(recordedReading('marigold-bakehouse').items.map((i) => i.name).sort());
   });
 
-  it('leaves the branded drink to the designed fallback', () => {
-    expect(demoPhotoFor('tia-lupe-chalkboard', 'Jarritos')).toBeNull();
+  it('leaves Tía Lupe with no photos, so the fixtures show the designed fallback', () => {
+    expect(demoCoverFor('tia-lupe-chalkboard')).toBeNull();
+    expect(demoPhotoFor('tia-lupe-chalkboard', 'Al pastor')).toBeNull();
   });
 });
 
