@@ -14,8 +14,10 @@ export const W = 1920;
 export const H = 1080;
 export const FPS = 30;
 export const PHONE = { width: 390, height: 844 };
-/** The backdrop behind phone shots: the app's newsprint ground (docs/DESIGN.md), so edits don't flash. */
-const BACKDROP = '#efe9dc';
+/** The terminal clips' xterm: a character grid that fills 1920x1080 at this font size (measured on Xvfb's 96 dpi). */
+export const TERMINAL = { fontSize: 19, padding: 40, cols: 100, rows: 30 };
+/** The backdrop behind phone shots: the app's sunken paper (--paper-100, docs/DESIGN.md), a shade darker than the page. */
+const BACKDROP = '#e7e2d6';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -28,7 +30,8 @@ export interface Display {
 export async function startDisplay(name = ':97'): Promise<Display> {
   const lock = `/tmp/.X${name.slice(1)}-lock`;
   if (fs.existsSync(lock)) throw new Error(`display ${name} is in use (${lock}); pick another with --display`);
-  const proc = spawn('Xvfb', [name, '-screen', '0', `${W}x${H}x24`, '-nolisten', 'tcp', '-ac'], { stdio: 'ignore' });
+  // -wr: a white root window, so the few pixels a terminal's character grid leaves at the edges match its paper.
+  const proc = spawn('Xvfb', [name, '-screen', '0', `${W}x${H}x24`, '-nolisten', 'tcp', '-ac', '-wr'], { stdio: 'ignore' });
   for (let i = 0; i < 50 && !fs.existsSync(lock); i++) await sleep(100);
   if (!fs.existsSync(lock)) throw new Error('Xvfb did not start');
   await sleep(300);
@@ -91,7 +94,14 @@ export interface Stage {
 export async function openStage(
   display: Display,
   kind: 'desktop' | 'phone',
-  opts: { origin: string; profileDir: string; storageState?: string; deviceScaleFactor?: number },
+  opts: {
+    origin: string;
+    profileDir: string;
+    storageState?: string;
+    deviceScaleFactor?: number;
+    /** Scripts run in every page and frame before the page's own (the redactor, saved sessionStorage). */
+    initScripts?: string[];
+  },
 ): Promise<Stage> {
   fs.rmSync(opts.profileDir, { recursive: true, force: true });
   const context = await chromium.launchPersistentContext(opts.profileDir, {
@@ -103,6 +113,7 @@ export async function openStage(
     args: ['--kiosk', '--window-position=0,0', `--window-size=${W},${H}`, '--no-first-run', '--no-default-browser-check',
       '--disable-infobars', '--hide-crash-restore-bubble', `--force-device-scale-factor=${opts.deviceScaleFactor ?? 1}`, '--hide-scrollbars'],
   });
+  for (const content of opts.initScripts ?? []) await context.addInitScript({ content });
   if (opts.storageState) {
     const state = JSON.parse(fs.readFileSync(opts.storageState, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
     await context.addCookies(state.cookies);
@@ -145,6 +156,49 @@ export async function goApp(stage: Stage, url: string): Promise<void> {
 /** Types like a person, one character at a time, into `selector` in the page or the phone frame. */
 export async function typeSlowly(where: Page | Frame, selector: string, text: string, delayMs = 45) {
   await where.locator(selector).pressSequentially(text, { delay: delayMs });
+}
+
+export interface Terminal {
+  /** Resolves when terminal.mjs has typed and run every step. */
+  done(timeoutMs: number): Promise<void>;
+  close(): Promise<void>;
+}
+
+/** The xterm's look: the app's receipt paper and blackboard ink, ANSI colours from its status hues (docs/DESIGN.md). */
+const XTERM_LOOK = [
+  '-fa', 'DejaVu Sans Mono', '-fs', String(TERMINAL.fontSize), '-b', String(TERMINAL.padding), '-bw', '0', '+sb',
+  '-bg', '#fffefa', '-fg', '#1a1f1b', '-cr', '#1a1f1b',
+  '-xrm', 'XTerm*color1: #9b1e1b', '-xrm', 'XTerm*color2: #2e6a3d', '-xrm', 'XTerm*color3: #9c3f0b',
+  '-xrm', 'XTerm*color4: #33506b', '-xrm', 'XTerm*color8: #6b7069', '-xrm', 'XTerm*cursorBlink: false',
+];
+
+/**
+ * Opens a full-screen xterm running scripts/clips/terminal.mjs on `scriptFile`. `env` is the xterm's whole environment
+ * (plus DISPLAY): terminal.mjs passes on only the variables its script keeps.
+ */
+export function openTerminal(display: Display, scriptFile: string, env: Record<string, string>): Terminal {
+  const doneFile = (JSON.parse(fs.readFileSync(scriptFile, 'utf8')) as { doneFile: string }).doneFile;
+  fs.rmSync(doneFile, { force: true });
+  const proc = spawn(
+    'xterm',
+    [...XTERM_LOOK, '-geometry', `${TERMINAL.cols}x${TERMINAL.rows}+0+0`, '-T', 'shelfie-clip', '-e', process.execPath,
+      path.resolve('scripts/clips/terminal.mjs'), scriptFile],
+    { env: { ...env, DISPLAY: display.name } as unknown as NodeJS.ProcessEnv, stdio: 'ignore' },
+  );
+  return {
+    async done(timeoutMs) {
+      const end = Date.now() + timeoutMs;
+      while (!fs.existsSync(doneFile)) {
+        if (Date.now() > end) throw new Error(`the terminal script did not finish within ${timeoutMs / 1000} s`);
+        if (proc.exitCode !== null) throw new Error('the terminal closed before its script finished');
+        await sleep(250);
+      }
+    },
+    async close() {
+      proc.kill('SIGTERM');
+      await sleep(300);
+    },
+  };
 }
 
 export { sleep };
