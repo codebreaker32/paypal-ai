@@ -33,6 +33,33 @@ export async function settle(page: Page) {
   );
 }
 
+/**
+ * Answers the page's POSTs to `pathname` inside the page itself: a 200 NDJSON stream that sends `events` and then stays
+ * open, so a streaming screen (publish progress, the console thinking) holds its in-progress state for a screenshot.
+ * Mocked in the page's fetch rather than with page.route because a held route keeps a request in flight, and
+ * screenshots wait for the network to go idle. Nothing reaches the server.
+ */
+export async function streamThenHold(page: Page, pathname: string, events: unknown[]) {
+  await page.addInitScript(
+    ({ pathname, body }) => {
+      const original = window.fetch.bind(window);
+      window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+        const req = input instanceof Request ? input : null;
+        const url = new URL(req ? req.url : String(input), window.location.href);
+        const method = (init?.method ?? req?.method ?? 'GET').toUpperCase();
+        if (url.pathname !== pathname || method !== 'POST') return original(input, init);
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            if (body) controller.enqueue(new TextEncoder().encode(body));
+          },
+        });
+        return Promise.resolve(new Response(stream, { status: 200, headers: { 'content-type': 'application/x-ndjson' } }));
+      };
+    },
+    { pathname, body: events.map((e) => `${JSON.stringify(e)}\n`).join('') },
+  );
+}
+
 /** Holds every POST /api/shops open until release() is called. */
 export async function holdShopsApi(page: Page) {
   let release: () => void = () => {};
