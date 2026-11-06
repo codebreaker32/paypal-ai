@@ -2,8 +2,10 @@ import { Pressable } from '@/components/motion/pressable';
 import { Reveal } from '@/components/motion/reveal';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
-import { itemCategory } from '@/lib/domain/category';
+import type { ItemPicture } from '@/lib/domain/category';
 import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
+import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
+import { ExampleNote } from './ExampleNote';
 import { ItemPhoto } from './ItemPhoto';
 import { SectionTabs } from './SectionTabs';
 
@@ -45,15 +47,28 @@ function Prices({ item }: { item: ItemWithVariants }) {
   );
 }
 
-function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; kind: ShopKind }) {
+const PHOTO_BOX =
+  'size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-l-none sm:rounded-r-(--card-radius) lg:size-34';
+
+function MenuItem({ item, tone, picture }: { item: ItemWithVariants; tone: number; picture: ItemPicture }) {
   const unavailable = item.soldOut && item.status !== 'in_person';
+  const photo = (className: string) => (
+    <ItemPhoto
+      name={item.name}
+      {...picture}
+      tone={tone}
+      dim={unavailable}
+      sizes="(min-width: 1024px) 136px, (min-width: 640px) 128px, 112px"
+      className={className}
+    />
+  );
   return (
     // A card that answers the pointer (a 2 px lift with its shadow on hover, a press on tap). Not clipped itself (that
     // would clip the hover shadow): the photo rounds its own outer corners instead.
     <Pressable
       as="li"
       data-menu-item={item.name}
-      className="flex min-h-32 items-stretch gap-4 py-4 sm:rounded-(--card-radius) sm:bg-(--card-bg) sm:py-0 sm:pl-4 sm:shadow-(--card-shadow)"
+      className="group/tile flex min-h-32 items-stretch gap-4 py-4 sm:rounded-(--card-radius) sm:bg-(--card-bg) sm:py-0 sm:pl-4 sm:shadow-(--card-shadow)"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1 sm:py-3.5">
         <h4 className={cx('font-bold leading-6 [overflow-wrap:anywhere]', unavailable && 'text-ink-muted')}>{item.name}</h4>
@@ -68,15 +83,15 @@ function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; 
         </div>
         {item.description && <p className="mt-1 line-clamp-2 text-sm text-ink-muted [overflow-wrap:anywhere]">{item.description}</p>}
       </div>
-      <ItemPhoto
-        name={item.name}
-        photoUrl={item.photoUrl}
-        category={itemCategory(item, kind)}
-        tone={tone}
-        dim={unavailable}
-        sizes="(min-width: 1024px) 136px, (min-width: 640px) 128px, 112px"
-        className="size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-l-none sm:rounded-r-(--card-radius) lg:size-34"
-      />
+      {pictureSource(picture) === 'example' ? (
+        // An example from the library: the same box, with the small "Example photo" note over it.
+        <div className={cx('relative', PHOTO_BOX)}>
+          {photo('size-full rounded-[inherit]')}
+          <ExampleNote name={item.name} />
+        </div>
+      ) : (
+        photo(PHOTO_BOX)
+      )}
     </Pressable>
   );
 }
@@ -84,6 +99,11 @@ function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; 
 /** The shop's menu as people order from it: sticky section tabs, then each section's items as photo cards. */
 export function Menu({ sections, kind }: { sections: MenuSection[]; kind: ShopKind }) {
   const ids = sections.map((s, i) => ({ id: sectionId(s.name, i), name: s.name }));
+  // Example photos are matched across the whole menu, so two items avoid sharing one.
+  const pictures = itemPictures(
+    sections.flatMap((s) => s.items),
+    kind,
+  );
   return (
     <section aria-labelledby="menu-title" className="flex flex-col gap-6">
       <h2 id="menu-title" className="sr-only">
@@ -104,7 +124,7 @@ export function Menu({ sections, kind }: { sections: MenuSection[]; kind: ShopKi
               <h3 className="type-title">{section.name}</h3>
               <ul className="flex flex-col divide-y divide-line sm:grid sm:grid-cols-2 sm:gap-4 sm:divide-y-0">
                 {section.items.map((item) => (
-                  <MenuItem key={item.id} item={item} tone={i} kind={kind} />
+                  <MenuItem key={item.id} item={item} tone={i} picture={pictures.get(item.id) ?? pictureOf(item, kind, null)} />
                 ))}
               </ul>
             </Reveal>

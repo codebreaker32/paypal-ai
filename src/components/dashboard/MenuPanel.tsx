@@ -1,6 +1,6 @@
 'use client';
 
-import { itemCategory } from '@/lib/domain/category';
+import type { ItemPicture } from '@/lib/domain/category';
 import { listedItems } from '@/lib/domain/listed';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -8,7 +8,8 @@ import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
-import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
+import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
+import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
 import { Pressable } from '@/components/motion/pressable';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
@@ -45,16 +46,17 @@ function MenuRow({
   item,
   tone,
   shopId,
-  shopKind,
   busy,
   error,
   onToggle,
   onPhoto,
+  picture,
 }: {
   item: ItemWithVariants;
+  /** What its thumbnail shows (`itemPictures`: own photo, else a library example, else the drawing). */
+  picture: ItemPicture;
   tone: number;
   shopId: string;
-  shopKind: ShopKind;
   busy: boolean;
   error?: string;
   onToggle: (next: boolean) => void;
@@ -69,13 +71,12 @@ function MenuRow({
           shopId={shopId}
           itemId={item.id}
           name={item.name}
-          photoUrl={item.photoUrl}
-          category={itemCategory(item, shopKind)}
+          {...picture}
           tone={tone}
           size="sm"
           onChange={onPhoto}
           onError={setPhotoError}
-          className={cx(soldOut && item.photoUrl && 'opacity-60 grayscale')}
+          className={cx(soldOut && pictureSource(picture) !== 'drawing' && 'opacity-60 grayscale')}
         />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className={cx('font-semibold leading-6 [overflow-wrap:anywhere]', soldOut && 'text-ink-muted')}>{item.name}</span>
@@ -84,6 +85,7 @@ function MenuRow({
             {item.status === 'in_person' && <StatusText tone="muted">Ask in person</StatusText>}
             {soldOut && <StatusText tone="warn">Sold out today</StatusText>}
           </span>
+          <ExampleCaption show={pictureSource(picture) === 'example'} />
         </div>
         {item.status === 'live' && (
           <Switch
@@ -133,6 +135,7 @@ export function MenuPanel({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const listed = listedItems(items);
   const photos = listed.filter((i) => i.photoUrl).length;
+  const pictures = itemPictures(listed, shopKind);
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
     onItemsChange((all) => all.map((i) => (i.id === id ? { ...i, ...patch } : i)));
@@ -198,11 +201,11 @@ export function MenuPanel({
                   item={item}
                   tone={n}
                   shopId={shopId}
-                  shopKind={shopKind}
                   busy={busy.has(item.id)}
                   error={errors[item.id]}
                   onToggle={(next) => void toggle(item, next)}
                   onPhoto={(photoUrl) => setItem(item.id, { photoUrl })}
+                  picture={pictures.get(item.id) ?? pictureOf(item, shopKind, null)}
                 />
               ))}
             </ul>

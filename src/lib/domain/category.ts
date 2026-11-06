@@ -70,10 +70,12 @@ export function itemCategory(
   return guessCategory({ name: item.name, section: item.section, description: item.description, shopKind });
 }
 
-/** What an item thumbnail shows: the seller's photo, else the drawing of its category. */
+/** What an item thumbnail shows: the seller's photo, else an example photo (`exampleUrls`), else the drawing of its category. */
 export interface ItemPicture {
   photoUrl: string | null;
   category: ItemCategory;
+  /** The library example shown while `photoUrl` is null; never sent to agents. Absent or null: the drawing. */
+  exampleUrl?: string | null;
 }
 
 /**

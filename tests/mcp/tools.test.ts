@@ -197,6 +197,17 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(tools.find((t) => t.name === 'list_products')!.description).toMatch(/image_url/);
   });
 
+  it('list_products never sends a library example photo as image_url (examples are for people only)', async () => {
+    items.update(db, almond().id, { photoUrl: null, examplePhoto: 'croissant-1' });
+    items.update(db, loaf().id, { photoUrl: null, examplePhoto: 'pexels:123' });
+    const out = ok<{ sections: { items: { name: string; image_url?: string }[] }[] }>(
+      'list_products', await call(await connect(), 'list_products'));
+    const all = out.sections.flatMap((x) => x.items);
+    expect(all.find((i) => i.name === 'Almond croissant')).not.toHaveProperty('image_url');
+    expect(all.find((i) => i.name === 'Sourdough loaf')).not.toHaveProperty('image_url');
+    expect(JSON.stringify(out)).not.toMatch(/library|pexels/);
+  });
+
   it('list_products never sends a Shelfie drawing as image_url: an item with only a category has no image', async () => {
     items.update(db, almond().id, { category: 'pastry', photoUrl: null });
     items.update(db, loaf().id, { category: 'bread', photoUrl: null });

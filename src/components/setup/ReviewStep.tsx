@@ -22,6 +22,7 @@ import { StepHeader } from './StepHeader';
 import { Reveal } from '@/components/motion/reveal';
 import { applyLocal, cardId, flaggedCards, openSkipped } from './review-model';
 import { useAutosave, type SaveState } from './useAutosave';
+import { itemPictures } from '@/lib/library/picture';
 
 export interface ReviewProps {
   shopId: string;
@@ -149,7 +150,9 @@ export function ReviewStep(props: ReviewProps) {
   }, []);
 
   const shopKind = server.shop.kind;
-  const photoContext = useMemo(() => ({ shopId, shopKind, onPhoto }), [shopId, shopKind, onPhoto]);
+  // Example photos matched over the whole menu (not removed items), as the public shop page does.
+  const pictures = useMemo(() => itemPictures(items.filter((i) => i.status !== 'removed'), shopKind), [items, shopKind]);
+  const photoContext = useMemo(() => ({ shopId, shopKind, onPhoto, pictures }), [shopId, shopKind, onPhoto, pictures]);
 
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
@@ -313,7 +316,7 @@ export function ReviewStep(props: ReviewProps) {
                 Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>
               {ready.length ? (
-                <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
+                <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} pictures={pictures} />
               ) : (
                 <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
               )}
@@ -329,7 +332,7 @@ export function ReviewStep(props: ReviewProps) {
                   </h2>
                   <p className="text-ink-soft">On your shop without a price. Assistants can’t order them.</p>
                 </div>
-                <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
+                <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} pictures={pictures} />
               </section>
             </Reveal>
           )}

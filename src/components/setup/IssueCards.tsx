@@ -1,6 +1,5 @@
 'use client';
 
-import { itemCategory } from '@/lib/domain/category';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,8 +8,9 @@ import { Field, TextInput } from '@/components/ui/field';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';
-import type { PhotoProps } from './ItemLists';
-import { ItemPhotoPicker, PhotoError } from './PhotoPicker';
+import { reviewPicture, type PhotoProps } from './ItemLists';
+import { pictureSource } from '@/lib/library/picture';
+import { ExampleCaption, ItemPhotoPicker, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { ISSUE_LABEL, duplicateUpdates, priceSummary, type Card as CardModel } from './review-model';
 
@@ -44,6 +44,12 @@ function usePriceFields(item: ItemWithVariants) {
 /** Lets a flagged card show its item's photo control: the review screen provides it. */
 export const PhotoContext = createContext<PhotoProps | null>(null);
 
+/** Whether the flagged item's thumbnail is a library example (the review screen's whole-menu `itemPictures`). */
+function useShowsExample(item: ItemWithVariants | undefined): boolean {
+  const photo = useContext(PhotoContext);
+  return Boolean(item && photo && pictureSource(reviewPicture(item, photo.shopKind, photo.pictures)) === 'example');
+}
+
 function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (message: string | null) => void }) {
   const photo = useContext(PhotoContext);
   if (!photo) return null;
@@ -52,8 +58,7 @@ function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (messag
       shopId={photo.shopId}
       itemId={item.id}
       name={item.name}
-      photoUrl={item.photoUrl}
-      category={itemCategory(item, photo.shopKind)}
+      {...reviewPicture(item, photo.shopKind, photo.pictures)}
       size="sm"
       onChange={(url) => photo.onPhoto(item.id, url)}
       onError={onError}
@@ -78,6 +83,7 @@ function CardShell({
   children: ReactNode;
 }) {
   const [photoError, setPhotoError] = useState<string | null>(null);
+  const showsExample = useShowsExample(item);
   return (
     <Card as="article" aria-labelledby={`${id}-name`} className="flex flex-col gap-4 animate-fade-in">
       <div className="flex items-center gap-3 sm:gap-4">
@@ -93,6 +99,7 @@ function CardShell({
             </span>
             {section && <span className="text-ink-muted">{section}</span>}
           </p>
+          <ExampleCaption show={showsExample} />
         </div>
       </div>
       <PhotoError error={photoError} />

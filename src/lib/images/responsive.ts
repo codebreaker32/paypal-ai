@@ -1,10 +1,10 @@
 import { getImageProps } from 'next/image';
 
 /**
- * Local photos the image optimizer may resize: bundled demo photos (`/demo/…`) and uploads (`/i/…`), with no query
+ * Local photos the image optimizer may resize: bundled demo photos (`/demo/…`), library example photos (`/library/…`) and uploads (`/i/…`), with no query
  * string. It must match `images.localPatterns` in next.config.ts, or the optimizer answers 400.
  */
-const OPTIMIZABLE = /^\/(?:demo|i)\/[^?#]+$/;
+const OPTIMIZABLE = /^\/(?:demo|library|i)\/[^?#]+$/;
 
 /**
  * A `srcSet` of resized WebP copies (`/_next/image`) for a photo shown at `sizes`, so a phone loads a 256 px copy for

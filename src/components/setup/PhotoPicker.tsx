@@ -139,6 +139,8 @@ export interface ItemPhotoPickerProps {
   photoUrl: string | null;
   /** The item's drawing while it has no photo (`itemCategory(item, shop.kind)`, as on the public menu). */
   category: ItemCategory;
+  /** The library example shown while it has no photo (`exampleUrls`); the row adds `ExampleCaption` beside it. */
+  exampleUrl?: string | null;
   /** Menu section index, for the fallback tint. */
   tone?: number;
   onChange: (photoUrl: string | null) => void;
@@ -153,7 +155,7 @@ export interface ItemPhotoPickerProps {
  * An item's thumbnail that is also its photo control. Without a photo, a tap opens the camera or library; with one, a
  * sheet shows it large with Replace and Remove. Errors (a refused file, a failed upload) show under the thumbnail's row.
  */
-export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, tone = 0, onChange, onError, size = 'md', className }: ItemPhotoPickerProps) {
+export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, exampleUrl, tone = 0, onChange, onError, size = 'md', className }: ItemPhotoPickerProps) {
   const [open, setOpen] = useState(false);
   const actions = usePhotoActions(
     (file) => uploadItemPhoto(shopId, itemId, file),
@@ -178,7 +180,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, tone
         </button>
       ) : (
         <FileLabel label={`Add a photo of ${name}`} onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(box, 'group')}>
-          <ItemPhoto name={name} photoUrl={null} category={category} tone={tone} decorative className="size-full rounded-(--thumb-radius)" />
+          <ItemPhoto name={name} photoUrl={null} exampleUrl={exampleUrl} category={category} tone={tone} decorative className="size-full rounded-(--thumb-radius) object-cover" />
           <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-surface text-ink shadow-sm transition-transform group-hover:scale-110">
             <Icon icon={ImagePlus} size="sm" />
           </span>
@@ -224,6 +226,19 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, tone
         )}
       </Sheet>
     </div>
+  );
+}
+
+/**
+ * Under an item whose thumbnail is a library example (Part A3): says so plainly, so the seller never mistakes it for
+ * their own photo and knows the thumbnail beside it replaces it. Nothing shows for the seller's own photo.
+ */
+export function ExampleCaption({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span data-example-caption="" className="type-meta text-note">
+      Example photo, replace with yours
+    </span>
   );
 }
 

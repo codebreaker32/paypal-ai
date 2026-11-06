@@ -2,6 +2,7 @@
 import { ItemIllustration, tileTone } from '@/components/illustrations/ItemIllustration';
 import { cx } from '@/components/ui/cx';
 import type { ItemCategory } from '@/lib/domain/category';
+import { pictureSource, pictureSrc } from '@/lib/library/picture';
 import { responsiveImage } from '@/lib/images/responsive';
 
 export { tileTone };
@@ -11,6 +12,11 @@ export interface ItemPhotoProps {
   photoUrl: string | null;
   /** The item's drawing when it has no photo (`itemCategory(item, shop.kind)`). */
   category: ItemCategory;
+  /**
+   * An example photo from the library (`exampleUrls`), shown when the item has no photo of its own. It is drawn like a
+   * photo, but its alt says "example photo"; the screens that show it add their own visible note.
+   */
+  exampleUrl?: string | null;
   /** Index of the item's menu section, for the fallback tint. */
   tone?: number;
   dim?: boolean;
@@ -24,17 +30,22 @@ export interface ItemPhotoProps {
 }
 
 /**
- * An item's photo (the seller's own, or a crop they kept from "Snap your counter"), or its designed fallback: a Shelfie
+ * An item's photo (the seller's own, or a crop they kept from "Snap your counter"), else an example photo from the
+ * bundled library (Part A3: for people only, labelled as an example where it shows), or its designed fallback: a Shelfie
  * drawing of what the item is (a loaf, a croissant, a taco …) on its section's tint, so a menu with no photos still
  * reads as a deliberate, colour-coded grid of pictures rather than grey boxes or letters.
  */
-export function ItemPhoto({ name, photoUrl, category, tone = 0, dim, className, decorative, eager, sizes }: ItemPhotoProps) {
-  if (photoUrl) {
+export function ItemPhoto({ name, photoUrl, category, exampleUrl, tone = 0, dim, className, decorative, eager, sizes }: ItemPhotoProps) {
+  const picture = { photoUrl, exampleUrl, category };
+  const src = pictureSrc(picture);
+  if (src) {
+    const example = pictureSource(picture) === 'example';
     return (
       <img
-        src={photoUrl}
-        {...(sizes ? responsiveImage(photoUrl, sizes) : {})}
-        alt={decorative ? '' : name}
+        src={src}
+        {...(sizes ? responsiveImage(src, sizes) : {})}
+        alt={decorative ? '' : example ? `${name}, example photo` : name}
+        data-example-photo={example || undefined}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         className={cx('block object-cover', dim && 'opacity-50 grayscale', className)}

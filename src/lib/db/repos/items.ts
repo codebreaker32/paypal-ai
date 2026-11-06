@@ -1,7 +1,8 @@
 import type { Db } from '@/lib/db';
 import { now } from '@/lib/db';
 import { newId } from '@/lib/domain/ids';
-import { isItemCategory, itemCategory, type ItemCategory, type ItemPicture } from '@/lib/domain/category';
+import { isItemCategory, type ItemCategory, type ItemPicture } from '@/lib/domain/category';
+import { itemPictures as menuPictures } from '@/lib/library/picture';
 import { LISTED_STATUSES } from '@/lib/domain/listed';
 import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVariants, ShopKind, Variant } from '@/lib/domain/types';
 
@@ -73,13 +74,19 @@ export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemSt
   return withVariants(db, rows);
 }
 
-/** Each of a shop's items' thumbnail (photo, else its drawing's category), without reading their variants: order lines. */
+/** Each of a shop's items' thumbnail (`itemPictures`: own photo, else example, else drawing), without reading their variants: order lines. */
 export function itemPictures(db: Db, shopId: string, shopKind: ShopKind): Map<string, ItemPicture> {
-  const rows = db.prepare('SELECT id, photo_url, category, name, section, description FROM items WHERE shop_id = ?').all(shopId) as {
-    id: string; photo_url: string | null; category: string | null; name: string; section: string | null; description: string | null;
+  const rows = db
+    .prepare('SELECT id, photo_url, example_photo, category, name, section, description FROM items WHERE shop_id = ? ORDER BY sort')
+    .all(shopId) as {
+    id: string; photo_url: string | null; example_photo: string | null; category: string | null; name: string; section: string | null; description: string | null;
   }[];
-  return new Map(
-    rows.map((r) => [r.id, { photoUrl: r.photo_url ?? null, category: itemCategory({ ...r, category: isItemCategory(r.category) ? r.category : null }, shopKind) }]),
+  return menuPictures(
+    rows.map((r) => ({
+      id: r.id, name: r.name, section: r.section, description: r.description, photoUrl: r.photo_url ?? null,
+      examplePhoto: r.example_photo ?? null, category: isItemCategory(r.category) ? r.category : null,
+    })),
+    shopKind,
   );
 }
 
