@@ -1,6 +1,6 @@
 // Dashboard loading skeleton (spec §4). Lives in a route group so it does not wrap /shops/[id]/setup or order detail.
 // Shaped like the shell it stands in for: the shop's mark and name, the tabs, the filter, then rows with a thumbnail.
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLoading() {
   return (

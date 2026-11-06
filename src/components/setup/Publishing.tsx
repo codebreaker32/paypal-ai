@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from 'react';
 import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ApiError, publish, type PublishEvent } from './api';
 import { publishCounts } from './review-model';

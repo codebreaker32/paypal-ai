@@ -1,18 +1,20 @@
 import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { Loader2, type LucideIcon } from 'lucide-react';
-import { Icon } from './Icon';
-import { cx } from './cx';
+import { cva } from 'class-variance-authority';
+import { cn } from '@/lib/utils';
+import { Icon } from './icon';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'paypal';
 export type ButtonSize = 'md' | 'lg';
 
+// shadcn's button pattern (cva variants, data-slot), with Shelfie's pills and heights.
 const BASE =
   'relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-(--button-radius) font-semibold ' +
   'select-none transition-[background-color,border-color,color,box-shadow,transform] duration-(--duration-fast) ease-out ' +
   'active:translate-y-px disabled:pointer-events-none aria-disabled:pointer-events-none';
 
-const VARIANT: Record<ButtonVariant, string> = {
+const VARIANT = {
   primary:
     'border-(length:--button-border-w) border-(--button-primary-border) bg-(--button-primary-bg) text-(--button-primary-fg) ' +
     'hover:bg-(--button-primary-bg-hover) active:bg-(--button-primary-bg-active)',
@@ -23,14 +25,24 @@ const VARIANT: Record<ButtonVariant, string> = {
   paypal:
     'bg-(--button-paypal-bg) text-(--button-paypal-fg) shadow-xs hover:bg-(--button-paypal-bg-hover) ' +
     'active:bg-(--button-paypal-bg-active)',
-};
+} satisfies Record<ButtonVariant, string>;
 
-const SIZE: Record<ButtonSize, string> = {
+const SIZE = {
   md: 'min-h-(--button-h-md) px-(--button-px-md) text-base',
   lg: 'min-h-(--button-h-lg) px-(--button-px-lg) text-lg',
-};
+} satisfies Record<ButtonSize, string>;
 
-const DISABLED = 'disabled:opacity-50 aria-disabled:opacity-50';
+/** The cva recipe behind every button-looking element. Prefer `buttonClasses()`, which also merges a className. */
+export const buttonVariants = cva(BASE, {
+  variants: {
+    variant: VARIANT,
+    size: SIZE,
+    fullWidth: { true: 'w-full', false: '' },
+    // A loading button keeps full colour (it is busy, not unavailable); anything else dims when disabled.
+    loading: { true: '', false: 'disabled:opacity-50 aria-disabled:opacity-50' },
+  },
+  defaultVariants: { variant: 'primary', size: 'md', fullWidth: false, loading: false },
+});
 
 export interface ButtonStyleOptions {
   variant?: ButtonVariant;
@@ -43,7 +55,7 @@ export interface ButtonStyleOptions {
 
 /** Class list for anything that should look like a button (e.g. a link). */
 export function buttonClasses({ variant = 'primary', size = 'md', fullWidth, loading, className }: ButtonStyleOptions = {}) {
-  return cx(BASE, VARIANT[variant], SIZE[size], !loading && DISABLED, fullWidth && 'w-full', className);
+  return cn(buttonVariants({ variant, size, fullWidth: !!fullWidth, loading: !!loading }), className);
 }
 
 interface ContentProps {
@@ -95,6 +107,8 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
+      data-slot="button"
+      data-variant={variant}
       type={type}
       className={buttonClasses({ variant, size, fullWidth, loading, className })}
       disabled={disabled || loading}
@@ -126,7 +140,7 @@ export function ButtonLink({
   ...rest
 }: ButtonLinkProps) {
   return (
-    <Link className={buttonClasses({ variant, size, fullWidth, className })} {...rest}>
+    <Link data-slot="button" data-variant={variant} className={buttonClasses({ variant, size, fullWidth, className })} {...rest}>
       <ButtonContent icon={icon} iconEnd={iconEnd} size={size}>
         {children}
       </ButtonContent>

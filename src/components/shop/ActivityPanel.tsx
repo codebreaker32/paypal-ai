@@ -1,5 +1,5 @@
 import { ChevronRight, CircleAlert, CircleCheck, CircleSlash, DoorOpen, Loader2, type LucideIcon } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { argSummary, requestJson, resultSummary } from './activity-format';
 import type { CallStatus, ToolCall } from './console-state';

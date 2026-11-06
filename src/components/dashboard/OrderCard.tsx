@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Loader2, Truck } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { formatUSD } from '@/lib/domain/money';

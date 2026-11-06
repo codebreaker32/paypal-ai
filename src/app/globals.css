@@ -130,6 +130,28 @@
   --color-tile-lilac: var(--tile-lilac-bg);
   --color-tile-lilac-ink: var(--tile-lilac-ink);
 
+  /* shadcn's semantic names (components.json), mapped onto ours so a component added with `npx shadcn add` speaks
+     Shelfie without its default palette. `accent` keeps Shelfie's meaning (pomegranate, never a hover fill): when a
+     shadcn component uses `bg-accent` for hover or selection, change it to `bg-muted`. */
+  --color-background: var(--white);
+  --color-foreground: var(--ink-900);
+  --color-card: var(--white);
+  --color-card-foreground: var(--ink-900);
+  --color-popover: var(--white);
+  --color-popover-foreground: var(--ink-900);
+  --color-primary: var(--ink-900);
+  --color-primary-foreground: var(--white);
+  --color-secondary: var(--grey-50);
+  --color-secondary-foreground: var(--ink-900);
+  --color-muted: var(--grey-50);
+  --color-muted-foreground: var(--ink-600);
+  --color-accent-foreground: var(--white);
+  --color-destructive: var(--red-700);
+  --color-destructive-foreground: var(--white);
+  --color-border: var(--grey-100);
+  --color-input: var(--grey-500);
+  --color-ring: var(--ink-900);
+
   /* Type scale: major third from 16 px, rounded to the 2 px grid. Smallest step is 13 px. */
   --text-*: initial;
   --text-xs: 0.8125rem;

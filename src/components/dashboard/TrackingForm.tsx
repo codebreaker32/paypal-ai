@@ -3,10 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useState, type FormEvent } from 'react';
 import { ChevronDown, CircleCheck, Send } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Field, FieldError, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/button';
+import { Field, FieldError, TextInput } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
+import { useToast } from '@/components/ui/toast';
 import { TRACK_IN_YOUR_PAYPAL } from '@/lib/domain/payee';
 import { OFFERED_CARRIERS, type CarrierId } from '@/lib/seller/carriers';
 import { ApiError, addTracking } from './api';

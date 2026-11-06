@@ -2,7 +2,7 @@
 
 import { useId, type ReactNode } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 
 export interface SwitchProps {

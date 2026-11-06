@@ -3,9 +3,9 @@
 /* eslint-disable @next/next/no-img-element -- site-relative uploads of unknown size, as in ItemPhoto */
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
-import { Sheet } from '@/components/ui/Sheet';
+import { Button } from '@/components/ui/button';
+import { Icon } from '@/components/ui/icon';
+import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { startErrorMessage } from '@/lib/client/api';

@@ -3,8 +3,8 @@
 import Image from 'next/image';
 import { useState, type ReactNode } from 'react';
 import { Expand } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
-import { Sheet } from '@/components/ui/Sheet';
+import { Icon } from '@/components/ui/icon';
+import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
 
 export const photoUrl = (shopId: string, page: number, version = 0) =>

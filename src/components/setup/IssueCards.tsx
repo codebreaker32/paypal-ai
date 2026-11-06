@@ -2,9 +2,9 @@
 
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Field, TextInput } from '@/components/ui/Field';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Field, TextInput } from '@/components/ui/field';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';

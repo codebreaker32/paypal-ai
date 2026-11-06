@@ -1,7 +1,7 @@
 import { Info, Loader2, MessageSquareQuote, Sparkles, TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
-import { Icon } from '@/components/ui/Icon';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import type { Order, OrderBrief } from '@/lib/domain/types';
 

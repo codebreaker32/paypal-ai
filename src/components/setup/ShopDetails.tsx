@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Field, TextArea, TextInput } from '@/components/ui/Field';
+import { Field, TextArea, TextInput } from '@/components/ui/field';
 import { cx } from '@/components/ui/cx';
 import type { ShopFulfillment } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';

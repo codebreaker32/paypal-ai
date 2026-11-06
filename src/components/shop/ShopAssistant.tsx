@@ -2,10 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Bot, X } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Icon } from '@/components/ui/Icon';
-import { Sheet } from '@/components/ui/Sheet';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
+import { Sheet } from '@/components/ui/sheet';
 import { ConsoleComposer, ConsoleConversation, useBuyerConsole } from './BuyerConsole';
 
 const DESKTOP = '(min-width: 1024px)';

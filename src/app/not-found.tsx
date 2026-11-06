@@ -1,7 +1,7 @@
 // Every other 404 (an unknown path, or a dashboard or order the visitor doesn't own): the site's own page, not Next's default.
 import type { Metadata } from 'next';
 import { ArrowLeft } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/button';
 
 export const metadata: Metadata = { title: 'Not found · Shelfie', robots: { index: false } };
 

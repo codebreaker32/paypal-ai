@@ -2,8 +2,8 @@
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
-import { Icon } from './Icon';
-import { cx } from './cx';
+import { Icon } from './icon';
+import { cn } from '@/lib/utils';
 
 export interface SheetProps {
   open: boolean;
@@ -68,7 +68,7 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className={cx(
+      className={cn(
         'fixed inset-x-0 bottom-0 top-auto m-0 w-full max-w-full max-h-[90dvh] p-0',
         'rounded-t-(--sheet-radius) bg-(--sheet-bg) text-ink shadow-(--sheet-shadow)',
         'sm:inset-0 sm:m-auto sm:h-fit sm:max-w-(--sheet-max-w) sm:rounded-(--sheet-radius)',

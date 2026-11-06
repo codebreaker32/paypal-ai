@@ -9,7 +9,7 @@ import {
   Truck,
   type LucideIcon,
 } from 'lucide-react';
-import type { BadgeTone } from '@/components/ui/Badge';
+import type { BadgeTone } from '@/components/ui/badge';
 import type { Order } from '@/lib/domain/types';
 import { cx } from '@/components/ui/cx';
 

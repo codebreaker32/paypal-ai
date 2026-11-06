@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { PackageCheck } from 'lucide-react';
-import { Button, type ButtonVariant } from '@/components/ui/Button';
-import { FieldError } from '@/components/ui/Field';
-import { useToast } from '@/components/ui/Toast';
+import { Button, type ButtonVariant } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
+import { useToast } from '@/components/ui/toast';
 import type { Order } from '@/lib/domain/types';
 import { markPickedUp } from './api';
 

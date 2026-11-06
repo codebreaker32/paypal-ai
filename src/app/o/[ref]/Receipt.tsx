@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Bot } from 'lucide-react';
-import { ButtonLink, buttonClasses } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Icon } from '@/components/ui/Icon';
+import { ButtonLink, buttonClasses } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';

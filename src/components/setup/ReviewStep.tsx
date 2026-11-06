@@ -3,10 +3,10 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, CircleAlert, CircleCheck, History, Loader2, RotateCcw, Send, TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { FieldError } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { FieldError } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';

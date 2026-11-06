@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { Figtree } from 'next/font/google';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
-import { ToastProvider } from '@/components/ui/Toast';
+import { ToastProvider } from '@/components/ui/toast';
 import { PWA } from '@/lib/brand/pwa';
 import './globals.css';
 

@@ -2,10 +2,10 @@
 
 import { useState, type FormEvent } from 'react';
 import { CircleCheck, Info, TriangleAlert } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Field, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
-import { useToast } from '@/components/ui/Toast';
+import { Button } from '@/components/ui/button';
+import { Field, TextInput } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
+import { useToast } from '@/components/ui/toast';
 import { parsePayeeEmail } from '@/lib/domain/payee';
 import { setPayeeEmail } from './api';
 

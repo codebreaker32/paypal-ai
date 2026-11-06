@@ -16,7 +16,7 @@ vi.mock('@/lib/db', async (orig) => {
 const { createTestDb } = await import('@/lib/db');
 const { getConfig } = await import('@/lib/config');
 const { seedShop } = await import('../helpers/shop');
-const { ToastProvider } = await import('@/components/ui/Toast');
+const { ToastProvider } = await import('@/components/ui/toast');
 const { default: ShopPage } = await import('@/app/s/[slug]/page');
 
 type Seed = Parameters<typeof seedShop>[1];

@@ -3,10 +3,10 @@
 import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { Camera, ImagePlus, Lightbulb, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { FieldError } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { FieldError } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
 import { startErrorMessage } from '@/lib/client/api';
 import { MAX_PHOTOS, checkNewPhotos } from '@/lib/client/photos';
 import { PhotoStrip } from './MenuPhotos';

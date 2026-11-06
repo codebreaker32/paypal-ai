@@ -1,7 +1,7 @@
 'use client';
 
 import { useId, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
-import { cx } from './cx';
+import { cn } from '@/lib/utils';
 
 export interface TabItem {
   id: string;
@@ -68,7 +68,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
               tabIndex={selected ? 0 : -1}
               onClick={() => select(item.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
-              className={cx(
+              className={cn(
                 'relative inline-flex min-h-(--tabs-h) items-center gap-2 text-sm font-semibold whitespace-nowrap sm:text-base',
                 'after:absolute after:inset-x-0 after:-bottom-px after:h-[3px] after:transition-colors',
                 selected ? 'text-ink after:bg-(--tabs-indicator)' : 'text-ink-muted hover:text-ink after:bg-transparent',

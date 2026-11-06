@@ -16,9 +16,9 @@ import {
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type { OrderStatus } from '@/lib/domain/types';
-import { Button, ButtonLink, buttonClasses } from '@/components/ui/Button';
-import { FieldError, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
+import { Button, ButtonLink, buttonClasses } from '@/components/ui/button';
+import { FieldError, TextInput } from '@/components/ui/field';
+import { Icon } from '@/components/ui/icon';
 import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
 import {

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/ui/icon';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';

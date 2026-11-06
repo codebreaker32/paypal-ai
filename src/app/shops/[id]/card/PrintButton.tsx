@@ -1,7 +1,7 @@
 'use client';
 
 import { Printer } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 /** The counter card's one primary action: the browser's print dialog (print styles show the card alone). */
 export function PrintButton() {
