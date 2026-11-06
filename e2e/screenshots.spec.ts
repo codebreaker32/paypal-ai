@@ -400,7 +400,7 @@ const SCREENS: Screen[] = [
       await openReview(page, context);
       await page.getByRole('button', { name: `Publish ${items.length} items to PayPal` }).click();
       await expect(page.getByRole('heading', { level: 1, name: 'Almost there' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Retry 2' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Retry 2 items' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Continue to your live shop' })).toBeVisible();
     },
   },

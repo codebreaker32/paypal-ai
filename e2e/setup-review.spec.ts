@@ -170,7 +170,7 @@ test('a partly failed publish shows the live shop with Retry for the rest', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
   await expect(page.getByText('1 item hasn’t reached PayPal yet')).toBeVisible();
   await expect(page.getByText(/Country sourdough loaf is ready but PayPal didn’t take it/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Retry 1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry 1 item' })).toBeVisible();
   await settle(page);
 });
 
