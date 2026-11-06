@@ -6,6 +6,8 @@ import * as items from '@/lib/db/repos/items';
 import { PAYEE_KEEP_MESSAGE } from '@/lib/domain/payee';
 import type { DraftItem } from '@/lib/domain/types';
 import { EditError, addItem, applyItemUpdates, applyShopPatch, parseItemUpdates, parseNewItem, parseShopPatch } from '@/lib/catalog/edits';
+import { itemCategory } from '@/lib/domain/category';
+import { applyLocal } from '@/components/setup/review-model';
 
 const draft = (name: string, prices: (number | null)[], extra: Partial<DraftItem> = {}): DraftItem => ({
   section: 'Pastries', name, description: null, sourceText: name, confidence: 'high', kind: 'PHYSICAL',
@@ -182,6 +184,29 @@ describe('edits', () => {
       expect(parseItemUpdates(up(50_000)).updates[0].variants![0].priceCents).toBe(50_000);
       expect(errorOf(() => parseItemUpdates({ updates: [{ itemId: ids['Butter croissant'], price: 1 }] }))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates({ updates: [] }))?.code).toBe('INVALID_REQUEST');
+    });
+
+    it('a rename drops the picture Claude chose for the old name, so the drawing follows the new one', () => {
+      const [taco] = items.replaceDrafts(db, shopId, [draft('Taco', [300], { category: 'taco' })]);
+      const out = applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, name: 'Horchata' }] }));
+      const renamed = out.find((i) => i.id === taco.id)!;
+      expect(renamed.category).toBeNull();
+      expect(itemCategory(renamed, 'food')).toBe('drink');
+    });
+
+    it('keeps the chosen picture when the name is sent unchanged, or not at all', () => {
+      const [taco] = items.replaceDrafts(db, shopId, [draft('Al pastor', [300], { category: 'taco' })]);
+      applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, name: 'Al pastor', variants: [{ label: null, priceCents: 350 }] }] }));
+      expect(items.byIdForShop(db, shopId, taco.id)!.category).toBe('taco');
+      applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, description: 'Pork and pineapple' }] }));
+      expect(items.byIdForShop(db, shopId, taco.id)!.category).toBe('taco');
+    });
+
+    it('the review screen’s local copy drops it on a rename too (applyLocal)', () => {
+      const [taco] = items.replaceDrafts(db, shopId, [draft('Taco', [300], { category: 'taco' })]);
+      expect(applyLocal(taco, { itemId: taco.id, name: 'Horchata' }).category).toBeNull();
+      expect(applyLocal(taco, { itemId: taco.id, name: 'Taco' }).category).toBe('taco');
+      expect(applyLocal(taco, { itemId: taco.id, soldOut: true }).category).toBe('taco');
     });
 
     it('lets a live item be marked sold out or removed, but not renamed or repriced', () => {

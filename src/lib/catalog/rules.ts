@@ -11,6 +11,13 @@ type ItemLike = Pick<ItemWithVariants, 'status' | 'issues' | 'paypalProductId'> 
   variants: Pick<Variant, 'priceCents'>[];
 };
 
+/**
+ * An edit that gives the item a new name: the picture Claude chose for the old one no longer fits ("Taco" corrected to
+ * "Horchata"), so the edit clears the item's category and the keyword guess draws it from the new name
+ * (`itemCategory`). The server (`applyItemUpdates`) and the review screen's local copy (`applyLocal`) both use it.
+ */
+export const renamed = (item: { name: string }, edit: { name?: string }): boolean => edit.name !== undefined && edit.name !== item.name;
+
 /** Every option has a price the door can sell: over $0 and within the order cap. */
 export const isPriced = (it: Pick<ItemLike, 'variants'>): boolean =>
   it.variants.length > 0 && it.variants.every((v) => v.priceCents != null && v.priceCents > 0 && v.priceCents <= MAX_PRICE_CENTS);

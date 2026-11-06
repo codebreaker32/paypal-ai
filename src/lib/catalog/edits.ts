@@ -6,7 +6,7 @@ import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import { PAYEE_KEEP_MESSAGE, isDemoShop, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
-import { MAX_PRICE_CENTS, MAX_VARIANTS } from './rules';
+import { MAX_PRICE_CENTS, MAX_VARIANTS, renamed } from './rules';
 
 export class EditError extends Error {
   constructor(
@@ -126,6 +126,7 @@ export function applyItemUpdates(db: Db, shopId: string, input: ItemUpdatesInput
         status: u.status,
         soldOut: u.soldOut,
         issues: u.resolveIssues ? [] : u.resolveDuplicate ? item.issues.filter((c) => c !== 'DUPLICATE') : undefined,
+        category: renamed(item, u) ? null : undefined,
       });
       if (u.variants) items.setVariants(db, u.itemId, u.variants);
     }
