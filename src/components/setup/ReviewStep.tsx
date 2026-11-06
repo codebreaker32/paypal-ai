@@ -50,11 +50,15 @@ function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void 
     );
   }
   const busy = state.status === 'pending' || state.status === 'saving';
-  if (!busy && state.status !== 'saved') return null;
+  // The live region stays mounted while idle (empty), so screen readers announce "Saving…" when it appears.
   return (
     <span className="flex items-center gap-1.5 type-meta text-ink-muted" role="status">
-      <Icon icon={busy ? Loader2 : CircleCheck} size="sm" className={cx(busy && 'animate-spin', !busy && 'text-ok')} />
-      {busy ? 'Saving…' : 'Saved'}
+      {(busy || state.status === 'saved') && (
+        <>
+          <Icon icon={busy ? Loader2 : CircleCheck} size="sm" className={cx(busy && 'animate-spin', !busy && 'text-ok')} />
+          {busy ? 'Saving…' : 'Saved'}
+        </>
+      )}
     </span>
   );
 }
