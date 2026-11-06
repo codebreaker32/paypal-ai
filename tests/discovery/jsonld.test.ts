@@ -92,6 +92,18 @@ describe('shopJsonLd', () => {
     expect(ldFor({ ...shop, coverUrl: null, menuPhotoPaths: [] }, listed, urlsFor(shop.slug))).not.toHaveProperty('image');
   });
 
+  it('never gives an agent a Shelfie drawing as a product or shop image (no photo: no image)', async () => {
+    const db = createTestDb();
+    const { shop } = await seedDemoShop({ db, paypal: createFakePayPal(), uploadsDir });
+    const listed = items.listWithVariants(db, shop.id, { status: ['live', 'in_person'] });
+    // Every item has a category (its drawing on the page), but none has a photo, and there is no cover or menu photo.
+    expect(listed.every((i) => i.category !== null)).toBe(true);
+    const bare = ldFor({ ...shop, coverUrl: null, logoUrl: null, menuPhotoPaths: [] }, listed.map((i) => ({ ...i, photoUrl: null })), urlsFor(shop.slug));
+    for (const m of menuItemsOf(bare)) expect(m).not.toHaveProperty('image');
+    expect(bare).not.toHaveProperty('image');
+    expect(JSON.stringify(bare)).not.toMatch(/illustrations\.svg/);
+  });
+
   it('marks sold-out items SoldOut and leaves removed and unpublished items out', () => {
     const db = createTestDb();
     const { shop } = seedShop(db);
