@@ -11,6 +11,7 @@ import { normalizeExtraction } from '@/lib/ai/normalize';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { RESERVED_SLUG, publishShop, type PublishResult } from '@/lib/catalog/publish';
 import { ConfigError, getConfig } from '@/lib/config';
+import { maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 import { getDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
@@ -51,6 +52,11 @@ export interface SeedOptions {
   reset?: boolean;
   /** Cancel the demo shop's orders still waiting for buyer approval (rehearsal orders before a recording). */
   cancelUnpaid?: boolean;
+  /**
+   * The sandbox seller's PayPal email (PAYPAL_SANDBOX_SELLER_EMAIL, already checked): the demo shop is paid there, like
+   * any other shop. Without it the demo shop is paid to the platform account (spec §8a). Applied on every run.
+   */
+  payeeEmail?: string | null;
   log?: (line: string) => void;
 }
 
@@ -67,6 +73,8 @@ export interface SeedResult {
   unpaid: number;
   /** Unpaid orders this run cancelled (cancelUnpaid). */
   cancelled: number;
+  /** Where the demo shop's new orders are paid (the email masked, so it is safe to print). */
+  payee: { kind: 'seller'; maskedEmail: string } | { kind: 'platform' };
 }
 
 export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
@@ -110,7 +118,9 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   }
 
   const shopId = shop.id;
-  shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)] });
+  const payeeEmail = opts.payeeEmail ?? null;
+  // Every run follows the env var: a changed or removed PAYPAL_SANDBOX_SELLER_EMAIL changes where new orders are paid.
+  shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)], payeeEmail });
   // The setup flow's own publish: same products, same request ids, and it makes the shop live.
   const result = await publishShop({ db, paypal: opts.paypal }, shopId, (e) => {
     const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
@@ -131,6 +141,7 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   return {
     shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed,
     unpaid: waiting().length, cancelled,
+    payee: payeeEmail ? { kind: 'seller', maskedEmail: maskEmail(payeeEmail) } : { kind: 'platform' },
   };
 }
 
@@ -161,9 +172,18 @@ async function main(): Promise<void> {
   const reset = process.argv.includes('--reset');
   const cancelUnpaid = process.argv.includes('--cancel-unpaid');
   const cfg = getConfig();
+  let payeeEmail: string | null = null;
+  if (cfg.sellerEmail !== null) {
+    const parsed = parsePayeeEmail(cfg.sellerEmail);
+    // Names the variable, never its value.
+    if (!parsed.ok) throw new ConfigError('PAYPAL_SANDBOX_SELLER_EMAIL is not an email address. Fix it in .env, or remove it to pay the demo shop to the platform account.');
+    payeeEmail = parsed.email;
+  }
   // Imported here so tests and Playwright can import seedDemoShop without PayPal credentials.
   const { getPayPal } = await import('@/lib/paypal');
-  const result = await seedDemoShop({ db: getDb(), paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, cancelUnpaid, log: (l) => console.log(l) });
+  const result = await seedDemoShop({
+    db: getDb(), paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, cancelUnpaid, payeeEmail, log: (l) => console.log(l),
+  });
   const { shop } = result;
   const live = items.listWithVariants(getDb(), shop.id).filter((i) => i.status === 'live');
   console.log('');
@@ -179,6 +199,11 @@ async function main(): Promise<void> {
   if (result.unpaid) {
     console.log(`${result.unpaid} order${result.unpaid === 1 ? ' is' : 's are'} waiting for payment. One caller can hold 3 unpaid orders per shop, so before recording run \`npm run seed -- --cancel-unpaid\`.`);
   }
+  console.log(
+    result.payee.kind === 'seller'
+      ? `  Paid to:           the sandbox seller's own PayPal account (${result.payee.maskedEmail}, PAYPAL_SANDBOX_SELLER_EMAIL)`
+      : "  Paid to:           Shelfie's own sandbox account (the app's). Set PAYPAL_SANDBOX_SELLER_EMAIL to pay a sandbox seller instead.",
+  );
   console.log(`  Shop:              ${cfg.appUrl}/s/${shop.slug}`);
   console.log(`  Agent door (MCP):  ${cfg.appUrl}/s/${shop.slug}/mcp`);
   console.log(`  Order with an AI:  ${cfg.appUrl}/s/${shop.slug}?assistant=1`);
