@@ -301,15 +301,18 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
   // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
   const anchor = turnStartIndex(state.entries);
+  // Found once per mount (the log moves between the sheet and the panel by remounting), not on every streamed event.
+  const scrollerRef = useRef<HTMLElement | null>(null);
   useEffect(() => {
     const endEl = end.current;
     if (!endEl) return;
-    const scroller = scrollParentOf(endEl);
-    if (!scroller) {
-      endEl.scrollIntoView({ block: 'nearest' });
-      return;
+    if (!scrollerRef.current?.contains(endEl)) {
+      scrollerRef.current = scrollParentOf(endEl) ?? (document.scrollingElement as HTMLElement | null);
     }
-    const box = scroller.getBoundingClientRect();
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+    // The page itself scrolls against the viewport, not against its own (full-height) box.
+    const box = scroller === document.scrollingElement ? { top: 0, bottom: window.innerHeight } : scroller.getBoundingClientRect();
     const toEnd = scroller.scrollTop + endEl.getBoundingClientRect().bottom - box.bottom + parseFloat(getComputedStyle(scroller).paddingBottom);
     const start = anchor >= 0 ? log.current?.children[anchor] : undefined;
     const toStart = start ? scroller.scrollTop + start.getBoundingClientRect().top - box.top - parseFloat(getComputedStyle(scroller).paddingTop) : Infinity;
