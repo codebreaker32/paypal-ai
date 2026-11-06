@@ -1,9 +1,11 @@
 # Progress
 
-_Last updated: 2026-11-07 01:40 IST (run 3, session 5)_
+_Last updated: 2026-11-07 01:55 IST (run 3, session 6)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
+
+**Run 3, session 6 (from 01:36 IST).** Session 5 was cut short again. The **code worker's branch is merged** (tasks 1–6: `items.example_photo`, `matchLibraryPhoto`, Claude's pick, example photos on every surface with the buyer/seller notes, unpicked items matched by name, optional live Pexels): verified on it before merging, `tsc` 0 errors, lint clean, 1132 unit passed. The **photo worker is resumed** (51 photos committed, ~70 on disk; missing bike/tool/goods/soup types, Tía Lupe's demo files, ASSETS.md), due by 03:15 IST. A full e2e smoke on the merged code is running on main.
 
 **Run 3, session 5 (from 01:24 IST).** Session 4's two A3 workers were cut off by the session cap: the code worker had committed tasks 1–3 (`example_photo`, `matchLibraryPhoto`, Claude's pick) with the UI uncommitted; the photo worker had 26 bakery photos on disk, uncommitted. Both were restarted in the same worktrees with their work kept, due to commit by 03:05 IST.
 
