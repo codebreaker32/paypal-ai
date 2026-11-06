@@ -1,8 +1,16 @@
 # Progress
 
-_Last updated: 2026-11-06 14:45 IST (run 2, session 3)_
+_Last updated: 2026-11-06 16:00 IST (run 2, session 5)_
 
 ## Current phase
+**Run 2, session 5 (from 15:11 IST; the runner stops it at about 17:11). Top priority: the design reset** (human decision, 6 Nov afternoon; spec §4b, plan Wave 5).
+- **done, merged:** round-6 fix 3 (the in-app console enforces its read-back; 881 unit tests pass) and the clip recorder (`npm run clips`; its clips show the old UI and will be re-taken).
+- **done:** the rubric amendment (`docs/JUDGING.md` Part C: 13 banned patterns, 2 or more on a screen fails, plus a real-product check), spec §4b/§4c/§6/§14 and plan Wave 5 (Tasks 14–21).
+- **done, on main (`3974554`):** the photo contract, `items.photo_url` and `shops.cover_url` (TDD, added to older databases on open; 884 unit tests pass).
+- **done:** reference screenshots in `.scratch/refs/` (never committed): Toast store pages (Bakey, Felipe's Taqueria), Toast Local, Square for bakeries. Uber Eats, DoorDash and Toast's desktop landing gave headless Chromium a captcha or a 403.
+- **Running, each in its own worktree:** the photo worker (Pexels photos for the demo shops, `docs/ASSETS.md`, the seed, the photo upload API, `image_url` for agents), direction **Storefront** and direction **Feed** (start page, shop page, dashboard Orders tab + order detail, new tokens and brand).
+- **Next:** merge the photos, judge the two directions side by side with the references, merge the winner, carry it across every screen, then the PWA, the full e2e suite with the capture gate, judge round 7, and the clips.
+
 **Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: **judge round 6**, and the clip recorder (item 7) in a worktree.
 - **Verified on `9851adb` (14:14–14:22 IST):**
   - `npm run screenshots:prod`: **82/82 screens** on a production build, **axe 0 violations** (`docs/judge/screenshots/round-6/`, with a README that labels fixtures and mocks);
