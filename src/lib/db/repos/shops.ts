@@ -8,13 +8,14 @@ interface ShopRow {
   id: string; slug: string; name: string; about: string; kind: ShopKind; fulfillment: ShopFulfillment;
   pickup_notes: string; shipping_fee_cents: number; status: ShopStatus; order_cap_cents: number;
   owner_token_hash: string; menu_photo_paths: string; created_at: string; published_at: string | null;
+  payee_email: string | null;
 }
 
 const toShop = (r: ShopRow): Shop => ({
   id: r.id, slug: r.slug, name: r.name, about: r.about, kind: r.kind, fulfillment: r.fulfillment,
   pickupNotes: r.pickup_notes, shippingFeeCents: r.shipping_fee_cents, status: r.status,
   orderCapCents: r.order_cap_cents, menuPhotoPaths: JSON.parse(r.menu_photo_paths) as string[],
-  createdAt: r.created_at, publishedAt: r.published_at,
+  createdAt: r.created_at, publishedAt: r.published_at, payeeEmail: r.payee_email ?? null,
 });
 
 export interface CreateShopInput {
@@ -25,6 +26,7 @@ export interface CreateShopInput {
   pickupNotes?: string;
   shippingFeeCents?: number;
   menuPhotoPaths?: string[];
+  payeeEmail?: string | null;
 }
 
 /** A slug from `name` that no other shop uses (`exceptId`'s own slug doesn't count as taken). */
@@ -43,13 +45,13 @@ export function create(db: Db, input: CreateShopInput): { shop: Shop; ownerToken
   const token = ownerToken();
   const id = newId('shp');
   db.prepare(
-    `INSERT INTO shops (id, slug, name, about, kind, fulfillment, pickup_notes, shipping_fee_cents, owner_token_hash, menu_photo_paths, created_at)
-     VALUES (@id, @slug, @name, @about, @kind, @fulfillment, @pickupNotes, @shippingFeeCents, @hash, @photos, @createdAt)`,
+    `INSERT INTO shops (id, slug, name, about, kind, fulfillment, pickup_notes, shipping_fee_cents, owner_token_hash, menu_photo_paths, created_at, payee_email)
+     VALUES (@id, @slug, @name, @about, @kind, @fulfillment, @pickupNotes, @shippingFeeCents, @hash, @photos, @createdAt, @payeeEmail)`,
   ).run({
     id, slug: uniqueSlug(db, input.name), name: input.name, about: input.about ?? '', kind: input.kind ?? 'food',
     fulfillment: input.fulfillment ?? 'pickup', pickupNotes: input.pickupNotes ?? '',
     shippingFeeCents: input.shippingFeeCents ?? 0, hash: hashToken(token),
-    photos: JSON.stringify(input.menuPhotoPaths ?? []), createdAt: now(),
+    photos: JSON.stringify(input.menuPhotoPaths ?? []), createdAt: now(), payeeEmail: input.payeeEmail ?? null,
   });
   return { shop: byId(db, id)!, ownerToken: token };
 }
@@ -78,12 +80,12 @@ export function verifyOwnerToken(db: Db, shopId: string, token: string | null | 
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt'>>;
+export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt' | 'payeeEmail'>>;
 
 const COLS: Record<keyof ShopPatch, string> = {
   name: 'name', about: 'about', kind: 'kind', fulfillment: 'fulfillment', pickupNotes: 'pickup_notes',
   shippingFeeCents: 'shipping_fee_cents', status: 'status', orderCapCents: 'order_cap_cents',
-  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at',
+  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at', payeeEmail: 'payee_email',
 };
 
 export function update(db: Db, id: string, patch: ShopPatch): Shop {

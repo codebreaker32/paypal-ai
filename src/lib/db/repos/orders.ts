@@ -9,7 +9,7 @@ interface OrderRow {
   shipping_cents: number; total_cents: number; paypal_order_id: string; approval_url: string; expires_at: string;
   capture_claimed_at: string | null; capture_id: string | null; payer_name: string | null; payer_email: string | null;
   ship_to_json: string | null; brief_json: string | null; brief_source: 'agent' | 'template' | null; paid_at: string | null;
-  fulfilled_at: string | null; last_checked_at: string | null; created_at: string; updated_at: string;
+  fulfilled_at: string | null; last_checked_at: string | null; created_at: string; updated_at: string; payee_email: string | null;
 }
 interface LineRow {
   order_id: string; item_id: string; variant_id: string; name: string; label: string | null; unit_cents: number; qty: number;
@@ -43,7 +43,7 @@ function toOrder(db: Db, r: OrderRow): Order {
     buyerNote: r.buyer_note, agentName: r.agent_name, clientRequestId: r.client_request_id, itemsCents: r.items_cents,
     shippingCents: r.shipping_cents, totalCents: r.total_cents, paypalOrderId: r.paypal_order_id, approvalUrl: r.approval_url,
     expiresAt: r.expires_at, captureClaimedAt: r.capture_claimed_at, captureId: r.capture_id, payerName: r.payer_name,
-    payerEmail: r.payer_email, shipTo: r.ship_to_json ? (JSON.parse(r.ship_to_json) as ShipTo) : null,
+    payerEmail: r.payer_email, payeeEmail: r.payee_email ?? null, shipTo: r.ship_to_json ? (JSON.parse(r.ship_to_json) as ShipTo) : null,
     brief: r.brief_json ? (JSON.parse(r.brief_json) as OrderBrief) : null, briefSource: r.brief_source, paidAt: r.paid_at,
     fulfilledAt: r.fulfilled_at, lastCheckedAt: r.last_checked_at, createdAt: r.created_at, updatedAt: r.updated_at,
     lines: lines(db, r.id), captureRefused: captureRefused(db, r),
@@ -57,10 +57,10 @@ export function insert(db: Db, o: NewOrder, orderLines: OrderLine[]): Order {
   const tx = db.transaction(() => {
     db.prepare(
       `INSERT INTO orders (id, number, shop_id, status, fulfillment, buyer_name, buyer_note, agent_name, client_request_id,
-        client_key, items_cents, shipping_cents, total_cents, paypal_order_id, approval_url, expires_at, created_at, updated_at)
+        client_key, items_cents, shipping_cents, total_cents, paypal_order_id, approval_url, expires_at, payee_email, created_at, updated_at)
        VALUES (@id, @number, @shopId, 'awaiting_approval', @fulfillment, @buyerName, @buyerNote, @agentName, @clientRequestId,
-        @clientKey, @itemsCents, @shippingCents, @totalCents, @paypalOrderId, @approvalUrl, @expiresAt, @ts, @ts)`,
-    ).run({ ...o, id, number: o.number ?? orderNumber(), clientKey: o.clientKey ?? null, ts });
+        @clientKey, @itemsCents, @shippingCents, @totalCents, @paypalOrderId, @approvalUrl, @expiresAt, @payeeEmail, @ts, @ts)`,
+    ).run({ ...o, id, number: o.number ?? orderNumber(), clientKey: o.clientKey ?? null, payeeEmail: o.payeeEmail ?? null, ts });
     const ins = db.prepare(
       `INSERT INTO order_items (order_id, item_id, variant_id, name, label, unit_cents, qty, paypal_product_id, sort)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,

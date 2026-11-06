@@ -5,6 +5,7 @@ import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import { slugify } from '@/lib/domain/ids';
+import { RESERVED_SLUG } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
@@ -100,8 +101,9 @@ const DRAFT_SLUG = /^draft-[a-z0-9]{8}(-\d+)?$/;
 /**
  * The demo shop's slug (`npm run seed`; the Start page's "See a live shop" links to it). A visitor's
  * published Marigold sample gets `marigold-bakehouse-2` and up, even before the demo shop exists.
+ * Defined with the payee rules (the demo shop is the one shop that may have no PayPal email).
  */
-export const RESERVED_SLUG = 'marigold-bakehouse';
+export { RESERVED_SLUG };
 
 function assignRealSlug(db: Db, shop: Shop): void {
   if (shop.publishedAt || !DRAFT_SLUG.test(shop.slug)) return;

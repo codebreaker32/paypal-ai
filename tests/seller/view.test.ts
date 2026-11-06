@@ -7,7 +7,7 @@ const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
   agentName: 'Claude', clientRequestId: null, itemsCents: 1850, shippingCents: 800, totalCents: 2650, paypalOrderId: 'PP1',
   approvalUrl: 'https://x', expiresAt: '2026-11-06T19:00:00.000Z', captureClaimedAt: null, captureId: 'CAP1', payerName: 'Dana Buyer',
-  payerEmail: 'dana@example.com', shipTo: { name: 'Dana Buyer', line1: '1 Main St', line2: null, city: 'Austin', state: 'TX', postalCode: '78701', countryCode: 'US' },
+  payerEmail: 'dana@example.com', payeeEmail: null, shipTo: { name: 'Dana Buyer', line1: '1 Main St', line2: null, city: 'Austin', state: 'TX', postalCode: '78701', countryCode: 'US' },
   brief: null, briefSource: null, paidAt: '2026-11-06T18:05:00.000Z', fulfilledAt: null, lastCheckedAt: null,
   createdAt: '2026-11-06T18:00:00.000Z', updatedAt: '2026-11-06T18:05:00.000Z',
   lines: [

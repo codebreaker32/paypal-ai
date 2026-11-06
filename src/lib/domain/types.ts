@@ -19,6 +19,8 @@ export interface Shop {
   menuPhotoPaths: string[];
   createdAt: string;
   publishedAt: string | null;
+  /** The seller's PayPal email (lower-cased): where buyers' payments go. Only the demo shop may have none (spec §8a). */
+  payeeEmail: string | null;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';
@@ -175,6 +177,8 @@ export interface Order {
   captureId: string | null;
   payerName: string | null;
   payerEmail: string | null;
+  /** The shop's PayPal email when the order was created (sent to PayPal as the payee); null: paid to the platform. */
+  payeeEmail: string | null;
   shipTo: ShipTo | null;
   brief: OrderBrief | null;
   briefSource: 'agent' | 'template' | null;
@@ -203,6 +207,8 @@ export interface NewOrder {
   paypalOrderId: string;
   approvalUrl: string;
   expiresAt: string;
+  /** The payee the PayPal order was created with (the shop's email then); null or omitted: the platform account. */
+  payeeEmail?: string | null;
   /** Optional pre-generated ids: the PayPal order needs them before the row exists. */
   id?: string;
   number?: string;

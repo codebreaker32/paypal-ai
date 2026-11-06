@@ -7,7 +7,7 @@ const paid: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: null, buyerNote: null,
   agentName: 'Claude', clientRequestId: null, itemsCents: 900, shippingCents: 800, totalCents: 1700, paypalOrderId: 'PP1',
   approvalUrl: 'https://x', expiresAt: '2026-11-06T19:00:00.000Z', captureClaimedAt: null, captureId: 'CAP1', payerName: null,
-  payerEmail: null, shipTo: null, brief: null, briefSource: null, paidAt: '2026-11-06T18:05:00.000Z', fulfilledAt: null,
+  payerEmail: null, payeeEmail: null, shipTo: null, brief: null, briefSource: null, paidAt: '2026-11-06T18:05:00.000Z', fulfilledAt: null,
   lastCheckedAt: null, createdAt: '2026-11-06T18:00:00.000Z', updatedAt: '2026-11-06T18:05:00.000Z',
   lines: [{ itemId: 'i1', variantId: 'v1', name: 'Loaf', label: 'Large', unitCents: 900, qty: 1, paypalProductId: null }],
 };

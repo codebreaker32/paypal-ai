@@ -18,6 +18,8 @@ function addMissingColumns(db: Db): void {
   const has = (table: string, column: string) =>
     (db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).some((c) => c.name === column);
   if (!has('orders', 'client_key')) db.exec('ALTER TABLE orders ADD COLUMN client_key TEXT');
+  if (!has('shops', 'payee_email')) db.exec('ALTER TABLE shops ADD COLUMN payee_email TEXT');
+  if (!has('orders', 'payee_email')) db.exec('ALTER TABLE orders ADD COLUMN payee_email TEXT');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

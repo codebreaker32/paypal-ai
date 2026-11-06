@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS shops (
   owner_token_hash TEXT NOT NULL,
   menu_photo_paths TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL,
-  published_at TEXT
+  published_at TEXT,
+  payee_email TEXT -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
 );
 
 CREATE TABLE IF NOT EXISTS extractions (
@@ -91,6 +92,7 @@ CREATE TABLE IF NOT EXISTS orders (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   client_key TEXT, -- hashed caller identity (rate-limit key) for the per-client unpaid-order cap; added by applySchema on older databases
+  payee_email TEXT, -- the shop's PayPal email when the order was created (null: paid to the platform account); added by applySchema
   UNIQUE (shop_id, client_request_id)
 );
 CREATE INDEX IF NOT EXISTS orders_shop ON orders(shop_id, created_at);
