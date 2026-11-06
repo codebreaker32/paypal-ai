@@ -12,7 +12,7 @@ Built for the PayPal AI Hackathon. PayPal **sandbox** only. Licensed MIT ([LICEN
 | **An AI assistant orders through the agent door** | **The seller's orders, with Claude's brief** |
 | <img src="docs/images/assistant-order.webp" alt="The buyer console: Claude placed the order through the shop's agent door and shows an Approve $27.00 on PayPal button" width="420"> | <img src="docs/images/dashboard-orders.webp" alt="The seller dashboard's order list: thumbnails, status filters, paid totals and an AI brief flagging a nut allergy" width="420"> |
 
-Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-10/`](docs/judge/screenshots/round-10/)).
+Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-11/`](docs/judge/screenshots/round-11/)).
 
 ## The problem
 
@@ -38,7 +38,7 @@ The in-app **buyer console** ("Order with an assistant") is a Claude agent that 
 **Seller**
 - Photo to draft menu, with review flags (missing price, market price, check, duplicate) resolved in one tap
 - Publish to the PayPal catalog, with progress
-- A photo per item and a cover photo, added while reviewing or on the **Menu** tab (an item without one gets a designed tile); **Snap your counter**: one photo of the display case, and Claude proposes a photo for each menu item it finds, which you keep or skip
+- A photo per item and a cover photo, added while reviewing or on the **Menu** tab (an item without one shows a real *example* photo from a bundled, Pexels-licensed library that Claude picks while reading the menu, labelled "Example photo, replace with yours" for the seller and "Example photo" on tap for buyers, and never sent to agents as the product; a drawing only when nothing fits); **Snap your counter**: one photo of the display case, and Claude proposes a photo for each menu item it finds, which you keep or skip
 - Paid into your own PayPal account: **Your PayPal email** during setup (Publish waits for it) or in the **Settings** tab; each order keeps the email it was created with
 - A shop page and an agent door per shop, findable by assistants: a printable counter card with a QR code, schema.org JSON-LD, `/agents.txt` and `/llms.txt` ([how](#how-assistants-find-a-shop))
 - Dashboard: a compact order list with thumbnails and status filters, order detail, an AI brief per paid order (a labelled template if Claude is unavailable)
