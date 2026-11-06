@@ -101,14 +101,19 @@ export function listOpen(db: Db, sinceIso: string): Order[] {
   return rows.map((r) => toOrder(db, r));
 }
 
+/** Unpaid, unexpired orders at a shop. A past expiry doesn't count even before a sync marks the order expired. */
 export function countOpen(db: Db, shopId: string): number {
-  return (db.prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND status = 'awaiting_approval'`).get(shopId) as { n: number }).n;
+  return (
+    db.prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND status = 'awaiting_approval' AND expires_at > ?`).get(shopId, now()) as { n: number }
+  ).n;
 }
 
-/** Unpaid orders one caller (hashed rate-limit identity) has open at a shop. */
+/** Unpaid, unexpired orders one caller (hashed rate-limit identity) has open at a shop. */
 export function countOpenForClient(db: Db, shopId: string, clientKey: string): number {
   return (
-    db.prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND client_key = ? AND status = 'awaiting_approval'`).get(shopId, clientKey) as { n: number }
+    db
+      .prepare(`SELECT COUNT(*) AS n FROM orders WHERE shop_id = ? AND client_key = ? AND status = 'awaiting_approval' AND expires_at > ?`)
+      .get(shopId, clientKey, now()) as { n: number }
   ).n;
 }
 

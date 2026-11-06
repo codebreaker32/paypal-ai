@@ -17,6 +17,7 @@ describe('instrumentation register()', () => {
       else process.env[k] = v;
     }
     vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('does nothing in tests or outside the Node runtime', async () => {
@@ -30,6 +31,7 @@ describe('instrumentation register()', () => {
   });
 
   it('logs one warning and keeps the server up when PayPal credentials are missing', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     process.env.NEXT_RUNTIME = 'nodejs';
     delete process.env.SHELFIE_TEST;
     const savedId = process.env.PAYPAL_CLIENT_ID;
@@ -43,6 +45,31 @@ describe('instrumentation register()', () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(String(warn.mock.calls[0][0])).toContain('Order poller not started');
     expect(isPollerRunning()).toBe(false);
+  });
+
+  it('keeps retrying every 15 s and starts the poller once the keys are added without a restart', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    process.env.NEXT_RUNTIME = 'nodejs';
+    delete process.env.SHELFIE_TEST;
+    const savedId = process.env.PAYPAL_CLIENT_ID;
+    delete process.env.PAYPAL_CLIENT_ID;
+    setPayPalForServices(undefined);
+    onTestFinished(() => {
+      if (savedId !== undefined) process.env.PAYPAL_CLIENT_ID = savedId;
+      setPayPalForServices(undefined);
+    });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    await register();
+    expect(isPollerRunning()).toBe(false);
+    vi.advanceTimersByTime(15_000);
+    expect(isPollerRunning()).toBe(false);
+    // The seller fills .env and Next dev reloads it; register() never runs again.
+    setPayPalForServices(createFakePayPal());
+    vi.advanceTimersByTime(15_000);
+    expect(isPollerRunning()).toBe(true);
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(1); // the retry stopped; only the poller's own timer is left
   });
 
   it('starts the poller once PayPal is wired', async () => {
