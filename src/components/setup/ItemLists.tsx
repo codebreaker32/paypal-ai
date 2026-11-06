@@ -1,24 +1,42 @@
 'use client';
 
 import { useId, useState, type ReactNode } from 'react';
-import { Check, ChevronDown, CircleCheck, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2, TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { Check, ChevronDown, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Field, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
+import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { OnUpdate } from './IssueCards';
+import { ItemPhotoPicker, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { SKIP_REASON, bySection } from './review-model';
 
-/** One ready item: name and price at a glance, Edit opens name, prices and Remove in place. */
-function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpdate }) {
+/** What a row needs to show and change its photo. */
+export interface PhotoProps {
+  shopId: string;
+  onPhoto: (itemId: string, photoUrl: string | null) => void;
+}
+
+/** A dot and a word, the way the dashboard shows status. */
+function StatusText({ tone, children }: { tone: 'ok' | 'warn'; children: ReactNode }) {
+  return (
+    <span className={cx('inline-flex items-center gap-2 text-sm font-semibold whitespace-nowrap', tone === 'ok' ? 'text-ok' : 'text-warn')}>
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
+      {children}
+    </span>
+  );
+}
+
+/** One ready item: its photo (tap to add one), name and price; Edit opens name, prices and Remove in place. */
+function ReadyRow({ item, tone, onUpdate, shopId, onPhoto }: { item: ItemWithVariants; tone: number; onUpdate: OnUpdate } & PhotoProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(item.name);
   const [texts, setTexts] = useState(() => item.variants.map((v) => priceInputValue(v.priceCents)));
   const [touched, setTouched] = useState<boolean[]>(() => item.variants.map(() => false));
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const inPayPal = Boolean(item.paypalProductId);
   const formId = useId();
 
@@ -37,31 +55,35 @@ function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpda
   };
 
   return (
-    <li className="py-1.5 first:pt-0 last:pb-0">
-      {/* Printed like the shop's menu: name, leader dots, the price in a right-hand column, then Edit. */}
-      <div className="flex min-h-tap items-center gap-2 sm:gap-3">
-        <div className="flex min-w-0 flex-1 items-baseline gap-2">
-          <span className="min-w-0 text-base leading-6 font-semibold [overflow-wrap:anywhere] sm:text-lg">{item.name}</span>
-          <span aria-hidden="true" className="min-w-4 flex-1 -translate-y-1 border-b-2 border-dotted border-line-strong" />
+    <li className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0" data-item={item.name}>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ItemPhotoPicker
+          shopId={shopId}
+          itemId={item.id}
+          name={item.name}
+          photoUrl={item.photoUrl}
+          tone={tone}
+          onChange={(url) => onPhoto(item.id, url)}
+          onError={setPhotoError}
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="font-semibold leading-6 [overflow-wrap:anywhere]">{item.name}</span>
           {isPriced(item) ? (
-            <span className="type-receipt flex shrink-0 flex-col items-end text-right text-base">
-              {item.variants.map((v) => (
+            <span className="type-price text-ink-soft">
+              {item.variants.map((v, i) => (
                 <span key={v.id} className="whitespace-nowrap">
-                  {v.label && <span className="mr-1.5 text-sm text-ink-muted">{v.label}</span>}
-                  <span className="font-medium">{formatUSD(v.priceCents!)}</span>
+                  {i > 0 && <span aria-hidden="true"> · </span>}
+                  {v.label && <span className="mr-1 text-ink-muted">{v.label}</span>}
+                  {formatUSD(v.priceCents!)}
                 </span>
               ))}
             </span>
           ) : (
-            <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-warn">
-              <Icon icon={TriangleAlert} size="sm" className="self-center" /> Needs a price
-            </span>
+            <StatusText tone="warn">Needs a price</StatusText>
           )}
         </div>
         {inPayPal ? (
-          <Badge tone="ok" icon={CircleCheck}>
-            In PayPal
-          </Badge>
+          <StatusText tone="ok">In PayPal</StatusText>
         ) : (
           <Button
             variant="ghost"
@@ -69,14 +91,16 @@ function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpda
             aria-expanded={editing}
             aria-controls={formId}
             onClick={() => setEditing((e) => !e)}
+            className="-mr-3 px-3"
           >
             {editing ? 'Done' : 'Edit'}
             <span className="sr-only"> {item.name}</span>
           </Button>
         )}
       </div>
+      <PhotoError error={photoError} />
       {editing && (
-        <div id={formId} className="mt-3 flex flex-col gap-4 rounded-md bg-surface-sunken p-4">
+        <div id={formId} className="mt-1 flex flex-col gap-4 rounded-lg bg-surface-sunken p-4">
           <Field label="Name" error={name.trim() === '' ? 'Give it a name' : undefined}>
             {(c) => <TextInput {...c} value={name} maxLength={127} onChange={(e) => setItemName(e.currentTarget.value)} />}
           </Field>
@@ -106,15 +130,15 @@ function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpda
   );
 }
 
-export function ReadyList({ items, onUpdate }: { items: ItemWithVariants[]; onUpdate: OnUpdate }) {
+export function ReadyList({ items, onUpdate, shopId, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
-    <div className="flex flex-col gap-6">
-      {bySection(items).map((g) => (
-        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-1">
-          {g.section && <h3 className="type-kicker">{g.section}</h3>}
-          <ul className="flex flex-col">
+    <div className="flex flex-col gap-8">
+      {bySection(items).map((g, n) => (
+        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-3">
+          {g.section && <h3 className="type-heading">{g.section}</h3>}
+          <ul className="flex flex-col divide-y divide-line">
             {g.items.map((it) => (
-              <ReadyRow key={it.id} item={it} onUpdate={onUpdate} />
+              <ReadyRow key={it.id} item={it} tone={n} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
             ))}
           </ul>
         </section>
@@ -124,14 +148,23 @@ export function ReadyList({ items, onUpdate }: { items: ItemWithVariants[]; onUp
 }
 
 /** "Ask in person" items: on the shop, not orderable. A price moves them onto the PayPal menu. */
-function InPersonRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpdate }) {
+function InPersonRow({ item, onUpdate, shopId, onPhoto }: { item: ItemWithVariants; onUpdate: OnUpdate } & PhotoProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [touched, setTouched] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const cents = parsePriceInput(text);
   return (
-    <li className="py-3 first:pt-0 last:pb-0">
-      <div className="flex min-h-tap items-center gap-3">
+    <li className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0" data-item={item.name}>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ItemPhotoPicker
+          shopId={shopId}
+          itemId={item.id}
+          name={item.name}
+          photoUrl={item.photoUrl}
+          onChange={(url) => onPhoto(item.id, url)}
+          onError={setPhotoError}
+        />
         <span className="flex-1 font-semibold [overflow-wrap:anywhere]">{item.name}</span>
         {!open && (
           <Button variant="ghost" icon={CircleDollarSign} onClick={() => setOpen(true)}>
@@ -139,9 +172,10 @@ function InPersonRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnU
           </Button>
         )}
       </div>
+      <PhotoError error={photoError} />
       {open && (
         <form
-          className="mt-3 flex flex-wrap items-end gap-3 rounded-md bg-surface-sunken p-4"
+          className="mt-1 flex flex-wrap items-end gap-3 rounded-lg bg-surface-sunken p-4"
           onSubmit={(e) => {
             e.preventDefault();
             if (cents === null) return setTouched(true);
@@ -171,11 +205,11 @@ function InPersonRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnU
   );
 }
 
-export function InPersonList({ items, onUpdate }: { items: ItemWithVariants[]; onUpdate: OnUpdate }) {
+export function InPersonList({ items, onUpdate, shopId, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
     <ul className="flex flex-col divide-y divide-line">
       {items.map((it) => (
-        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} />
+        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
       ))}
     </ul>
   );
@@ -184,7 +218,7 @@ export function InPersonList({ items, onUpdate }: { items: ItemWithVariants[]; o
 /** A collapsed list with a count in its summary; native <details>, so it works by keyboard. */
 export function Disclosure({ title, count, hint, children, defaultOpen }: { title: string; count: number; hint?: string; children: ReactNode; defaultOpen?: boolean }) {
   return (
-    <details open={defaultOpen} className="group rounded-lg border border-line-strong bg-surface-raised">
+    <details open={defaultOpen} className="group rounded-lg bg-surface-sunken">
       <summary className="flex min-h-tap list-none items-center gap-3 px-4 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="flex flex-1 flex-col">
           <span className="font-semibold">
@@ -194,7 +228,7 @@ export function Disclosure({ title, count, hint, children, defaultOpen }: { titl
         </span>
         <Icon icon={ChevronDown} className="text-ink-soft transition-transform duration-(--duration-fast) group-open:rotate-180" />
       </summary>
-      <div className="border-t border-line px-4 py-3">{children}</div>
+      <div className="px-4 pb-3">{children}</div>
     </details>
   );
 }

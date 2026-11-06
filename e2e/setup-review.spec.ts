@@ -252,3 +252,41 @@ test('the reading screen: the photo with a scan and plain status lines, and a re
   expect(extractions.latest(getDb(), shopId)!.id).toBe(run);
   extractions.fail(getDb(), run, 'AI_ERROR: e2e done');
 });
+
+test('review: each item takes a photo (add, replace, remove) and the shop takes a cover', async ({ page }) => {
+  const shopId = await shopWithReading(page, crafted());
+  await page.goto(`/shops/${shopId}/setup`);
+  await settle(page);
+  const photo = path.join('public', 'demo', 'marigold-bakehouse');
+  const rye = page.locator('li[data-item="Seeded rye"]');
+
+  // A refused file says so in the row and saves nothing.
+  await rye.getByLabel('Add a photo of Seeded rye').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('hi') });
+  await expect(rye.getByRole('alert')).toContainText('We couldn’t open that photo');
+
+  await rye.getByLabel('Add a photo of Seeded rye').setInputFiles(path.join(photo, 'country-sourdough-loaf.jpg'));
+  await expect(rye.getByRole('img', { name: 'Seeded rye' })).toHaveAttribute('src', /^\/i\//);
+  await expect(rye.getByRole('alert')).toHaveCount(0);
+  expect(items.listWithVariants(getDb(), shopId).find((i) => i.name === 'Seeded rye')!.photoUrl).toMatch(/^\/i\//);
+
+  // Replace, then remove, from the photo's sheet.
+  const first = await rye.getByRole('img', { name: 'Seeded rye' }).getAttribute('src');
+  await rye.getByRole('button', { name: 'Photo of Seeded rye: replace or remove' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Seeded rye' });
+  await sheet.getByLabel('Replace the photo of Seeded rye').setInputFiles(path.join(photo, 'butter-croissant.jpg'));
+  await expect(sheet).toBeHidden();
+  await expect(rye.getByRole('img', { name: 'Seeded rye' })).not.toHaveAttribute('src', first!);
+  await rye.getByRole('button', { name: 'Photo of Seeded rye: replace or remove' }).click();
+  await sheet.getByRole('button', { name: 'Remove photo' }).click();
+  await expect(sheet).toBeHidden();
+  await expect(rye.getByLabel('Add a photo of Seeded rye')).toBeAttached();
+  expect(items.listWithVariants(getDb(), shopId).find((i) => i.name === 'Seeded rye')!.photoUrl).toBeNull();
+
+  // The cover.
+  await page.getByLabel('Add a cover photo').setInputFiles(path.join(photo, 'cover.jpg'));
+  await expect(page.getByRole('img', { name: /cover$/ })).toBeVisible();
+  expect(shops.byId(getDb(), shopId)!.coverUrl).toMatch(/^\/i\//);
+  await page.getByRole('button', { name: 'Remove cover' }).click();
+  await expect(page.getByLabel('Add a cover photo')).toBeAttached();
+  expect(shops.byId(getDb(), shopId)!.coverUrl).toBeNull();
+});
