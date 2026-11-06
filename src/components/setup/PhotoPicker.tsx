@@ -350,7 +350,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
         </div>
       </div>
       {actions.error && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-medium text-error">
           {actions.error}
         </p>
       )}
