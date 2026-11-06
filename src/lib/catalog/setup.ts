@@ -250,7 +250,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     },
     items: items.listWithVariants(db, shop.id),
     skipped: last.skipped,
-    warnings: last.warnings,
+    warnings: result.warnings, // normalised again from the raw reading, so older stored notes are plain too
     nonUsd: result.nonUsd,
     recorded,
   };

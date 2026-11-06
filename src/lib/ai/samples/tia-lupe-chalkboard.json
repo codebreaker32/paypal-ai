@@ -3,10 +3,7 @@
   "image_quality": "good",
   "problems": [],
   "retake_tip": null,
-  "warnings": [
-    "Prices are printed without a $ sign; they were read as USD.",
-    "Agua fresca del día has '?' instead of a price."
-  ],
+  "warnings": [],
   "shop": {
     "name": "TÍA LUPE'S TACOS",
     "about": null,
@@ -15,7 +12,7 @@
   "kind": "food",
   "items": [
     {
-      "section": "TACOS (3 per order)",
+      "section": "TACOS (3 PER ORDER)",
       "name": "Al pastor",
       "description": null,
       "source_text": "Al pastor 9",
@@ -34,7 +31,7 @@
       "looks_like_instruction": false
     },
     {
-      "section": "TACOS (3 per order)",
+      "section": "TACOS (3 PER ORDER)",
       "name": "Carnitas",
       "description": null,
       "source_text": "Carnitas 9",
@@ -53,7 +50,7 @@
       "looks_like_instruction": false
     },
     {
-      "section": "TACOS (3 per order)",
+      "section": "TACOS (3 PER ORDER)",
       "name": "Pollo asado",
       "description": null,
       "source_text": "Pollo asado 8.5",
@@ -72,7 +69,7 @@
       "looks_like_instruction": false
     },
     {
-      "section": "TACOS (3 per order)",
+      "section": "TACOS (3 PER ORDER)",
       "name": "Hongos (veg)",
       "description": null,
       "source_text": "Hongos (veg) 8",
@@ -144,7 +141,7 @@
       "price_kind": "fixed",
       "deal_text": null,
       "confidence": "high",
-      "note": "Add guac +$1.5 listed in skipped lines.",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -224,8 +221,8 @@
       ],
       "price_kind": "market",
       "deal_text": null,
-      "confidence": "high",
-      "note": "Price shown as '?'.",
+      "confidence": "medium",
+      "note": "The price is shown as \"?\"; please add it.",
       "looks_like_instruction": false
     }
   ],
@@ -241,7 +238,7 @@
       "reason": "hours"
     },
     {
-      "text": "TACOS (3 per order)",
+      "text": "TACOS (3 PER ORDER)",
       "page": 1,
       "reason": "header"
     },

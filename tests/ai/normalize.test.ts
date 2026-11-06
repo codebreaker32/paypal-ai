@@ -3,6 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { normalizeExtraction, retakeTipFor } from '@/lib/ai/normalize';
 import { MenuExtractionSchema, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
+import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import type { DraftCatalog, DraftItem, UnreadableMenu } from '@/lib/domain/types';
 
 const dir = path.resolve(import.meta.dirname, 'fixtures');
@@ -148,12 +149,159 @@ describe('price rules', () => {
     const c = catalog(raw({ name: 'Bun', price_kind: 'deal', deal_text: '2 for $7', prices: [price(350, '2 for $7')] }));
     const b = byName(c, /Bun/);
     expect(b.issues).toEqual(['CHECK']);
-    expect(b.issueDetail).toContain('2 for $7');
-    expect(b.issueDetail).toContain('$3.50');
+    expect(b.issueDetail).toBe('Printed as “2 for $7”. We set $3.50 each. Is that right?');
   });
   it('market price items with a stray amount still keep a null price', () => {
     const c = catalog(raw({ name: 'Fish', price_kind: 'market', prices: [price(null, 'MP')] }));
     expect(byName(c, /Fish/).issues).toEqual(['MARKET_PRICE']);
+  });
+});
+
+// What the seller reads on a flagged card: fixed plain sentences filled with the item's own data,
+// never the model's free-text note (it talks about cents, fields and how it matched rows).
+const ENGINEER_TALK = /cents|row position|by row|matched by|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text/i;
+const DOUBLED_PUNCTUATION = /[.?!][.?!]/;
+
+describe('seller-facing issue text', () => {
+  const detail = (item: Partial<ExtractedItem>) => catalog(raw(item)).items[0].issueDetail;
+  const modelNote = 'Multi-buy deal; unit price is 350 cents. Matched by row position.';
+
+  it('deal: names what was printed, the price we set and asks one question', () => {
+    expect(detail({ price_kind: 'deal', deal_text: '2 for $7', prices: [price(350, '2 for $7')], note: modelNote }))
+      .toBe('Printed as “2 for $7”. We set $3.50 each. Is that right?');
+  });
+  it('deal with no unit price asks what one costs', () => {
+    const item = catalog(raw({ price_kind: 'deal', deal_text: '3 for $10', prices: [price(null, '3 for $10')] })).items[0];
+    expect(item.issues).toContain('MISSING_PRICE');
+    expect(item.issueDetail).toBe('Printed as “3 for $10”. What does one cost?');
+  });
+  it('no price on the menu', () => {
+    expect(detail({ price_kind: 'missing', prices: [], note: 'No price listed; amount_cents is null.' }))
+      .toBe('No price on the menu. Add one, or leave it off.');
+  });
+  it('a price we could not read', () => {
+    expect(detail({ prices: [price(null, 'smudge')], note: 'Price smudged; amount_cents null.' }))
+      .toBe('We couldn’t read the price. Add one, or leave it off.');
+  });
+  it('one size we could not read', () => {
+    expect(detail({ prices: [price(300, '$3', 'S'), price(null, '?', 'L')] }))
+      .toBe('We couldn’t read the L price. Add it, or leave the item off.');
+  });
+  it('market price quotes what the menu says (the card itself offers today’s price or ask in person)', () => {
+    expect(detail({ price_kind: 'market', prices: [price(null, 'market price')] }))
+      .toBe('Your menu says “market price” instead of a price.');
+    expect(detail({ price_kind: 'market', prices: [] })).toBe('Your menu says market price instead of a price.');
+  });
+  it('crossed-out price', () => {
+    expect(detail({ prices: [price(800, '$7 $8')], confidence: 'medium', note: '$7 is crossed out and replaced with $8; using $8.' }))
+      .toBe('A price is crossed out. We set $8.00. Is that right?');
+  });
+  it('printed in an unusual way', () => {
+    expect(detail({ prices: [price(2000, 'from $20')] })).toBe('Printed as “from $20”. We set $20.00. Is that right?');
+  });
+  it('hard to read', () => {
+    expect(detail({ prices: [price(475, '$4.75')], confidence: 'low', note: 'Name and price are blurred; best reading.' }))
+      .toBe('Hard to read in the photo. Are the name and price right?');
+  });
+  it('an unusual amount', () => {
+    expect(detail({ prices: [price(0, '$0')] })).toBe('We set $0.00, which looks unusual. Is that right?');
+    expect(detail({ prices: [price(1000, '$10', 'else'), price(0, 'FREE', 'w/ tune-up')] }))
+      .toBe('We set $0.00 for “w/ tune-up”, which looks unusual. Is that right?');
+  });
+  it('a single price leaves its label out of the sentence', () => {
+    expect(detail({ deal_text: 'FREE w/ tune-up, else $10', prices: [price(1000, 'FREE w/ tune-up, else $10', 'else')] }))
+      .toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
+  });
+  it('sizes keep their labels', () => {
+    expect(detail({ prices: [price(300, '3ish', 'S'), price(400, '$4', 'L')] }))
+      .toBe('Printed as “3ish”. We set S $3.00 and L $4.00. Is that right?');
+  });
+  it('a deal that is not a multi-buy does not say "each"', () => {
+    expect(detail({ price_kind: 'deal', deal_text: 'FREE w/ tune-up, else $10', prices: [price(1000, 'FREE w/ tune-up, else $10')] }))
+      .toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
+  });
+  it('an amount that is not a usable price', () => {
+    expect(detail({ prices: [price(450.5, '4.505')] })).toBe('We couldn’t read “4.505” as a price. Add the right one, or leave it off.');
+  });
+  it('lists every price of an item listed twice', () => {
+    const c = catalog(raw(
+      { name: 'Latte', prices: [price(425, '$4.25')] },
+      { name: 'Latte', prices: [price(475, '$4.75')], page: 2 },
+    ));
+    expect(c.items.map((i) => i.issueDetail)).toEqual([
+      'Listed twice with different prices: $4.25 and $4.75.',
+      'Listed twice with different prices: $4.25 and $4.75.',
+    ]);
+  });
+  it('a plain item has no detail, even with a model note', () => {
+    expect(detail({ confidence: 'medium', note: 'Price matched by row position.' })).toBeNull();
+  });
+  it('never shows the model note, engineer talk or doubled punctuation', () => {
+    const c = catalog(raw(
+      { name: 'A', price_kind: 'deal', deal_text: '2 for $7', prices: [price(350, '2 for $7')], confidence: 'low', note: modelNote },
+      { name: 'B', prices: [price(null, 'x')], note: 'Unit price unclear; confidence low.' },
+      { name: 'C', prices: [price(900, '$9.')], confidence: 'low', note: 'Matched by row position.' },
+      { name: 'D', price_kind: 'market', prices: [price(null, 'MP')], note: 'market; amount_cents null' },
+    ));
+    for (const i of c.items) {
+      expect(i.issueDetail).not.toBeNull();
+      expect(i.issueDetail).not.toMatch(ENGINEER_TALK);
+      expect(i.issueDetail).not.toMatch(DOUBLED_PUNCTUATION);
+    }
+  });
+});
+
+describe('notes from the reading (shop-level warnings)', () => {
+  const warningsOf = (warnings: string[]) => catalog({ ...raw({}), warnings }).warnings;
+  const CHECK_PHOTO = 'Check the names and prices against your photo before you publish.';
+
+  it('keeps a plain note as written', () => {
+    expect(warningsOf(['Glare on the right side of the page.'])).toEqual(['Glare on the right side of the page.']);
+  });
+  it('replaces method talk with one fixed sentence', () => {
+    expect(warningsOf([
+      'Prices sit far from item names, so the matching of prices to items was done by row position; please verify.',
+      'Cardamom bun: unit price is 350 cents.',
+      'Pain au chocolat confidence is low; amount_cents may be wrong.',
+      'Best reading of a blurred line.',
+    ])).toEqual([CHECK_PHOTO]);
+  });
+  it('keeps plain notes beside the fixed sentence, which comes last', () => {
+    expect(warningsOf(['Price matched by row.', 'Glare on the right side of the page.'])).toEqual([
+      'Glare on the right side of the page.',
+      CHECK_PHOTO,
+    ]);
+  });
+  it('uses curly apostrophes, like the rest of the app', () => {
+    expect(warningsOf(["The prices don't line up with the names."])).toEqual(['The prices don’t line up with the names.']);
+  });
+  it('drops doubled punctuation and repeated notes', () => {
+    expect(warningsOf(['Is the galette price right?.', 'Is the galette price right?', ''])).toEqual(['Is the galette price right?']);
+  });
+});
+
+describe('recorded sample readings (what a keyless visitor sees)', () => {
+  for (const id of SAMPLE_IDS) {
+    it(`${id}: flagged cards and notes are plain`, () => {
+      const c = catalog(recordedReading(id));
+      for (const t of [...c.items.map((i) => i.issueDetail ?? ''), ...c.warnings]) {
+        expect(t).not.toMatch(ENGINEER_TALK);
+        expect(t).not.toMatch(DOUBLED_PUNCTUATION);
+      }
+    });
+    it(`${id}: the recording itself is written for a shop owner`, () => {
+      const r = recordedReading(id);
+      for (const t of [...r.items.map((i) => i.note ?? ''), ...r.warnings]) expect(t).not.toMatch(ENGINEER_TALK);
+    });
+  }
+  it('Marigold keeps the demo flags: the deal, the crossed-out price and the market price', () => {
+    const c = catalog(recordedReading('marigold-bakehouse'));
+    const deal = c.items.find((i) => /2 for \$7/.test(i.sourceText));
+    expect(deal?.issues).toContain('CHECK');
+    expect(deal?.issueDetail).toMatch(/^Printed as “2 for \$7”\. We set \$3\.50 each\. Is that right\?$/);
+    expect(byName(c, /focaccia/i).issues).toContain('CHECK');
+    expect(byName(c, /focaccia/i).issueDetail).toBe('A price is crossed out. We set $8.00. Is that right?');
+    expect(byName(c, /galette/i).issues).toEqual(['MARKET_PRICE']);
   });
 });
 
