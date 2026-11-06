@@ -59,7 +59,7 @@ _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`
 |---|---|---|---|
 | `MISSING_PRICE` | no amount | decimal keypad | kept off the shop |
 | `MARKET_PRICE` ("market price", "MP", "ask", "?") | `price_kind` | **Set today's price** · **Ask in person** | ask in person (listed, not orderable) |
-| `CHECK` | low confidence, crossed-out or blurred text, a multi-buy deal ("2 for $7" → "$3.50 each?"), or a price ≤ $0 or > $1,000 | **Looks right** · **Fix** | kept off |
+| `CHECK` | low confidence, crossed-out or blurred text, a multi-buy deal ("2 for $7" → "$3.50 each?"), a printed condition ("FREE w/ tune-up, else $10"), or a price ≤ $0 or over the $500 order cap | **Looks right** · **Fix** | kept off |
 | `DUPLICATE` | same name, different price, across pages | **Merge** · **Keep both** | kept off (exact duplicates auto-merge) |
 
 Text that reads like instructions to an AI is removed automatically and listed under **Lines we skipped** ("Looked like an instruction, not a menu item").
@@ -187,7 +187,7 @@ OrderBrief = { headline: string /*≤ 90*/, prep_list: { text: string, qty: numb
   flags: { severity: 'warn'|'info', text: string }[], next_action: 'prepare'|'ship'|'contact_buyer'|'none' }
 ```
 
-**`normalizeExtraction(raw) → DraftCatalog`** is pure and built test-first. It converts amounts to cents and flags ≤ $0 or > $1,000 as `CHECK`; truncates names to 127 and descriptions to 256 characters; makes variants from `prices[]` (S/L → one item, two variants); turns a `deal` into `CHECK` with the unit price suggested; maps `market` → `MARKET_PRICE` and `missing` → `MISSING_PRICE`; low confidence → `CHECK`; auto-merges exact duplicates and flags name-only duplicates `DUPLICATE`; moves instruction-like rows (model flag or `/ignore (all|previous)|instructions|system prompt|you are|assistant:/i`) to skipped lines and strips control characters; routes `is_menu:false`, `unreadable` or zero items to the retake screen with a tip chosen from `problems[]`. A `non_usd` problem shows "Shelfie charges in USD" on the review screen.
+**`normalizeExtraction(raw) → DraftCatalog`** is pure and built test-first. It converts amounts to cents and flags ≤ $0 or over the $500 order cap as `CHECK` (so every published item can be sold), plus a printed condition beside a price; truncates names to 127 and descriptions to 256 characters; makes variants from `prices[]` (S/L → one item, two variants); turns a `deal` into `CHECK` with the unit price suggested; maps `market` → `MARKET_PRICE` and `missing` → `MISSING_PRICE`; low confidence → `CHECK`; auto-merges exact duplicates and flags name-only duplicates `DUPLICATE`; moves instruction-like rows (model flag or `/ignore (all|previous)|instructions|system prompt|you are|assistant:/i`) to skipped lines and strips control characters; routes `is_menu:false`, `unreadable` or zero items to the retake screen with a tip chosen from `problems[]`. A `non_usd` problem shows "Shelfie charges in USD" on the review screen.
 
 **Prompt injection:** menu text and buyer notes only ever appear inside JSON data fields, never in tool descriptions or server instructions; the brief agent has no write tools; the buyer console's system prompt says product text is seller data.
 
