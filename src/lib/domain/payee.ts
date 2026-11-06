@@ -22,14 +22,19 @@ export type PayeeEmailResult = { ok: true; email: string } | { ok: false; messag
 // The plain addresses PayPal takes as a payee (anything else is a 422 on every order): no quoted or bracketed forms.
 /** Name part: letters, digits and ! # $ % & ' * + / = ? ^ _ ` { | } ~ -, in dot-separated runs (no leading, trailing or double dot). */
 const LOCAL_PART = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/;
+/** RFC 5321's limits: the name part, and each label of the domain. */
+const MAX_LOCAL_LENGTH = 64;
+const MAX_LABEL_LENGTH = 63;
 /** A domain label: letters, digits and hyphens, not starting or ending with a hyphen. */
 const DOMAIN_LABEL = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
 /** The last label: two letters or more (so not an IP address). */
 const TOP_LABEL = /^[a-z]{2,}$/;
 
+const isLabel = (label: string): boolean => label.length <= MAX_LABEL_LENGTH && DOMAIN_LABEL.test(label);
+
 /**
- * Trimmed and lower-cased; at most 254 characters, one `@`, a plain name part, and a domain of two labels or more
- * that ends in two letters or more.
+ * Trimmed and lower-cased; at most 254 characters, one `@`, a plain name part of at most 64, and a domain of two labels
+ * or more, each at most 63, that ends in two letters or more.
  */
 export function parsePayeeEmail(raw: unknown): PayeeEmailResult {
   const bad: PayeeEmailResult = { ok: false, message: PAYEE_EMAIL_MESSAGE };
@@ -39,8 +44,9 @@ export function parsePayeeEmail(raw: unknown): PayeeEmailResult {
   const parts = email.split('@');
   if (parts.length !== 2) return bad;
   const [local, domain] = parts;
+  if (local.length > MAX_LOCAL_LENGTH || !LOCAL_PART.test(local)) return bad;
   const labels = domain.split('.');
-  if (!LOCAL_PART.test(local) || labels.length < 2 || !labels.every((l) => DOMAIN_LABEL.test(l))) return bad;
+  if (labels.length < 2 || !labels.every(isLabel)) return bad;
   if (!TOP_LABEL.test(labels[labels.length - 1])) return bad;
   return { ok: true, email };
 }

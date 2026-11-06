@@ -1,13 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import { PAYEE_EMAIL_MESSAGE, PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, canBePaid, isDemoShop, maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 
+/** 64 + 1 + (63 + 1 + 63 + 1 + 57 + 4) = 254 characters: the longest address every limit allows. */
+const LONGEST = `${'a'.repeat(64)}@${'b'.repeat(63)}.${'c'.repeat(63)}.${'d'.repeat(57)}.com`;
+
 describe('parsePayeeEmail', () => {
+  it('has a 254-character fixture at the limit', () => {
+    expect(LONGEST).toHaveLength(254);
+  });
+
   it.each([
     ['rosa@example.com', 'rosa@example.com'],
     ['  Rosa.Baker@Example.COM ', 'rosa.baker@example.com'],
     ['sb-abc123@business.example.com', 'sb-abc123@business.example.com'],
     ['first+shop@mail.co.uk', 'first+shop@mail.co.uk'],
-    [`${'a'.repeat(64)}@${'b'.repeat(180)}.com`, `${'a'.repeat(64)}@${'b'.repeat(180)}.com`],
+    // At every length limit: a 64-character name part, 63-character labels, 254 characters in all.
+    [LONGEST, LONGEST],
+    [`${'a'.repeat(64)}@example.com`, `${'a'.repeat(64)}@example.com`],
+    [`rosa@${'b'.repeat(63)}.com`, `rosa@${'b'.repeat(63)}.com`],
     ["o'brien@example.com", "o'brien@example.com"],
     ['rosa_b@my-shop.example.com', 'rosa_b@my-shop.example.com'],
     ['r@e.io', 'r@e.io'],
@@ -31,7 +41,10 @@ describe('parsePayeeEmail', () => {
     ['rosa baker@example.com', 'a space inside'],
     ['rosa@exa mple.com', 'a space in the domain'],
     ['rosa@exam\tple.com', 'a tab'],
-    [`${'a'.repeat(250)}@x.com`, 'over 254 characters'],
+    [`${LONGEST.slice(0, -4)}d.com`, 'over 254 characters (each part within its own limit)'],
+    [`${'a'.repeat(65)}@example.com`, 'a name part over 64 characters'],
+    [`rosa@${'b'.repeat(64)}.com`, 'a domain label over 63 characters'],
+    [`rosa@mail.${'b'.repeat(64)}.com`, 'a middle domain label over 63 characters'],
     // Addresses PayPal refuses (422 on every order), so Shelfie refuses them first.
     ['a,b@x.y', 'a comma, and a one-letter ending'],
     ['a,b@example.com', 'a comma in the name part'],
