@@ -24,6 +24,7 @@ import { isPayPalApprovalUrl } from './activity-format';
 import {
   approvalCard,
   consoleReducer,
+  consoleToSave,
   initialConsoleState,
   refsToCheck,
   restoreConsoleState,
@@ -76,7 +77,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
   useEffect(() => {
     if (!loaded.current) return;
     try {
-      if (state.entries.length) sessionStorage.setItem(storageKey, JSON.stringify({ sessionId: state.sessionId, entries: state.entries }));
+      if (state.entries.length) sessionStorage.setItem(storageKey, JSON.stringify(consoleToSave(state)));
       else sessionStorage.removeItem(storageKey);
     } catch {
       // Storage full or unavailable: the conversation still works for this page view.

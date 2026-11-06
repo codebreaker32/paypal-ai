@@ -6,6 +6,7 @@ import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/c
 import {
   approvalCard,
   consoleReducer,
+  consoleToSave,
   initialConsoleState,
   refsToCheck,
   restoreConsoleState,
@@ -86,6 +87,22 @@ describe('consoleReducer', () => {
     expect((restored.entries[1] as Extract<ConsoleState['entries'][number], { kind: 'activity' }>).calls[0].status).toBe('interrupted');
     const next = consoleReducer(restored, { type: 'send', text: 'more' });
     expect(new Set(next.entries.map((e) => e.key)).size).toBe(next.entries.length);
+  });
+
+  it('keeps an approval card that was still waiting for the end of the turn across a reload', () => {
+    // The buyer reloads while Claude is still writing after create_order: no done ever arrives.
+    const s = run(
+      consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' }),
+      { type: 'session', id: 'asst_2' },
+      { type: 'tool_call', id: 't1', name: 'create_order', input: {} },
+      { type: 'tool_result', id: 't1', ok: true, result: { order_ref: 'ord_a', status: 'awaiting_approval' }, ms: 900 },
+      { type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=a', total: '9.00', orderRef: 'ord_a', orderNumber: 'SHF-AAAAAA' },
+    );
+    const restored = restoreConsoleState(JSON.parse(JSON.stringify(consoleToSave(s))));
+    expect(restored.entries.map((e) => e.kind)).toEqual(['user', 'activity', 'approval']);
+    expect(restored.entries.at(-1)).toMatchObject({ kind: 'approval', orderRef: 'ord_a', total: '9.00', orderNumber: 'SHF-AAAAAA' });
+    expect(refsToCheck(restored)).toEqual(['ord_a']);
+    expect(new Set(restored.entries.map((e) => e.key)).size).toBe(restored.entries.length);
   });
 
   it('ignores saved data that is not a conversation', () => {

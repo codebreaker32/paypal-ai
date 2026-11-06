@@ -201,6 +201,14 @@ export function turnStartIndex(entries: Pick<Entry, 'kind'>[]): number {
 
 const str = (v: unknown): v is string => typeof v === 'string';
 
+/**
+ * What the console saves to sessionStorage. Approval cards still held for the end of the turn are saved too, so a
+ * reload while the assistant is still writing doesn't lose the order's PayPal button.
+ */
+export function consoleToSave(state: ConsoleState): { sessionId: string | null; entries: unknown[] } {
+  return { sessionId: state.sessionId, entries: [...state.entries, ...state.held] };
+}
+
 function validEntry(raw: unknown): NewEntry | null {
   if (!raw || typeof raw !== 'object') return null;
   const e = raw as Record<string, unknown>;
