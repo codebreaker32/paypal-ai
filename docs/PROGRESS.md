@@ -1,11 +1,22 @@
 # Progress
 
-_Last updated: 2026-11-06 09:20 IST (session 6 running)_
+_Last updated: 2026-11-06 09:40 IST (session 6 running)_
 
 ## Current phase
 **Session 6 (from 09:07 IST; ends by ~11:08 IST).** Running:
-- **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits).
-- **running:** a second whole-codebase review over the areas session 5's review didn't cover: setup (reading, review edits, publish), the seller dashboard (tracking, fulfilment, brief, claim link), the buyer side (shop page, console UI, receipt) and a security sweep. A skeptic checks each area's findings, then a fixer works in its own worktree on a `review2/<area>` branch.
+- **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits). GitHub detects the MIT license.
+- **done, merged:** review 2 (`docs/reviews/2026-11-06-review-2.md`) over the areas session 5's review didn't cover. Wave 1 had four areas (setup, seller dashboard, buyer side, a security sweep); wave 2 had two lenses (runtime lifecycle and data integrity, cross-surface consistency). A skeptic tried to refute every finding: **14 confirmed, 5 refuted.** The 9 wave-1 fixes are merged (641 unit tests pass; typecheck and lint are clean):
+  - X1: on Render the rate-limit key is `CF-Connecting-IP`, because the rightmost `X-Forwarded-For` entry there is a shared Cloudflare edge address (unit-tested; **unverified until deployed**);
+  - S1: photos over 50 MP are refused before any pixels are decoded, and uploads decode one at a time (a decompression bomb could have run a 512 MB instance out of memory);
+  - S2: review accepts only prices the door can sell (over $0, up to the $500 order cap);
+  - S3: an item removed during publish stays removed;
+  - S4: a reading keeps at most 10 sizes per item;
+  - S5: a retake whose reading fails goes to "try again" with every saved page;
+  - D1: the "Can't reach PayPal" banner now appears during an outage;
+  - B1: a reload mid-reply keeps the PayPal approval card;
+  - B2: `get_order_status` reports `capture_refused`, so the console card shows a refused payment.
+- **running:** fixers for the 5 wave-2 findings (L1 the `APP_URL` port fallback, L2 the poller when keys arrive late plus caps that ignore expired orders, C1 a declined card shown consistently, C3 the console card re-checks while confirming, C6 "the address you give PayPal" copy). Also running: the full e2e suite on main with wave 1 merged.
+- **done:** `npm run seed` now reports the demo shop's unpaid orders, and `npm run seed -- --cancel-unpaid` cancels rehearsal orders before a recording (one caller can hold 3 unpaid orders per shop). DEMO.md and the README say so.
 
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
 - **done, merged:** the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 candidates; the fixer confirmed and fixed 9 and skipped 1 (CopyRow → CopyButton isn't a clean swap):
