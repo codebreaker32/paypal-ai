@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 09:55 IST (session 6 running)_
+_Last updated: 2026-11-06 10:25 IST (session 6 running)_
 
 ## Current phase
 **Session 6 (from 09:07 IST; ends by ~11:08 IST).** Running:
@@ -21,8 +21,12 @@ _Last updated: 2026-11-06 09:55 IST (session 6 running)_
   - C1: a declined card reads the same on the door (`declined`), the seller page ("Card declined") and the receipt;
   - C3: the console card re-checks every 3 s while it says "Confirming with PayPal";
   - C6: buyer copy says "the address you give PayPal", which fits guest card checkout.
-- **Verified:** the full e2e suite on main with wave 1 merged: the capture gate passed (SHF-YZ3EVV → PayPal `4CH44248N9892281R` → capture `5LL32704TR754451L` COMPLETED, $27.00, nut-allergy brief, USPS tracker SHIPPED, `get_order_status` read it back). 54 passed, 1 skipped, and 2 shop-page tests at 1440 px timed out waiting for network idle while the fixers were running test suites on the same 4 CPUs. On merged main, `e2e/shop.spec.ts` alone passed 24/24.
-- **running:** the full e2e suite on the final main, then `npm run screenshots:prod` into `docs/judge/screenshots/round-5/`, then judge round 5.
+- **Verified:** the full e2e suite on main with wave 1 merged. The capture gate passed (SHF-YZ3EVV → PayPal `4CH44248N9892281R` → capture `5LL32704TR754451L` COMPLETED, $27.00). 2 shop-page tests at 1440 px timed out while fixers loaded the CPUs; on merged main `e2e/shop.spec.ts` alone passed 24/24.
+- **Verified:** the full e2e suite on main with both waves merged (09:52 IST): **56 passed, 1 skipped**. The capture gate passed: SHF-GG6GDJ → PayPal `3EH35781PT3793628` → capture `3HK74446UV304740E` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED, and `get_order_status` read it back. `npm run screenshots:prod`: 68/68 on a production build, axe 0 violations (`docs/judge/screenshots/round-5/`).
+- **Judge round 5: ship, no score change** (Part A 22, Part B 21, 0 Part C fails; `docs/judge/round-5.md`). The judge ran its own production build. It checked the seed (9 real Catalog products), the door by curl (an order, a price tamper refused, `IDEMPOTENCY_CONFLICT`, the new `declined` and `capture_refused` fields), two real Claude console turns, a live Claude reading, and the S1 guard (a 56 MP PNG refused with 413 in 0.15 s). Its top fixes are the same three human-gated items, now framed as "amend the spec first" for the door findability and payee items (see "Needs from human").
+- **done, after round 5:** the judge's one in-scope miss. A live reading turned "Kids bike safety check FREE w/ tune-up, else $10" into a plain $10 with no question. A condition in `deal_text`, or an ", else $10" clause in the printed line, now asks the seller. No card changed on the 61 recorded sample and fixture items.
+- **done, after round 5:** `code-review` (high) over this session's own changes found 10 items; 8 are fixed and 2 kept with reasons (table at the end of `docs/reviews/2026-11-06-review-2.md`). A $0 item price is refused at input, but a $0 shipping fee is still allowed. Publish skips an item changed mid-run. The outage banner counts only transient failures. There is one shared `cardDeclined` rule. `--cancel-unpaid` asks PayPal first. The caps use the service clock. The console's confirm poll stops after 2 minutes. **665 unit tests pass; typecheck and lint are clean.**
+- **running:** the full e2e suite and the screenshots, re-run on the final main.
 - **done:** `npm run seed` now reports the demo shop's unpaid orders, and `npm run seed -- --cancel-unpaid` cancels rehearsal orders before a recording (one caller can hold 3 unpaid orders per shop). DEMO.md and the README say so.
 
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
@@ -154,13 +158,15 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. (Done at 08:53 IST: the full e2e run passed after the review fixes; see Verified.)
-2. (Done at 08:58 IST: `docs/judge/screenshots/round-4/` has 68/68 with 0 axe violations, and `docs/judge/round-4-tests.txt` is written.)
-3. (Done at ~09:10 IST: judge round 4 (`docs/judge/round-4.md`) says **ship** with Part A 22, Part B 21 and 0 Part C fails, the same scores as round 3. The judge checked the R6 fix live (`IDEMPOTENCY_CONFLICT` on a reused id with different items, the same order on an exact retry). Its top 3: make the door findable, which is a spec non-goal and needs the human's go-ahead; pay the seller, which needs a second sandbox Business account; and deploy, video and public repo, which are human steps.)
-4. **Every lever the judge has left for Part A needs the human: the go-ahead for discovery, a second sandbox account, or the deploy, video and public repo.** Until then, the in-scope work is hardening and demo readiness. The QR and discovery work needs the human's go-ahead (see below).
+1. **Every lever left for Part A needs the human** (judge rounds 3, 4 and 5 agree; no score has moved since round 2):
+   - make the repo public, record the video, and deploy;
+   - a decision on amending the spec so the door findability work (counter card with QR, JSON-LD, `<link rel="alternate">`) is in scope;
+   - a second sandbox Business account, plus a spec line, for paying each seller.
+2. Until then, the in-scope work is hardening and demo readiness. Two whole-codebase reviews and two diff reviews have now been run and fixed. The next highest-value check would be a fresh-clone README walkthrough after this session's `.env.example` change (`APP_URL` is now commented out; the app follows the bound port).
+3. If the human says yes to the spec amendment, judge round 5's top fix 2 has the plan: a print counter card from the Share tab, JSON-LD and a door `<link>` on the shop page, and a recorded Claude Code run given only the shop URL. About an hour; it touches no money path.
 
 ## Needs from human
-- **Decision: build "make the door findable"?** Judge round 3's only code-doable lever for Innovation (A4), Idea (B1) and B5 is:
+- **Decision: amend the spec so "make the door findable" can be built?** (Judge round 5 says to amend spec §14 first, because its own buyer journey at line 36 already relies on a "QR at the stall".) Judge round 3's only code-doable lever for Innovation (A4), Idea (B1) and B5 is:
   - a printable counter card with a QR code of the shop link ("Order ahead with any AI assistant, pay on PayPal");
   - schema.org JSON-LD and a `<link>` to the agent door on the shop page;
   - an `agents.txt`;
