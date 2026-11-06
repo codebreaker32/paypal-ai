@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Order, OrderEventRow } from '@/lib/domain/types';
-import { agentLabel, buyerLabel, groupOrders, groupTotalCents, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
+import { orderStatusMeta } from '@/components/dashboard/status';
+import { actionWords, agentLabel, buyerLabel, groupOrders, groupTotalCents, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
 
 const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
@@ -85,6 +86,31 @@ describe('seller view helpers', () => {
     ]);
     const pickup = timelineEntries([ev('fulfilled', null, 'seller')], o({ fulfillment: 'pickup' }));
     expect(pickup[0].text).toBe('Marked picked up');
+  });
+
+  it('says plainly when PayPal refused the capture: nothing charged, do not hand over or ship (R3)', () => {
+    const ev = (type: string, detail: unknown = null): OrderEventRow => ({
+      id: `evt_${type}`, orderId: base.id, type, source: 'return_url', detail, createdAt: '2026-11-06T18:00:00.000Z',
+    });
+    const entries = timelineEntries(
+      [ev('paypal_approved'), ev('capture_failed', { status: 422, issue: 'TRANSACTION_REFUSED' }), ev('capture_refused', { paypalStatus: 'VOIDED' })],
+      base,
+    );
+    expect(entries.slice(1)).toEqual([
+      expect.objectContaining({ text: expect.stringMatching(/PayPal refused the payment.*nothing was charged/i), tone: 'danger' }),
+      expect.objectContaining({ text: expect.stringMatching(/closed/i), tone: 'danger' }),
+    ]);
+
+    const refused = o({ status: 'approved', captureRefused: true });
+    expect(orderStatusMeta(refused)).toMatchObject({ label: 'PayPal refused payment', tone: 'danger' });
+    expect(orderStatusMeta(o({ status: 'approved' }))).toMatchObject({ label: 'Approved, taking payment' });
+
+    const [title, text] = actionWords(refused);
+    expect(title).toBe('PayPal refused the payment');
+    expect(text).toMatch(/nothing was charged/i);
+    expect(text).toMatch(/don’t hand over or ship/i);
+    expect(text).not.toMatch(/few seconds/);
+    expect(actionWords(o({ status: 'approved' }))[1]).toMatch(/few seconds/);
   });
 
   it('a stale poll never moves a picked-up order back to paid', () => {

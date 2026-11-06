@@ -183,6 +183,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   lines: OrderLine[];
+  /** `approved`, but PayPal refused the capture for a non-transient reason (nothing was charged). Set by the repo. */
+  captureRefused?: boolean;
 }
 
 export interface NewOrder {

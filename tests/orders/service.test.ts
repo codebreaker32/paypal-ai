@@ -383,6 +383,9 @@ describe('order service', () => {
           type: 'capture_failed', source: 'return_url', detail: { status: err.status, issue: err.issue, debugId: err.debugId },
         });
         expect(logged.mock.calls.map((c) => String(c[0])).join('\n')).toContain(err.debugId!);
+        // The seller dashboard reads the refusal off the order itself (R3).
+        expect(after.captureRefused).toBe(true);
+        expect(orders.listByShop(db, s.shop.id).find((x) => x.id === o.id)!.captureRefused).toBe(true);
         // The poller and the agent's status checks do not hammer PayPal with the same refused capture.
         clock += 60_000;
         await syncOrder(deps, o.id, 'poller');
