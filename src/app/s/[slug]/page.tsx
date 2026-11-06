@@ -142,7 +142,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         initiallyOpen={assistant === '1'}
         intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
         menu={<Menu sections={menuSections(items)} />}
-        door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} />}
+        door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={takesOrders(shop)} />}
       />
     </>
   );

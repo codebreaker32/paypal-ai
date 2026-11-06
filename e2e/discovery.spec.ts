@@ -79,6 +79,10 @@ test.describe('shop page, for agents that read it', () => {
       const head = html.slice(0, html.indexOf('</head>'));
       expect(head, shop.name).not.toMatch(/<link[^>]*rel="alternate"/);
       expect(html, shop.name).toContain('application/ld+json');
+      // The door's section stays (it still answers questions about the menu) but doesn't offer ordering.
+      expect(html, shop.name).toContain('This shop isn’t taking orders right now.');
+      expect(html, shop.name).not.toContain('place an order through this address');
+      expect(html, shop.name).toContain(doorUrl(shop));
     }
   });
 });

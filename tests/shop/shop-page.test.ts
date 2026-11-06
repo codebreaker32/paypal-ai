@@ -1,7 +1,7 @@
 // The public shop page /s/[slug] (spec §10a): what it tells agents in <head>, and whether it says it is taking orders.
 // Both follow one rule, `takesOrders` (live, and it can be paid), the same as the JSON-LD OrderAction, /agents.txt and
 // /llms.txt and the agent door's create_order.
-import { isValidElement, type ReactElement, type ReactNode } from 'react';
+import { createElement, isValidElement, type ReactElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
@@ -16,6 +16,7 @@ vi.mock('@/lib/db', async (orig) => {
 const { createTestDb } = await import('@/lib/db');
 const { getConfig } = await import('@/lib/config');
 const { seedShop } = await import('../helpers/shop');
+const { ToastProvider } = await import('@/components/ui/Toast');
 const { default: ShopPage } = await import('@/app/s/[slug]/page');
 
 type Seed = Parameters<typeof seedShop>[1];
@@ -87,5 +88,39 @@ describe('shop page "not taking orders" note', () => {
     const html = await introHtml(seed);
     expect(html).not.toMatch(/role="status"/);
     expect(html).not.toContain('Not taking orders');
+  });
+});
+
+describe('shop page agent door section', () => {
+  /** The page's agent door section as HTML (its copy buttons need the toast provider the root layout mounts). */
+  const doorHtml = async (seed: Seed) => {
+    const { slug, nodes } = await pageFor(seed);
+    const layout = nodes.find((n) => (n.props as { door?: ReactNode }).door !== undefined)!;
+    const html = renderToStaticMarkup(createElement(ToastProvider, null, (layout.props as { door: ReactElement }).door));
+    return { slug, html: html.replaceAll('<!-- -->', '') };
+  };
+  const ORDERING = 'place an order through this address';
+  const NOT_TAKING = 'This shop isn’t taking orders right now. Any AI assistant that speaks MCP can still read its menu through this address.';
+
+  it.each([
+    ['a live shop with its PayPal email', { name: 'Rosa Bakes' }],
+    ['the live demo shop, paid to the platform', { name: 'Marigold Bakehouse' }],
+  ] as [string, Seed][])('says assistants can order through it for %s', async (_label, seed) => {
+    const { slug, html } = await doorHtml(seed);
+    expect(html).toContain(ORDERING);
+    expect(html).not.toContain(NOT_TAKING);
+    expect(html).toContain(`${getConfig().appUrl}/s/${slug}/mcp`);
+  });
+
+  // The door still answers questions (get_shop_info, list_products), so the address stays; only ordering is gone.
+  it.each([
+    ['a live shop with no PayPal email (it refuses every order)', { name: 'Rosa Bakes', payeeEmail: null }],
+    ['a paused shop', { name: 'Rosa Bakes', status: 'paused' }],
+  ] as [string, Seed][])('keeps its address but says it isn’t taking orders for %s', async (_label, seed) => {
+    const { slug, html } = await doorHtml(seed);
+    expect(html).toContain(NOT_TAKING);
+    expect(html).not.toContain(ORDERING);
+    expect(html).not.toContain('approves every payment');
+    expect(html).toContain(`${getConfig().appUrl}/s/${slug}/mcp`);
   });
 });

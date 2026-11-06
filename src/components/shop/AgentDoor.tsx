@@ -43,10 +43,12 @@ export interface AgentDoorProps {
   shopName: string;
   /** `${APP_URL}/s/<slug>/mcp` */
   url: string;
+  /** `takesOrders(shop)`: when false the door still answers questions about the menu, but refuses every order. */
+  takesOrders: boolean;
 }
 
-/** The shop's agent door: the address any MCP-capable assistant can order through, and how to connect one. */
-export function AgentDoor({ slug, shopName, url }: AgentDoorProps) {
+/** The shop's agent door: the address any MCP-capable assistant can read the menu and order through, and how to connect one. */
+export function AgentDoor({ slug, shopName, url, takesOrders }: AgentDoorProps) {
   const desktopConfig = JSON.stringify({ mcpServers: { [slug]: { command: 'npx', args: ['mcp-remote', url] } } }, null, 2);
   return (
     <section id="agent-door" aria-labelledby="agent-door-title" className="flex scroll-mt-6 flex-col gap-4">
@@ -55,8 +57,14 @@ export function AgentDoor({ slug, shopName, url }: AgentDoorProps) {
         Agent door
       </h2>
       <p className="max-w-measure text-ink-soft">
-        Any AI assistant that speaks MCP can read {shopName}’s menu and place an order through this address. Prices
-        always come from the shop, and the buyer approves every payment on PayPal.
+        {takesOrders ? (
+          <>
+            Any AI assistant that speaks MCP can read {shopName}’s menu and place an order through this address. Prices
+            always come from the shop, and the buyer approves every payment on PayPal.
+          </>
+        ) : (
+          'This shop isn’t taking orders right now. Any AI assistant that speaks MCP can still read its menu through this address.'
+        )}
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <code className="min-w-0 flex-1 rounded-md border border-line-strong bg-surface-raised px-3 py-2.5 font-mono text-sm [overflow-wrap:anywhere]">
