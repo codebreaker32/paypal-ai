@@ -67,3 +67,11 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The normalize.ts conflict in the direction-A merge resolves to main's plain-copy version.** A's side only curled apostrophes in sentences the copy fix had already rewritten.
 - **The AI test fixtures are copied from the re-recorded samples.** Reason: they were byte-for-byte copies of the old samples and still held "matched by row position" notes that a judge reading the repo would see. 556 tests pass after the copy.
 - **Seller voices (EVIDENCE 5b):** 3 verified press quotes (a home baker taking orders by DM and spreadsheet, a bakery's unpaid no-show, a food truck relying on P2P apps). No verified no-website quote was found, so the pitch doesn't claim one.
+- **Judge round 2: ship** (Part A 22, Part B 21, 0 Part C fails). The loop continues on the next-highest gains.
+- **Round-2 fix 1 (route each shop's money to the seller via `payee.email_address`) is not built in this run. It goes on "Needs from human".** Reason: it can only be verified with a second sandbox Business account, which has to be created in the PayPal Developer Dashboard (a human login). Unverified money-path code would break the "never claim what you didn't run" rule. It also changes the capture path the gate verifies. The README's scale-path note stays honest instead.
+- **Round-2 fix 2 runs as round-3 work:**
+  - code: size words left out of item names when the sizes are options; the start sub-line leads with the seller's outcome; one filled primary on the Share tab; "Retry 2 items"; a non-menu photo for the retake fixture;
+  - the dev-server reload loop the judge saw once;
+  - docs: DEMO.md opens on the Store Sync contrast and adds the Claude Code beat;
+  - re-shooting `capture/` and `evidence/` in the current look, after the code lands.
+- **Round-2 fix 3 (deploy, video, public repo) is a human step.** Reason: the run brief puts all three out of scope.
