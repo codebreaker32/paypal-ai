@@ -122,7 +122,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | `Tabs` | WAI-ARIA tabs with an ink underline under the active tab and a pomegranate count pill. |
 | `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
 | `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
-| `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. |
+| `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. 28rem wide from `sm` up, so "New paid order SHF-XXXXXX · $27.00" fits one line; the dashboard scrolls a just-paid row clear of it. |
 | `Skeleton` | Shaped like the content it replaces, with a shimmer. |
 | `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
 

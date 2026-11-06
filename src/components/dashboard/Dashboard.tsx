@@ -116,6 +116,25 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     [toast, shop.id],
   );
 
+  // A row that just got paid must not sit under the toast that announces it (on a phone the toast spans the screen's
+  // foot): if the two overlap, scroll the row up clear of the toast, never pushing its top off screen.
+  useEffect(() => {
+    if (!justPaid.size) return;
+    const frame = requestAnimationFrame(() => {
+      const row = document.querySelector<HTMLElement>('li[data-just-paid]');
+      const region = document.querySelector<HTMLElement>('[data-toast-region]');
+      if (!row || !region) return;
+      const r = row.getBoundingClientRect();
+      const t = region.getBoundingClientRect();
+      if (!t.height || r.right <= t.left || r.left >= t.right) return;
+      const by = Math.min(r.bottom - (t.top - 12), r.top - 8);
+      if (by <= 0) return;
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollBy({ top: by, behavior: reduce ? 'auto' : 'smooth' });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [justPaid]);
+
   useEffect(() => {
     let stopped = false;
     const tick = async () => {
