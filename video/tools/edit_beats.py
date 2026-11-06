@@ -14,8 +14,8 @@ def B(at, vs, rate=None):
 
 
 edit = {
-    # 10 s zoom stretched over the opening line (slower, never frozen).
-    'problem': {'playbackRate': 0.365},
+    # the 28 s zoom (clip 01 is recorded at the opening line's length) at real speed.
+    'problem': {'playbackRate': 1},
     # start page -> Snap -> photo -> Read my menu -> reading; then the result.
     'snap': {'captionPlacement': 'top', 'beats': [B(0, 0.2), B(6.0, 15.6)]},
     # focaccia card; the "2 for $7" card during its line; the email typed; Publish -> Adding -> live (1.5x); live, agent door.

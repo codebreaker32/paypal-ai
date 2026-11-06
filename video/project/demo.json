@@ -49,6 +49,11 @@
     "breathSec": 0.45
   },
   "zoomToClick": false,
+  "intro": {
+    "lockup": "assets/lockup.svg",
+    "holdSec": 2.0,
+    "outSec": 0.5
+  },
   "timeline": [
     {
       "id": "problem",
@@ -84,7 +89,7 @@
       "words": "audio/problem.words.json",
       "narrationSec": 26.384,
       "durationSec": 27.434,
-      "playbackRate": 0.365
+      "playbackRate": 1
     },
     {
       "id": "snap",

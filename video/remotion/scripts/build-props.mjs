@@ -157,6 +157,7 @@ export async function buildProps({ manifestPath = DEFAULT_MANIFEST, placeholders
       captions: m.captions,
       watermark: null,
       cover: null,
+      intro: m.intro && (!wanted || wanted.has(m.timeline[0]?.id)) ? m.intro : null,
       sfx: null,
       sfxTrack: [],
       transitions,

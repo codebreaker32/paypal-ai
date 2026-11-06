@@ -184,20 +184,20 @@ async function fontsReady(where: Page | Frame): Promise<void> {
 
 // ---- 01: the handwritten menu ---------------------------------------------------------------------------------------
 
-/** The photo on a blurred copy of itself, zooming in slowly over 10 s (rendered by ffmpeg from the image, not grabbed). */
+/** The photo on a blurred copy of itself, zooming in slowly over 28 s, the length of the video's opening line (rendered by ffmpeg from the image, not grabbed). */
 function shot01(): void {
   const id = '01-menu-photo';
   if (!wanted(id)) return;
   const file = path.join(OUT, `${id}.mp4`);
-  const seconds = 10;
+  const seconds = 28;
   const frames = seconds * FPS;
-  // A 3840x2160 still (blurred cover + the sharp photo, fitted), then zoompan from 1.0 to 1.07 into 1920x1080.
+  // A 3840x2160 still (blurred cover + the sharp photo, fitted), then zoompan from 1.0 to 1.12 into 1920x1080.
   const filter = [
     `[0:v]split[a][b]`,
     `[a]scale=3840:2160:force_original_aspect_ratio=increase,crop=3840:2160,gblur=sigma=40,eq=brightness=-0.06[bg]`,
     `[b]scale=-2:2000[fg]`,
     `[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[still]`,
-    `[still]zoompan=z='1+0.07*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${W}x${H}:fps=${FPS}[v]`,
+    `[still]zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${W}x${H}:fps=${FPS}[v]`,
   ].join(';');
   const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-loop', '1', '-i', PHOTO, '-filter_complex', filter, '-map', '[v]', '-frames:v', String(frames),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', file], { stdio: 'inherit' });

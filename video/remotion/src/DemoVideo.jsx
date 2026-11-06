@@ -19,6 +19,7 @@ import { Placeholder } from "./scenes/Placeholder.jsx";
 import { OnScreenText } from "./components/OnScreenText.jsx";
 import { Captions } from "./components/Captions.jsx";
 import { Watermark } from "./components/Watermark.jsx";
+import { Intro } from "./components/Intro.jsx";
 import { HookCard, FrameCover, BandOverlay } from "./components/HookCard.jsx";
 import { themeFrom } from "./theme.js";
 import { ensureFigtree } from "./fonts.js";
@@ -180,6 +181,13 @@ export const DemoVideo = (props) => {
           return nodes;
         })}
       </TransitionSeries>
+
+      {/* Shelfie: the logo opens the video over the first shot (manifest `intro`), under the captions. */}
+      {props.intro ? (
+        <Sequence from={0} durationInFrames={secToFrames((props.intro.holdSec ?? 1.6) + (props.intro.outSec ?? 0.5), fps)}>
+          <Intro intro={props.intro} theme={theme} />
+        </Sequence>
+      ) : null}
 
       {/* The continuous presenter take sits ABOVE the scenes and BELOW the
           captions: a full-frame face layout must not swallow the caption. */}
