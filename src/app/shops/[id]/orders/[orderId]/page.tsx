@@ -377,7 +377,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
             <h1 className="type-display">
               Order <span className="type-price font-semibold tracking-tight whitespace-nowrap">{order.number}</span>
             </h1>
-            <OrderStatusText order={order} className="text-base" />
+            <OrderStatusText order={order} size="md" />
           </div>
           <p className="text-ink-soft">
             Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} />

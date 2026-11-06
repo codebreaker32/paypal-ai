@@ -66,7 +66,19 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
     latest.current = state;
   }, [state]);
 
-  useEffect(() => () => inflight.current?.abort(), []);
+  // Abort only on a real unmount: React's dev StrictMode unmounts and remounts once on hydration, and a starter tapped
+  // in that instant would otherwise lose its turn and sit on "Thinking…". The remount lands before the timeout runs.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      const turn = inflight.current;
+      setTimeout(() => {
+        if (!mounted.current) turn?.abort();
+      }, 0);
+    };
+  }, []);
 
   useEffect(() => {
     try {

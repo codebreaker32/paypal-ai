@@ -63,12 +63,20 @@ const DOT_TONE: Record<BadgeTone, string> = {
   info: 'text-info',
 };
 
-/** Status in a list row: a coloured dot and the word, no box. */
-export function OrderStatusText({ order, className }: { order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>; className?: string }) {
+/** Status as a coloured dot and the word, no box: `sm` in list rows, `md` beside a page title. */
+export function OrderStatusText({
+  order,
+  size = 'sm',
+  className,
+}: {
+  order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>;
+  size?: 'sm' | 'md';
+  className?: string;
+}) {
   const m = orderStatusMeta(order);
   return (
-    <span className={cx('inline-flex items-center gap-2 text-sm font-semibold', DOT_TONE[m.tone], className)}>
-      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
+    <span className={cx('inline-flex items-center gap-2 font-semibold', size === 'md' ? 'text-lg' : 'text-sm', DOT_TONE[m.tone], className)}>
+      <span aria-hidden="true" className={cx('shrink-0 rounded-full bg-current', size === 'md' ? 'size-2.5' : 'size-2')} />
       {m.label}
     </span>
   );
