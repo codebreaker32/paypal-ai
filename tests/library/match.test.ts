@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ItemCategory } from '@/lib/domain/category';
 import type { ShopKind } from '@/lib/domain/types';
 import type { LibraryPhoto } from '@/lib/library/types';
-import { examplePhotos, exampleUrls, matchLibraryPhoto, type MatchItem } from '@/lib/library/match';
+import { examplePhotos, exampleUrls, matchLibraryPhoto, type MatchItem, type ShopItem } from '@/lib/library/match';
 import marigold from '@/lib/ai/samples/marigold-bakehouse.json';
 import tiaLupe from '@/lib/ai/samples/tia-lupe-chalkboard.json';
 import ravi from '@/lib/ai/samples/ravi-bike-repair.json';
@@ -50,7 +50,7 @@ const LIB: LibraryPhoto[] = [
 ];
 
 type Reading = { kind: string; items: { section: string | null; name: string | null; description: string | null; category: string | null }[] };
-const itemsOf = (r: Reading): MatchItem[] =>
+const itemsOf = (r: Reading): ShopItem[] =>
   r.items.map((it, i) => ({ id: `itm_${i}`, name: it.name ?? '', description: it.description, section: it.section, category: it.category as ItemCategory }));
 const shopPicks = (r: Reading) => {
   const items = itemsOf(r);
@@ -170,7 +170,7 @@ describe('examplePhotos (a whole shop)', () => {
   });
 
   it('two items of one shop do not share a photo while another variant fits as well', () => {
-    const items: MatchItem[] = [
+    const items: ShopItem[] = [
       { id: 'a', name: 'Butter croissant' },
       { id: 'b', name: 'Plain croissant' },
       { id: 'c', name: 'Croissant, day old' },

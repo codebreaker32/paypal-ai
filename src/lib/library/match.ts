@@ -11,7 +11,6 @@ import type { LibraryPhoto } from './types';
  */
 
 export interface MatchItem {
-  id?: string;
   name: string;
   description?: string | null;
   section?: string | null;
@@ -21,6 +20,9 @@ export interface MatchItem {
   /** The seller's own photo: an item with one needs no example. */
   photoUrl?: string | null;
 }
+
+/** An item of a shop's menu, for the shop-wide matches. */
+export type ShopItem = MatchItem & { id: string };
 
 export interface MatchOptions {
   /** Claude's (stored) pick: wins when it is in the library and allowed for the shop. */
@@ -169,7 +171,7 @@ export function matchLibraryPhoto(item: MatchItem, shopKind: ShopKind, opts: Mat
  * and use up nothing; two items avoid sharing a photo when another variant fits them as well. Claude's picks are
  * placed first so an automatic match steps around them.
  */
-export function examplePhotos<T extends MatchItem & { id: string }>(
+export function examplePhotos<T extends ShopItem>(
   items: readonly T[],
   shopKind: ShopKind,
   library: readonly LibraryPhoto[] = LIBRARY,
@@ -208,7 +210,7 @@ export const pexelsUrl = (pexelsId: string) => `/i/library/${pexelsFileName(pexe
  * The example photo URL for each item (null: its own photo or its drawing shows). A stored `pexels:<id>` is the cached
  * live match; anything else goes through `examplePhotos`. For people only: agents and the JSON-LD never get these.
  */
-export function exampleUrls<T extends MatchItem & { id: string }>(
+export function exampleUrls<T extends ShopItem>(
   items: readonly T[],
   shopKind: ShopKind,
   library: readonly LibraryPhoto[] = LIBRARY,

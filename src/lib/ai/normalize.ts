@@ -1,4 +1,6 @@
 import { isItemCategory } from '@/lib/domain/category';
+import { LIBRARY } from '@/lib/library/catalog';
+import type { LibraryPhoto } from '@/lib/library/types';
 import { MAX_PRICE_CENTS, MAX_VARIANTS } from '@/lib/catalog/rules';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type {
@@ -244,7 +246,7 @@ function withoutSizeWords(name: string, variants: DraftVariant[]): string {
   return rest === '' ? name : rest;
 }
 
-function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
+function buildItem(it: ExtractedItem, kind: DraftItem['kind'], libraryIds: ReadonlySet<string>): Built | null {
   const cleaned = cleanOrNull(it.name, MAX_NAME);
   if (!cleaned) return null;
 
@@ -277,6 +279,7 @@ function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
     issueDetail: ordered.length ? issueDetailFor({ it, variants, flags, unusual, shaky, note }) : null,
     status: it.price_kind === 'market' ? 'in_person' : 'draft',
     category: isItemCategory(it.category) ? it.category : null,
+    examplePhoto: typeof it.example_photo === 'string' && libraryIds.has(it.example_photo) ? it.example_photo : null,
     variants,
   };
   return {
@@ -323,7 +326,7 @@ function dedupe(built: Built[]): DraftItem[] {
   return built.filter((b) => seen.get(b.key)!.includes(b)).map((b) => b.item);
 }
 
-export function normalizeExtraction(raw: MenuExtraction): DraftCatalog | UnreadableMenu {
+export function normalizeExtraction(raw: MenuExtraction, library: readonly LibraryPhoto[] = LIBRARY): DraftCatalog | UnreadableMenu {
   if (!raw.is_menu) {
     return { unreadable: true, reason: 'not_a_menu', tip: retakeTipFor(['not_a_menu']) };
   }
@@ -337,6 +340,7 @@ export function normalizeExtraction(raw: MenuExtraction): DraftCatalog | Unreada
     .map((s) => ({ text: clean(s.text), page: s.page, reason: s.reason }) as SkippedLine)
     .filter((s) => s.text !== '');
   const built: Built[] = [];
+  const libraryIds = new Set(library.map((p) => p.id));
 
   for (const it of raw.items) {
     if (looksLikeInstruction(it)) {
@@ -344,7 +348,7 @@ export function normalizeExtraction(raw: MenuExtraction): DraftCatalog | Unreada
       if (text) skipped.push({ text, page: it.page, reason: 'instruction' });
       continue;
     }
-    const b = buildItem(it, kind);
+    const b = buildItem(it, kind, libraryIds);
     if (!b) {
       const text = clean(it.source_text);
       if (text) skipped.push({ text, page: it.page, reason: 'illegible' });

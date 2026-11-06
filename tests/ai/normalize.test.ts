@@ -6,6 +6,8 @@ import { MAX_VARIANTS } from '@/lib/catalog/rules';
 import { MenuExtractionSchema, parseStoredReading, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import type { DraftCatalog, DraftItem, UnreadableMenu } from '@/lib/domain/types';
+import type { LibraryPhoto } from '@/lib/library/types';
+import { MENU_SYSTEM_PROMPT, menuSystemPrompt } from '@/lib/ai/prompts';
 
 const dir = path.resolve(import.meta.dirname, 'fixtures');
 function fixture(name: string): MenuExtraction {
@@ -13,8 +15,8 @@ function fixture(name: string): MenuExtraction {
   if (!parsed.success) throw parsed.error;
   return parsed.data;
 }
-function catalog(raw: MenuExtraction): DraftCatalog {
-  const r = normalizeExtraction(raw);
+function catalog(raw: MenuExtraction, library?: readonly LibraryPhoto[]): DraftCatalog {
+  const r = normalizeExtraction(raw, library);
   if ('unreadable' in r) throw new Error(`unexpected unreadable: ${r.reason}`);
   return r;
 }
@@ -39,7 +41,7 @@ function raw(...items: Partial<ExtractedItem>[]): MenuExtraction {
     items: items.map((p) => ({
       section: null, name: 'Thing', description: null, source_text: 'Thing', page: 1,
       prices: [{ label: null, amount_cents: 500, raw: '$5' }], price_kind: 'fixed' as const, deal_text: null,
-      confidence: 'high' as const, note: null, looks_like_instruction: false, category: 'goods' as const, ...p,
+      confidence: 'high' as const, note: null, looks_like_instruction: false, category: 'goods' as const, example_photo: null, ...p,
     })),
   };
 }
@@ -592,5 +594,44 @@ describe('category (the drawing shown without a photo)', () => {
     delete (missing.items[0] as Partial<ExtractedItem>).category;
     expect(catalog(missing).items[0].category).toBeNull();
     expect(catalog(raw({ name: 'Bun', category: 'sandwich' as ExtractedItem['category'] })).items[0].category).toBeNull();
+  });
+});
+
+describe('example_photo (Claude’s pick from the example-photo library, Part A3)', () => {
+  const lib: LibraryPhoto[] = [
+    { id: 'croissant-1', file: '/library/croissant-1.webp', type: 'croissant', category: 'pastry', tags: ['croissant'], shows: 'A butter croissant on a plate', source: 'https://www.pexels.com/photo/1/', photographer: 'A', licence: 'Pexels License' },
+    { id: 'taco-1', file: '/library/taco-1.webp', type: 'taco', category: 'taco', tags: ['taco'], shows: 'Three al pastor tacos', source: 'https://www.pexels.com/photo/2/', photographer: 'B', licence: 'Pexels License' },
+  ];
+
+  it('keeps a pick that is in the library', () => {
+    expect(catalog(raw({ name: 'Butter croissant', category: 'pastry', example_photo: 'croissant-1' }), lib).items[0].examplePhoto).toBe('croissant-1');
+  });
+
+  it('an id not in the library, an empty library or no pick at all is null', () => {
+    expect(catalog(raw({ name: 'Butter croissant', example_photo: 'croissant-7' }), lib).items[0].examplePhoto).toBeNull();
+    expect(catalog(raw({ name: 'Butter croissant', example_photo: 'croissant-1' }), []).items[0].examplePhoto).toBeNull();
+    expect(catalog(raw({ name: 'Butter croissant', example_photo: null }), lib).items[0].examplePhoto).toBeNull();
+  });
+
+  it('a stored reading from before the field still parses, with null', () => {
+    const r = JSON.parse(fs.readFileSync(path.join(dir, 'marigold.json'), 'utf8')) as { items: Record<string, unknown>[] };
+    for (const item of r.items) delete item.example_photo;
+    const parsed = parseStoredReading(r);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data!.items.every((i) => i.example_photo === null)).toBe(true);
+    for (const id of SAMPLE_IDS) expect(recordedReading(id).items.length).toBeGreaterThan(0);
+  });
+
+  it('the schema stays a plain nullable string (no enum from a possibly empty list)', () => {
+    expect(MenuExtractionSchema.safeParse(raw({ example_photo: 'anything' })).success).toBe(true);
+  });
+
+  it('the prompt lists the library briefly (id and what it shows), and says null with an empty library', () => {
+    const p = menuSystemPrompt(lib);
+    expect(p).toContain('croissant-1: A butter croissant on a plate');
+    expect(p).toContain('taco-1: Three al pastor tacos');
+    expect(p).toMatch(/example_photo/);
+    expect(menuSystemPrompt([])).toMatch(/example_photo: always null/);
+    expect(MENU_SYSTEM_PROMPT).toBe(menuSystemPrompt());
   });
 });
