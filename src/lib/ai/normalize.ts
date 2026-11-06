@@ -177,10 +177,11 @@ function issueDetailFor({ it, variants, flags, unusual, shaky, note }: DetailInp
 // The model's warnings are shown as written only when they read like a note to the owner. One that
 // talks about cents, field names or how the photo was read is dropped; in its place the owner gets
 // one fixed sentence, so the point (check this against the photo) survives without the jargon.
-// "Match" alone is plain English ("these prices don't match the board"); "matched by row" is not.
+// "Match" alone is plain English ("these prices don't match the board"); "matched by row", "matched
+// to items" and "in reading order" describe how the photo was read.
 
 const METHOD_TALK_RE =
-  /\bcents?\b|\bmatched by\b|\bby (row|position)\b|row position|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text|\bnull\b|\bOCR\b/i;
+  /\bcents?\b|\bmatched (by|to|with)\b|\bby (row|position)\b|row position|reading order|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text|\bnull\b|\bOCR\b/i;
 const CHECK_PHOTO = 'Check the names and prices against your photo before you publish.';
 
 function sellerWarnings(warnings: string[]): string[] {
