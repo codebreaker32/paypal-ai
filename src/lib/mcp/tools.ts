@@ -8,6 +8,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { toPayPalValue } from '@/lib/domain/money';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
+import { cardDeclined } from '@/lib/orders/declined';
 import { OrderError } from '@/lib/orders/errors';
 import { ORDER_LIMITS, isListed, optionViews, shopModes, unavailableReason } from '@/lib/orders/pricing';
 import { createOrderForShop, lastCaptureFailure, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
@@ -322,9 +323,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       const tracking = ordersRepo.trackers(db, order.id);
       const captureFailure = lastCaptureFailure(db, order);
       // Same test as the buyer's receipt: back to awaiting approval because PayPal declined the card.
-      const declined =
-        order.status === 'awaiting_approval' &&
-        eventsRepo.list(db, order.id).some((e) => e.type === 'capture_declined' && !(e.detail as { ignored?: boolean } | null)?.ignored);
+      const declined = cardDeclined(order, eventsRepo.list(db, order.id));
       return {
         order_ref: order.id,
         order_number: order.number,
