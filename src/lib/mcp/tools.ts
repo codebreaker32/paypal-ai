@@ -2,6 +2,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
+import * as eventsRepo from '@/lib/db/repos/events';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
@@ -137,6 +138,8 @@ export const TOOL_OUTPUT_SCHEMAS = {
     approval_url: z.string().nullable(),
     /** PayPal refused to complete the approved payment (nothing was charged). */
     capture_refused: z.boolean(),
+    /** PayPal declined the card the user chose; they can pick another on the same approval_url (nothing was charged). */
+    declined: z.boolean(),
     tracking: z.array(trackingOut),
     message: z.string(),
   }),
@@ -318,6 +321,10 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       }
       const tracking = ordersRepo.trackers(db, order.id);
       const captureFailure = lastCaptureFailure(db, order);
+      // Same test as the buyer's receipt: back to awaiting approval because PayPal declined the card.
+      const declined =
+        order.status === 'awaiting_approval' &&
+        eventsRepo.list(db, order.id).some((e) => e.type === 'capture_declined' && !(e.detail as { ignored?: boolean } | null)?.ignored);
       return {
         order_ref: order.id,
         order_number: order.number,
@@ -327,8 +334,9 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         paid_at: order.paidAt,
         approval_url: order.status === 'awaiting_approval' ? order.approvalUrl : null,
         capture_refused: captureFailure !== null,
+        declined,
         tracking: tracking.map((t) => ({ carrier: t.carrier, tracking_number: t.trackingNumber, status: t.paypalStatus })),
-        message: statusMessage(order, shop, tracking, captureFailure) + staleNote,
+        message: statusMessage(order, shop, tracking, captureFailure, declined) + staleNote,
       };
     },
   });
@@ -378,10 +386,14 @@ function orderView(order: Order): z.infer<typeof TOOL_OUTPUT_SCHEMAS.create_orde
   };
 }
 
-function statusMessage(order: Order, shop: Shop, tracking: Tracker[], captureFailure: { issue: string | null } | null): string {
+function statusMessage(order: Order, shop: Shop, tracking: Tracker[], captureFailure: { issue: string | null } | null, declined: boolean): string {
   const name = sanitizeShopName(shop.name);
   switch (order.status) {
     case 'awaiting_approval':
+      if (declined) {
+        return 'PayPal declined the card the user chose, so nothing was charged. Share approval_url again and ask them to pick ' +
+          `another card or their PayPal balance; it expires at ${order.expiresAt}.`;
+      }
       return `Waiting for the user to approve payment on PayPal. Share approval_url if they haven't opened it; it expires at ${order.expiresAt}. Nothing has been charged.`;
     case 'approved':
       return captureFailure

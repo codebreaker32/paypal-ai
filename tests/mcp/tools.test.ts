@@ -385,6 +385,23 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     logged.mockRestore();
   });
 
+  it('get_order_status says PayPal declined the card, not that the user has not approved, and to pick another', async () => {
+    const client = await connect();
+    const { order_ref, approval_url } = ok<{ order_ref: string; approval_url: string }>('create_order', await call(client, 'create_order', defaultOrder()));
+    const before = ok<{ declined: boolean }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(before.declined).toBe(false);
+    fake.nextCapture = 'DECLINED_422';
+    fake.approve(orders.byId(db, order_ref)!.paypalOrderId);
+    clock += 6_000;
+    const out = ok<{ status: string; approval_url: string | null; declined: boolean; capture_refused: boolean; message: string }>(
+      'get_order_status', await call(client, 'get_order_status', { order_ref }));
+    expect(out).toMatchObject({ status: 'awaiting_approval', approval_url, declined: true, capture_refused: false });
+    expect(out.message).toMatch(/PayPal declined the card/);
+    expect(out.message).toMatch(/another card/);
+    expect(out.message).toMatch(/nothing was charged/i);
+    expect(out.message).not.toMatch(/opened it/);
+  });
+
   it('get_order_status reports failed, once, for a COMPLETED order with a declined capture', async () => {
     const client = await connect();
     const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));

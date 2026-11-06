@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Order, OrderEventRow } from '@/lib/domain/types';
 import { orderStatusMeta } from '@/components/dashboard/status';
-import { actionWords, agentLabel, buyerLabel, groupOrders, groupTotalCents, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
+import { actionWords, agentLabel, buyerLabel, cardDeclined, groupOrders, groupTotalCents, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
 
 const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
@@ -111,6 +111,22 @@ describe('seller view helpers', () => {
     expect(text).toMatch(/don’t hand over or ship/i);
     expect(text).not.toMatch(/few seconds/);
     expect(actionWords(o({ status: 'approved' }))[1]).toMatch(/few seconds/);
+  });
+
+  it('says the card was declined, not that the buyer hasn’t approved, after PayPal declines their card', () => {
+    const ev = (type: string, detail: unknown = null): OrderEventRow => ({
+      id: `evt_${type}`, orderId: base.id, type, source: 'return_url', detail, createdAt: '2026-11-06T18:00:00.000Z',
+    });
+    const waiting = o({ status: 'awaiting_approval' });
+    const declined = [ev('created'), ev('paypal_approved'), ev('capture_declined', { issue: 'INSTRUMENT_DECLINED' })];
+    expect(cardDeclined(waiting, declined)).toBe(true);
+    expect(cardDeclined(waiting, [ev('created'), ev('capture_declined', { ignored: true })])).toBe(false);
+    expect(cardDeclined(o({ status: 'paid' }), declined)).toBe(false);
+    expect(actionWords(waiting, true)).toEqual([
+      'Card declined',
+      'PayPal declined the buyer’s card. They can pick another on PayPal. Nothing to prepare until it shows Paid.',
+    ]);
+    expect(actionWords(waiting)[0]).toBe('Waiting for the buyer');
   });
 
   it('a stale poll never moves a picked-up order back to paid', () => {
