@@ -22,6 +22,10 @@ describe('parsePayeeEmail', () => {
     ['rosa_b@my-shop.example.com', 'rosa_b@my-shop.example.com'],
     ['r@e.io', 'r@e.io'],
     ['rosa@xn--bcher-kva.example', 'rosa@xn--bcher-kva.example'],
+    // An internationalised ending, written in its ASCII (punycode) form: .рф, .москва, .中国.
+    ['shop@bakery.xn--p1ai', 'shop@bakery.xn--p1ai'],
+    ['Shop@Bakery.XN--80ADXHKS', 'shop@bakery.xn--80adxhks'],
+    ['shop@bakery.xn--fiqs8s', 'shop@bakery.xn--fiqs8s'],
     ['rosa@123.example.com', 'rosa@123.example.com'],
   ])('accepts %j as %j', (raw, email) => {
     expect(parsePayeeEmail(raw)).toEqual({ ok: true, email });
@@ -67,6 +71,11 @@ describe('parsePayeeEmail', () => {
     ['rosa@example.c', 'a one-letter ending'],
     ['rosa@example.c0m', 'a digit in the ending'],
     ['rosa@example.co-', 'a hyphen in the ending'],
+    ['rosa@example.xn--', 'a punycode ending with nothing after xn--'],
+    ['rosa@example.xn--p1ai-', 'a punycode ending that ends with a hyphen'],
+    ['rosa@example.xn-p1ai', 'a hyphen in an ending that isn’t punycode'],
+    ['rosa@example.ab--p1ai', 'a double hyphen in an ending that isn’t xn--'],
+    ['rosa@example.xn--p1_ai', 'an underscore in a punycode ending'],
     [null, 'null'],
     [undefined, 'undefined'],
     [42, 'a number'],

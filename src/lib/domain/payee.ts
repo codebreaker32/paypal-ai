@@ -27,14 +27,17 @@ const MAX_LOCAL_LENGTH = 64;
 const MAX_LABEL_LENGTH = 63;
 /** A domain label: letters, digits and hyphens, not starting or ending with a hyphen. */
 const DOMAIN_LABEL = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
-/** The last label: two letters or more (so not an IP address). */
-const TOP_LABEL = /^[a-z]{2,}$/;
+/**
+ * The last label (so not an IP address): two letters or more, or an internationalised ending in its ASCII form, `xn--`
+ * then letters, digits and hyphens, not ending in a hyphen (`xn--p1ai` is .рф).
+ */
+const TOP_LABEL = /^([a-z]{2,}|xn--[a-z0-9-]*[a-z0-9])$/;
 
 const isLabel = (label: string): boolean => label.length <= MAX_LABEL_LENGTH && DOMAIN_LABEL.test(label);
 
 /**
  * Trimmed and lower-cased; at most 254 characters, one `@`, a plain name part of at most 64, and a domain of two labels
- * or more, each at most 63, that ends in two letters or more.
+ * or more, each at most 63, that ends in two letters or more (or an `xn--` ending).
  */
 export function parsePayeeEmail(raw: unknown): PayeeEmailResult {
   const bad: PayeeEmailResult = { ok: false, message: PAYEE_EMAIL_MESSAGE };
