@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 07:21 IST (session 5 running)_
+_Last updated: 2026-11-06 07:42 IST (session 5 running)_
 
 ## Current phase
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
@@ -14,9 +14,16 @@ _Last updated: 2026-11-06 07:21 IST (session 5 running)_
   - the console keeps its scroller in a ref, with a page-scroll fallback.
   586 unit tests pass on main; typecheck and lint are clean.
 - **done, merged:** the Claude Code outside-client proof re-run on current main (order SHF-KTZ39C → PayPal `17R81429KU459414P`, `PAYER_ACTION_REQUIRED`, $8.50, `custom_id` matches), with dashboard and order screenshots at 1440 and 390 px in the current design;
-- a fresh-clone walkthrough of the README as a judge would follow it, with doc fixes and an honest "Path to scale" section.
-
-Then: merge, `npm run screenshots:prod -- docs/judge/screenshots/round-3`, and judge round 3.
+- **done, merged:** a fresh-clone walkthrough of the README from GitHub (Node 22), the way a judge would follow it. Every command worked: install, test, typecheck, lint, seed, dev, build and start, the agent door by curl, a live Claude reading, publish, and a console order up to the PayPal link. The README fixes:
+  - the flow tells you to choose **Both** for delivery, because a new shop is pickup-only and steps 7–8 need a shipped order;
+  - the real button labels;
+  - a working agent-door curl with the `Accept` header;
+  - the unused buyer-login variables are marked as unused;
+  - wallet-login paying is stated as unverified;
+  - a **Path to scale** section, marked as not built.
+- **done:** five tests left a SQLite file in `/tmp` on every run; they now use `tests/helpers/temp-db.ts`, which deletes them.
+- **done:** `docs/judge/screenshots/round-3/` (66/66 passed on a production build, 0 axe violations) and `docs/judge/round-3-tests.txt` (586 unit tests, typecheck and lint clean).
+- **running:** judge round 3 (fresh subagent), and the full e2e suite including the real-sandbox capture gate (log `/tmp/r3-e2e.log`).
 
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
 - **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
@@ -102,6 +109,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 3. Each round after that takes the next-highest gain from the judge's top 3, limited to what can be done in code and docs in this run.
 
 ## Needs from human
+- Optional: about 1,300 stray SQLite files from earlier unit-test runs (`/tmp/shelfie-{instr,route,webhook,seller-routes,console-key}-*.db*`). The tests no longer create them; deleting the old ones was blocked by the session's permission rules, so `rm` them by hand if you like.
 - **Before 12 Nov 12:00 PT, required for the submission:**
   - make the GitHub repo **public** (it's private now, as the run brief requires);
   - record the under-3-minute demo video from `docs/DEMO.md` and post it publicly on YouTube;
