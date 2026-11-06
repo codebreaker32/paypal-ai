@@ -1,4 +1,4 @@
-import { Info, Loader2, MessageSquareQuote, Sparkles, TriangleAlert } from 'lucide-react';
+import { Info, Loader2, MessageSquareQuote, ShieldAlert, Sparkles, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -32,7 +32,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
   return (
     <Card as="section" tone="note" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="brief-title" className="flex items-center gap-2 type-label text-ink-muted">
+        <h2 id="brief-title" className="flex items-center gap-2 type-label text-note">
           <Icon icon={brief && order.briefSource === 'template' ? Info : Sparkles} size="sm" />
           {brief && order.briefSource === 'template' ? 'Order summary' : 'AI brief by Claude'}
         </h2>
@@ -66,8 +66,9 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             <ul className="flex flex-col gap-2" aria-label="Things to notice">
               {brief.flags.map((f, i) =>
                 f.severity === 'warn' ? (
-                  <li key={i} className="flex items-start gap-2 rounded-md bg-warn-soft px-3 py-2.5 font-medium text-warn">
-                    <Icon icon={TriangleAlert} className="mt-0.5" />
+                  // A heads-up inside a helpful note: a white callout in ink, only its icon in the warn ochre. Never the error red.
+                  <li key={i} className="flex items-start gap-2 rounded-md bg-surface px-3 py-2.5 font-medium text-note-ink shadow-xs">
+                    <Icon icon={TriangleAlert} className="mt-0.5 text-warn" />
                     <span>
                       <span className="sr-only">Warning: </span>
                       {f.text}
@@ -103,7 +104,14 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
               <ul className="flex flex-col gap-1.5">
                 {brief.buyer_requests.map((r, i) => (
                   <li key={i} className="flex flex-wrap items-baseline gap-2">
-                    <Badge tone={r.kind === 'allergy' ? 'note' : 'neutral'} className="bg-surface">{REQUEST_KIND[r.kind]}</Badge>
+                    {/* Allergy is safety information: a calm slate ring and icon set it apart from the other asks, never a red. */}
+                    <Badge
+                      tone={r.kind === 'allergy' ? 'note' : 'neutral'}
+                      icon={r.kind === 'allergy' ? ShieldAlert : undefined}
+                      className={cx('bg-surface', r.kind === 'allergy' && 'ring-1 ring-note/40')}
+                    >
+                      {REQUEST_KIND[r.kind]}
+                    </Badge>
                     <span>{r.text}</span>
                   </li>
                 ))}

@@ -13,8 +13,9 @@ import { useToast } from '@/components/ui/toast';
 import { formatUSD } from '@/lib/domain/money';
 import { canBePaid } from '@/lib/domain/payee';
 import type { ItemWithVariants, Order, ShopKind, ShopStatus } from '@/lib/domain/types';
-import { mergePolledOrders, whereLabel } from '@/lib/seller/view';
+import { buyerLabel, mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
+import { newlyPaid } from './new-orders';
 import { MenuPanel } from './MenuPanel';
 import { OrdersPanel } from './OrdersPanel';
 import { SettingsPanel } from './SettingsPanel';
@@ -36,6 +37,9 @@ export interface DashboardProps {
   appUrl: string;
   initialTab: DashboardTab;
 }
+
+/** How long a just-arrived row keeps its rise and paid glow (the glow's CSS animation is 2.4 s). */
+const FRESH_MS = 2600;
 
 const STATUS_TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
 
@@ -72,31 +76,43 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
+  const [justPaid, setJustPaid] = useState<ReadonlySet<string>>(new Set());
   const [pollFailures, setPollFailures] = useState(0);
   const ordersRef = useRef(initialOrders);
-  const known = useRef(new Map(initialOrders.map((o) => [o.id, o.status])));
 
-  // Re-read our own API every 5 s (SQLite only). New orders and orders that just got paid slide in.
+  // Re-read our own API every 5 s (SQLite only). New orders rise in; an order the poll sees get paid also toasts and
+  // glows for a moment. `ordersRef` starts as the orders the page rendered with, so nothing already paid toasts.
   const applyOrders = useCallback(
     (polled: Order[]) => {
-      const next = mergePolledOrders(ordersRef.current, polled);
-      const arrived: string[] = [];
-      for (const o of next) {
-        const before = known.current.get(o.id);
-        if (before === undefined || (before !== 'paid' && o.status === 'paid')) arrived.push(o.id);
-        if (before !== 'paid' && o.status === 'paid') {
-          toast({ title: `Payment received · ${o.number}`, description: `${formatUSD(o.totalCents)} · ${whereLabel(o)}`, tone: 'ok' });
-        }
+      const prev = ordersRef.current;
+      const next = mergePolledOrders(prev, polled);
+      const seen = new Set(prev.map((o) => o.id));
+      const paid = newlyPaid(prev, next);
+      const arrived = [...next.filter((o) => !seen.has(o.id)).map((o) => o.id), ...paid.map((o) => o.id)];
+      for (const o of paid) {
+        toast({
+          title: `New paid order ${o.number} · ${formatUSD(o.totalCents)}`,
+          description: `${buyerLabel(o)} · ${whereLabel(o)}`,
+          tone: 'ok',
+          durationMs: 8000,
+          action: { label: 'Open', href: `/shops/${shop.id}/orders/${o.id}` },
+        });
       }
-      known.current = new Map(next.map((o) => [o.id, o.status]));
       ordersRef.current = next;
       setOrders(next);
       if (arrived.length) {
-        setFresh(new Set(arrived));
-        setTimeout(() => setFresh(new Set()), 1500);
+        const drop = (ids: string[]) => (all: ReadonlySet<string>) => new Set([...all].filter((id) => !ids.includes(id)));
+        const paidIds = paid.map((o) => o.id);
+        setFresh((all) => new Set([...all, ...arrived]));
+        setJustPaid((all) => new Set([...all, ...paidIds]));
+        // The highlight fades over 2.4 s (CSS); keep the flags a little longer so the animation is never cut.
+        setTimeout(() => {
+          setFresh(drop(arrived));
+          setJustPaid(drop(paidIds));
+        }, FRESH_MS);
       }
     },
-    [toast],
+    [toast, shop.id],
   );
 
   useEffect(() => {
@@ -126,7 +142,6 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   }, [shop.id, applyOrders]);
 
   const onOrderChange = (updated: Order) => {
-    known.current.set(updated.id, updated.status);
     ordersRef.current = ordersRef.current.map((o) => (o.id === updated.id ? updated : o));
     setOrders(ordersRef.current);
   };
@@ -229,6 +244,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
                 shopId={shop.id}
                 slug={shop.slug}
                 fresh={fresh}
+                justPaid={justPaid}
                 photos={photos}
                 shopKind={kind}
                 paypalReachable={paypalReachable}

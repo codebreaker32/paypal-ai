@@ -6,7 +6,7 @@ import { Bot, ChevronDown, CloudOff } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
-import { formatUSD } from '@/lib/domain/money';
+import { CountUp } from '@/components/motion/count-up';
 import type { Order, ShopKind } from '@/lib/domain/types';
 import { groupOrders, groupTotalCents } from '@/lib/seller/view';
 import { OrderCard } from './OrderCard';
@@ -23,7 +23,7 @@ function Subtotal({ orders, label, as: Tag = 'p' }: { orders: Order[]; label: st
   return (
     <Tag className="ml-auto flex items-baseline gap-2 whitespace-nowrap">
       <span className="type-meta text-ink-muted">{label}</span>
-      <span className="type-price font-bold">{formatUSD(groupTotalCents(orders))}</span>
+      <CountUp cents={groupTotalCents(orders)} className="type-price font-bold" />
     </Tag>
   );
 }
@@ -67,6 +67,7 @@ export function OrdersPanel({
   shopId,
   slug,
   fresh,
+  justPaid,
   photos,
   shopKind,
   paypalReachable,
@@ -77,6 +78,8 @@ export function OrdersPanel({
   shopId: string;
   slug: string;
   fresh: ReadonlySet<string>;
+  /** Orders the last poll saw get paid: their row glows for a moment. */
+  justPaid?: ReadonlySet<string>;
   photos?: ReadonlyMap<string, ItemPicture>;
   shopKind?: ShopKind;
   paypalReachable: boolean;
@@ -85,7 +88,7 @@ export function OrdersPanel({
 }) {
   const [filter, setFilter] = useState<Filter>('all');
   const g = groupOrders(orders);
-  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} shopKind={shopKind} fresh={fresh.has(o.id)} onChange={onOrderChange} />;
+  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} shopKind={shopKind} fresh={fresh.has(o.id)} justPaid={justPaid?.has(o.id)} onChange={onOrderChange} />;
   const show = (f: Filter) => filter === 'all' || filter === f;
   const segments: [Filter, string, number][] = [
     ['all', 'All', orders.length],

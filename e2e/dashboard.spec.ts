@@ -6,7 +6,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE } from './helpers';
+import { formatUSD } from '@/lib/domain/money';
 import { getDb } from '@/lib/db';
+import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 
@@ -111,7 +113,34 @@ test.describe('dashboard', () => {
     const card = page.locator(`[data-order="${arrived.number}"]`);
     await expect(card).toBeVisible({ timeout: 12_000 });
     await expect(group(page, /To prepare/).getByRole('listitem')).toHaveCount(1);
-    await expect(page.getByText(`Payment received · ${arrived.number}`)).toBeVisible();
+    await expect(page.getByText(`New paid order ${arrived.number} · $`)).toBeVisible();
+  });
+
+  test('an order paid while the seller watches toasts and glows; orders already paid at load stay quiet', async ({ page, context }) => {
+    const shop = createFixtureShop('Glow Test Bakery');
+    const already = addFixtureOrder(shop, { status: 'paid', fulfillment: 'pickup', minutesAgo: 5, buyerName: 'Ana', lines: [['Butter croissant', 1]] });
+    const waiting = addFixtureOrder(shop, { status: 'awaiting_approval', fulfillment: 'pickup', minutesAgo: 1, buyerName: 'Lee', lines: [['Butter croissant', 2]] });
+    await signInAsOwner(context, shop, BASE);
+    await page.goto(dashboard(shop));
+    await expect(page.locator(`[data-order="${already.number}"]`)).toBeVisible();
+
+    // First load, then at least one poll (5 s): nothing toasts, nothing glows.
+    await page.waitForTimeout(6_000);
+    await expect(page.getByText(/New paid order/)).toHaveCount(0);
+    await expect(page.locator('[data-just-paid]')).toHaveCount(0);
+
+    // The buyer pays on PayPal; the next poll finds it.
+    ordersRepo.casStatus(getDb(), waiting.id, 'awaiting_approval', 'paid');
+    ordersRepo.update(getDb(), waiting.id, { paidAt: new Date().toISOString(), captureId: 'E2EGLOWCAP0001', payerName: 'Lee Ames', payerEmail: 'lee@example.com' });
+
+    const toast = page.getByRole('status').filter({ hasText: `New paid order ${waiting.number} · ${formatUSD(waiting.totalCents)}` });
+    await expect(toast).toBeVisible({ timeout: 12_000 });
+    await expect(toast.getByRole('link', { name: 'Open' })).toHaveAttribute('href', detail(shop, waiting.id));
+    const row = group(page, /To prepare/).locator(`[data-order="${waiting.number}"]`);
+    await expect(row).toHaveAttribute('data-just-paid', 'true');
+    await expect(page.getByText(`New paid order ${already.number}`)).toHaveCount(0);
+    // The glow is gone after its 2.4 s fade.
+    await expect(row).not.toHaveAttribute('data-just-paid', /.*/, { timeout: 5_000 });
   });
 
   test('an empty filter says so in one line', async ({ page, context }) => {

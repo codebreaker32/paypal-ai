@@ -44,8 +44,9 @@
   /* Status hues (text values pass AA on white and on their soft tint) */
   --green-50: #e4f3ea;
   --green-700: #1e7a45;
-  --amber-50: #fff0de;
-  --amber-800: #9a4a00;
+  /* Warn: a deep ochre (OKLCH hue 84°), far from the error vermilion (37°) so "Waiting" never reads as "Refused". */
+  --ochre-50: #fbf1d5;
+  --ochre-800: #7a5a00;
   /* Error: a vermilion, orange-leaning so it never reads as the pomegranate brand (OKLCH hue 37° against 12°). */
   --vermilion-50: #fdebe5;
   --vermilion-700: #b5380c;
@@ -120,8 +121,8 @@
 
   --color-ok: var(--green-700);
   --color-ok-soft: var(--green-50);
-  --color-warn: var(--amber-800);
-  --color-warn-soft: var(--amber-50);
+  --color-warn: var(--ochre-800);
+  --color-warn-soft: var(--ochre-50);
   /* Errors and failed states. `danger` is the older name of the same role (an alias of the role, not of a hex). */
   --color-error: var(--vermilion-700);
   --color-error-soft: var(--vermilion-50);
@@ -244,6 +245,8 @@
   --animate-shimmer: shimmer 1.6s var(--ease-in-out) infinite;
   --animate-rise-in: rise-in var(--duration-slow) var(--ease-out) both;
   --animate-fade-in: fade-in var(--duration-base) var(--ease-out) both;
+  /* A dashboard row the poll just saw get paid: the ok tint comes up fast, holds, then fades (2.4 s in all). */
+  --animate-paid-glow: paid-glow 2400ms var(--ease-out) both;
 
   @keyframes spin {
     to {
@@ -274,6 +277,18 @@
     }
     to {
       opacity: 1;
+    }
+  }
+  @keyframes paid-glow {
+    0% {
+      opacity: 0;
+    }
+    8%,
+    45% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
     }
   }
 }

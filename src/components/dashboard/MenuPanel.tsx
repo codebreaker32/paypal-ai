@@ -8,6 +8,7 @@ import { FieldError } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
+import { Pressable } from '@/components/motion/pressable';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants } from '@/lib/domain/types';
 import { setSoldOut } from './api';
@@ -59,7 +60,7 @@ function MenuRow({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const soldOut = item.status === 'live' && item.soldOut;
   return (
-    <li className="flex flex-col gap-1.5 py-3" data-item={item.name}>
+    <Pressable as="li" lift={false} className="flex flex-col gap-1.5 py-3" data-item={item.name}>
       <div className="flex items-center gap-3 sm:gap-4">
         <ItemPhotoPicker
           shopId={shopId}
@@ -98,7 +99,7 @@ function MenuRow({
       </div>
       <PhotoError error={photoError} />
       {error && <FieldError>{error}</FieldError>}
-    </li>
+    </Pressable>
   );
 }
 

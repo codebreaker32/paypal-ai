@@ -19,6 +19,7 @@ import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
 import { PAYEE_FIELD_ID, ShopDetails } from './ShopDetails';
 import { StepHeader } from './StepHeader';
+import { Reveal } from '@/components/motion/reveal';
 import { applyLocal, cardId, flaggedCards, openSkipped } from './review-model';
 import { useAutosave, type SaveState } from './useAutosave';
 
@@ -279,23 +280,25 @@ export function ReviewStep(props: ReviewProps) {
           )}
 
           {cards.length > 0 ? (
-            <section aria-labelledby="needs-title" className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 id="needs-title" className="type-title">
-                  Needs you
-                </h2>
-                <p className="text-ink-soft">Fix these, or leave them: they stay off your shop until you do.</p>
-              </div>
-              <PhotoContext value={photoContext}>
-                <ul className="flex flex-col gap-4">
-                  {cards.map((c) => (
-                    <li key={cardId(c)}>
-                      <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
-                    </li>
-                  ))}
-                </ul>
-              </PhotoContext>
-            </section>
+            <Reveal>
+              <section aria-labelledby="needs-title" className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <h2 id="needs-title" className="type-title">
+                    Needs you
+                  </h2>
+                  <p className="text-ink-soft">Fix these, or leave them: they stay off your shop until you do.</p>
+                </div>
+                <PhotoContext value={photoContext}>
+                  <ul className="flex flex-col gap-4">
+                    {cards.map((c) => (
+                      <li key={cardId(c)}>
+                        <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
+                      </li>
+                    ))}
+                  </ul>
+                </PhotoContext>
+              </section>
+            </Reveal>
           ) : (
             <p className="flex items-center gap-2 rounded-md bg-ok-soft px-3.5 py-3 font-semibold text-ok">
               <Icon icon={CircleCheck} />
@@ -303,27 +306,31 @@ export function ReviewStep(props: ReviewProps) {
             </p>
           )}
 
-          <section aria-labelledby="ready-title" className="flex flex-col gap-4">
-            <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
-              Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
-            </h2>
-            {ready.length ? (
-              <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
-            ) : (
-              <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
-            )}
-          </section>
+          <Reveal>
+            <section aria-labelledby="ready-title" className="flex flex-col gap-4">
+              <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
+                Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
+              </h2>
+              {ready.length ? (
+                <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+              ) : (
+                <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
+              )}
+            </section>
+          </Reveal>
 
           {inPerson.length > 0 && (
-            <section aria-labelledby="inperson-title" className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1">
-                <h2 id="inperson-title" className="type-title">
-                  Ask in person
-                </h2>
-                <p className="text-ink-soft">On your shop without a price. Assistants can’t order them.</p>
-              </div>
-              <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
-            </section>
+            <Reveal>
+              <section aria-labelledby="inperson-title" className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <h2 id="inperson-title" className="type-title">
+                    Ask in person
+                  </h2>
+                  <p className="text-ink-soft">On your shop without a price. Assistants can’t order them.</p>
+                </div>
+                <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+              </section>
+            </Reveal>
           )}
 
           <div className="flex flex-col gap-3">

@@ -104,6 +104,8 @@ describe('seller view helpers', () => {
     const refused = o({ status: 'approved', captureRefused: true });
     expect(orderStatusMeta(refused)).toMatchObject({ label: 'PayPal refused payment', tone: 'danger' });
     expect(orderStatusMeta(o({ status: 'approved' }))).toMatchObject({ label: 'Approved, taking payment' });
+    // Waiting is a normal pending state: neutral, never the warn ochre or the error vermilion.
+    expect(orderStatusMeta(o({ status: 'awaiting_approval' }))).toMatchObject({ label: 'Waiting for approval', tone: 'neutral' });
 
     const [title, text] = actionWords(refused);
     expect(title).toBe('PayPal refused the payment');

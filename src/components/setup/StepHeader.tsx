@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Check } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
+import { Reveal } from '@/components/motion/reveal';
 
 const STEPS = ['Read', 'Check', 'Publish'] as const;
 export type SetupStepNumber = 1 | 2 | 3;
@@ -19,7 +20,8 @@ export function StepHeader({
   aside?: ReactNode;
 }) {
   return (
-    <header className="flex flex-col gap-4">
+    // A new step (mounted after the server moves the flow on) rises in; a direct load paints at once.
+    <Reveal as="header" className="flex flex-col gap-4">
       <ol aria-label={`Setup, step ${step} of ${STEPS.length}`} className="flex flex-wrap items-center gap-x-3 gap-y-2">
         {STEPS.map((label, i) => {
           const n = (i + 1) as SetupStepNumber;
@@ -54,6 +56,6 @@ export function StepHeader({
         </div>
         {aside}
       </div>
-    </header>
+    </Reveal>
   );
 }
