@@ -3,7 +3,9 @@ import { AbsoluteFill, useCurrentFrame, useVideoConfig, spring, interpolate, Img
 import { typeScale } from "../theme.js";
 
 /**
- * A title card in Shelfie's brand: white page, the mark, the name in ink, one
+ * A title card in Shelfie's brand: white page, the logo (the drawn lockup,
+ * assets/lockup.svg, when the title is "Shelfie" or scene.lockup is set;
+ * otherwise the mark beside the title in ink), one
  * short pomegranate rule, the line in muted ink, and an optional small footer
  * line (scene.cta). Flat: no gradient, glow or shadow. `band` (the demoday
  * presenter close) is not used by Shelfie and renders the same card.
@@ -20,6 +22,8 @@ export const Card = ({ scene, theme }) => {
   const ruleIn = rise(Math.round(fps * 0.35));
   const footIn = rise(Math.round(fps * 0.5));
   const logo = scene.logo === false ? null : scene.logo || "assets/mark.svg";
+  // The name is never set in Figtree: the brand's own title card shows the drawn lockup (docs/DESIGN.md, "Logo").
+  const lockup = scene.lockup === false ? null : scene.lockup || (scene.title === "Shelfie" ? "assets/lockup.svg" : null);
 
   return (
     <AbsoluteFill
@@ -40,16 +44,22 @@ export const Card = ({ scene, theme }) => {
           transform: `translateY(${interpolate(titleIn, [0, 1], [20, 0])}px)`,
         }}
       >
-        {logo ? <Img src={staticFile(logo)} style={{ width: Math.round(112 * s), height: Math.round(112 * s) }} /> : null}
-        <div
-          style={{
-            font: `700 ${Math.round((scene.titleSize || 124) * s)}px/1 ${theme.font}`,
-            letterSpacing: "-0.03em",
-            color: theme.text,
-          }}
-        >
-          {scene.title}
-        </div>
+        {lockup ? (
+          <Img src={staticFile(lockup)} alt={scene.title} style={{ height: Math.round(150 * s), width: "auto" }} />
+        ) : (
+          <>
+            {logo ? <Img src={staticFile(logo)} style={{ width: Math.round(112 * s), height: Math.round(112 * s) }} /> : null}
+            <div
+              style={{
+                font: `700 ${Math.round((scene.titleSize || 124) * s)}px/1 ${theme.font}`,
+                letterSpacing: "-0.03em",
+                color: theme.text,
+              }}
+            >
+              {scene.title}
+            </div>
+          </>
+        )}
       </div>
 
       <div
