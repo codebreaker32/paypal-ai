@@ -42,10 +42,10 @@ export function ItemPhoto({ name, photoUrl, category, tone = 0, dim, className, 
     );
   }
   // The drawing is generic, so it is never the item's picture for a screen reader: the item's name says it.
-  if (decorative) return <ItemIllustration category={category} tone={tone} dim={dim} className={className} />;
+  if (decorative) return <ItemIllustration category={category} name={name} tone={tone} dim={dim} className={className} />;
   return (
     <span role="img" aria-label={name} className={cx('block overflow-hidden', className)}>
-      <ItemIllustration category={category} tone={tone} dim={dim} className="size-full" />
+      <ItemIllustration category={category} name={name} tone={tone} dim={dim} className="size-full" />
     </span>
   );
 }

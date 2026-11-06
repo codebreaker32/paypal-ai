@@ -32,7 +32,7 @@ describe('ItemPhotoPicker', () => {
     const html = renderToStaticMarkup(createElement(ItemPhotoPicker, { ...props, photoUrl: null }));
     expect(html).toContain('aria-label="Add a photo of Cardamom bun"');
     expect(html).toContain('type="file"');
-    expect(html).toContain('href="/illustrations.svg#pastry"');
+    expect(html).toContain('href="/illustrations.svg#pastry-bun"');
     expect(html).not.toContain('>Cb<');
   });
 

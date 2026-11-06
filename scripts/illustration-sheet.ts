@@ -1,9 +1,9 @@
 // BASE_URL=http://localhost:3000 npx tsx scripts/illustration-sheet.ts [out.png]
-// Renders the contact sheet of the 12 item drawings (public/illustrations.svg) against a running app, so it uses the
+// Renders the contact sheet of the item drawings in public/illustrations.svg (one per category, plus the pastry variants) against a running app, so it uses the
 // real tokens from globals.css: each drawing at 56 px and 224 px wide on the four section tints, plus the dimmed
 // (sold out) state. Default output: docs/judge/evidence/illustrations.png.
 import { chromium } from '@playwright/test';
-import { CATEGORIES } from '@/lib/domain/category';
+import { DRAWING_IDS } from '@/lib/domain/drawing';
 
 const TINTS = ['--tile-rose-bg', '--tile-sage-bg', '--tile-sky-bg', '--tile-lilac-bg'];
 
@@ -16,7 +16,7 @@ async function main() {
   const tile = (category: string, width: number, tint: string, dim = false) =>
     `<span style="display:flex;align-items:center;justify-content:center;width:${width}px;height:${(width * 3) / 4}px;border-radius:${width < 100 ? 10 : 16}px;background:var(${dim ? '--grey-50' : tint});overflow:hidden">` +
     `<svg viewBox="0 0 96 72" style="width:100%;height:100%;${dim ? 'opacity:.5;filter:grayscale(1)' : ''}"><use href="/illustrations.svg#${category}"/></svg></span>`;
-  const cells = CATEGORIES.map(
+  const cells = DRAWING_IDS.map(
     (c, i) =>
       `<figure style="display:flex;flex-direction:column;gap:10px;margin:0;align-items:flex-start">` +
       `<div style="display:flex;gap:12px;align-items:flex-end">${tile(c, 224, TINTS[i % 4])}<div style="display:flex;flex-direction:column;gap:8px">${tile(c, 56, TINTS[(i + 1) % 4])}${tile(c, 56, TINTS[(i + 2) % 4])}${tile(c, 56, TINTS[i % 4], true)}</div></div>` +
