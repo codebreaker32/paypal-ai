@@ -35,7 +35,7 @@ import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
 import { DESKTOP, PHONE, holdNavigation, samplePhoto, settle, streamThenHold } from './helpers';
-import { E2E_DB, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
+import { E2E_DB, FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
 const OUT = process.env.SCREENSHOTS_DIR
   ? path.resolve(process.env.SCREENSHOTS_DIR)
@@ -61,6 +61,8 @@ let empty: FixtureShop;
 let briefShop: FixtureShop;
 const orders = {} as Record<'nut' | 'pickup' | 'waiting' | 'pending' | 'shipped' | 'pickedUp' | 'cancelled' | 'expired' | 'refused', Order>;
 const setups = {} as Record<'reading' | 'review' | 'retake' | 'failed' | 'live' | 'publish', Setup>;
+/** Orders on briefShop paid into the seller's own PayPal account (spec §8a). */
+const sellerOrders = {} as Record<'paid' | 'held', Order>;
 
 const AUSTIN = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 'Apt 3', city: 'Austin', state: 'TX', postalCode: '78702', countryCode: 'US' };
 
@@ -179,12 +181,31 @@ test.beforeAll(async () => {
   setups.failed = await sampleShop(new Error('Request timed out.'));
   setups.live = await sampleShop(recorded);
   sellerChecked(setups.live.shopId);
+  shopsRepo.update(db, setups.live.shopId, { payeeEmail: FIXTURE_PAYEE }); // publishing needs the seller's PayPal email
   await publishShop({ db, paypal }, setups.live.shopId);
   // Created after the others so their slugs stay as on a fresh install.
   setups.publish = await sampleShop(recorded);
   sellerChecked(setups.publish.shopId); // ready to publish; the publish itself is mocked per screen
+  shopsRepo.update(db, setups.publish.shopId, { payeeEmail: FIXTURE_PAYEE });
   briefShop = createFixtureShop('Marigold Bakehouse');
+  seedSellerPaidOrders(briefShop);
 });
+
+/**
+ * Orders paid into the seller's own PayPal account (spec §8a), on the second Marigold Bakehouse (a seller's shop, paid
+ * to FIXTURE_PAYEE): one paid, and one PayPal holds because it was made while her email had a typo (UNILATERAL).
+ */
+function seedSellerPaidOrders(f: FixtureShop) {
+  sellerOrders.paid = addFixtureOrder(f, {
+    status: 'paid', fulfillment: 'pickup', minutesAgo: 12, buyerName: 'Sam', lines: [['Almond croissant', 2], ['Drip coffee', 1]],
+    payer: { name: 'Sam Ortega', email: 'sam.ortega@example.com' },
+  });
+  sellerOrders.held = addFixtureOrder(f, {
+    status: 'payment_pending', fulfillment: 'pickup', minutesAgo: 40, buyerName: 'Lu', lines: [['Morning bun', 3]],
+    payeeEmail: 'rosa@exmaple.com', payer: { name: 'Lu Chen', email: 'lu.chen@example.com' },
+  });
+  eventsRepo.add(getDb(), sellerOrders.held.id, 'capture_pending', 'return_url', { captureStatus: 'PENDING', pendingReason: 'UNILATERAL' });
+}
 
 /** What a seller does on review: "Looks right" on the checks, "Ask in person" on the market price. */
 function sellerChecked(shopId: string) {
@@ -680,6 +701,64 @@ const SCREENS: Screen[] = [
       await page.goto(`/shops/${demo.shop.id}/orders/${orders.shipped.id}`);
       await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('9400111899223197428490');
     },
+  },
+  // Paying each seller (spec §8a)
+  {
+    name: 'dashboard-settings',
+    run: async (page, { context }) => {
+      await signIn(context, briefShop.shop.id, briefShop.ownerToken);
+      await page.goto(`/shops/${briefShop.shop.id}?tab=settings`);
+      await expect(page.getByLabel('Your PayPal email')).toHaveValue(FIXTURE_PAYEE);
+    },
+  },
+  {
+    name: 'dashboard-settings-invalid',
+    run: async (page, { context }) => {
+      await signIn(context, briefShop.shop.id, briefShop.ownerToken);
+      await page.goto(`/shops/${briefShop.shop.id}?tab=settings`);
+      const field = page.getByLabel('Your PayPal email');
+      await field.fill('rosa@example');
+      await field.blur();
+      await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
+    },
+  },
+  {
+    name: 'dashboard-settings-demo',
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      await page.goto(`/shops/${demo.shop.id}?tab=settings`);
+      await expect(page.getByTestId('demo-payee-note')).toBeVisible();
+    },
+  },
+  {
+    name: 'receipt-paid-to-seller',
+    run: async (page) => {
+      await page.goto(`/o/${sellerOrders.paid.id}`);
+      await expect(page.getByText('Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)')).toBeVisible();
+    },
+  },
+  {
+    name: 'order-payment-held',
+    run: async (page, { context }) => {
+      await signIn(context, briefShop.shop.id, briefShop.ownerToken);
+      await page.goto(`/shops/${briefShop.shop.id}/orders/${sellerOrders.held.id}`);
+      await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('no PayPal account uses rosa@exmaple.com yet');
+    },
+  },
+  {
+    name: 'review-paypal-email',
+    run: async (page, { context }) => {
+      await signIn(context, setups.review.shopId, setups.review.ownerToken);
+      await page.goto(`/shops/${setups.review.shopId}/setup`);
+      await expect(page.getByRole('button', { name: 'Add your PayPal email to publish.' })).toBeVisible();
+      const field = page.getByLabel('Your PayPal email');
+      await field.fill('rosa@example');
+      await field.blur();
+      await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
+      await field.scrollIntoViewIfNeeded();
+    },
+    viewport: true,
   },
 ];
 

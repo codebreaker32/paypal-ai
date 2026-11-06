@@ -115,6 +115,23 @@ test('every kind of flagged card can be fixed with a tap or two, and edits autos
   await page.getByLabel('About').fill('Weekend bakes from a home kitchen.');
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
 
+  // Where the money goes: Publish waits for a valid PayPal email, checked when the field loses focus.
+  await expect(publish).toBeDisabled();
+  const goToPayee = page.getByRole('button', { name: 'Add your PayPal email to publish.' });
+  await goToPayee.click();
+  const payee = page.getByLabel('Your PayPal email');
+  await expect(payee).toBeFocused();
+  await payee.fill('rosa@example');
+  await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toHaveCount(0); // not while typing
+  await payee.blur();
+  await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
+  await expect(publish).toBeDisabled();
+  await payee.fill(' Rosa@Example.com');
+  await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toHaveCount(0);
+  await expect(publish).toBeEnabled();
+  await expect(goToPayee).toHaveCount(0);
+  await expect.poll(() => shops.byId(getDb(), shopId)?.payeeEmail).toBe('rosa@example.com');
+
   // Everything landed in the database.
   await expect
     .poll(() => shops.byId(getDb(), shopId)?.shippingFeeCents)
@@ -161,6 +178,7 @@ test('a reading that fails says so and offers Try again', async ({ page }) => {
 test('a partly failed publish shows the live shop with Retry for the rest', async ({ page }) => {
   test.setTimeout(120_000);
   const shopId = await shopWithReading(page, recordedReading('marigold-bakehouse'));
+  shops.update(getDb(), shopId, { payeeEmail: 'rosa@example.com' }); // the seller's PayPal email, which publishing needs
   // A stand-in PayPal that turns down the sourdough loaf. (Retry is not pressed: that would call the sandbox.)
   let n = 0;
   const flaky = {
@@ -204,6 +222,7 @@ test('a save the server refuses re-syncs the review with the database and keeps 
 test('a publish that stopped after every item reached PayPal finishes from the review', async ({ page }) => {
   test.setTimeout(120_000);
   const shopId = await shopWithReading(page, recordedReading('marigold-bakehouse'));
+  shops.update(getDb(), shopId, { payeeEmail: 'rosa@example.com' }); // saved before that run
   // The broken run: every item is in PayPal, but the shop never went live.
   for (const it of itemsToPublish(getDb(), shopId)) items.setPayPalProductId(getDb(), it.id, `PROD-E2E-${it.id}`);
   await page.goto(`/shops/${shopId}/setup`);

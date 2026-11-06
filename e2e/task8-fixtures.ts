@@ -36,10 +36,14 @@ export interface FixtureShop {
   items: Record<string, { id: string; variantId: string; label: string | null; priceCents: number; paypalProductId: string | null }>;
 }
 
-/** A published bakery with a realistic menu (test fixture). */
-export function createFixtureShop(name = 'Marigold Bakehouse'): FixtureShop {
+/** The fixture seller's PayPal email: every shop but the demo shop is paid into its seller's own account (spec §8a). */
+export const FIXTURE_PAYEE = 'rosa@example.com';
+
+/** A published bakery with a realistic menu (test fixture), paid to `payeeEmail` (default FIXTURE_PAYEE). */
+export function createFixtureShop(name = 'Marigold Bakehouse', opts: { payeeEmail?: string | null } = {}): FixtureShop {
   const { shop, ownerToken } = shopsRepo.create(db(), {
     name,
+    payeeEmail: opts.payeeEmail === undefined ? FIXTURE_PAYEE : opts.payeeEmail,
     about: 'Weekend bakes from a home kitchen in Austin.',
     fulfillment: 'both',
     shippingFeeCents: 800,
@@ -96,6 +100,8 @@ interface OrderSpec {
   shipTo?: ShipTo;
   brief?: { brief: OrderBrief; source: 'agent' | 'template' };
   tracking?: { carrier: string; trackingNumber: string };
+  /** The payee the order was made with; default the shop's (null: paid to the platform, as the demo shop). */
+  payeeEmail?: string | null;
 }
 
 const AUSTIN: ShipTo = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 'Apt 3', city: 'Austin', state: 'TX', postalCode: '78702', countryCode: 'US' };
@@ -103,6 +109,9 @@ const AUSTIN: ShipTo = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 
 let seq = 0;
 /** One order in the given state, with the events that would have led there (test fixture). */
 export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
+  const payeeEmail = spec.payeeEmail === undefined ? f.shop.payeeEmail : spec.payeeEmail;
+  // A seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform, spec §8a).
+  const atPayPal = payeeEmail === null;
   const lines: OrderLine[] = spec.lines.map(([name, qty]) => {
     const it = f.items[name];
     return { itemId: it.id, variantId: it.variantId, name, label: it.label, unitCents: it.priceCents, qty, paypalProductId: it.paypalProductId };
@@ -117,6 +126,7 @@ export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
       paypalOrderId: `E2E${Date.now().toString(36).toUpperCase()}${String(++seq).padStart(4, '0')}`,
       approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=E2E-FIXTURE',
       expiresAt: new Date(Date.now() - spec.minutesAgo * MIN + 60 * MIN).toISOString(),
+      payeeEmail,
     },
     lines,
   );
@@ -136,7 +146,7 @@ export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
   if (spec.status === 'expired') events.push(['expired', 'poller', t0 - 60]);
   if (spec.status === 'fulfilled') {
     events.push(['fulfilled', 'seller', t0 - 30]);
-    if (spec.tracking) events.push(['tracking_added', 'seller', t0 - 30, spec.tracking]);
+    if (spec.tracking) events.push(['tracking_added', 'seller', t0 - 30, { ...spec.tracking, atPayPal }]);
   }
 
   const paidAt = paidLike ? ago(t0 - 2) : null;
@@ -155,7 +165,7 @@ export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
     eventsRepo.add(db(), id, type, source, detail);
     db().prepare('UPDATE order_events SET created_at = ? WHERE order_id = ? AND seq = (SELECT MAX(seq) FROM order_events WHERE order_id = ?)').run(ago(m), id, id);
   }
-  if (spec.tracking) ordersRepo.addTracker(db(), { orderId: id, ...spec.tracking, paypalStatus: 'SHIPPED' });
+  if (spec.tracking) ordersRepo.addTracker(db(), { orderId: id, ...spec.tracking, paypalStatus: atPayPal ? 'SHIPPED' : null });
   return ordersRepo.byId(db(), id)!;
 }
 
