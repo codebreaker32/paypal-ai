@@ -14,7 +14,7 @@ A workflow of 4 area reviewers (orders, PayPal client, agent door, setup), each 
 
 **Verifier's fix:** In createSellerToolkit's `call()`, catch a ToolkitError whose status is 401. Drop the cached instance (`sharedInstance = null`, or `localInstance = null` for injected factories) and retry the call once on a freshly built instance. The old token has expired by then, so the new instance's grant gets a new token. A 401 is rejected before PayPal processes the request, so retrying create_shipment_tracking cannot create a duplicate tracker.
 
-**Status:** open
+**Status:** fixed (`89a4e41`): a 401 drops the cached toolkit and retries once on a fresh one. Verified against the real sandbox: a toolkit holding a bogus token got PayPal's real 401, was rebuilt and the call succeeded; without the fix the same test fails with that 401.
 
 ## R2. [paypal, low] The unauthenticated webhook route buffers the whole request body before any signature or size check
 
@@ -48,7 +48,7 @@ Buyer side: the receipt (src/app/o/[ref]/receipt-status.ts:58-64) and the MCP st
 
 **Verifier's fix:** Give the refused state an exit and show it to the seller. (1) In reconcile, treat VOIDED, or a 404/NOT_FOUND, on an 'approved' order with lastCaptureFailure() as terminal: add an approved -> failed (or approved -> expired) transition, e.g. a 'capture_refused_final' event, and also apply it once nowMs passes expiresAt. Extend the poller filter so 'approved' orders with a capture_failed past their window are still swept. (2) In the order detail ActionCard and orderStatusMeta, check lastCaptureFailure (pass a captureRefused flag as the receipt does) and show 'PayPal refused the payment; nothing was charged. Don't hand over or ship.' instead of 'should land in a few seconds'. Add a capture_failed case to timelineEntries.
 
-**Status:** open
+**Status:** fixed (`d354161`, `24f8e11`): the seller sees "PayPal refused payment" (nothing charged, don't hand over or ship) and a `capture_failed`/`capture_refused` timeline entry; a refused order becomes `failed` on VOIDED, 404 or once its window passes, and the poller sweeps it after 3 h.
 
 ## R4. [orders, low] One buyer approval can trigger repeated capture attempts on a declined card: the return URL and webhook skip the decline/refusal guards, and the return URL is not throttled
 
