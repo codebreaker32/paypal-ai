@@ -15,7 +15,8 @@
     "e2e": "playwright test",
     "screenshots": "playwright test e2e/screenshots.spec.ts",
     "screenshots:prod": "bash scripts/screenshots-prod.sh",
-    "seed": "tsx scripts/seed-demo.ts"
+    "seed": "tsx scripts/seed-demo.ts",
+    "clips": "tsx scripts/clips/record.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.6.0",
