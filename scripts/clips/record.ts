@@ -21,7 +21,8 @@ import { cancelUnpaid, readState, resetDemoShop, startApp, writeState, WORK, typ
 import { leaks, redactorScript } from './redact';
 import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDisplay, type Display, type Stage } from './stage';
 
-const OUT = path.resolve('video/clips');
+/** CLIPS_OUT=<dir> records somewhere else (a trial run that keeps the clips in video/clips). */
+const OUT = path.resolve(process.env.CLIPS_OUT || 'video/clips');
 const PHOTO = path.resolve('public/samples/marigold-bakehouse.jpg');
 const DEMO_SLUG = 'marigold-bakehouse';
 const CONSOLE_ASK = 'Two almond croissants and a sourdough, shipped to me. I have a nut allergy.';

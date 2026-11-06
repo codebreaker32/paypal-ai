@@ -42,7 +42,9 @@ Without `--base-url` it runs its own production server on port 3251 with its own
 
 Each shot runs in a fresh browser; the whole display is grabbed by ffmpeg's x11grab at 30 fps. Phone shots put a 390x844 frame (scaled to the display's height) on the app's paper colour; laptop shots lay pages out at 1440x810 CSS px (scale 4/3). After each clip the recorder prints ffmpeg's frame counters; if it says *x11grab fell behind* (more than 2% repeated frames, usually a busy machine), re-record that clip with `--only`. 06 and 06b are always recorded together. 08 and 09 use the order 06 paid (saved in `data/clips/state.json`), so record 06 first; 09 restores 06's console conversation. Running it twice gives the same set of files (new orders and a new `marigold-bakehouse-N` shop each time).
 
-`CLIPS_CHECK_LOGIN=1 npm run clips -- --only 06` stops after the PayPal login and saves a grab of the whole display to `/tmp/shelfie-clips-after-login.png`, to check that no browser bubble shows the login before recording 06b.
+`CLIPS_CHECK_LOGIN=1 npm run clips -- --only 06` stops after the PayPal login and saves a grab of the whole display to `/tmp/shelfie-clips-after-login.png`, to check that no browser bubble shows the login before recording 06b. `CLIPS_OUT=/tmp/clips-trial npm run clips` writes the clips somewhere else (a trial run that leaves `video/clips/` alone; it still uses and resets the clip database).
+
+A clip is moved into place only when its shot worked, so a failed take keeps the previous file. The live capture encodes with x264's fastest preset into a temporary MKV and is re-encoded into the MP4 after each shot, which keeps x11grab at 30 fps on a busy machine; Chromium runs under `nice` for the same reason.
 
 ## This take (6 Nov 2026)
 
