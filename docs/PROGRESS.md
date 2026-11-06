@@ -1,9 +1,13 @@
 # Progress
 
-_Last updated: 2026-11-06 23:11 IST (run 3, session 2)_
+_Last updated: 2026-11-06 23:25 IST (run 3, session 3)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
+
+**Run 3, session 3 (from 23:10 IST).** New from the human (~22:00): **Part A2, a real Shelfie logo** before any final clip or render (DECISIONS).
+- **running (worktrees):** the duplicate-tab-panel fix (TDD, e2e first); logo designers A and B, 3 concepts each (`docs/judge/logo/concepts/`); bread drawing variants (the audit's leftover).
+- **Next:** logo judge (`.scratch/judge-logo-prompt.md`) picks one → refine once → apply everywhere (header, favicon, PWA icons, apple-touch, manifest, counter card, a new OG image, README, video intro/outro, the assistant's avatar instead of the robot icon) + DESIGN.md logo section → screenshots and recordings re-taken → full e2e with the capture gate → final clips → render → video judge.
 
 **Run 3, session 2 (from 21:19 IST).** Session 1 ended while wave 2's workers were finishing; their work was committed on their branches (clean worktrees).
 - **done, merged:** the Task 1 review's fix round (`63c344b`: CountUp hides the new total before paint, the motion features retry once and then show what entrances hid, Stagger shows when visible at hydration, token aliases point at roles); **Task 4, seller surfaces** (`21c1b0a`: `newlyPaid` (tested) drives a toast with Open and a 2.4 s ok glow on the row; warn is a deep ochre, failures use `error`, the brief is a calm note; status crossfades; setup and Menu tab motion; 3 conflicts with the images fix round resolved by hand); **Task 3, buyer surfaces** (`1e3f998`: the start page's hero tells the story once; phone rows put the price under the name and section jumps clear the sticky tabs and order bar; sections rise in, cards lift and press; console and receipt motion).
