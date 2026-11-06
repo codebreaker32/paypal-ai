@@ -127,7 +127,7 @@ async function createNew(deps: OrderDeps, shop: Shop, input: CreateOrderInput, k
   const clientKey = input.clientKey ? createHash('sha256').update(input.clientKey).digest('hex').slice(0, 32) : null;
   // Reserve the slot before the PayPal await so concurrent calls can't all pass the count; the insert re-checks
   // the database count in the same transaction (another process may have inserted meanwhile).
-  checkOpenCaps(db, shop, clientKey, true);
+  checkOpenCaps(db, shop, clientKey, true, nowMs);
   const release = reserveOpenSlot(shop.id, clientKey);
   try {
     return await createReserved(deps, shop, input, key, priced, clientKey, nowMs);
@@ -154,9 +154,10 @@ function reserveOpenSlot(shopId: string, clientKey: string | null): () => void {
 }
 
 /** Throws TOO_MANY_OPEN_ORDERS when the caller or the shop is at its unpaid-order cap (counting reservations if asked). */
-function checkOpenCaps(db: Db, shop: Shop, clientKey: string | null, withReserved: boolean): void {
+function checkOpenCaps(db: Db, shop: Shop, clientKey: string | null, withReserved: boolean, nowMs: number): void {
   const reserved = (slot: string) => (withReserved ? reservedOpen.get(slot) ?? 0 : 0);
-  if (clientKey && ordersRepo.countOpenForClient(db, shop.id, clientKey) + reserved(clientSlot(shop.id, clientKey)) >= MAX_OPEN_ORDERS_PER_CLIENT) {
+  const nowIso = iso(nowMs);
+  if (clientKey && ordersRepo.countOpenForClient(db, shop.id, clientKey, nowIso) + reserved(clientSlot(shop.id, clientKey)) >= MAX_OPEN_ORDERS_PER_CLIENT) {
     throw new OrderError(
       'TOO_MANY_OPEN_ORDERS',
       `You already have ${MAX_OPEN_ORDERS_PER_CLIENT} orders waiting for payment at ${shopLabel(shop)}.`,
@@ -164,7 +165,7 @@ function checkOpenCaps(db: Db, shop: Shop, clientKey: string | null, withReserve
       { max_open_orders_per_client: MAX_OPEN_ORDERS_PER_CLIENT },
     );
   }
-  if (ordersRepo.countOpen(db, shop.id) + reserved(shopSlot(shop.id)) >= MAX_OPEN_ORDERS_PER_SHOP) {
+  if (ordersRepo.countOpen(db, shop.id, nowIso) + reserved(shopSlot(shop.id)) >= MAX_OPEN_ORDERS_PER_SHOP) {
     throw new OrderError(
       'TOO_MANY_OPEN_ORDERS',
       `${shopLabel(shop)} already has ${MAX_OPEN_ORDERS_PER_SHOP} orders waiting for payment.`,
@@ -214,7 +215,7 @@ async function createReserved(
   try {
     // Count and insert atomically. In this process our reservation guarantees room; this catches other processes.
     order = db.transaction(() => {
-      checkOpenCaps(db, shop, clientKey, false);
+      checkOpenCaps(db, shop, clientKey, false, nowMs);
       return ordersRepo.insert(
         db,
         {
