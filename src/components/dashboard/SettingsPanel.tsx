@@ -91,7 +91,7 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
         </p>
       )}
 
-      <form onSubmit={save} noValidate className="flex flex-col gap-4" aria-label="Your PayPal email">
+      <form onSubmit={save} noValidate className="flex flex-col gap-4">
         <Field
           label="Your PayPal email"
           hint="The one you log in to PayPal with. If no PayPal account uses it, PayPal holds the money until one does."
