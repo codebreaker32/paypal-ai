@@ -244,6 +244,8 @@
   --animate-shimmer: shimmer 1.6s var(--ease-in-out) infinite;
   --animate-rise-in: rise-in var(--duration-slow) var(--ease-out) both;
   --animate-fade-in: fade-in var(--duration-base) var(--ease-out) both;
+  /* A dashboard row the poll just saw get paid: the ok tint comes up fast, holds, then fades (2.4 s in all). */
+  --animate-paid-glow: paid-glow 2400ms var(--ease-out) both;
 
   @keyframes spin {
     to {
@@ -274,6 +276,18 @@
     }
     to {
       opacity: 1;
+    }
+  }
+  @keyframes paid-glow {
+    0% {
+      opacity: 0;
+    }
+    8%,
+    45% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
     }
   }
 }

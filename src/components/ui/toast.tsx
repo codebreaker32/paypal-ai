@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { CircleAlert, CircleCheck, Info, X, type LucideIcon } from 'lucide-react';
 import { Icon } from './icon';
@@ -13,11 +14,14 @@ export interface ToastInput {
   tone?: ToastTone;
   /** Defaults to 5 s. */
   durationMs?: number;
+  /** One link beside the text ("Open" the new order). */
+  action?: { label: string; href: string };
 }
 
 interface ToastItem extends Required<Pick<ToastInput, 'title' | 'tone' | 'durationMs'>> {
   id: number;
   description?: string;
+  action?: ToastInput['action'];
 }
 
 const ToastContext = createContext<((t: ToastInput) => void) | null>(null);
@@ -39,7 +43,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const id = nextId.current++;
     setToasts((all) => [
       ...all.slice(-2),
-      { id, title: t.title, description: t.description, tone: t.tone ?? 'neutral', durationMs: t.durationMs ?? 5000 },
+      { id, title: t.title, description: t.description, action: t.action, tone: t.tone ?? 'neutral', durationMs: t.durationMs ?? 5000 },
     ]);
   }, []);
 
@@ -78,6 +82,15 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
         <p className="font-semibold">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm opacity-85">{toast.description}</p>}
       </div>
+      {toast.action && (
+        <Link
+          href={toast.action.href}
+          onClick={() => onDismiss(toast.id)}
+          className="inline-flex min-h-tap shrink-0 items-center rounded-full px-3 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
+        >
+          {toast.action.label}
+        </Link>
+      )}
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}

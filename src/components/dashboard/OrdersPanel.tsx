@@ -67,6 +67,7 @@ export function OrdersPanel({
   shopId,
   slug,
   fresh,
+  justPaid,
   photos,
   paypalReachable,
   onOrderChange,
@@ -76,6 +77,8 @@ export function OrdersPanel({
   shopId: string;
   slug: string;
   fresh: ReadonlySet<string>;
+  /** Orders the last poll saw get paid: their row glows for a moment. */
+  justPaid?: ReadonlySet<string>;
   photos?: ReadonlyMap<string, ItemPicture>;
   paypalReachable: boolean;
   onOrderChange: (order: Order) => void;
@@ -83,7 +86,7 @@ export function OrdersPanel({
 }) {
   const [filter, setFilter] = useState<Filter>('all');
   const g = groupOrders(orders);
-  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} fresh={fresh.has(o.id)} onChange={onOrderChange} />;
+  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} fresh={fresh.has(o.id)} justPaid={justPaid?.has(o.id)} onChange={onOrderChange} />;
   const show = (f: Filter) => filter === 'all' || filter === f;
   const segments: [Filter, string, number][] = [
     ['all', 'All', orders.length],

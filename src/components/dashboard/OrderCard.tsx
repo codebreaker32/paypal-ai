@@ -6,6 +6,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
+import { Pressable } from '@/components/motion/pressable';
 import type { ItemPicture } from '@/lib/domain/category';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order } from '@/lib/domain/types';
@@ -49,12 +50,16 @@ export function OrderCard({
   order,
   shopId,
   fresh,
+  justPaid,
   photos,
   onChange,
 }: {
   order: Order;
   shopId: string;
+  /** Just arrived or just moved here: the row rises in. */
   fresh?: boolean;
+  /** The last poll saw it get paid: a soft ok glow that fades over 2.4 s. */
+  justPaid?: boolean;
   /** itemId -> photo URL, for the first line's thumbnail. */
   photos?: ReadonlyMap<string, ItemPicture>;
   onChange: (order: Order) => void;
@@ -65,14 +70,20 @@ export function OrderCard({
   const first = order.lines[0];
 
   return (
-    <li
+    <Pressable
+      as="li"
+      lift={false}
       data-order={order.number}
+      data-just-paid={justPaid || undefined}
       className={cx(
-        'relative grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-4 transition-colors hover:bg-surface-subtle sm:px-5',
+        'isolate grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-4 sm:px-5',
+        'transition-[transform,background-color] hover:bg-surface-subtle active:scale-[0.99]',
         'lg:grid-cols-[3.5rem_14rem_minmax(0,1fr)_7rem_11rem_10.5rem] lg:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
+      {/* Behind the content (the row is its own stacking context): fades out on its own, so nothing is left to clean up. */}
+      {justPaid && <span aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-ok-soft animate-paid-glow" />}
       <ItemPhoto
         name={first?.name ?? order.number}
         photoUrl={first ? (photos?.get(first.itemId)?.photoUrl ?? null) : null}
@@ -139,6 +150,6 @@ export function OrderCard({
             <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} />
           ))}
       </div>
-    </li>
+    </Pressable>
   );
 }
