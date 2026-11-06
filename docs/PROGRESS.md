@@ -1,8 +1,10 @@
 # Progress
 
-_Last updated: 2026-11-06 17:36 IST (run 2, session 6)_
+_Last updated: 2026-11-06 17:40 IST (run 2, session 7)_
 
 ## Current phase
+**Run 2, session 7 (from 17:35 IST).** Running at once: **judge round 7** (a fresh judge subagent, `.scratch/judge7-prompt.md`) and the **clips worker** (its own worktree: the recorder's selectors for the new UI, the new `03b-snap-counter` clip, `npm run clips`, `video/clips/README.md`). Then: the judge's in-scope top fixes, one full e2e run on the final main, and the completion check.
+
 **Run 2, session 6 (15:46–17:45 IST). The design reset is built, merged and verified; judge round 7 is next.** (spec §4b, plan Wave 5). Session 5's three workers were killed by a VM reboot at about 15:40 IST; their WIP is committed on their branches.
 - **done, merged (`fe52c56`, `b8eb94e`):** the photo worker (Task 15): Pexels photos for Marigold Bakehouse and Ravi (`docs/ASSETS.md`), the seed sets the demo shop's cover and item photos, `POST/DELETE` item photo and cover routes, `GET /i/[file]`, `image_url` in `list_products` and `image` in the JSON-LD. Tía Lupe has no photos on purpose (the fixture for the designed fallback).
 - **done, on main (`89b91d7`): snap your counter, server side** (TDD): `POST /api/shops/[id]/counter` returns one 4:3 WebP crop per item Claude finds in a display-case photo, stored nowhere. **Verified live** (real `claude-sonnet-5-5`, a Pexels display case, 8 Marigold items): 2 proposals in 4.7 s, the plain croissant (high) and the almond croissant (medium), both correct crops. The UI (Menu tab) comes with the carry-across.
@@ -223,10 +225,10 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. Merge the review fixer (6 items), re-run the affected e2e specs and `npm run screenshots:prod` into `docs/judge/screenshots/round-6/`, then judge round 6.
-2. Fix round 6's top fixes that are in scope.
-3. Merge the clip recorder and record the clips on the final main (`video/clips/`).
-4. Final check of `docs/SUBMISSION.md` and the README against what is verified.
+1. Judge round 7 (running), then its in-scope top fixes.
+2. Merge the clips worker (recorder on the new UI, `03b-snap-counter`), with every clip's frames viewed.
+3. One full e2e run (capture gate included) on the final main, on an idle machine.
+4. Final PROGRESS summary and the completion check (`.run-complete`).
 
 ## Needs from human
 - **Before 12 Nov 12:00 PT, required for the submission:**
