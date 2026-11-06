@@ -5,7 +5,7 @@ _Last updated: 2026-11-06 07:21 IST (session 5 running)_
 ## Current phase
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
 - the milestone code review over `885caa3..63c114c` (`code-review`, high) found 10 unverified candidates; one fixer is verifying and fixing them in a worktree;
-- re-running the Claude Code outside-client proof on current main, so `docs/judge/evidence/` matches the shipped design;
+- **done, merged:** the Claude Code outside-client proof re-run on current main (order SHF-KTZ39C → PayPal `17R81429KU459414P`, `PAYER_ACTION_REQUIRED`, $8.50, `custom_id` matches), with dashboard and order screenshots at 1440 and 390 px in the current design;
 - a fresh-clone walkthrough of the README as a judge would follow it, with doc fixes and an honest "Path to scale" section.
 
 Then: merge, `npm run screenshots:prod -- docs/judge/screenshots/round-3`, and judge round 3.
