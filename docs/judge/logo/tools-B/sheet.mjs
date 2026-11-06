@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { chromium } from 'playwright';
-import { writeAll, writeFinal, faviconSvg, FINAL_DIR, markSvg, wordmarkSvg, lockupSvg, appIconSvg, colours, concepts, INK, POM } from './build.mjs';
+import { writeAll, writeFinal, FINAL_DIR, markSvg, wordmarkSvg, lockupSvg, appIconSvg, colours, concepts, INK, POM } from './build.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..', '..', '..');
