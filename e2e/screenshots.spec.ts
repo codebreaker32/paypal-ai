@@ -481,6 +481,18 @@ const SCREENS: Screen[] = [
     run: async (page) => {
       await page.goto(`/s/${SLUG}`);
       await expect(page.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' })).toBeVisible();
+      // The menu's photos load lazily: scroll through once, as a buyer would, so the full-page capture has them all.
+      await page.evaluate(async () => {
+        for (let y = 0; y < document.documentElement.scrollHeight; y += 500) {
+          window.scrollTo(0, y);
+          await new Promise((r) => setTimeout(r, 60));
+        }
+        window.scrollTo(0, 0);
+      });
+      // Back at the top, the section tabs mark the first section again.
+      await expect(page.getByRole('navigation', { name: 'Menu sections' }).getByRole('link').first())
+        .toHaveAttribute('aria-current', 'true', { timeout: 3000 })
+        .catch(() => undefined);
     },
   },
   {

@@ -77,6 +77,7 @@ export function OrderCard({
         photoUrl={first ? (photos?.get(first.itemId) ?? null) : null}
         size="sm"
         decorative
+        eager
         dim={muted}
         className="row-span-2 size-14 self-start rounded-(--thumb-radius) lg:row-span-1 lg:self-center"
       />
