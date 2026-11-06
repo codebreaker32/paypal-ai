@@ -95,6 +95,18 @@ describe('shop setup', () => {
       await expect(setShopPhotos(db, more, [Buffer.from('nope')], 'replace')).rejects.toBeInstanceOf(UploadError);
       expect(shops.byId(db, shop.id)!.menuPhotoPaths).toHaveLength(3);
     });
+
+    // The retake screen refreshes after a failed reading (review 2 S5): the page must then show the
+    // "try again" step with the pages the server kept, not the old retake screen and its old count.
+    it('after an added page whose reading fails, the page shows "try again" with every saved page', async () => {
+      const { shop } = await createShopFromPhotos(db, [photo, photo, photo]);
+      await runReading(deps({ extract: async () => notAMenu }), shop.id);
+      expect(loadSetupView(db, shops.byId(db, shop.id)!, t)).toMatchObject({ step: 'unreadable', photoCount: 3 });
+      const added = await setShopPhotos(db, shops.byId(db, shop.id)!, [photo], 'add');
+      const r = await runReading(deps({ extract: async () => { throw new Error('overloaded'); } }), added.id);
+      expect(r.status).toBe('failed');
+      expect(loadSetupView(db, shops.byId(db, shop.id)!, t)).toMatchObject({ step: 'failed', photoCount: 4 });
+    });
   });
 
   describe('reading the menu', () => {

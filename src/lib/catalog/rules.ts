@@ -2,14 +2,18 @@
 // No server imports here: client components use this file.
 import type { IssueCode, ItemWithVariants, Variant } from '@/lib/domain/types';
 
-export const MAX_PRICE_CENTS = 100_000; // $1,000
+/** $500: a new shop's online order cap (shops.order_cap_cents), so one of anything can be ordered. */
+export const MAX_PRICE_CENTS = 50_000;
+/** The most sizes or options one item can have (a reading keeps the first ones; edits accept no more). */
+export const MAX_VARIANTS = 10;
 
 type ItemLike = Pick<ItemWithVariants, 'status' | 'issues' | 'paypalProductId'> & {
   variants: Pick<Variant, 'priceCents'>[];
 };
 
+/** Every option has a price the door can sell: over $0 and within the order cap. */
 export const isPriced = (it: Pick<ItemLike, 'variants'>): boolean =>
-  it.variants.length > 0 && it.variants.every((v) => v.priceCents != null);
+  it.variants.length > 0 && it.variants.every((v) => v.priceCents != null && v.priceCents > 0 && v.priceCents <= MAX_PRICE_CENTS);
 
 /** A draft the seller has cleared and fully priced: it goes to PayPal on publish. */
 export function isPublishable(it: ItemLike): boolean {

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { normalizeExtraction, retakeTipFor } from '@/lib/ai/normalize';
+import { MAX_VARIANTS } from '@/lib/catalog/rules';
 import { MenuExtractionSchema, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import type { DraftCatalog, DraftItem, UnreadableMenu } from '@/lib/domain/types';
@@ -105,15 +106,29 @@ describe('other recorded fixtures', () => {
 });
 
 describe('price rules', () => {
-  it('flags price 0 and 150000 cents (> $1,000) as CHECK, but not 100000', () => {
+  it('flags price 0 and anything over the $500 online order cap as CHECK, but not 50000', () => {
     const c = catalog(raw(
       { name: 'Zero', prices: [price(0, '$0')] },
-      { name: 'Huge', prices: [price(150000, '$1500')] },
-      { name: 'Edge', prices: [price(100000, '$1000')] },
+      { name: 'Wedding cake', prices: [price(65000, '$650')] },
+      { name: 'Edge', prices: [price(50000, '$500')] },
     ));
     expect(byName(c, /Zero/).issues).toContain('CHECK');
-    expect(byName(c, /Huge/).issues).toContain('CHECK');
+    expect(byName(c, /Wedding/).issues).toContain('CHECK');
+    expect(byName(c, /Wedding/).issueDetail).toBe('We read $650.00. Online orders go up to $500, so set a lower price or remove it.');
     expect(byName(c, /Edge/).issues).toEqual([]);
+  });
+  it('keeps the first 10 sizes of an item with more, and asks the seller to check', () => {
+    const sizes = Array.from({ length: 11 }, (_, i) => price(i === 3 ? null : 1000 + i * 100, i === 3 ? '$1?' : `$${10 + i}`, `Size ${i + 1}`));
+    const it = byName(catalog(raw({ name: 'Pizza', prices: sizes })), /Pizza/);
+    expect(it.variants).toHaveLength(MAX_VARIANTS);
+    expect(it.variants.map((v) => v.label)).toEqual(sizes.slice(0, 10).map((p) => p.label));
+    expect(it.issues).toEqual(['MISSING_PRICE', 'CHECK']);
+    expect(it.issueDetail).toContain('Size 4');
+
+    const priced = byName(catalog(raw({ name: 'Haircut', prices: sizes.map((p) => ({ ...p, amount_cents: 2000 })) })), /Haircut/);
+    expect(priced.variants).toHaveLength(MAX_VARIANTS);
+    expect(priced.issues).toEqual(['CHECK']);
+    expect(priced.issueDetail).toBe('Your menu lists more than 10 sizes; we kept the first 10. Are they right?');
   });
   it('treats negative and non-integer amounts as unusable', () => {
     const c = catalog(raw({ name: 'Neg', prices: [price(-100, '-1')] }, { name: 'Frac', prices: [price(450.5, '4.505')] }));
@@ -271,7 +286,7 @@ describe('seller-facing issue text', () => {
     expect(c.items.map((i) => [i.issues, i.issueDetail])).toEqual([
       [['CHECK', 'DUPLICATE'], 'Printed as “3 for $10”. We set $3.33 each. Is that right?'],
       [['MISSING_PRICE', 'DUPLICATE'], 'No price on the menu. Add one, or leave it off.'],
-      [['CHECK', 'DUPLICATE'], 'We set $1500.00, which looks unusual. Is that right?'],
+      [['CHECK', 'DUPLICATE'], 'We read $1500.00. Online orders go up to $500, so set a lower price or remove it.'],
       [['DUPLICATE'], 'Listed twice with different prices: $1500.00 and $40.00.'],
     ]);
   });

@@ -108,7 +108,10 @@ export function setVariants(db: Db, itemId: string, variants: { label: string | 
   tx();
 }
 
+/** Only a draft goes live: an item the seller removed (or made "ask in person") mid-publish keeps that status. */
 export function setPayPalProductId(db: Db, id: string, paypalProductId: string): void {
-  db.prepare(`UPDATE items SET paypal_product_id = ?, status = 'live', published_at = ?, updated_at = ? WHERE id = ?`)
-    .run(paypalProductId, now(), now(), id);
+  db.prepare(
+    `UPDATE items SET paypal_product_id = ?, status = CASE WHEN status = 'draft' THEN 'live' ELSE status END,
+       published_at = ?, updated_at = ? WHERE id = ?`,
+  ).run(paypalProductId, now(), now(), id);
 }

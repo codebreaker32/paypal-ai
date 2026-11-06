@@ -229,6 +229,47 @@ describe('publishShop', () => {
     expect(peak).toBe(3);
   });
 
+  it('keeps an item removed while PayPal was creating it (it does not go live)', async () => {
+    const croissant = byName(db, shopId, 'Butter croissant');
+    const gated = {
+      ...paypal,
+      async createProduct(p: Parameters<FakePayPal['createProduct']>[0], requestId: string) {
+        if (requestId === `pub-${croissant.id}`) items.update(db, croissant.id, { status: 'removed' });
+        return paypal.createProduct(p, requestId);
+      },
+    };
+    await publishShop({ db, paypal: gated }, shopId);
+    const after = byName(db, shopId, 'Butter croissant');
+    expect(after.status).toBe('removed');
+    // The product id is still recorded, so a retry never creates it twice.
+    expect(after.paypalProductId).toMatch(/^PROD-/);
+    expect(byName(db, shopId, 'Drip coffee').status).toBe('live');
+  });
+
+  it('sends the latest version of an item edited while it waited its turn, and keeps one removed off the shop', async () => {
+    const many = shops.create(db, { name: 'Many' }).shop.id;
+    items.replaceDrafts(db, many, Array.from({ length: 5 }, (_, i) => draft(`Thing ${i}`, [100 + i])));
+    const [, , , fourth, fifth] = items.listWithVariants(db, many);
+    let first = true;
+    const editing = {
+      ...paypal,
+      async createProduct(p: Parameters<FakePayPal['createProduct']>[0], requestId: string) {
+        if (first) {
+          first = false;
+          items.update(db, fourth.id, { name: 'Thing four, renamed' });
+          items.update(db, fifth.id, { status: 'removed' });
+        }
+        return paypal.createProduct(p, requestId);
+      },
+    };
+    const r = await publishShop({ db, paypal: editing }, many);
+    const sent = paypal.calls.filter((c) => c.method === 'createProduct').map((c) => (c.args[0] as { name: string }).name);
+    expect(sent).toContain('Thing four, renamed');
+    expect(sent).not.toContain('Thing 3');
+    expect(r.failed).toEqual([]);
+    expect(items.listWithVariants(db, many).find((i) => i.id === fifth.id)!.status).toBe('removed');
+  });
+
   it('makes the shop live and keeps it live on later runs', async () => {
     await publishShop({ db, paypal }, shopId);
     const shop = shops.byId(db, shopId)!;

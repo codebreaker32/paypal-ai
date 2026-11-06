@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { MAX_PHOTO_BYTES, UploadError, normalizePhoto, readFileLimited, readUpload, writeUpload } from '@/lib/uploads';
+import { MAX_PHOTO_BYTES, MAX_PHOTO_PIXELS, UploadError, normalizePhoto, readFileLimited, readUpload, writeUpload } from '@/lib/uploads';
 
 const solid = (width: number, height: number) =>
   sharp({ create: { width, height, channels: 3, background: { r: 200, g: 150, b: 90 } } });
@@ -64,6 +64,17 @@ describe('uploads', () => {
     expect(await codeOf(readFileLimited(new Blob([big], { type: 'image/jpeg' })))).toBe('PHOTO_TOO_LARGE');
     expect(await codeOf(normalizePhoto(Buffer.from(big)))).toBe('PHOTO_TOO_LARGE');
     expect(await codeOf(readFileLimited(new Blob([])))).toBe('BAD_IMAGE');
+  });
+
+  it('refuses a small file that decodes to more pixels than a phone photo has (a decompression bomb)', async () => {
+    const bomb = await solid(16_000, Math.ceil(MAX_PHOTO_PIXELS / 16_000) + 1).png({ compressionLevel: 9 }).toBuffer();
+    expect(bomb.length).toBeLessThan(MAX_PHOTO_BYTES);
+    expect(await codeOf(normalizePhoto(bomb))).toBe('PHOTO_TOO_LARGE');
+  });
+
+  it('still reads a 48 MP phone photo', async () => {
+    const out = await normalizePhoto(await solid(8064, 6048).jpeg().toBuffer());
+    expect((await sharp(out).metadata()).width).toBe(1600);
   });
 
   it('writes a normalised page under the shop folder and returns a path relative to UPLOADS_DIR', async () => {

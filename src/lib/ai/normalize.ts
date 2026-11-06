@@ -1,3 +1,4 @@
+import { MAX_PRICE_CENTS, MAX_VARIANTS } from '@/lib/catalog/rules';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type {
   DraftCatalog,
@@ -12,7 +13,6 @@ import type { ExtractedItem, MenuExtraction, Problem } from './schemas';
 const MAX_NAME = 127;
 const MAX_DESCRIPTION = 256;
 const MAX_SOURCE = 500;
-const MAX_PRICE_CENTS = 100_000; // $1,000
 
 // Spec §9. Matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
@@ -63,15 +63,18 @@ interface PriceFlags {
   unusable: string | null;
   /** A price printed some other way than a plain amount ("from $20"). */
   printedAs: string | null;
+  /** The menu listed more sizes than an item can have; only the first MAX_VARIANTS were kept. */
+  tooMany: boolean;
 }
 
 function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: PriceFlags } {
-  const flags: PriceFlags = { unusable: null, printedAs: null };
-  if (it.price_kind === 'market' || it.price_kind === 'missing' || it.prices.length === 0) {
-    const labels = it.prices.length ? it.prices.map((p) => cleanOrNull(p.label, 60)) : [null];
+  const flags: PriceFlags = { unusable: null, printedAs: null, tooMany: it.prices.length > MAX_VARIANTS };
+  const prices = it.prices.slice(0, MAX_VARIANTS);
+  if (it.price_kind === 'market' || it.price_kind === 'missing' || prices.length === 0) {
+    const labels = prices.length ? prices.map((p) => cleanOrNull(p.label, 60)) : [null];
     return { variants: labels.map((label) => ({ label, priceCents: null })), flags };
   }
-  const variants = it.prices.map((p): DraftVariant => {
+  const variants = prices.map((p): DraftVariant => {
     const label = cleanOrNull(p.label, 60);
     let cents = p.amount_cents;
     if (cents == null && /^[\s$]*\d[\d.,]*\s*$/.test(p.raw)) cents = parseAmountToCents(p.raw);
@@ -147,6 +150,9 @@ function dealDetail(it: ExtractedItem, unit: number | null | undefined): string 
 function unusualDetail(variants: DraftVariant[]): string {
   const odd = variants.find((v) => v.priceCents !== null && isUnusual(v.priceCents))!;
   const which = variants.length > 1 && odd.label ? ` for ${quoted(odd.label, 30)}` : '';
+  if (odd.priceCents! > MAX_PRICE_CENTS) {
+    return `We read ${formatUSD(odd.priceCents!)}${which}. Online orders go up to ${formatUSD(MAX_PRICE_CENTS).replace(/\.00$/, '')}, so set a lower price or remove it.`;
+  }
   return `We set ${formatUSD(odd.priceCents!)}${which}, which looks unusual. Is that right?`;
 }
 
@@ -166,6 +172,7 @@ function issueDetailFor({ it, variants, flags, unusual, shaky, note }: DetailInp
   if (flags.unusable) return `We couldn’t read ${quoted(flags.unusable)} as a price. Add the right one, or leave it off.`;
   if (variants.some((v) => v.priceCents === null)) return missingDetail(it, variants);
   if (unusual) return unusualDetail(variants);
+  if (flags.tooMany) return `Your menu lists more than ${MAX_VARIANTS} sizes; we kept the first ${MAX_VARIANTS}. Are they right?`;
   const set = pricesOf(variants);
   if (note && crossedOutPrice(note)) return `A price is crossed out. We set ${set}. Is that right?`;
   if (flags.printedAs) return `Printed as ${quoted(flags.printedAs)}. We set ${set}. Is that right?`;
@@ -240,7 +247,7 @@ function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
 
   const unusual = variants.some((v) => v.priceCents !== null && isUnusual(v.priceCents));
   const shaky = it.confidence === 'low' || (it.confidence === 'medium' && note !== null && isShakyNote(note));
-  if (unusual || it.price_kind === 'deal' || shaky || flags.printedAs) issues.add('CHECK');
+  if (unusual || it.price_kind === 'deal' || shaky || flags.printedAs || flags.tooMany) issues.add('CHECK');
 
   const ordered = (['MISSING_PRICE', 'MARKET_PRICE', 'CHECK'] as IssueCode[]).filter((c) => issues.has(c));
   const item: DraftItem = {

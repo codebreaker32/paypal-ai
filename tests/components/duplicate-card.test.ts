@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { applyLocal, duplicateUpdates, flaggedCards } from '@/components/setup/review-model';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 
-const UNUSUAL = 'We set $1500.00, which looks unusual. Is that right?';
-const TWICE = 'Listed twice with different prices: $1500.00 and $40.00.';
+const SHAKY = 'Hard to read in the photo. Are the name and price right?';
+const TWICE = 'Listed twice with different prices: $450.00 and $40.00.';
 
 const item = (id: string, priceCents: number, issues: IssueCode[], issueDetail: string): ItemWithVariants => ({
   id, shopId: 'shp_1', section: 'Gifts', name: 'Gift box', description: null, sourceText: `Gift box ${priceCents / 100}`,
@@ -13,7 +13,7 @@ const item = (id: string, priceCents: number, issues: IssueCode[], issueDetail: 
   variants: [{ id: `${id}-v0`, itemId: id, label: null, priceCents, sort: 0 }],
 });
 
-const giftBoxes = () => [item('a', 150_000, ['CHECK', 'DUPLICATE'], UNUSUAL), item('b', 4_000, ['DUPLICATE'], TWICE)];
+const giftBoxes = () => [item('a', 45_000, ['CHECK', 'DUPLICATE'], SHAKY), item('b', 4_000, ['DUPLICATE'], TWICE)];
 const apply = (items: ItemWithVariants[], updates: ReturnType<typeof duplicateUpdates>) =>
   updates.reduce((all, u) => all.map((it) => (it.id === u.itemId ? applyLocal(it, u) : it)), items);
 
@@ -24,13 +24,13 @@ describe('the "Listed twice" card', () => {
     expect(cards[0].kind).toBe('duplicate');
   });
 
-  it('keeping the $1,500 one removes the twin and still asks about the unusual price', () => {
+  it('keeping the $450 one removes the twin and still asks its own question', () => {
     const [big, small] = giftBoxes();
     const after = apply([big, small], duplicateUpdates([big, small], big));
     expect(after.find((i) => i.id === 'b')!.status).toBe('removed');
     expect(after.find((i) => i.id === 'a')!.issues).toEqual(['CHECK']);
     const cards = flaggedCards(after);
-    expect(cards).toEqual([{ kind: 'single', item: expect.objectContaining({ id: 'a', issueDetail: UNUSUAL }) }]);
+    expect(cards).toEqual([{ kind: 'single', item: expect.objectContaining({ id: 'a', issueDetail: SHAKY }) }]);
   });
 
   it('keeping the $40 one clears the card', () => {
@@ -41,7 +41,7 @@ describe('the "Listed twice" card', () => {
     expect(flaggedCards(after)).toEqual([]);
   });
 
-  it('keeping both leaves only the unusual-price question', () => {
+  it('keeping both leaves only its own question', () => {
     const after = apply(giftBoxes(), duplicateUpdates(giftBoxes(), 'all'));
     expect(after.map((i) => i.issues)).toEqual([['CHECK'], []]);
     expect(flaggedCards(after).map((c) => (c.kind === 'single' ? c.item.id : null))).toEqual(['a']);

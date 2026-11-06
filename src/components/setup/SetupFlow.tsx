@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import type { SetupView } from '@/lib/catalog/setup';
 import { ReadingStep } from './ReadingStep';
@@ -16,10 +17,17 @@ type FlowView = Exclude<SetupView, { step: 'live' }>;
 export function SetupFlow({ view }: { view: FlowView }) {
   const [rerun, setRerun] = useState<null | { upload?: RetakeUpload }>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const onUploadFailed = useCallback((message: string) => {
-    setRerun(null);
-    setUploadError(message);
-  }, []);
+  const router = useRouter();
+  const onUploadFailed = useCallback(
+    (message: string) => {
+      setRerun(null);
+      setUploadError(message);
+      // If the photos were saved but the reading then failed, the server now shows "try again" with
+      // every saved page; a refused upload changes nothing there, so this screen and its error stay.
+      router.refresh();
+    },
+    [router],
+  );
 
   if (rerun) {
     return (

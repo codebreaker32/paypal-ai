@@ -161,7 +161,10 @@ export async function publishShop(
   const result: PublishResult = { published: 0, failed: [] };
   const run = { listenerFailed: false };
 
-  await pool(todo, PUBLISH_CONCURRENCY, async (item) => {
+  await pool(todo, PUBLISH_CONCURRENCY, async (queued) => {
+    // Read again at its turn, so a rename made since the run started reaches PayPal. (An item
+    // removed meanwhile is still sent, but setPayPalProductId leaves it removed.)
+    const item = items.byIdForShop(db, shopId, queued.id) ?? queued;
     let event: PublishProgress;
     try {
       const { id } = await paypal.createProduct(productFor(item, shop), `pub-${item.id}`);
