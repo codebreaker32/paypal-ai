@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, Playfair_Display, Schibsted_Grotesk } from 'next/font/go
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
 import { ToastProvider } from '@/components/ui/Toast';
+import { PWA } from '@/lib/brand/pwa';
 import './globals.css';
 
 // Display: a high-contrast menu serif, roman and italic (menu sections are set in the italic).
@@ -33,10 +34,14 @@ export const metadata: Metadata = {
   title: 'Shelfie: your price list, open to AI shoppers',
   description:
     'Snap a photo of your paper price list. Shelfie reads it, lists it with PayPal, and opens an agent door any AI assistant can order and pay through.',
+  applicationName: PWA.name,
+  // Installable on a phone (spec §4c): Next adds apple-mobile-web-app-capable and the status-bar style from this.
+  appleWebApp: { capable: true, title: PWA.shortName, statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {
   colorScheme: 'light',
+  themeColor: PWA.theme,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
