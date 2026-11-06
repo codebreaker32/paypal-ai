@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 16:20 IST (run 2, session 6)_
+_Last updated: 2026-11-06 16:00 IST (run 2, session 6)_
 
 ## Current phase
 **Run 2, session 6 (from 15:46 IST). Top priority: the design reset** (spec §4b, plan Wave 5). Session 5's three workers were killed by a VM reboot at about 15:40 IST; their WIP is committed on their branches.
