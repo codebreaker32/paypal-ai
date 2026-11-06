@@ -130,6 +130,53 @@ describe('createSellerToolkit', () => {
     expect(factory).toHaveBeenCalledTimes(2);
   });
 
+  it('on a 401 drops the cached instance, rebuilds once and retries (an expired shared OAuth token)', async () => {
+    const unauthorized = JSON.stringify({ ok: false, status: 401, code: 'PAYPAL_API_HTTP_ERROR', message: 'Access Token not found in cache' });
+    const stale = fakeToolkit({ get_order: unauthorized });
+    const fresh = fakeToolkit();
+    const factory = vi.fn().mockReturnValueOnce(stale.tk).mockReturnValue(fresh.tk);
+    const t = createSellerToolkit(scope(), { factory, now: () => 0 });
+    expect(await t.getOrder(OWN)).toEqual(ORDER);
+    expect(factory).toHaveBeenCalledTimes(2);
+    expect(stale.execute.get_order).toHaveBeenCalledTimes(1);
+    expect(fresh.execute.get_order).toHaveBeenCalledTimes(1);
+    // The rebuilt instance is kept for the next call.
+    await t.getOrder(OWN);
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries a 401 only once, then surfaces it', async () => {
+    const unauthorized = JSON.stringify({ ok: false, status: 401, code: 'PAYPAL_API_HTTP_ERROR', message: 'Authentication failed' });
+    const factory = vi.fn(() => fakeToolkit({ get_order: unauthorized }).tk);
+    const t = createSellerToolkit(scope(), { factory, now: () => 0 });
+    const err = await t.getOrder(OWN).catch((e) => e);
+    expect(err).toBeInstanceOf(ToolkitError);
+    expect(err.status).toBe(401);
+    expect(factory).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not rebuild or retry on a non-401 PayPal error', async () => {
+    const notFound = JSON.stringify({ ok: false, status: 404, code: 'PAYPAL_API_HTTP_ERROR', message: 'The specified resource does not exist.' });
+    const { tk, execute } = fakeToolkit({ get_order: notFound });
+    const factory = vi.fn(() => tk);
+    const t = createSellerToolkit(scope(), { factory, now: () => 0 });
+    await expect(t.getOrder(OWN)).rejects.toMatchObject({ status: 404 });
+    expect(factory).toHaveBeenCalledTimes(1);
+    expect(execute.get_order).toHaveBeenCalledTimes(1);
+  });
+
+  it('Add tracking recovers inside the 30-minute TTL when the token expired after the instance was built', async () => {
+    const unauthorized = JSON.stringify({ ok: false, status: 401, code: 'PAYPAL_API_HTTP_ERROR', message: 'Access Token not found in cache' });
+    const stale = fakeToolkit({ get_order: unauthorized, create_shipment_tracking: unauthorized });
+    const fresh = fakeToolkit();
+    const factory = vi.fn().mockReturnValueOnce(stale.tk).mockReturnValue(fresh.tk);
+    let now = 0;
+    const t = createSellerToolkit(scope(), { factory, now: () => now });
+    now = 15 * 60_000; // before the fix every call failed until minute 30
+    await t.createShipmentTracking({ orderId: OWN, trackingNumber: '9400', carrier: 'USPS' });
+    expect(fresh.execute.create_shipment_tracking).toHaveBeenCalledTimes(1);
+  });
+
   it('asClaudeTools exposes JSON-schema tools that run through the scope check', async () => {
     const { tk } = fakeToolkit();
     const t = createSellerToolkit(scope(), { factory: () => tk });
