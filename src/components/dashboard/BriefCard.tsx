@@ -1,4 +1,4 @@
-import { Info, Loader2, MessageSquareQuote, Sparkles, TriangleAlert } from 'lucide-react';
+import { Info, Loader2, MessageSquareQuote, ShieldAlert, Sparkles, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -104,7 +104,14 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
               <ul className="flex flex-col gap-1.5">
                 {brief.buyer_requests.map((r, i) => (
                   <li key={i} className="flex flex-wrap items-baseline gap-2">
-                    <Badge tone={r.kind === 'allergy' ? 'note' : 'neutral'} className="bg-surface">{REQUEST_KIND[r.kind]}</Badge>
+                    {/* Allergy is safety information: a calm slate ring and icon set it apart from the other asks, never a red. */}
+                    <Badge
+                      tone={r.kind === 'allergy' ? 'note' : 'neutral'}
+                      icon={r.kind === 'allergy' ? ShieldAlert : undefined}
+                      className={cx('bg-surface', r.kind === 'allergy' && 'ring-1 ring-note/40')}
+                    >
+                      {REQUEST_KIND[r.kind]}
+                    </Badge>
                     <span>{r.text}</span>
                   </li>
                 ))}

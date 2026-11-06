@@ -78,19 +78,19 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       )}
     >
       <Icon icon={tone.icon} className={cn('mt-0.5', tone.className)} />
-      <div className="flex-1 py-0.5">
+      <div className="flex min-w-0 flex-1 flex-col py-0.5">
         <p className="font-semibold">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm opacity-85">{toast.description}</p>}
+        {toast.action && (
+          <Link
+            href={toast.action.href}
+            onClick={() => onDismiss(toast.id)}
+            className="-ml-1 mt-1 inline-flex min-h-tap items-center self-start rounded-full px-1 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
+          >
+            {toast.action.label}
+          </Link>
+        )}
       </div>
-      {toast.action && (
-        <Link
-          href={toast.action.href}
-          onClick={() => onDismiss(toast.id)}
-          className="inline-flex min-h-tap shrink-0 items-center rounded-full px-3 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
-        >
-          {toast.action.label}
-        </Link>
-      )}
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}

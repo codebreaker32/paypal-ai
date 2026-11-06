@@ -24,7 +24,8 @@ interface StatusMeta {
 export function orderStatusMeta(order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>): StatusMeta {
   switch (order.status) {
     case 'awaiting_approval':
-      return { label: 'Waiting for approval', tone: 'warn', icon: Clock };
+      // A normal pending state, not a caution: neutral, so warn and error stay for the states that need the seller.
+      return { label: 'Waiting for approval', tone: 'neutral', icon: Clock };
     case 'approved':
       return order.captureRefused
         ? { label: 'PayPal refused payment', tone: 'danger', icon: CircleX }
@@ -68,10 +69,16 @@ export function OrderStatusText({
   className?: string;
 }) {
   const m = orderStatusMeta(order);
+  // An error carries a cue beyond its colour: the status's own icon (a crossed circle) in place of the dot.
+  const failed = m.tone === 'danger' || m.tone === 'error';
   return (
     <StatusSwap value={m.label} className={cx('font-semibold', size === 'md' ? 'text-lg' : 'text-sm', DOT_TONE[m.tone], className)}>
       <span className="inline-flex items-center gap-2">
-        <span aria-hidden="true" className={cx('shrink-0 rounded-full bg-current', size === 'md' ? 'size-2.5' : 'size-2')} />
+        {failed ? (
+          <m.icon aria-hidden="true" strokeWidth={2.5} className={cx('shrink-0', size === 'md' ? 'size-4.5' : 'size-3.5')} />
+        ) : (
+          <span aria-hidden="true" className={cx('shrink-0 rounded-full bg-current', size === 'md' ? 'size-2.5' : 'size-2')} />
+        )}
         {m.label}
       </span>
     </StatusSwap>
