@@ -45,6 +45,22 @@ const post = (signal?: AbortSignal) =>
     signal,
   });
 
+describe('POST /api/assistant/[slug] body size (R9)', () => {
+  it('refuses a chunked body over 64 KB with 413, without buffering it', async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>(
+        { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },
+        { highWaterMark: 0 },
+      );
+    const req = new Request(`http://localhost/api/assistant/${s.shop.slug}`, {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body, duplex: 'half',
+    } as RequestInit);
+    const res = await POST(req, ctx());
+    expect(res.status).toBe(413);
+    expect(pulled).toBeLessThanOrEqual(6);
+  });
+});
+
 describe('POST /api/assistant/[slug] and a browser that goes away', () => {
   it('aborts the turn when the request is closed', async () => {
     resetRateLimits();

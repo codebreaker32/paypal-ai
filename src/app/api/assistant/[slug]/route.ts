@@ -6,6 +6,7 @@ import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { clientIp } from '@/lib/http/client-ip';
 import { jsonError } from '@/lib/http/json-error';
+import { BodyTooLargeError, MAX_JSON_BODY_BYTES, bodyTooLarge, readJsonLimited } from '@/lib/http/read-body';
 import { allow } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -25,8 +26,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
 
   let raw: unknown;
   try {
-    raw = await req.json();
-  } catch {
+    raw = await readJsonLimited(req, MAX_JSON_BODY_BYTES);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return bodyTooLarge();
     raw = null;
   }
   const body = Body.safeParse(raw);

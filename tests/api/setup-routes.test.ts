@@ -22,7 +22,10 @@ vi.mock('next/headers', () => ({
   }),
 }));
 vi.mock('@/lib/db', async (orig) => ({ ...(await orig<typeof import('@/lib/db')>()), getDb: () => state.db }));
-vi.mock('@/lib/ai/extract', () => ({ extractMenu: (photos: unknown[]) => state.extract(photos) }));
+vi.mock('@/lib/ai/extract', async (orig) => ({
+  ...(await orig<typeof import('@/lib/ai/extract')>()),
+  extractMenu: (photos: unknown[]) => state.extract(photos),
+}));
 
 const { createTestDb } = await import('@/lib/db');
 const shops = await import('@/lib/db/repos/shops');
@@ -39,6 +42,7 @@ const itemsRoute = await import('@/app/api/shops/[id]/items/route');
 const shopRoute = await import('@/app/api/shops/[id]/route');
 const publishRoute = await import('@/app/api/shops/[id]/publish/route');
 
+const { resetRateLimits } = await import('@/lib/rate-limit');
 const ctx = (id: string) => ({ params: Promise.resolve({ id }) });
 const jsonReq = (method: string, body: unknown) =>
   new Request('http://x', { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -142,6 +146,39 @@ describe('setup routes', () => {
     expect(await res.json()).toEqual({ error: { code: 'LENGTH_REQUIRED', message: expect.any(String) } });
     expect(read).toBe(false);
     expect(reads).toBe(0);
+  });
+
+  it('refuses the 21st live reading from one address in an hour with a 429 and a plain message (R11)', async () => {
+    vi.stubEnv('SHELFIE_TEST', ''); // the e2e and screenshot servers skip this limit
+    resetRateLimits();
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+      resetRateLimits();
+    });
+    const post = () =>
+      extractRoute.POST(new Request('http://x', { method: 'POST', headers: { 'x-forwarded-for': '203.0.113.9' } }), ctx(shopId));
+    for (let i = 0; i < 20; i++) expect((await post()).status).toBe(200);
+    expect(reads).toBe(20);
+    const res = await post();
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as { error: { code: string; message: string } };
+    expect(body.error).toEqual({ code: 'RATE_LIMITED', message: expect.stringMatching(/in the last hour/) });
+    expect(reads).toBe(20);
+    // The setup page shows the same message as a stopped reading, with Try again.
+    const status = (await (await extractRoute.GET(new Request('http://x'), ctx(shopId))).json()) as { status: string; message: string };
+    expect(status).toEqual({ status: 'failed', message: body.error.message });
+  });
+
+  it('owner JSON routes refuse a chunked body over 64 KB with 413, without buffering it (R13)', async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>(
+        { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },
+        { highWaterMark: 0 },
+      );
+    const req = new Request('http://x', { method: 'PATCH', headers: { 'content-type': 'application/json' }, body, duplex: 'half' } as RequestInit);
+    const res = await shopRoute.PATCH(req, ctx(shopId));
+    expect(res.status).toBe(413);
+    expect(pulled).toBeLessThanOrEqual(6);
   });
 
   it('a failed reading is a 502 with a friendly message', async () => {

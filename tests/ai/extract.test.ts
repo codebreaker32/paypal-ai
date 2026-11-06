@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
+import AnthropicClient from '@anthropic-ai/sdk';
 import type Anthropic from '@anthropic-ai/sdk';
-import { extractMenu } from '@/lib/ai/extract';
+import { READING_DEADLINE_MS, extractMenu } from '@/lib/ai/extract';
+import { READING_STALE_MS } from '@/lib/catalog/setup';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 
 const OK: MenuExtraction = {
@@ -67,5 +69,40 @@ describe('extractMenu', () => {
     const { client } = stub(OK);
     await expect(extractMenu([], { client })).rejects.toThrow();
     await expect(extractMenu(Array(5).fill(photo('a')), { client })).rejects.toThrow();
+  });
+});
+
+describe('extractMenu time budget (R12)', () => {
+  // The real SDK client with a fetch that never answers: every SDK retry and the re-prompt
+  // together must give up before the setup page calls the reading dead (READING_STALE_MS).
+  // Otherwise "Try again" starts a second paid reading while the first is still running.
+  it('a hanging reading gives up, SDK retries included, well inside the stale window', async () => {
+    vi.useFakeTimers();
+    try {
+      let attempts = 0;
+      const hang = (_url: unknown, init?: RequestInit) => {
+        attempts++;
+        return new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener('abort', () => reject(new DOMException('aborted', 'AbortError')));
+        });
+      };
+      const client = new AnthropicClient({ apiKey: 'test', fetch: hang as unknown as typeof fetch });
+      const start = Date.now();
+      let settledAt: number | null = null;
+      const done = extractMenu([photo('x')], { client }).then(
+        () => { throw new Error('expected a failure'); },
+        (e: unknown) => { settledAt = Date.now(); return e; },
+      );
+      await vi.advanceTimersByTimeAsync(READING_STALE_MS + 5 * 60_000);
+      expect(await done).toBeInstanceOf(Error);
+      expect(settledAt).not.toBeNull();
+      expect(settledAt! - start).toBeLessThanOrEqual(READING_DEADLINE_MS);
+      expect(attempts).toBeGreaterThanOrEqual(2); // one SDK retry still covers a dropped connection
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+  it('the deadline leaves at least a minute before the reading counts as dead', () => {
+    expect(READING_DEADLINE_MS + 60_000).toBeLessThanOrEqual(READING_STALE_MS);
   });
 });

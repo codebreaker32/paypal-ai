@@ -267,23 +267,33 @@ function looksLikeInstruction(it: ExtractedItem): boolean {
   return [it.name, it.description, it.source_text].some((t) => t != null && INSTRUCTION_RE.test(clean(t)));
 }
 
+/**
+ * Two lines are the same item only when the names match and so do the sections, or one section is
+ * missing (a heading cut off on another page). "HOT: Latte" and "ICED: Latte" are different items,
+ * even at the same price.
+ */
+function sameSection(a: Built, b: Built): boolean {
+  const x = a.item.section?.toLowerCase() ?? null;
+  const y = b.item.section?.toLowerCase() ?? null;
+  return x === null || y === null || x === y;
+}
+
 function dedupe(built: Built[]): DraftItem[] {
   const seen = new Map<string, Built[]>();
   for (const b of built) {
     const group = seen.get(b.key) ?? [];
-    if (group.some((g) => g.signature === b.signature)) continue; // exact duplicate: merged
+    if (group.some((g) => g.signature === b.signature && sameSection(g, b))) continue; // exact duplicate: merged
     group.push(b);
     seen.set(b.key, group);
   }
   for (const group of seen.values()) {
-    if (group.length > 1) {
-      const detail = duplicateDetail(group);
-      for (const g of group) {
-        g.item.issues = [...g.item.issues, 'DUPLICATE'];
-        // An item with its own question (no price, a deal, an unusual price) keeps it: the twins'
-        // card shows every price anyway, and the question still stands once the twin is gone.
-        g.item.issueDetail ??= detail;
-      }
+    for (const g of group) {
+      const twins = group.filter((o) => sameSection(o, g));
+      if (twins.length < 2) continue;
+      g.item.issues = [...g.item.issues, 'DUPLICATE'];
+      // An item with its own question (no price, a deal, an unusual price) keeps it: the twins'
+      // card shows every price anyway, and the question still stands once the twin is gone.
+      g.item.issueDetail ??= duplicateDetail(twins);
     }
   }
   return built.filter((b) => seen.get(b.key)!.includes(b)).map((b) => b.item);

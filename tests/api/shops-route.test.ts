@@ -28,6 +28,7 @@ vi.mock('@/lib/db', async (orig) => {
 const { createTestDb } = await import('@/lib/db');
 const shops = await import('@/lib/db/repos/shops');
 const { POST } = await import('@/app/api/shops/route');
+const { resetRateLimits } = await import('@/lib/rate-limit');
 
 async function jpeg(): Promise<Blob> {
   const buf = await sharp({ create: { width: 40, height: 60, channels: 3, background: '#eee' } }).jpeg().toBuffer();
@@ -79,6 +80,44 @@ describe('POST /api/shops', () => {
   afterEach(() => {
     delete process.env.UPLOADS_DIR;
     fs.rmSync(dir, { recursive: true, force: true });
+  });
+
+  it('refuses the 11th shop from one address in an hour with a 429, before reading the body (R11)', async () => {
+    vi.stubEnv('SHELFIE_TEST', ''); // the e2e and screenshot servers skip this limit
+    resetRateLimits();
+    onTestFinished(() => {
+      vi.unstubAllEnvs();
+      resetRateLimits();
+    });
+    const from = (ip: string, body: BodyInit | null = JSON.stringify({ sample: 'ravi-bike-repair' })) =>
+      new Request('http://localhost/api/shops', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-forwarded-for': ip },
+        body,
+        duplex: 'half',
+      } as RequestInit);
+    for (let i = 0; i < 10; i++) expect((await POST(from('203.0.113.7'))).status).toBe(201);
+    let read = false;
+    const res = await POST(from('203.0.113.7', chunkedMultipart('http://x', () => (read = true)).body));
+    expect(res.status).toBe(429);
+    expect(await errorCode(res)).toBe('RATE_LIMITED');
+    expect(read).toBe(false);
+    expect((await POST(from('198.51.100.2'))).status).toBe(201);
+  });
+
+  it('refuses a chunked JSON body over 64 KB with 413, without buffering it (R13)', async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>(
+        { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },
+        { highWaterMark: 0 },
+      );
+    const req = new Request('http://localhost/api/shops', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body, duplex: 'half',
+    } as RequestInit);
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    expect(await errorCode(res)).toBe('BODY_TOO_LARGE');
+    expect(pulled).toBeLessThanOrEqual(6);
   });
 
   it('creates a draft shop from photos, sets the owner cookie and answers 201', async () => {

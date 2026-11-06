@@ -7,6 +7,7 @@ import { syncOrder, syncOrderShared } from '@/lib/orders/service';
 import { getPayPal } from '@/lib/paypal';
 import { getOrderDeps } from '@/lib/services';
 import { jsonError } from '@/lib/http/json-error';
+import { BodyTooLargeError, MAX_JSON_BODY_BYTES, bodyTooLarge, readTextLimited } from '@/lib/http/read-body';
 import { json } from '@/lib/seller/http';
 
 export const runtime = 'nodejs';
@@ -30,7 +31,13 @@ function paypalOrderIdOf(eventType: string, e: WebhookEvent): string | null {
 }
 
 export async function POST(req: Request): Promise<Response> {
-  const raw = await req.text();
+  let raw: string;
+  try {
+    raw = await readTextLimited(req, MAX_JSON_BODY_BYTES);
+  } catch (e) {
+    if (e instanceof BodyTooLargeError) return bodyTooLarge();
+    throw e;
+  }
 
   const webhookId = getConfig().paypalWebhookId;
   let verified = false;

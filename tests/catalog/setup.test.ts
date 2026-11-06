@@ -155,7 +155,7 @@ describe('shop setup', () => {
       expect(calls).toBe(1);
     });
 
-    it('still counts a three-minute-old run as running: a reading can take 90 s plus a retry', async () => {
+    it('still counts a three-minute-old run as running: a reading can run for up to READING_DEADLINE_MS (3 min)', async () => {
       expect(READING_STALE_MS).toBe(4 * 60_000);
       const { shop } = await createShopFromPhotos(db, [photo]);
       extractions.start(db, shop.id, 'claude-sonnet-5-5');
