@@ -2,7 +2,8 @@
  * The start page's story, played once on load (about 9 s) and then held on its last frame:
  *   0.0 s  the phone's camera frames the paper price list, the viewfinder closes in, the shutter flashes
  *   2.5 s  the photo gives way to the live shop: its name, then its rows, one by one
- *   4.5 s  "Order with an assistant" is pressed and becomes the assistant's order card; its lines type in
+ *   4.5 s  "Order with an assistant" is pressed and becomes the assistant's order card, which arrives carrying the
+ *          buyer's one-line ask ("2 almond croissants and a sourdough, shipped"); the assistant answers, its lines type in
  *   7.9 s  "Approve on PayPal" is pressed and resolves to "Paid with PayPal"; the seller's note drops in
  *
  * Every element's resting style is the final frame, so reduced motion (and no-animation) shows it at once, and the

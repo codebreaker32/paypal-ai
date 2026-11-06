@@ -367,7 +367,7 @@ test.describe('console states', () => {
       // stored categories, the drawing of its most common guessed category, and its items' drawings on their tints.
       const avatar = page.locator('main [data-avatar], main [data-illustration]').first();
       await expect(avatar).toBeVisible();
-      if (slug === edgeShop.slug) await expect(page.locator('main [data-illustration] use').first()).toHaveAttribute('href', /^\/illustrations\.svg#[a-z_]+$/);
+      if (slug === edgeShop.slug) await expect(page.locator('main [data-illustration] use').first()).toHaveAttribute('href', /^\/illustrations\.svg#[a-z_-]+$/);
       const box = (await avatar.boundingBox())!;
       const top = await page.evaluate(({ x, y }) => {
         const hit = document.elementFromPoint(x, y);

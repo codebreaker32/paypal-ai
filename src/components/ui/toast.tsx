@@ -53,7 +53,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none fixed inset-x-4 bottom-4 z-(--z-toast) flex flex-col gap-2 pb-[env(safe-area-inset-bottom)] sm:left-auto sm:right-6 sm:bottom-6 sm:w-96"
+        data-toast-region=""
+        className="pointer-events-none fixed inset-x-4 bottom-4 z-(--z-toast) flex flex-col gap-2 pb-[env(safe-area-inset-bottom)] sm:left-auto sm:right-6 sm:bottom-6 sm:w-md"
       >
         {toasts.map((t) => (
           <ToastCard key={t.id} toast={t} onDismiss={dismiss} />
@@ -79,7 +80,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
     >
       <Icon icon={tone.icon} className={cn('mt-0.5', tone.className)} />
       <div className="flex min-w-0 flex-1 flex-col py-0.5">
-        <p className="font-semibold">{toast.title}</p>
+        <p className="font-semibold text-pretty">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm opacity-85">{toast.description}</p>}
         {toast.action && (
           <Link

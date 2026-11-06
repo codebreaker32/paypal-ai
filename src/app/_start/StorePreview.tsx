@@ -20,6 +20,8 @@ const LINES = [
   { qty: 1, name: 'Country sourdough loaf', cents: 900 },
 ] as const;
 const SHIPPING = 800;
+/** What the buyer tells their AI assistant; the order card is its answer. */
+const ASK = '2 almond croissants and a sourdough, shipped';
 const TOTAL = LINES.reduce((sum, l) => sum + l.qty * l.cents, 0) + SHIPPING;
 
 /** Start time of one step of the story (see hero-story.css). */
@@ -107,7 +109,11 @@ export function StorePreview() {
           'hs-card',
         )}
       >
-        <div className="flex items-center gap-2">
+        {/* The buyer's one line to their assistant: the card arrives carrying it, so it is never an empty box. */}
+        <p className="mb-3 ml-auto w-fit max-w-[15rem] rounded-2xl rounded-br-md bg-surface-subtle px-3 py-2 text-sm leading-5 text-ink">
+          {ASK}
+        </p>
+        <div className={cx('flex items-center gap-2', 'hs-rise')} style={at(4.9)}>
           <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
             <Icon icon={Bot} size="sm" />
           </span>
@@ -123,24 +129,24 @@ export function StorePreview() {
         <ul className="mt-3 flex flex-col gap-1 text-sm text-ink tabular-nums">
           {LINES.map((l, n) => (
             <li key={l.name} className="flex justify-between gap-3">
-              <span className={cx('min-w-0', 'hs-type')} style={at(5.2 + n * 0.6)}>
+              <span className={cx('min-w-0', 'hs-type')} style={at(5.3 + n * 0.6)}>
                 {l.qty} × {l.name}
               </span>
-              <span className={'hs-type'} style={at(5.5 + n * 0.6)}>
+              <span className={'hs-type'} style={at(5.6 + n * 0.6)}>
                 {formatUSD(l.qty * l.cents)}
               </span>
             </li>
           ))}
           <li className="flex justify-between gap-3 text-ink-muted">
-            <span className={'hs-type'} style={at(6.4)}>
+            <span className={'hs-type'} style={at(6.5)}>
               Shipping
             </span>
-            <span className={'hs-type'} style={at(6.6)}>
+            <span className={'hs-type'} style={at(6.7)}>
               {formatUSD(SHIPPING)}
             </span>
           </li>
         </ul>
-        <span className={cx('mt-3 grid h-11 text-sm font-bold tabular-nums', 'hs-rise')} style={at(7)}>
+        <span className={cx('mt-3 grid h-11 text-sm font-bold tabular-nums', 'hs-rise')} style={at(7.1)}>
           <span className={cx('grid [grid-area:1/1]', 'hs-press')} style={at(PAID_AT - 0.2)}>
             <span
               className={cx('flex items-center justify-center rounded-full bg-paypal text-on-paypal [grid-area:1/1]', 'hs-before')}

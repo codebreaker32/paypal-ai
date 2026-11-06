@@ -20,6 +20,32 @@
 <path style="stroke:var(--ill-dough)" d="M43 33.5c2.5-1.2 6.5-1.2 9 0"/>
 <path style="stroke:var(--ill-pom)" d="M29 46c3.5-3 6 1.5 9.5-1.5s6 1.5 9.5-1.5 6 1.5 9.5-1.5 6 1.5 9.5-1.5"/>
 </g></symbol>
+<symbol id="pastry-bun" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M12 60h72"/>
+<path style="fill:var(--ill-wheat)" d="M23 38v13c0 5 11.2 9 25 9s25-4 25-9V38z"/>
+<ellipse style="fill:var(--ill-wheat)" cx="48" cy="38" rx="25" ry="14"/>
+<path style="stroke:var(--ill-dough)" d="M28 50c5 3 13 4 20 4"/>
+<path style="stroke:var(--ill-pom)" d="M48 38.5a3.5 2.5 0 0 1 7 0a8 5.5 0 0 1-16 0a12.5 8.5 0 0 1 25 0a16.5 10.5 0 0 1-30.5 2"/>
+</g></symbol>
+<symbol id="pastry-tart" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M12 60h72"/>
+<path style="fill:var(--ill-wheat)" d="M17 43l4.5 13c1 2.5 12.5 4 26.5 4s25.5-1.5 26.5-4L79 43z"/>
+<path style="stroke:var(--ill-dough)" d="M29 50.5l1.2 6M38.5 52l.6 6M48 52.5v6M57.5 52l-.6 6M67 50.5l-1.2 6"/>
+<ellipse style="fill:var(--ill-wheat)" cx="48" cy="43" rx="31" ry="10"/>
+<ellipse style="fill:var(--ill-dough)" cx="48" cy="43" rx="23" ry="6"/>
+<circle style="fill:var(--ill-pom)" cx="39" cy="42" r="3.5"/>
+<circle style="fill:var(--ill-pom)" cx="48.5" cy="45" r="3.5"/>
+<circle style="fill:var(--ill-pom)" cx="57.5" cy="41.5" r="3.5"/>
+</g></symbol>
+<symbol id="pastry-pain" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M12 60h72"/>
+<rect style="fill:var(--ill-cocoa)" x="14.5" y="44" width="10" height="5.5" rx="2.75"/>
+<rect style="fill:var(--ill-cocoa)" x="71.5" y="44" width="10" height="5.5" rx="2.75"/>
+<path style="fill:var(--ill-wheat)" d="M23 59c-3.5 0-5.5-2.5-4.5-6l3.5-13.5c1.2-4.5 4.5-7 9-7h34c4.5 0 7.8 2.5 9 7L77.5 53c1 3.5-1 6-4.5 6z"/>
+<path style="stroke:var(--ill-dough)" d="M28 39c1-1.8 2.5-2.5 4.5-2.5h12"/>
+<path style="stroke:var(--ill-dough)" d="M25 53.5h46"/>
+<path style="stroke:var(--ill-pom)" d="M33 43.5l4 6M43 43.5l4 6M53 43.5l4 6M63 43.5l4 6"/>
+</g></symbol>
 <symbol id="cake" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
 <path style="fill:var(--ill-dough)" d="M44 55h8l3 5H41z"/>
 <path style="fill:var(--ill-wheat)" d="M27 52V36h42v16z"/>
