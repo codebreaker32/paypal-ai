@@ -1,9 +1,11 @@
 # Progress
 
-_Last updated: 2026-11-06 13:30 IST (run 2, session 1)_
+_Last updated: 2026-11-06 13:55 IST (run 2, session 3)_
 
 ## Current phase
-**Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended. Items 1–3 of the run brief are built and verified (below); next are the milestone review and judge round 6.
+**Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Session 2's milestone review fixes are merged (8 by its fixer, items 9–10 by the coordinator; 840 unit tests pass on `7dde5e1`). Running now: a fixer for 6 items from a review of those fixes, the clip recorder (item 7), and the full e2e suite for judge round 6. Next: judge round 6, then its top fixes, then the clips on the final main.
+
+**Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended.
 - **Verified (spike, 11:20–11:30 IST, real sandbox):**
   - `.env` now has a US buyer and a US seller email; the platform app is unchanged (it still reads session 7's orders).
   - **PayPal wallet-login checkout works:** the US buyer logged in to PayPal and paid an order whose `payee.email_address` is the US seller; the platform's capture COMPLETED and PayPal's order shows that payee (order `82Y279425D4017918`, capture `2HU61847PK455934H`, seller protection ELIGIBLE). This was a raw REST order, not yet through the app.
@@ -198,8 +200,10 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. Code review of the milestone (`d35952b..HEAD`), the full e2e suite and `screenshots:prod` for round 6, then judge round 6.
-5. `docs/SUBMISSION.md` (Devpost text, AI tools, testing instructions), `docs/DEMO.md` (door discovery, seller payout) and raw clips in `video/clips/`.
+1. Merge the review fixer (6 items), re-run the affected e2e specs and `npm run screenshots:prod` into `docs/judge/screenshots/round-6/`, then judge round 6.
+2. Fix round 6's top fixes that are in scope.
+3. Merge the clip recorder and record the clips on the final main (`video/clips/`).
+4. Final check of `docs/SUBMISSION.md` and the README against what is verified.
 
 ## Needs from human
 - **Before 12 Nov 12:00 PT, required for the submission:**
