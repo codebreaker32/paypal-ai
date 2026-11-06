@@ -389,6 +389,11 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     for (const fr of p.frames()) await fr.evaluate(() => (window as unknown as { __shelfieRedact?: () => void }).__shelfieRedact?.()).catch(() => {});
     const shown = await Promise.all(p.frames().map((fr) => fr.locator('body').innerText({ timeout: 2_000 }).catch(() => '')));
     if (leaks(shown.join('\n'), LOGINS)) throw new Error("a sandbox login is visible on PayPal's review page, so 06b is not recorded");
+    if (process.env.CLIPS_CHECK_LOGIN) {
+      // A look at the whole display after the login (browser UI included), without recording 06b.
+      spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'x11grab', '-video_size', `${W}x${H}`, '-i', `${display.name}.0`, '-frames:v', '1', path.join(os.tmpdir(), 'shelfie-clips-after-login.png')]);
+      throw new Error('CLIPS_CHECK_LOGIN: stopped after the login (see /tmp/shelfie-clips-after-login.png)');
+    }
     } catch (e) {
       // The page is redacted (the login shows masked), so the screenshot is safe to keep in /tmp for a look.
       await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-login-failed.png') }).catch(() => {});

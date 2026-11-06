@@ -104,6 +104,19 @@ export async function openStage(
   },
 ): Promise<Stage> {
   fs.rmSync(opts.profileDir, { recursive: true, force: true });
+  // No password manager: after the PayPal login, Chrome's "Save password?" bubble shows the login in full, and the
+  // bubble is browser UI, out of the redactor's reach.
+  fs.mkdirSync(path.join(opts.profileDir, 'Default'), { recursive: true });
+  fs.writeFileSync(
+    path.join(opts.profileDir, 'Default', 'Preferences'),
+    JSON.stringify({
+      credentials_enable_service: false,
+      credentials_enable_autosignin: false,
+      profile: { password_manager_enabled: false, password_manager_leak_detection: false },
+      autofill: { enabled: false, profile_enabled: false, credit_card_enabled: false },
+      translate: { enabled: false },
+    }),
+  );
   const dsf = opts.deviceScaleFactor ?? 1;
   const context = await chromium.launchPersistentContext(opts.profileDir, {
     headless: false,
@@ -113,7 +126,8 @@ export async function openStage(
     timezoneId: 'America/Los_Angeles',
     // --window-size is in CSS px (DIPs): at a scale factor of 4/3, 1440x810 fills the 1920x1080 display exactly.
     args: ['--kiosk', '--window-position=0,0', `--window-size=${Math.round(W / dsf)},${Math.round(H / dsf)}`, '--no-first-run',
-      '--no-default-browser-check', '--disable-infobars', '--hide-crash-restore-bubble', `--force-device-scale-factor=${dsf}`, '--hide-scrollbars'],
+      '--no-default-browser-check', '--disable-infobars', '--hide-crash-restore-bubble', '--disable-features=PasswordManagerOnboarding,AutofillServerCommunication,Translate',
+      '--password-store=basic', `--force-device-scale-factor=${dsf}`, '--hide-scrollbars'],
   });
   for (const content of opts.initScripts ?? []) await context.addInitScript({ content });
   if (opts.storageState) {
