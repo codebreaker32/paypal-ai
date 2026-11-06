@@ -28,11 +28,13 @@ The in-app **buyer console** ("Order with an assistant") is a Claude agent that 
 **Seller**
 - Photo to draft menu, with review flags (missing price, market price, check, duplicate) resolved in one tap
 - Publish to the PayPal catalog, with progress
+- A photo per item and a cover photo, added while reviewing or on the **Menu** tab (an item without one gets a designed tile); **Snap your counter**: one photo of the display case, and Claude proposes a photo for each menu item it finds, which you keep or skip
 - Paid into your own PayPal account: **Your PayPal email** during setup (Publish waits for it) or in the **Settings** tab; each order keeps the email it was created with
 - A shop page and an agent door per shop, findable by assistants: a printable counter card with a QR code, schema.org JSON-LD, `/agents.txt` and `/llms.txt` ([how](#how-assistants-find-a-shop))
-- Dashboard: orders, order detail, an AI brief per paid order (a labelled template if Claude is unavailable)
+- Dashboard: a compact order list with thumbnails and status filters, order detail, an AI brief per paid order (a labelled template if Claude is unavailable)
 - Add tracking (sent to PayPal for orders paid to the platform's demo account; saved in Shelfie for orders paid to the seller, because PayPal accepts tracking only from the account that was paid); mark items sold out for today; pause agent orders
 - A private owner link instead of an account
+- Installable on a phone (a PWA: manifest, icons, iOS meta), with no offline cache of order, payment or dashboard pages
 
 **Buyer or agent**
 - MCP tools with server-enforced prices and strict input schemas (a `price` argument is rejected)
