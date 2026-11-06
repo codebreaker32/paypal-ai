@@ -10,6 +10,7 @@ import {
   confirmingWithPayPal,
   consoleReducer,
   consoleToSave,
+  firstFreshEntry,
   initialConsoleState,
   pollEvery,
   refsToCheck,
@@ -141,6 +142,37 @@ const askStatus = (s: ConsoleState, id: string, result: Record<string, unknown>,
     { type: 'tool_result', id, ok, result, ms: 300 },
     { type: 'done' },
   );
+
+describe('entrances (which entries rise in as they arrive)', () => {
+  const saved = () => {
+    const s = run(consoleReducer(initialConsoleState, { type: 'send', text: 'hi' }), { type: 'session', id: 'asst_r' }, { type: 'text', text: 'Hello!' }, { type: 'done' });
+    return restoreConsoleState(JSON.parse(JSON.stringify(consoleToSave(s))));
+  };
+
+  it('entries restored from sessionStorage show as they are; the ones after them rise in', () => {
+    const back = consoleReducer(initialConsoleState, { type: 'restore', state: saved() });
+    expect(back.restored).toBe(2);
+    expect(firstFreshEntry(back, 0)).toBe(2);
+    expect(firstFreshEntry(consoleReducer(back, { type: 'send', text: 'more' }), 0)).toBe(2);
+  });
+
+  it('what was already in the log when it was shown stays put too', () => {
+    const s = run(consoleReducer(initialConsoleState, { type: 'send', text: 'hi' }), { type: 'text', text: 'Hello!' });
+    expect(firstFreshEntry(s, 2)).toBe(2);
+  });
+
+  it('a reset forgets the restored conversation: every entry of the new one rises in (and its order total counts up)', () => {
+    const back = consoleReducer(initialConsoleState, { type: 'restore', state: saved() });
+    const fresh = consoleReducer(consoleReducer(back, { type: 'reset' }), { type: 'send', text: 'Start again' });
+    expect(fresh.restored).toBe(0);
+    expect(firstFreshEntry(fresh, 0)).toBe(0);
+  });
+
+  it('nothing about entrances is saved', () => {
+    const back = consoleReducer(initialConsoleState, { type: 'restore', state: saved() });
+    expect(consoleToSave(back)).not.toHaveProperty('restored');
+  });
+});
 
 describe('turnStartIndex', () => {
   const e = (kind: Entry['kind'], key: number) => ({ kind, key }) as unknown as Entry;
