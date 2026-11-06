@@ -316,7 +316,7 @@ function SkippedRow({
             error={touched && priceBad ? PRICE_ERROR : null}
             className="w-48"
           />
-          {error && <p role="alert" className="text-sm font-medium text-danger">{error}</p>}
+          {error && <p role="alert" className="text-sm font-medium text-error">{error}</p>}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" variant="secondary" icon={Plus} loading={busy} loadingLabel="Adding…">
               Add to menu

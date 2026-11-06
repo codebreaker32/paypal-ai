@@ -7,7 +7,7 @@ import type { CallStatus, ToolCall } from './console-state';
 const STATUS: Record<CallStatus, { icon: LucideIcon; label: string; className: string }> = {
   running: { icon: Loader2, label: 'Running', className: 'animate-spin text-ink-muted' },
   ok: { icon: CircleCheck, label: 'Done', className: 'text-ok' },
-  error: { icon: CircleAlert, label: 'Error', className: 'text-danger' },
+  error: { icon: CircleAlert, label: 'Error', className: 'text-error' },
   interrupted: { icon: CircleSlash, label: 'No answer', className: 'text-ink-muted' },
 };
 
@@ -39,7 +39,7 @@ function CallRow({ call }: { call: ToolCall }) {
               {argSummary(call.name, call.input)}
               <span aria-hidden="true"> → </span>
               <span className="sr-only">, result: </span>
-              <span className={cx(call.status === 'error' && 'font-semibold text-danger')}>{result}</span>
+              <span className={cx(call.status === 'error' && 'font-semibold text-error')}>{result}</span>
             </span>
           </span>
           <Icon icon={ChevronRight} size="sm" className="mt-0.5 text-ink-muted transition-transform group-open:rotate-90" />

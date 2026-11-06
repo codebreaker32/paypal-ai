@@ -50,7 +50,9 @@ const DOT_TONE: Record<BadgeTone, string> = {
   accent: 'text-accent-ink',
   ok: 'text-ok',
   warn: 'text-warn',
-  danger: 'text-danger',
+  danger: 'text-error',
+  error: 'text-error',
+  note: 'text-note',
   info: 'text-info',
 };
 

@@ -120,7 +120,7 @@ export function CounterSnap({
         )}
 
         {run.phase === 'error' && (
-          <p role="alert" className="font-medium text-danger">
+          <p role="alert" className="font-medium text-error">
             {run.message}
           </p>
         )}
@@ -162,7 +162,7 @@ export function CounterSnap({
                     </div>
                   )}
                   {typeof choice === 'object' && (
-                    <p role="alert" className="text-sm font-medium text-danger">
+                    <p role="alert" className="text-sm font-medium text-error">
                       {choice.error}
                     </p>
                   )}

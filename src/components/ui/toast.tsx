@@ -25,7 +25,7 @@ const ToastContext = createContext<((t: ToastInput) => void) | null>(null);
 const TONE_ICON: Record<ToastTone, { icon: LucideIcon; className: string }> = {
   neutral: { icon: Info, className: 'text-info-soft' },
   ok: { icon: CircleCheck, className: 'text-ok-soft' },
-  danger: { icon: CircleAlert, className: 'text-danger-soft' },
+  danger: { icon: CircleAlert, className: 'text-error-soft' },
 };
 
 /** Mount once (the root layout does). Toasts never take focus; they are announced politely. */

@@ -30,7 +30,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
   const brief = order.brief;
 
   return (
-    <Card as="section" tone="sunken" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
+    <Card as="section" tone="note" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="brief-title" className="flex items-center gap-2 type-label text-ink-muted">
           <Icon icon={brief && order.briefSource === 'template' ? Info : Sparkles} size="sm" />
@@ -103,7 +103,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
               <ul className="flex flex-col gap-1.5">
                 {brief.buyer_requests.map((r, i) => (
                   <li key={i} className="flex flex-wrap items-baseline gap-2">
-                    <Badge tone={r.kind === 'allergy' ? 'warn' : 'neutral'}>{REQUEST_KIND[r.kind]}</Badge>
+                    <Badge tone={r.kind === 'allergy' ? 'note' : 'neutral'} className="bg-surface">{REQUEST_KIND[r.kind]}</Badge>
                     <span>{r.text}</span>
                   </li>
                 ))}

@@ -4,7 +4,7 @@ import { cva } from 'class-variance-authority';
 import { Icon } from './icon';
 import { cn } from '@/lib/utils';
 
-export type BadgeTone = 'neutral' | 'accent' | 'ok' | 'warn' | 'danger' | 'info';
+export type BadgeTone = 'neutral' | 'accent' | 'ok' | 'warn' | 'danger' | 'error' | 'info' | 'note';
 
 // shadcn's badge pattern (cva + data-slot) with Shelfie's soft pills.
 export const badgeVariants = cva(
@@ -16,8 +16,10 @@ export const badgeVariants = cva(
         accent: 'bg-accent-soft text-accent-ink',
         ok: 'bg-ok-soft text-ok',
         warn: 'bg-warn-soft text-warn',
-        danger: 'bg-danger-soft text-danger',
+        danger: 'bg-error-soft text-error',
+        error: 'bg-error-soft text-error',
         info: 'bg-info-soft text-info',
+        note: 'bg-note-soft text-note-ink',
       } satisfies Record<BadgeTone, string>,
     },
     defaultVariants: { tone: 'neutral' },

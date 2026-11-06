@@ -215,7 +215,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
       >
         {photoUrl && <img src={photoUrl} alt={name} className="aspect-[4/3] w-full rounded-(--photo-radius) object-cover" />}
         {actions.error && (
-          <p role="alert" className="mt-3 text-sm font-medium text-danger">
+          <p role="alert" className="mt-3 text-sm font-medium text-error">
             {actions.error}
           </p>
         )}
@@ -228,7 +228,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
 export function PhotoError({ error }: { error: string | null }) {
   if (!error) return null;
   return (
-    <p role="alert" className="text-sm font-medium text-danger">
+    <p role="alert" className="text-sm font-medium text-error">
       {error}
     </p>
   );
@@ -285,7 +285,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
         </div>
       )}
       {actions.error && (
-        <p role="alert" className="text-sm font-medium text-danger">
+        <p role="alert" className="text-sm font-medium text-error">
           {actions.error}
         </p>
       )}

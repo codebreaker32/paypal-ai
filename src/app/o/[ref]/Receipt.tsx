@@ -16,7 +16,7 @@ const POLL_MS = 3000;
 const TONE: Record<Tone, string> = {
   ok: 'bg-ok-soft text-ok',
   warn: 'bg-warn-soft text-warn',
-  danger: 'bg-danger-soft text-danger',
+  danger: 'bg-error-soft text-error',
   info: 'bg-info-soft text-info',
   neutral: 'bg-surface-sunken text-ink-soft',
 };
@@ -24,7 +24,7 @@ const TONE: Record<Tone, string> = {
 const DOT: Record<Tone, string> = {
   ok: 'text-ok',
   warn: 'text-warn',
-  danger: 'text-danger',
+  danger: 'text-error',
   info: 'text-info',
   neutral: 'text-ink-muted',
 };

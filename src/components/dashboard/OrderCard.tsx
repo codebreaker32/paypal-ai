@@ -30,7 +30,7 @@ function BriefLine({ order }: { order: Order }) {
   return (
     <div className="flex flex-col gap-0.5 text-sm">
       <p className="font-semibold">
-        <span className="mr-1.5 font-bold text-accent-ink">{order.briefSource === 'agent' ? 'AI brief' : 'Summary'}</span>
+        <span className="mr-1.5 font-bold text-note">{order.briefSource === 'agent' ? 'AI brief' : 'Summary'}</span>
         {order.brief.headline}
       </p>
       {warns[0] && (

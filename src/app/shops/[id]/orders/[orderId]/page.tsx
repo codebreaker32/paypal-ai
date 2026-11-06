@@ -243,7 +243,7 @@ const DOT: Record<TimelineEntry['tone'], string> = {
   neutral: 'bg-control',
   ok: 'bg-ok',
   warn: 'bg-warn',
-  danger: 'bg-danger',
+  danger: 'bg-error',
   info: 'bg-info',
 };
 

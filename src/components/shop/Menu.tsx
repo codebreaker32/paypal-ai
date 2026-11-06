@@ -57,7 +57,7 @@ function MenuItem({ item, tone }: { item: ItemWithVariants; tone: number }) {
           {item.status === 'in_person' ? (
             <span className="type-meta font-semibold text-ink-soft">Ask in person</span>
           ) : (
-            item.soldOut && <span className="type-meta font-bold text-accent-ink">Sold out today</span>
+            item.soldOut && <span className="type-meta font-bold text-ink">Sold out today</span>
           )}
         </div>
       </div>

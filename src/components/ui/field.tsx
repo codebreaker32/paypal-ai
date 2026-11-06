@@ -53,7 +53,7 @@ export function Field({ label, hint, error, required, hideLabel, className, chil
 /** An inline error line. Also usable on its own under a group of controls. */
 export function FieldError({ id, children, className }: { id?: string; children: ReactNode; className?: string }) {
   return (
-    <p id={id} role="alert" className={cn('flex items-start gap-1.5 text-sm text-danger font-medium', className)}>
+    <p id={id} role="alert" className={cn('flex items-start gap-1.5 text-sm text-error font-medium', className)}>
       <Icon icon={CircleAlert} size="sm" className="mt-0.5" />
       <span>{children}</span>
     </p>

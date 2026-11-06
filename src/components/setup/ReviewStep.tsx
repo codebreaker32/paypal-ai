@@ -42,7 +42,7 @@ function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void 
   return (
     <>
       {state.status === 'error' && (
-        <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
+        <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-error" role="alert">
           <Icon icon={CircleAlert} size="sm" />
           {state.retryable ? "Couldn’t save your last change." : state.message}
           {state.retryable && (
