@@ -1,9 +1,13 @@
 # Progress
 
-_Last updated: 2026-11-07 00:56 IST (run 3, session 3)_
+_Last updated: 2026-11-07 01:25 IST (run 3, session 4)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
+
+**Run 3, session 4 (from 01:10 IST).** New from the human (~23:30): **Part A3, real photos for products** before the final clips and video (DECISIONS "Run 3, session 4"). The 2:42.3 render from session 3 is superseded: clips and video are re-done after A3.
+- **running:** photo worker (Pexels example-photo library in `public/library/` + `src/lib/library/catalog.ts`, 3–4 variants per item type, every photo viewed for brands/faces; Tía Lupe's full set + cover; ASSETS.md) and code worker (`items.example_photo`, `matchLibraryPhoto` (TDD), Claude picks a library photo while reading, optional live Pexels search behind `PEXELS_API_KEY`, "Example photo" notes for buyers and "Example photo, replace with yours" for sellers, agents/JSON-LD get only the seller's own photos). Shared types `src/lib/library/types.ts` on main.
+- **Next, in order:** merge both → typecheck/lint/unit → screenshots:prod round 11 + motion recordings on a production build (also round-10 fix 3) → full e2e with the capture gate → judge round 11 → its fixes → final clips (`npm run clips -- --build`) → re-check the edit offsets → render → frame check every 2 s (`docs/judge/video-frames-check.md`) → video judge round → fixes → completion.
 
 **Run 3, session 3 (from 23:10 IST).** New from the human (~22:00): **Part A2, a real Shelfie logo** before any final clip or render (DECISIONS).
 - **done:** 6 logo concepts (designers A and B, `docs/judge/logo/concepts/`); **logo round** (`docs/judge/logo-round.md`): **B1 "Awning" wins 28/35** (runner-up A2 26), the only mark unmistakable at 16 px in a tab strip.
