@@ -113,7 +113,7 @@
         {
           "atSec": 6.0,
           "shot": "screen",
-          "videoStartSec": 15.6
+          "videoStartSec": 16.0
         }
       ]
     },
@@ -155,7 +155,7 @@
         {
           "atSec": 13.3,
           "shot": "screen",
-          "videoStartSec": 30.5
+          "videoStartSec": 31.1
         }
       ]
     },
@@ -180,17 +180,17 @@
         {
           "atSec": 2.6,
           "shot": "screen",
-          "videoStartSec": 11.6
+          "videoStartSec": 12.5
         },
         {
           "atSec": 4.4,
           "shot": "screen",
-          "videoStartSec": 16.8
+          "videoStartSec": 17.5
         },
         {
           "atSec": 5.9,
           "shot": "screen",
-          "videoStartSec": 21.2
+          "videoStartSec": 21.8
         }
       ]
     },
@@ -215,7 +215,7 @@
         {
           "atSec": 2.2,
           "shot": "screen",
-          "videoStartSec": 6.1
+          "videoStartSec": 6.2
         }
       ]
     },
@@ -247,23 +247,23 @@
         {
           "atSec": 5.2,
           "shot": "screen",
-          "videoStartSec": 26.8
+          "videoStartSec": 46.6
         },
         {
           "atSec": 6.7,
           "shot": "screen",
-          "videoStartSec": 38.5,
+          "videoStartSec": 48.1,
           "playbackRate": 2.5
         },
         {
           "atSec": 8.5,
           "shot": "screen",
-          "videoStartSec": 44.8
+          "videoStartSec": 52.6
         },
         {
           "atSec": 9.9,
           "shot": "screen",
-          "videoStartSec": 49.6
+          "videoStartSec": 56.5
         }
       ]
     },
@@ -295,18 +295,18 @@
         {
           "atSec": 6.2,
           "shot": "screen",
-          "videoStartSec": 11.0
+          "videoStartSec": 11.4
         },
         {
           "atSec": 10.4,
           "shot": "screen",
-          "videoStartSec": 22.5,
+          "videoStartSec": 22.7,
           "playbackRate": 2.0
         },
         {
           "atSec": 12.0,
           "shot": "screen",
-          "videoStartSec": 28.5
+          "videoStartSec": 29.3
         }
       ]
     },
@@ -332,12 +332,12 @@
         {
           "atSec": 2.6,
           "shot": "screen",
-          "videoStartSec": 11.0
+          "videoStartSec": 10.6
         },
         {
           "atSec": 9.6,
           "shot": "screen",
-          "videoStartSec": 21.0
+          "videoStartSec": 20.3
         }
       ]
     },
@@ -404,7 +404,7 @@
         {
           "atSec": 1.6,
           "shot": "screen",
-          "videoStartSec": 19.0,
+          "videoStartSec": 18.6,
           "playbackRate": 2.0
         }
       ]
