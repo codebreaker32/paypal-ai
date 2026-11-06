@@ -20,6 +20,9 @@ async function tile(mark: Buffer, size: number, bg: string, scale: number, radiu
   return sharp(base).composite([{ input: art, gravity: 'centre' }]).png({ compressionLevel: 9 }).toBuffer();
 }
 
+/** The apple-touch icon's mark scale: iOS rounds the corners (~22% radius), so the awning needs more padding. */
+const APPLE_SCALE = 0.68;
+
 async function main() {
   const [svgPath, bg, scaleArg, maskArg] = process.argv.slice(2);
   if (!svgPath || !/^#[0-9a-fA-F]{6}$/.test(bg ?? '')) {
@@ -36,7 +39,8 @@ async function main() {
     [path.join(icons, 'icon-192.png'), await tile(mark, 192, bg, scale, 0)],
     [path.join(icons, 'icon-512.png'), await tile(mark, 512, bg, scale, 0)],
     [path.join(icons, 'icon-maskable-512.png'), await tile(mark, 512, bg, maskScale)],
-    [path.join(root, 'src', 'app', 'apple-icon.png'), await tile(mark, 180, bg, scale)],
+    // iOS rounds the 180 px icon with a ~22% corner radius, so the mark gets more room than the square "any" icons.
+    [path.join(root, 'src', 'app', 'apple-icon.png'), await tile(mark, 180, bg, APPLE_SCALE)],
   ];
   for (const [file, buf] of out) {
     fs.writeFileSync(file, buf);
