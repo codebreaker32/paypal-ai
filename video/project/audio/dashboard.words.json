@@ -1,0 +1,209 @@
+{
+  "text": "Rosa's dashboard shows the order as paid. A Claude agent reads PayPal's record of the order through the PayPal Agent Toolkit, and writes her a brief. It catches the nut allergy, so she can check with the buyer before shipping.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "af9873f5911935c2",
+  "timestamps": [
+    {
+      "text": "Rosa's",
+      "startSec": 0.325,
+      "endSec": 0.812
+    },
+    {
+      "text": "dashboard",
+      "startSec": 0.812,
+      "endSec": 1.488
+    },
+    {
+      "text": "shows",
+      "startSec": 1.488,
+      "endSec": 1.788
+    },
+    {
+      "text": "the",
+      "startSec": 1.788,
+      "endSec": 1.9
+    },
+    {
+      "text": "order",
+      "startSec": 1.9,
+      "endSec": 2.25
+    },
+    {
+      "text": "as",
+      "startSec": 2.25,
+      "endSec": 2.413
+    },
+    {
+      "text": "paid.",
+      "startSec": 2.413,
+      "endSec": 3.388
+    },
+    {
+      "text": "A",
+      "startSec": 3.388,
+      "endSec": 3.513
+    },
+    {
+      "text": "Claude",
+      "startSec": 3.513,
+      "endSec": 3.962
+    },
+    {
+      "text": "agent",
+      "startSec": 3.962,
+      "endSec": 4.438
+    },
+    {
+      "text": "reads",
+      "startSec": 4.438,
+      "endSec": 4.787
+    },
+    {
+      "text": "PayPal's",
+      "startSec": 4.787,
+      "endSec": 5.463
+    },
+    {
+      "text": "record",
+      "startSec": 5.463,
+      "endSec": 5.812
+    },
+    {
+      "text": "of",
+      "startSec": 5.812,
+      "endSec": 5.888
+    },
+    {
+      "text": "the",
+      "startSec": 5.888,
+      "endSec": 6.0
+    },
+    {
+      "text": "order",
+      "startSec": 6.0,
+      "endSec": 6.35
+    },
+    {
+      "text": "through",
+      "startSec": 6.35,
+      "endSec": 6.513
+    },
+    {
+      "text": "the",
+      "startSec": 6.513,
+      "endSec": 6.612
+    },
+    {
+      "text": "PayPal",
+      "startSec": 6.612,
+      "endSec": 7.213
+    },
+    {
+      "text": "Agent",
+      "startSec": 7.213,
+      "endSec": 7.575
+    },
+    {
+      "text": "Toolkit,",
+      "startSec": 7.575,
+      "endSec": 8.375
+    },
+    {
+      "text": "and",
+      "startSec": 8.375,
+      "endSec": 8.5
+    },
+    {
+      "text": "writes",
+      "startSec": 8.5,
+      "endSec": 8.787
+    },
+    {
+      "text": "her",
+      "startSec": 8.787,
+      "endSec": 8.9
+    },
+    {
+      "text": "a",
+      "startSec": 8.9,
+      "endSec": 8.975
+    },
+    {
+      "text": "brief.",
+      "startSec": 8.975,
+      "endSec": 9.9
+    },
+    {
+      "text": "It",
+      "startSec": 9.9,
+      "endSec": 10.075
+    },
+    {
+      "text": "catches",
+      "startSec": 10.075,
+      "endSec": 10.5
+    },
+    {
+      "text": "the",
+      "startSec": 10.5,
+      "endSec": 10.625
+    },
+    {
+      "text": "nut",
+      "startSec": 10.625,
+      "endSec": 10.85
+    },
+    {
+      "text": "allergy,",
+      "startSec": 10.85,
+      "endSec": 11.7
+    },
+    {
+      "text": "so",
+      "startSec": 11.7,
+      "endSec": 11.875
+    },
+    {
+      "text": "she",
+      "startSec": 11.875,
+      "endSec": 12.025
+    },
+    {
+      "text": "can",
+      "startSec": 12.025,
+      "endSec": 12.213
+    },
+    {
+      "text": "check",
+      "startSec": 12.213,
+      "endSec": 12.463
+    },
+    {
+      "text": "with",
+      "startSec": 12.463,
+      "endSec": 12.588
+    },
+    {
+      "text": "the",
+      "startSec": 12.588,
+      "endSec": 12.675
+    },
+    {
+      "text": "buyer",
+      "startSec": 12.675,
+      "endSec": 13.025
+    },
+    {
+      "text": "before",
+      "startSec": 13.025,
+      "endSec": 13.387
+    },
+    {
+      "text": "shipping.",
+      "startSec": 13.387,
+      "endSec": 14.225
+    }
+  ]
+}

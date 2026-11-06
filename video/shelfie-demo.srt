@@ -1,0 +1,219 @@
+1
+00:00:00,245 --> 00:00:02,920
+AI assistants have started shopping for people.
+
+2
+00:00:02,920 --> 00:00:04,795
+But PayPal's agent checkout is built
+
+3
+00:00:04,795 --> 00:00:06,808
+for merchants with a website store.
+
+4
+00:00:06,808 --> 00:00:08,533
+Rosa bakes from her kitchen.
+
+5
+00:00:08,533 --> 00:00:11,283
+She has no website, just this sheet of paper.
+
+6
+00:00:11,283 --> 00:00:14,845
+One home baker in Virginia took orders in texts and DMs,
+
+7
+00:00:14,845 --> 00:00:16,732
+then tracked them on a spreadsheet.
+
+8
+00:00:16,732 --> 00:00:20,583
+In a 2016 Census survey, nearly half of US food
+
+9
+00:00:20,583 --> 00:00:23,333
+and lodging employer firms had no website.
+
+10
+00:00:23,333 --> 00:00:26,750
+An assistant can't order from a sheet of paper.
+
+11
+00:00:27,678 --> 00:00:29,715
+Shelfie starts with one photo.
+
+12
+00:00:29,715 --> 00:00:33,133
+Rosa snaps her price list, and Claude reads it.
+
+13
+00:00:34,945 --> 00:00:37,470
+Shelfie only asks about what it isn't sure of,
+
+14
+00:00:37,470 --> 00:00:40,520
+like a price written as two for seven dollars.
+
+15
+00:00:40,520 --> 00:00:42,520
+Rosa adds her PayPal email,
+
+16
+00:00:42,520 --> 00:00:44,632
+so buyers pay her directly.
+
+17
+00:00:44,632 --> 00:00:47,958
+Every item becomes a product in PayPal's catalog.
+
+18
+00:00:47,958 --> 00:00:50,333
+In our tests, photo to live shop took
+
+19
+00:00:50,333 --> 00:00:53,300
+8 to 14 seconds of machine time.
+
+20
+00:00:54,562 --> 00:00:57,075
+One more photo, of her display case.
+
+21
+00:00:57,075 --> 00:01:00,617
+Claude finds each item in it, and crops its photo.
+
+22
+00:01:01,870 --> 00:01:03,595
+The shop gets an agent door,
+
+23
+00:01:03,595 --> 00:01:05,395
+and a card for the counter.
+
+24
+00:01:05,395 --> 00:01:06,720
+Regulars scan it,
+
+25
+00:01:06,720 --> 00:01:09,850
+or give the shop's link to their own assistant.
+
+26
+00:01:10,128 --> 00:01:11,528
+This is Claude Code,
+
+27
+00:01:11,528 --> 00:01:14,103
+given nothing but the shop's web address.
+
+28
+00:01:14,103 --> 00:01:16,528
+The page tells it where the agent door is.
+
+29
+00:01:16,528 --> 00:01:18,853
+It reads the menu, places the order,
+
+30
+00:01:18,853 --> 00:01:21,958
+and hands back a PayPal approval link.
+
+31
+00:01:26,287 --> 00:01:27,912
+Buyers without an assistant get
+
+32
+00:01:27,912 --> 00:01:29,775
+one right on the shop page.
+
+33
+00:01:29,775 --> 00:01:31,962
+This buyer wants almond croissants,
+
+34
+00:01:31,962 --> 00:01:34,024
+and mentions a nut allergy.
+
+35
+00:01:34,024 --> 00:01:36,812
+The assistant warns that they contain nuts.
+
+36
+00:01:36,812 --> 00:01:40,342
+The buyer confirms, and it places the order.
+
+37
+00:01:43,128 --> 00:01:45,978
+The buyer logs in to PayPal and approves.
+
+38
+00:01:45,978 --> 00:01:48,291
+Shelfie captures the payment, and the money
+
+39
+00:01:48,291 --> 00:01:52,383
+lands in Rosa's own PayPal account, not ours.
+
+40
+00:01:54,662 --> 00:01:56,712
+And agents can't set prices.
+
+41
+00:01:56,712 --> 00:01:59,492
+The server checks that, not the model.
+
+42
+00:02:00,845 --> 00:02:03,908
+Rosa's dashboard shows the order as paid.
+
+43
+00:02:03,908 --> 00:02:06,332
+A Claude agent reads PayPal's record
+
+44
+00:02:06,332 --> 00:02:08,895
+of the order through the PayPal Agent Toolkit,
+
+45
+00:02:08,895 --> 00:02:10,420
+and writes her a brief.
+
+46
+00:02:10,420 --> 00:02:12,220
+It catches the nut allergy,
+
+47
+00:02:12,220 --> 00:02:15,325
+so she can check with the buyer before shipping.
+
+48
+00:02:16,653 --> 00:02:17,903
+She adds tracking,
+
+49
+00:02:17,903 --> 00:02:20,708
+and the buyer's assistant reads it back.
+
+50
+00:02:23,045 --> 00:02:25,233
+Shelfie turns a photo of a price list into
+
+51
+00:02:25,233 --> 00:02:28,358
+prepaid orders, from any AI assistant,
+
+52
+00:02:28,358 --> 00:02:31,145
+paid into the seller's own PayPal account.
+
+53
+00:02:31,145 --> 00:02:32,333
+It's for the sellers agent
+
+54
+00:02:32,333 --> 00:02:34,158
+commerce hasn't reached yet.
+
+55
+00:02:34,158 --> 00:02:37,675
+For Rosa, a sheet of paper is now enough.

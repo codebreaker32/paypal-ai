@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "slug": "shelfie-demo",
+  "product": {
+    "name": "Shelfie",
+    "tagline": "Your price list, open to AI shoppers.",
+    "audience": "Small sellers with a paper price list and no website, such as home bakers",
+    "valueProps": [
+      "A photo of a paper price list becomes a PayPal catalog and a live shop",
+      "Any AI assistant finds the shop's agent door from its web address and orders through it",
+      "Buyers pay with PayPal, straight into the seller's own PayPal account"
+    ]
+  },
+  "brand": {
+    "colors": {
+      "primary": "#c21a4b",
+      "bg": "#ffffff",
+      "text": "#111214",
+      "muted": "#5e636c",
+      "surface": "#f4f5f7",
+      "line": "#e2e4e8"
+    },
+    "font": "Figtree",
+    "logo": "assets/mark.svg"
+  },
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "voice": {
+    "provider": "kokoro",
+    "model": "hexgrad/Kokoro-82M",
+    "voice": "af_heart",
+    "lang": "a",
+    "speed": 1
+  },
+  "presenter": {
+    "mode": "none"
+  },
+  "music": {
+    "enabled": false
+  },
+  "captions": {
+    "enabled": true,
+    "style": "shelfie"
+  },
+  "pacing": {
+    "breathSec": 0.45
+  },
+  "zoomToClick": false,
+  "timeline": [
+    {
+      "id": "problem",
+      "kind": "demo",
+      "beat": 1,
+      "screen": "Clip 01: the handwritten Marigold menu on a counter, zooming in slowly.",
+      "video": "clips/01-menu-photo.mp4",
+      "narration": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.",
+      "onScreen": [
+        {
+          "from": "But PayPal's",
+          "to": "She has no website",
+          "text": "PayPal's agent checkout “is limited to Store Sync customers today”, for merchants “using their existing website storefronts”.",
+          "source": "PayPal Developer blog, Sep 2026"
+        },
+        {
+          "from": "One home baker",
+          "to": "In a 2016",
+          "extraSec": 0,
+          "text": "“Text messages and Facebook messages and Instagram DMs … And then tracking them on a spreadsheet.”",
+          "source": "A home baker in Virginia, Radio IQ, Jul 2026"
+        },
+        {
+          "from": "In a 2016",
+          "to": "An assistant",
+          "extraSec": 0.8,
+          "text": "47% of US accommodation and food-service employer firms reported having no website (data year 2016).",
+          "source": "US Census Bureau, Annual Survey of Entrepreneurs, data year 2016"
+        }
+      ],
+      "holdSec": 0.6,
+      "audio": "audio/problem.mp3",
+      "words": "audio/problem.words.json",
+      "narrationSec": 26.384,
+      "durationSec": 27.434
+    },
+    {
+      "id": "snap",
+      "kind": "demo",
+      "beat": 2,
+      "screen": "Clip 02: phone, Snap your price list, the Marigold photo, Reading your menu, then Check your menu (cut on the result).",
+      "video": "clips/02-snap-reading.mp4",
+      "narration": "Shelfie starts with one photo. Rosa snaps her price list, and Claude reads it.",
+      "holdSec": 1.5,
+      "audio": "audio/snap.mp3",
+      "words": "audio/snap.words.json",
+      "narrationSec": 5.329,
+      "durationSec": 7.279
+    },
+    {
+      "id": "review",
+      "kind": "demo",
+      "beat": 2,
+      "screen": "Clip 03: the review questions (“2 for $7”, set $3.50 each), Looks right, Your PayPal email (drawn as dots), Publish, Adding to PayPal, Your shop is live.",
+      "video": "clips/03-review-publish.mp4",
+      "narration": "Shelfie only asks about what it isn't sure of, like a price written as two for seven dollars. Rosa adds her PayPal email, so buyers pay her directly. Every item becomes a product in PayPal's catalog. In our tests, photo to live shop took 8 to 14 seconds of machine time.",
+      "holdSec": 1,
+      "audio": "audio/review.mp3",
+      "words": "audio/review.words.json",
+      "narrationSec": 18.233,
+      "durationSec": 19.683
+    },
+    {
+      "id": "counter",
+      "kind": "demo",
+      "beat": 2,
+      "screen": "Clip 03b: laptop, Menu tab, Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in.",
+      "video": "clips/03b-snap-counter.mp4",
+      "narration": "One more photo, of her display case. Claude finds each item in it, and crops its photo.",
+      "holdSec": 1,
+      "audio": "audio/counter.mp3",
+      "words": "audio/counter.words.json",
+      "narrationSec": 5.878,
+      "durationSec": 7.328
+    },
+    {
+      "id": "card",
+      "kind": "demo",
+      "beat": 2,
+      "screen": "Clip 04: Share tab, Print counter card, the card with the QR code and the agent door.",
+      "video": "clips/04-counter-card.mp4",
+      "narration": "The shop gets an agent door, and a card for the counter. Regulars scan it, or give the shop's link to their own assistant.",
+      "audio": "audio/card.mp3",
+      "words": "audio/card.words.json",
+      "narrationSec": 7.784,
+      "durationSec": 8.234
+    },
+    {
+      "id": "discovery",
+      "kind": "demo",
+      "beat": 3,
+      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
+      "video": "clips/05-claude-code-discovery.mp4",
+      "narration": "This is Claude Code, given nothing but the shop's web address. The page tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
+      "holdSec": 4,
+      "audio": "audio/discovery.mp3",
+      "words": "audio/discovery.words.json",
+      "narrationSec": 11.677,
+      "durationSec": 16.127
+    },
+    {
+      "id": "console",
+      "kind": "demo",
+      "beat": 4,
+      "screen": "Clip 06: the shop page, Order with an assistant, the nut-allergy request, the Activity panel, the warning that almond croissants contain nuts, the confirmation, create_order, Approve on PayPal.",
+      "video": "clips/06-console-order.mp4",
+      "narration": "Buyers without an assistant get one right on the shop page. This buyer wants almond croissants, and mentions a nut allergy. The assistant warns that they contain nuts. The buyer confirms, and it places the order.",
+      "holdSec": 2.5,
+      "audio": "audio/console.mp3",
+      "words": "audio/console.words.json",
+      "narrationSec": 13.923,
+      "durationSec": 16.873
+    },
+    {
+      "id": "paypal",
+      "kind": "demo",
+      "beat": 4,
+      "screen": "Clip 06b (after the login, which is cut): PayPal's review page with the total, Complete Purchase, the receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).",
+      "video": "clips/06b-paypal-complete.mp4",
+      "narration": "The buyer logs in to PayPal and approves. Shelfie captures the payment, and the money lands in Rosa's own PayPal account, not ours.",
+      "holdSec": 2,
+      "audio": "audio/paypal.mp3",
+      "words": "audio/paypal.words.json",
+      "narrationSec": 9.091,
+      "durationSec": 11.541
+    },
+    {
+      "id": "tamper",
+      "kind": "demo",
+      "beat": 4,
+      "screen": "Clip 07: terminal, create_order with a price of 0.01 is refused: INVALID_ARGUMENTS, prices are set by the shop.",
+      "video": "clips/07-price-tamper.mp4",
+      "narration": "And agents can't set prices. The server checks that, not the model.",
+      "holdSec": 1,
+      "audio": "audio/tamper.mp3",
+      "words": "audio/tamper.words.json",
+      "narrationSec": 4.676,
+      "durationSec": 6.126
+    },
+    {
+      "id": "dashboard",
+      "kind": "demo",
+      "beat": 5,
+      "screen": "Clip 08: the dashboard's Orders tab, To prepare, the new order paid with its AI brief and the nut-allergy warning; the order page with Paid to (masked), the PayPal order and transaction ids, the timeline.",
+      "video": "clips/08-dashboard-brief.mp4",
+      "narration": "Rosa's dashboard shows the order as paid. A Claude agent reads PayPal's record of the order through the PayPal Agent Toolkit, and writes her a brief. It catches the nut allergy, so she can check with the buyer before shipping.",
+      "holdSec": 1,
+      "audio": "audio/dashboard.mp3",
+      "words": "audio/dashboard.words.json",
+      "narrationSec": 14.367,
+      "durationSec": 15.817
+    },
+    {
+      "id": "tracking",
+      "kind": "demo",
+      "beat": 5,
+      "screen": "Clip 09: Add tracking, USPS and a number, Saved; then in the console, Where's my order?, get_order_status, the tracking number.",
+      "video": "clips/09-tracking.mp4",
+      "narration": "She adds tracking, and the buyer's assistant reads it back.",
+      "holdSec": 2,
+      "audio": "audio/tracking.mp3",
+      "words": "audio/tracking.words.json",
+      "narrationSec": 3.918,
+      "durationSec": 6.368
+    },
+    {
+      "id": "close",
+      "kind": "demo",
+      "beat": 6,
+      "screen": "Clip 10: the architecture card: photo, Claude vision, PayPal catalog, agent door found from the shop page, PayPal Orders v2 paid to the seller, capture, Agent Toolkit brief.",
+      "video": "clips/10-architecture.mp4",
+      "narration": "Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.",
+      "holdSec": 0.5,
+      "audio": "audio/close.mp3",
+      "words": "audio/close.words.json",
+      "narrationSec": 14.524,
+      "durationSec": 15.974
+    },
+    {
+      "id": "end",
+      "kind": "card",
+      "beat": 6,
+      "durationSec": 4,
+      "note": "End card: the Shelfie mark, name and line. No narration.",
+      "title": "Shelfie",
+      "subtitle": "Your price list, open to AI shoppers.",
+      "cta": "Built with PayPal Orders v2, the PayPal Agent Toolkit and Claude"
+    }
+  ],
+  "transitions": [
+    {
+      "after": "close",
+      "type": "fade",
+      "ms": 500
+    }
+  ]
+}

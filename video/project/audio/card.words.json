@@ -1,0 +1,129 @@
+{
+  "text": "The shop gets an agent door, and a card for the counter. Regulars scan it, or give the shop's link to their own assistant.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "a352caef8605ca77",
+  "timestamps": [
+    {
+      "text": "The",
+      "startSec": 0.25,
+      "endSec": 0.362
+    },
+    {
+      "text": "shop",
+      "startSec": 0.362,
+      "endSec": 0.675
+    },
+    {
+      "text": "gets",
+      "startSec": 0.675,
+      "endSec": 0.887
+    },
+    {
+      "text": "an",
+      "startSec": 0.887,
+      "endSec": 1.012
+    },
+    {
+      "text": "agent",
+      "startSec": 1.012,
+      "endSec": 1.375
+    },
+    {
+      "text": "door,",
+      "startSec": 1.375,
+      "endSec": 1.975
+    },
+    {
+      "text": "and",
+      "startSec": 1.975,
+      "endSec": 2.087
+    },
+    {
+      "text": "a",
+      "startSec": 2.087,
+      "endSec": 2.188
+    },
+    {
+      "text": "card",
+      "startSec": 2.188,
+      "endSec": 2.55
+    },
+    {
+      "text": "for",
+      "startSec": 2.55,
+      "endSec": 2.663
+    },
+    {
+      "text": "the",
+      "startSec": 2.663,
+      "endSec": 2.75
+    },
+    {
+      "text": "counter.",
+      "startSec": 2.75,
+      "endSec": 3.775
+    },
+    {
+      "text": "Regulars",
+      "startSec": 3.775,
+      "endSec": 4.312
+    },
+    {
+      "text": "scan",
+      "startSec": 4.312,
+      "endSec": 4.675
+    },
+    {
+      "text": "it,",
+      "startSec": 4.675,
+      "endSec": 5.1
+    },
+    {
+      "text": "or",
+      "startSec": 5.1,
+      "endSec": 5.25
+    },
+    {
+      "text": "give",
+      "startSec": 5.25,
+      "endSec": 5.438
+    },
+    {
+      "text": "the",
+      "startSec": 5.438,
+      "endSec": 5.562
+    },
+    {
+      "text": "shop's",
+      "startSec": 5.562,
+      "endSec": 5.9
+    },
+    {
+      "text": "link",
+      "startSec": 5.9,
+      "endSec": 6.175
+    },
+    {
+      "text": "to",
+      "startSec": 6.175,
+      "endSec": 6.263
+    },
+    {
+      "text": "their",
+      "startSec": 6.263,
+      "endSec": 6.463
+    },
+    {
+      "text": "own",
+      "startSec": 6.463,
+      "endSec": 6.7
+    },
+    {
+      "text": "assistant.",
+      "startSec": 6.7,
+      "endSec": 7.65
+    }
+  ]
+}

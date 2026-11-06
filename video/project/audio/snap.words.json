@@ -1,0 +1,79 @@
+{
+  "text": "Shelfie starts with one photo. Rosa snaps her price list, and Claude reads it.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "a256a88375ff927d",
+  "timestamps": [
+    {
+      "text": "Shelfie",
+      "startSec": 0.325,
+      "endSec": 0.725
+    },
+    {
+      "text": "starts",
+      "startSec": 0.725,
+      "endSec": 1.038
+    },
+    {
+      "text": "with",
+      "startSec": 1.038,
+      "endSec": 1.2
+    },
+    {
+      "text": "one",
+      "startSec": 1.2,
+      "endSec": 1.438
+    },
+    {
+      "text": "photo.",
+      "startSec": 1.438,
+      "endSec": 2.362
+    },
+    {
+      "text": "Rosa",
+      "startSec": 2.362,
+      "endSec": 2.75
+    },
+    {
+      "text": "snaps",
+      "startSec": 2.75,
+      "endSec": 3.087
+    },
+    {
+      "text": "her",
+      "startSec": 3.087,
+      "endSec": 3.2
+    },
+    {
+      "text": "price",
+      "startSec": 3.2,
+      "endSec": 3.525
+    },
+    {
+      "text": "list,",
+      "startSec": 3.525,
+      "endSec": 3.95
+    },
+    {
+      "text": "and",
+      "startSec": 3.95,
+      "endSec": 4.075
+    },
+    {
+      "text": "Claude",
+      "startSec": 4.075,
+      "endSec": 4.375
+    },
+    {
+      "text": "reads",
+      "startSec": 4.375,
+      "endSec": 4.65
+    },
+    {
+      "text": "it.",
+      "startSec": 4.65,
+      "endSec": 5.2
+    }
+  ]
+}

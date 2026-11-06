@@ -1,0 +1,59 @@
+{
+  "text": "She adds tracking, and the buyer's assistant reads it back.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "a580e1f8ad11ca35",
+  "timestamps": [
+    {
+      "text": "She",
+      "startSec": 0.3,
+      "endSec": 0.438
+    },
+    {
+      "text": "adds",
+      "startSec": 0.438,
+      "endSec": 0.725
+    },
+    {
+      "text": "tracking,",
+      "startSec": 0.725,
+      "endSec": 1.55
+    },
+    {
+      "text": "and",
+      "startSec": 1.55,
+      "endSec": 1.663
+    },
+    {
+      "text": "the",
+      "startSec": 1.663,
+      "endSec": 1.75
+    },
+    {
+      "text": "buyer's",
+      "startSec": 1.75,
+      "endSec": 2.15
+    },
+    {
+      "text": "assistant",
+      "startSec": 2.15,
+      "endSec": 2.7
+    },
+    {
+      "text": "reads",
+      "startSec": 2.7,
+      "endSec": 2.938
+    },
+    {
+      "text": "it",
+      "startSec": 2.938,
+      "endSec": 3.025
+    },
+    {
+      "text": "back.",
+      "startSec": 3.025,
+      "endSec": 3.775
+    }
+  ]
+}

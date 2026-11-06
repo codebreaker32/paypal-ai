@@ -1,0 +1,264 @@
+{
+  "text": "Shelfie only asks about what it isn't sure of, like a price written as two for seven dollars. Rosa adds her PayPal email, so buyers pay her directly. Every item becomes a product in PayPal's catalog. In our tests, photo to live shop took 8 to 14 seconds of machine time.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "91604b84ac4fd7ba",
+  "timestamps": [
+    {
+      "text": "Shelfie",
+      "startSec": 0.325,
+      "endSec": 0.738
+    },
+    {
+      "text": "only",
+      "startSec": 0.738,
+      "endSec": 1.087
+    },
+    {
+      "text": "asks",
+      "startSec": 1.087,
+      "endSec": 1.438
+    },
+    {
+      "text": "about",
+      "startSec": 1.438,
+      "endSec": 1.688
+    },
+    {
+      "text": "what",
+      "startSec": 1.688,
+      "endSec": 1.812
+    },
+    {
+      "text": "it",
+      "startSec": 1.812,
+      "endSec": 1.887
+    },
+    {
+      "text": "isn't",
+      "startSec": 1.887,
+      "endSec": 2.138
+    },
+    {
+      "text": "sure",
+      "startSec": 2.138,
+      "endSec": 2.413
+    },
+    {
+      "text": "of,",
+      "startSec": 2.413,
+      "endSec": 2.85
+    },
+    {
+      "text": "like",
+      "startSec": 2.85,
+      "endSec": 3.013
+    },
+    {
+      "text": "a",
+      "startSec": 3.013,
+      "endSec": 3.075
+    },
+    {
+      "text": "price",
+      "startSec": 3.075,
+      "endSec": 3.462
+    },
+    {
+      "text": "written",
+      "startSec": 3.462,
+      "endSec": 3.812
+    },
+    {
+      "text": "as",
+      "startSec": 3.812,
+      "endSec": 4.013
+    },
+    {
+      "text": "two",
+      "startSec": 4.013,
+      "endSec": 4.3
+    },
+    {
+      "text": "for",
+      "startSec": 4.3,
+      "endSec": 4.463
+    },
+    {
+      "text": "seven",
+      "startSec": 4.463,
+      "endSec": 4.8
+    },
+    {
+      "text": "dollars.",
+      "startSec": 4.8,
+      "endSec": 5.9
+    },
+    {
+      "text": "Rosa",
+      "startSec": 5.9,
+      "endSec": 6.338
+    },
+    {
+      "text": "adds",
+      "startSec": 6.338,
+      "endSec": 6.612
+    },
+    {
+      "text": "her",
+      "startSec": 6.612,
+      "endSec": 6.725
+    },
+    {
+      "text": "PayPal",
+      "startSec": 6.725,
+      "endSec": 7.225
+    },
+    {
+      "text": "email,",
+      "startSec": 7.225,
+      "endSec": 7.9
+    },
+    {
+      "text": "so",
+      "startSec": 7.9,
+      "endSec": 8.088
+    },
+    {
+      "text": "buyers",
+      "startSec": 8.088,
+      "endSec": 8.537
+    },
+    {
+      "text": "pay",
+      "startSec": 8.537,
+      "endSec": 8.775
+    },
+    {
+      "text": "her",
+      "startSec": 8.775,
+      "endSec": 8.925
+    },
+    {
+      "text": "directly.",
+      "startSec": 8.925,
+      "endSec": 10.012
+    },
+    {
+      "text": "Every",
+      "startSec": 10.012,
+      "endSec": 10.338
+    },
+    {
+      "text": "item",
+      "startSec": 10.338,
+      "endSec": 10.725
+    },
+    {
+      "text": "becomes",
+      "startSec": 10.725,
+      "endSec": 11.062
+    },
+    {
+      "text": "a",
+      "startSec": 11.062,
+      "endSec": 11.125
+    },
+    {
+      "text": "product",
+      "startSec": 11.125,
+      "endSec": 11.625
+    },
+    {
+      "text": "in",
+      "startSec": 11.625,
+      "endSec": 11.775
+    },
+    {
+      "text": "PayPal's",
+      "startSec": 11.775,
+      "endSec": 12.3
+    },
+    {
+      "text": "catalog.",
+      "startSec": 12.3,
+      "endSec": 13.338
+    },
+    {
+      "text": "In",
+      "startSec": 13.338,
+      "endSec": 13.463
+    },
+    {
+      "text": "our",
+      "startSec": 13.463,
+      "endSec": 13.625
+    },
+    {
+      "text": "tests,",
+      "startSec": 13.625,
+      "endSec": 14.363
+    },
+    {
+      "text": "photo",
+      "startSec": 14.363,
+      "endSec": 14.75
+    },
+    {
+      "text": "to",
+      "startSec": 14.75,
+      "endSec": 14.875
+    },
+    {
+      "text": "live",
+      "startSec": 14.875,
+      "endSec": 15.213
+    },
+    {
+      "text": "shop",
+      "startSec": 15.213,
+      "endSec": 15.55
+    },
+    {
+      "text": "took",
+      "startSec": 15.55,
+      "endSec": 15.713
+    },
+    {
+      "text": "8",
+      "startSec": 15.713,
+      "endSec": 15.9
+    },
+    {
+      "text": "to",
+      "startSec": 15.9,
+      "endSec": 16.038
+    },
+    {
+      "text": "14",
+      "startSec": 16.038,
+      "endSec": 16.55
+    },
+    {
+      "text": "seconds",
+      "startSec": 16.55,
+      "endSec": 16.887
+    },
+    {
+      "text": "of",
+      "startSec": 16.887,
+      "endSec": 16.962
+    },
+    {
+      "text": "machine",
+      "startSec": 16.962,
+      "endSec": 17.325
+    },
+    {
+      "text": "time.",
+      "startSec": 17.325,
+      "endSec": 18.1
+    }
+  ]
+}
