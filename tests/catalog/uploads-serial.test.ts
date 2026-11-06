@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from 'vitest';
 const live = vi.hoisted(() => ({ now: 0, max: 0, limits: [] as unknown[] }));
 
 vi.mock('sharp', async (importOriginal) => {
-  const real = (await importOriginal<{ default: typeof import('sharp') }>()).default;
+  const real = (await importOriginal<{ default: typeof sharpReal }>()).default;
   const wrapped = (...args: Parameters<typeof real>) => {
     live.limits.push((args[1] as { limitInputPixels?: unknown } | undefined)?.limitInputPixels);
     const s = real(...args);
