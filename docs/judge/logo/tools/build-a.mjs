@@ -128,7 +128,7 @@ const marks = {
   A2: (c) =>
     `<g transform="rotate(-9 32 33)">` +
     `<path fill-rule="evenodd" fill="${c.acc}" d="M14 5h36a5 5 0 0 1 5 5v46a5 5 0 0 1-5 5H14a5 5 0 0 1-5-5V10a5 5 0 0 1 5-5zM16 12v29h32V12z"/>` +
-    `<path fill="${c.acc}" d="M20 41V29.5c0-2 1.2-3.6 2.8-4.4V18h4.4v7.1c1.6.8 2.8 2.4 2.8 4.4V41zM32.5 41v-4.5a7.75 7.5 0 0 1 15.5 0V41z"/>` +
+    `<path fill="${c.acc}" d="M20 43V29.5c0-2 1.2-3.6 2.8-4.4V18h4.4v7.1c1.6.8 2.8 2.4 2.8 4.4V43zM33.5 43V33a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v10z"/><rect x="34.5" y="24" width="12" height="3.5" rx="1.2" fill="${c.acc}"/>` +
     `</g>`,
   // A3: the wordmark's own "s" standing on its shelf, with the snapshot square as the i's dot.
   A3: (c) => {
