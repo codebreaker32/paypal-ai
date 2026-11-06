@@ -19,7 +19,7 @@ function LinkBlock({
 }: {
   id: string;
   title: string;
-  children: ReactNode;
+  children?: ReactNode;
   url: string;
   what: string;
   /** Spelled-out copy action; set on the one block whose copy is the screen's primary action. */
@@ -33,7 +33,7 @@ function LinkBlock({
         <h2 id={id} className="type-heading">
           {title}
         </h2>
-        <p className="max-w-measure text-ink-soft">{children}</p>
+        {children && <p className="max-w-measure text-ink-soft">{children}</p>}
       </div>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <p
@@ -60,11 +60,9 @@ export function SharePanel({ shopId, shopUrl, doorUrl, slug }: { shopId: string;
     <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14">
       <div className="flex min-w-0 flex-col gap-8">
         <LinkBlock id="share-door" title="Your agent door" url={doorUrl} what="Agent door link" copyLabel="Copy agent door link">
-          Any AI assistant can read your menu and order through it. The buyer approves and pays on PayPal.
+          Give it to any AI assistant to order from you.
         </LinkBlock>
-        <LinkBlock id="share-shop" title="Your shop link" url={shopUrl} what="Shop link" openHref={`/s/${slug}`} className="border-t border-line pt-8">
-          Your menu for people, with the agent door on it. Put it in your bio.
-        </LinkBlock>
+        <LinkBlock id="share-shop" title="Your shop link" url={shopUrl} what="Shop link" openHref={`/s/${slug}`} className="border-t border-line pt-8" />
       </div>
 
       <div className="flex flex-col gap-4">
@@ -73,7 +71,6 @@ export function SharePanel({ shopId, shopUrl, doorUrl, slug }: { shopId: string;
           <h2 id="share-card" className="type-heading">
             Counter card
           </h2>
-          <p className="text-ink-soft">A QR code of your shop for the counter. Assistants find your agent door there too.</p>
           <ButtonLink href={`/shops/${shopId}/card`} variant="secondary" icon={Printer} className="w-full bg-surface hover:bg-line sm:w-auto">
             Print counter card
           </ButtonLink>

@@ -654,6 +654,42 @@ const SCREENS: Screen[] = [
     },
     viewport: true,
   },
+  // Snap your counter's other states. The first three are MOCKED (the route is held or answered in the browser).
+  ...(
+    [
+      ['reading', null, 'Finding your items…'],
+      ['none', { json: { proposals: [] } }, 'We couldn’t match any items. Try a closer photo.'],
+      ['error', { status: 502, json: { error: { code: 'COUNTER_FAILED', message: 'We couldn’t look at that photo just now. Try again in a moment.' } } }, 'We couldn’t look at that photo just now.'],
+    ] as const
+  ).map(([state, answer, text]) => ({
+    name: `dashboard-menu-counter-${state}`,
+    viewport: true,
+    run: async (page: Page, { context }: { context: BrowserContext }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      // Reading: the request is never answered, so the sheet stays on "Finding your items…".
+      await page.route(`**/api/shops/${demo.shop.id}/counter`, (route) => (answer ? route.fulfill(answer) : new Promise<void>(() => {})));
+      await page.goto(`/shops/${demo.shop.id}?tab=menu`);
+      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'samples', 'counter-case.jpg'));
+      await expect(page.getByRole('dialog').getByText(text)).toBeVisible();
+    },
+  })),
+  {
+    // LIVE: a real Claude answer for the display-case photo (public/samples/counter-case.jpg). Skipped with no AI key.
+    name: 'dashboard-menu-counter-live',
+    viewport: true,
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      await page.goto(`/shops/${demo.shop.id}?tab=menu`);
+      const answered = page.waitForResponse((r) => r.url().endsWith(`/api/shops/${demo.shop.id}/counter`), { timeout: 60_000 });
+      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'samples', 'counter-case.jpg'));
+      const res = await answered;
+      test.skip(res.status() === 503, 'No ANTHROPIC_API_KEY on the server.');
+      expect(res.status()).toBe(200);
+      await expect(page.getByRole('list', { name: 'Photos found' }).locator('li').first()).toBeVisible();
+    },
+  },
   {
     name: 'dashboard-share',
     run: async (page, { context }) => {

@@ -4,6 +4,14 @@
 
 Built for the PayPal AI Hackathon. PayPal **sandbox** only. Licensed MIT ([LICENSE](LICENSE)).
 
+| The shop a photo becomes (laptop) | On a buyer's phone |
+|---|---|
+| <img src="docs/images/shop-desktop.webp" alt="Marigold Bakehouse's shop page: a cover photo, the shop's name and hours, and photo cards for each item with prices" width="600"> | <img src="docs/images/shop-phone.webp" alt="The same shop on a phone: item rows with thumbnails and a sticky Order with an assistant bar" width="200"> |
+| **An AI assistant orders through the agent door** | **The seller's orders, with Claude's brief** |
+| <img src="docs/images/assistant-order.webp" alt="The buyer console: Claude placed the order through the shop's agent door and shows an Approve $27.00 on PayPal button" width="420"> | <img src="docs/images/dashboard-orders.webp" alt="The seller dashboard's order list: thumbnails, status filters, paid totals and an AI brief flagging a nut allergy" width="420"> |
+
+Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-7/`](docs/judge/screenshots/round-7/)).
+
 ## The problem
 
 PayPal's agent-commerce tools start from an existing store. Agent Ready is for "existing PayPal merchants", and its agent checkout "is limited to Store Sync customers today", for merchants "using their existing website storefronts" ([sources](docs/EVIDENCE.md)). A home baker, food truck, market stall or repair shop with a chalkboard and no website is invisible to AI shopping assistants. In the US Census data we cite, 47% of accommodation and food-service employer firms reported having no website (data year 2016).
