@@ -14,6 +14,8 @@ export const PAYEE_REQUIRED_MESSAGE = 'Add your PayPal email to publish.';
 /** A published shop (live or paused) can change its email but not clear it: the 409 for clearing it. */
 export const PAYEE_KEEP_MESSAGE = 'Your shop needs a PayPal email to take orders. To change it, enter the new one.';
 export const MAX_EMAIL_LENGTH = 254;
+/** Tracking on a seller-paid order stays in Shelfie: PayPal refuses it from the platform (spec §8a, verified). */
+export const TRACK_IN_YOUR_PAYPAL = 'PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.';
 
 export type PayeeEmailResult = { ok: true; email: string } | { ok: false; message: string };
 

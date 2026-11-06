@@ -1,6 +1,5 @@
 'use client';
 
-import { useParams } from 'next/navigation';
 import { Bot, DoorOpen, ExternalLink, Printer, QrCode, Store } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
@@ -86,9 +85,7 @@ function CounterCardBlock({ shopId }: { shopId: string }) {
   );
 }
 
-export function SharePanel({ shopUrl, doorUrl, slug }: { shopUrl: string; doorUrl: string; slug: string }) {
-  // The dashboard's own route (/shops/[id]) names the shop, so the card link needs no extra prop.
-  const { id: shopId } = useParams<{ id: string }>();
+export function SharePanel({ shopId, shopUrl, doorUrl, slug }: { shopId: string; shopUrl: string; doorUrl: string; slug: string }) {
   return (
     <div className="flex flex-col gap-5">
       <LinkBlock id="share-door" icon={DoorOpen} title="Your agent door" url={doorUrl} what="Agent door link" copyLabel="Copy agent door link">

@@ -20,7 +20,7 @@ import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
-import { isDemoShop } from '@/lib/domain/payee';
+import { TRACK_IN_YOUR_PAYPAL, isDemoShop } from '@/lib/domain/payee';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
 import { actionWords, agentLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
@@ -102,9 +102,7 @@ function ActionCard({
             </ul>
           )}
           {trackers.some((t) => t.paypalStatus === null) && (
-            <p className="type-meta text-ink-muted">
-              PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.
-            </p>
+            <p className="type-meta text-ink-muted">{TRACK_IN_YOUR_PAYPAL}</p>
           )}
         </>
       );

@@ -216,7 +216,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'share',
             label: 'Share',
-            content: <SharePanel shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} />,
+            content: <SharePanel shopId={shop.id} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} />,
           },
           {
             id: 'settings',

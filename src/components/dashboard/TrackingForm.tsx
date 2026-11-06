@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Field, FieldError, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
+import { TRACK_IN_YOUR_PAYPAL } from '@/lib/domain/payee';
 import { OFFERED_CARRIERS, type CarrierId } from '@/lib/seller/carriers';
 import { ApiError, addTracking } from './api';
 
@@ -21,8 +22,7 @@ type State =
   | { kind: 'error'; message: string };
 
 /** What the seller reads once a seller-paid order's tracking is saved (PayPal refuses it from Shelfie, spec §8a). */
-export const SAVED_NOT_AT_PAYPAL =
-  'Saved. The buyer’s assistant can see it now. PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.';
+export const SAVED_NOT_AT_PAYPAL = `Saved. The buyer’s assistant can see it now. ${TRACK_IN_YOUR_PAYPAL}`;
 
 /**
  * Carrier + tracking number → Shelfie's tracking route. `atPayPal`: the order was paid to Shelfie's demo account, so the
