@@ -451,6 +451,42 @@ describe('duplicates across pages', () => {
   });
 });
 
+describe('same name under different sections', () => {
+  const rows = (c: DraftCatalog) => c.items.map((i) => [i.section, i.name, i.issues]);
+  it('keeps both when the name and price match but the sections differ', () => {
+    const c = catalog(raw(
+      { section: 'HOT', name: 'Latte', prices: [price(450, '$4.50')] },
+      { section: 'ICED', name: 'Latte', prices: [price(450, '$4.50')] },
+      { section: 'Muffins', name: 'Blueberry', prices: [price(300, '$3')] },
+      { section: 'Scones', name: 'Blueberry', prices: [price(300, '$3')] },
+    ));
+    expect(rows(c)).toEqual([
+      ['HOT', 'Latte', []], ['ICED', 'Latte', []], ['Muffins', 'Blueberry', []], ['Scones', 'Blueberry', []],
+    ]);
+  });
+  it('does not flag different prices in different sections as listed twice', () => {
+    const c = catalog(raw(
+      { section: 'HOT', name: 'Latte', prices: [price(450, '$4.50')] },
+      { section: 'ICED', name: 'Latte', prices: [price(500, '$5')] },
+    ));
+    expect(rows(c)).toEqual([['HOT', 'Latte', []], ['ICED', 'Latte', []]]);
+  });
+  it('still merges an exact copy whose heading is missing (cut off on another page)', () => {
+    const c = catalog(raw(
+      { section: 'Drinks', name: 'Latte', prices: [price(450, '$4.50')] },
+      { section: null, name: 'latte', prices: [price(450, '$4.50')], page: 2 },
+    ));
+    expect(rows(c)).toEqual([['Drinks', 'Latte', []]]);
+  });
+  it('matches sections without regard to case', () => {
+    const c = catalog(raw(
+      { section: 'Drinks', name: 'Latte', prices: [price(450, '$4.50')] },
+      { section: 'DRINKS', name: 'Latte', prices: [price(450, '$4.50')], page: 2 },
+    ));
+    expect(c.items).toHaveLength(1);
+  });
+});
+
 describe('unreadable routing', () => {
   it('is_menu:false → not_a_menu with a tip', () => {
     const r = unreadable(fixture('not-a-menu'));
