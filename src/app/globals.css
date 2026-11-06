@@ -1,4 +1,7 @@
-@import "tailwindcss";
+/* Scan only src/ for class names. Without source(), Tailwind's Turbopack loader watches every folder in the project
+   that .gitignore doesn't exclude (docs/, e2e/, tests/, public/ ...) and `next dev` rebuilds on each write there.
+   This also keeps data/ (the SQLite file and uploads) out of the watch set without relying on .gitignore. */
+@import "tailwindcss" source("..");
 
 /*
  * Shelfie design tokens. Three layers, defined once here and documented in docs/DESIGN.md.
