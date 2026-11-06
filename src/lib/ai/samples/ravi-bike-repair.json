@@ -103,7 +103,7 @@
       "price_kind": "fixed",
       "deal_text": null,
       "confidence": "high",
-      "note": "Labour price $18; parts charged extra.",
+      "note": "Price is $18 plus the cost of parts.",
       "looks_like_instruction": false
     },
     {
@@ -141,16 +141,11 @@
       "price_kind": "fixed",
       "deal_text": "FREE w/ tune-up, else $10",
       "confidence": "high",
-      "note": "Free when purchased with a tune-up; otherwise $10.",
+      "note": "Free with a tune-up; otherwise $10.",
       "looks_like_instruction": false
     }
   ],
   "skipped_lines": [
-    {
-      "text": "Ravi's Bike Repair",
-      "page": 1,
-      "reason": "header"
-    },
     {
       "text": "Drop-off Mon–Fri · 88 Canal Rd · ready in 48h",
       "page": 1,

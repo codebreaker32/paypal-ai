@@ -1,4 +1,4 @@
-import { parseAmountToCents } from '@/lib/domain/money';
+import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type {
   DraftCatalog,
   DraftItem,
@@ -46,72 +46,170 @@ function cleanOrNull(s: string | null, max: number): string | null {
   const c = clean(s).slice(0, max);
   return c === '' ? null : c;
 }
-function dollars(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
 interface Built {
   item: DraftItem;
   key: string;
   signature: string;
 }
 
-function buildVariants(it: ExtractedItem, details: string[]): { variants: DraftVariant[]; invalid: boolean } {
+/** What the reading found odd about an item's prices, turned into seller sentences below. */
+interface PriceFlags {
+  /** A printed price that came back as an unusable amount (negative, or fractions of a cent). */
+  unusable: string | null;
+  /** A price printed some other way than a plain amount ("from $20"). */
+  printedAs: string | null;
+}
+
+function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: PriceFlags } {
+  const flags: PriceFlags = { unusable: null, printedAs: null };
   if (it.price_kind === 'market' || it.price_kind === 'missing' || it.prices.length === 0) {
     const labels = it.prices.length ? it.prices.map((p) => cleanOrNull(p.label, 60)) : [null];
-    return { variants: labels.map((label) => ({ label, priceCents: null })), invalid: false };
+    return { variants: labels.map((label) => ({ label, priceCents: null })), flags };
   }
-  let invalid = false;
   const variants = it.prices.map((p): DraftVariant => {
     const label = cleanOrNull(p.label, 60);
     let cents = p.amount_cents;
     if (cents == null && /^[\s$]*\d[\d.,]*\s*$/.test(p.raw)) cents = parseAmountToCents(p.raw);
     if (cents != null && (!Number.isInteger(cents) || cents < 0)) {
-      invalid = true;
-      details.push(`Couldn't read "${clean(p.raw)}" as a price`);
+      flags.unusable ??= clean(p.raw);
       return { label, priceCents: null };
     }
     if (cents != null && it.price_kind !== 'deal') {
       const raw = clean(p.raw);
-      if (raw !== '' && parseAmountToCents(raw) === null) details.push(`Printed as "${raw}"`);
+      if (raw !== '' && parseAmountToCents(raw) === null) flags.printedAs ??= raw;
     }
     return { label, priceCents: cents };
   });
-  return { variants, invalid };
+  return { variants, flags };
+}
+
+// ---- Seller-facing issue text ----------------------------------------------------------------
+// Fixed, plain sentences filled with the item's own data: each names what was printed and asks
+// one question. The model's free-text note never reaches the seller, so no reading can put cents,
+// field names or how rows were matched on a card; here it only tells a crossed-out price apart.
+
+const CROSSED_NOTE_RE = /cross|strik/i;
+// "2 for $7", "3 for 10", "2x $5": a price per piece is worth saying "each".
+const MULTI_BUY_RE = /\b\d+\s*(for|x)\b/i;
+
+const isUnusual = (cents: number) => cents <= 0 || cents > MAX_PRICE_CENTS;
+
+function quoted(text: string, max = 60): string {
+  return `“${text.length > max ? `${text.slice(0, max - 1).trimEnd()}…` : text}”`;
+}
+
+/** "a", "a and b", "a, b and c". */
+function listOf(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+/** "$8.00", or "S $3.00 and L $4.00" for an item with sizes (a lone price's label is left out). */
+function pricesOf(variants: DraftVariant[]): string {
+  return listOf(
+    variants.map((v) => {
+      const price = v.priceCents == null ? 'no price' : formatUSD(v.priceCents);
+      return v.label && variants.length > 1 ? `${v.label} ${price}` : price;
+    }),
+  );
+}
+
+/** The market card explains the two choices (today's price, or ask in person); this says what was printed. */
+function marketDetail(it: ExtractedItem): string {
+  const printed = clean(it.prices.find((p) => clean(p.raw) !== '')?.raw ?? '');
+  return `Your menu says ${printed ? quoted(printed, 40) : 'market price'} instead of a price.`;
+}
+
+function missingDetail(it: ExtractedItem, variants: DraftVariant[]): string {
+  if (it.price_kind === 'missing' || it.prices.length === 0) return 'No price on the menu. Add one, or leave it off.';
+  const unread = variants.filter((v) => v.priceCents === null);
+  if (unread.length < variants.length && unread.every((v) => v.label)) {
+    return `We couldn’t read the ${listOf(unread.map((v) => v.label!))} price. Add it, or leave the item off.`;
+  }
+  return 'We couldn’t read the price. Add one, or leave it off.';
+}
+
+function dealDetail(it: ExtractedItem, unit: number | null | undefined): string {
+  const deal = cleanOrNull(it.deal_text, 80) ?? cleanOrNull(it.prices[0]?.raw ?? null, 80);
+  const printed = deal ? `Printed as ${quoted(deal)}.` : 'Printed as a multi-buy deal.';
+  const each = !deal || MULTI_BUY_RE.test(deal) ? ' each' : '';
+  return unit != null ? `${printed} We set ${formatUSD(unit)}${each}. Is that right?` : `${printed} What does one cost?`;
+}
+
+function unusualDetail(variants: DraftVariant[]): string {
+  const odd = variants.find((v) => v.priceCents !== null && isUnusual(v.priceCents))!;
+  const which = variants.length > 1 && odd.label ? ` for ${quoted(odd.label, 30)}` : '';
+  return `We set ${formatUSD(odd.priceCents!)}${which}, which looks unusual. Is that right?`;
+}
+
+interface DetailInput {
+  it: ExtractedItem;
+  variants: DraftVariant[];
+  flags: PriceFlags;
+  unusual: boolean;
+  shaky: boolean;
+  note: string | null;
+}
+
+/** The sentences for the item's main problem (the one its review card fixes). */
+function issueDetailFor({ it, variants, flags, unusual, shaky, note }: DetailInput): string | null {
+  if (it.price_kind === 'market') return marketDetail(it);
+  if (it.price_kind === 'deal') return dealDetail(it, variants[0]?.priceCents);
+  if (flags.unusable) return `We couldn’t read ${quoted(flags.unusable)} as a price. Add the right one, or leave it off.`;
+  if (variants.some((v) => v.priceCents === null)) return missingDetail(it, variants);
+  if (unusual) return unusualDetail(variants);
+  const set = pricesOf(variants);
+  if (note && CROSSED_NOTE_RE.test(note)) return `A price is crossed out. We set ${set}. Is that right?`;
+  if (flags.printedAs) return `Printed as ${quoted(flags.printedAs)}. We set ${set}. Is that right?`;
+  if (shaky) return 'Hard to read in the photo. Are the name and price right?';
+  return null;
+}
+
+// ---- Shop-level notes ("Notes from the reading") ---------------------------------------------
+// The model's warnings are shown as written only when they read like a note to the owner. One that
+// talks about cents, field names or how the photo was read is dropped; in its place the owner gets
+// one fixed sentence, so the point (check this against the photo) survives without the jargon.
+
+const METHOD_TALK_RE =
+  /\bcents?\b|\bmatch(ed|ing)?\b|by row|row position|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text|\bnull\b|\bOCR\b/i;
+const CHECK_PHOTO = 'Check the names and prices against your photo before you publish.';
+
+function sellerWarnings(warnings: string[]): string[] {
+  const kept: string[] = [];
+  let dropped = false;
+  for (const w of warnings) {
+    const text = clean(w).replace(/([.?!])[.?!]+/g, '$1').replace(/(\p{L})'(\p{L})/gu, '$1’$2');
+    if (text === '') continue;
+    if (METHOD_TALK_RE.test(text)) dropped = true;
+    else if (!kept.includes(text)) kept.push(text);
+  }
+  return dropped ? [...kept, CHECK_PHOTO] : kept;
+}
+
+function duplicateDetail(group: Built[]): string {
+  const times = group.length === 2 ? 'twice' : `${group.length} times`;
+  return `Listed ${times} with different prices: ${listOf(group.map((g) => pricesOf(g.item.variants)))}.`;
 }
 
 function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
   const name = cleanOrNull(it.name, MAX_NAME);
   if (!name) return null;
 
-  const details: string[] = [];
   const issues = new Set<IssueCode>();
-  const { variants, invalid } = buildVariants(it, details);
+  const { variants, flags } = buildVariants(it);
   const note = cleanOrNull(it.note, 200);
 
   if (it.price_kind === 'market') {
     issues.add('MARKET_PRICE');
-  } else if (invalid) {
+  } else if (flags.unusable) {
     issues.add('CHECK');
   } else if (variants.some((v) => v.priceCents === null)) {
     issues.add('MISSING_PRICE');
   }
 
-  if (variants.some((v) => v.priceCents !== null && (v.priceCents <= 0 || v.priceCents > MAX_PRICE_CENTS))) {
-    issues.add('CHECK');
-    details.push('Price looks unusual');
-  }
-  if (it.price_kind === 'deal') {
-    issues.add('CHECK');
-    const deal = cleanOrNull(it.deal_text, 80) ?? 'a multi-buy deal';
-    const unit = variants[0]?.priceCents;
-    details.push(unit != null ? `Deal "${deal}": ${dollars(unit)} each?` : `Deal "${deal}"`);
-  }
-  if (it.confidence === 'low' || (it.confidence === 'medium' && note && SHAKY_NOTE_RE.test(note))) {
-    issues.add('CHECK');
-  }
-  if (details.length) issues.add('CHECK');
-  if (note && (issues.has('CHECK') || issues.has('MISSING_PRICE'))) details.push(note);
+  const unusual = variants.some((v) => v.priceCents !== null && isUnusual(v.priceCents));
+  const shaky = it.confidence === 'low' || (it.confidence === 'medium' && note !== null && SHAKY_NOTE_RE.test(note));
+  if (unusual || it.price_kind === 'deal' || shaky || flags.printedAs) issues.add('CHECK');
 
   const ordered = (['MISSING_PRICE', 'MARKET_PRICE', 'CHECK'] as IssueCode[]).filter((c) => issues.has(c));
   const item: DraftItem = {
@@ -122,7 +220,7 @@ function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
     confidence: it.confidence,
     kind,
     issues: ordered,
-    issueDetail: details.length ? details.join('. ') : null,
+    issueDetail: ordered.length ? issueDetailFor({ it, variants, flags, unusual, shaky, note }) : null,
     status: it.price_kind === 'market' ? 'in_person' : 'draft',
     variants,
   };
@@ -148,9 +246,11 @@ function dedupe(built: Built[]): DraftItem[] {
   }
   for (const group of seen.values()) {
     if (group.length > 1) {
+      const detail = duplicateDetail(group);
       for (const g of group) {
         g.item.issues = [...g.item.issues, 'DUPLICATE'];
-        g.item.issueDetail ??= 'Appears more than once with different prices';
+        // A priced item gets the "listed twice" card; one without a price keeps its own question.
+        if (g.item.variants.every((v) => v.priceCents !== null)) g.item.issueDetail = detail;
       }
     }
   }
@@ -203,7 +303,7 @@ export function normalizeExtraction(raw: MenuExtraction): DraftCatalog | Unreada
     items,
     skipped,
     needsAttention: items.filter((i) => i.status !== 'removed' && i.issues.length > 0).length,
-    warnings: raw.warnings.map(clean).filter((w) => w !== ''),
+    warnings: sellerWarnings(raw.warnings),
     nonUsd: raw.problems.includes('non_usd'),
   };
 }

@@ -2,15 +2,12 @@
   "is_menu": true,
   "image_quality": "usable",
   "problems": [
-    "glare",
     "handwriting_hard"
   ],
   "retake_tip": null,
   "warnings": [
-    "Prices sit far from item names and the page is tilted, so the matching of prices to items was done by row position; please verify.",
-    "Pain au chocolat has a blurred name and no readable price.",
-    "Seeded rye has a crossed-out price replaced with a new one.",
-    "Glare on the right side of the page."
+    "The prices sit on the right and don't line up exactly with the item names. Please check that each price is on the right item.",
+    "The Pain au chocolat line is blurred; please check its name and price."
   ],
   "shop": {
     "name": "Marigold Bakehouse",
@@ -34,8 +31,8 @@
       ],
       "price_kind": "fixed",
       "deal_text": null,
-      "confidence": "medium",
-      "note": "Price is far from the name on the right; matched by row.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -53,8 +50,8 @@
       ],
       "price_kind": "fixed",
       "deal_text": null,
-      "confidence": "medium",
-      "note": "Price matched by row position.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -67,13 +64,13 @@
         {
           "label": null,
           "amount_cents": 800,
-          "raw": "$7 $8"
+          "raw": "$8"
         }
       ],
       "price_kind": "fixed",
       "deal_text": null,
       "confidence": "medium",
-      "note": "$7 is crossed out and replaced with $8; using $8.",
+      "note": "The $7 is crossed out; we used $8.",
       "looks_like_instruction": false
     },
     {
@@ -91,8 +88,8 @@
       ],
       "price_kind": "fixed",
       "deal_text": null,
-      "confidence": "medium",
-      "note": "Price matched by row position.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -110,8 +107,8 @@
       ],
       "price_kind": "fixed",
       "deal_text": null,
-      "confidence": "medium",
-      "note": "Price matched by row position.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -129,8 +126,8 @@
       ],
       "price_kind": "deal",
       "deal_text": "2 for $7",
-      "confidence": "medium",
-      "note": "Multi-buy deal; unit price is 350 cents. Matched by row position.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {
@@ -149,7 +146,7 @@
       "price_kind": "fixed",
       "deal_text": null,
       "confidence": "low",
-      "note": "Name and price are blurred; best reading. The $4.75 price is blurred and may belong to this item.",
+      "note": "This line is blurred; please check the name and the $4.75 price.",
       "looks_like_instruction": false
     },
     {
@@ -167,8 +164,8 @@
       ],
       "price_kind": "fixed",
       "deal_text": null,
-      "confidence": "medium",
-      "note": "Price matched by row position.",
+      "confidence": "high",
+      "note": null,
       "looks_like_instruction": false
     },
     {

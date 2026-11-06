@@ -227,6 +227,22 @@ describe('shop setup', () => {
       expect(view.recorded).toBe(false);
     });
 
+    it('shows only plain notes, even for a reading stored before they were filtered', async () => {
+      const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
+      await runReading(deps(), shop.id);
+      const old = extractions.latest(db, shop.id)!;
+      const warnings = ['Prices were matched by row position; please verify.', 'Glare on the right side of the page.'];
+      extractions.finish(db, old.id, {
+        raw: { ...marigold, warnings }, imageQuality: 'usable', warnings, skipped: old.skipped, durationMs: 1,
+      });
+      const view = loadSetupView(db, shops.byId(db, shop.id)!, t);
+      if (view.step !== 'review') throw new Error(`expected review, got ${view.step}`);
+      expect(view.warnings).toEqual([
+        'Glare on the right side of the page.',
+        'Check the names and prices against your photo before you publish.',
+      ]);
+    });
+
     it('shows the live step once the shop is published', async () => {
       const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
       await runReading(deps(), shop.id);

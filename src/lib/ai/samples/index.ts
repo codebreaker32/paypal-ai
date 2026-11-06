@@ -1,6 +1,7 @@
 // The three sample menus a visitor can try from the Start page, with a recorded real reading of
-// each (claude-sonnet-5-5 output, captured in Task 2). The recording is used only when no
-// ANTHROPIC_API_KEY is set; with a key, samples are read live like any photo.
+// each (claude-sonnet-5-5 output with the current prompt, recorded by scripts/record-samples.ts).
+// The recording is used only when no ANTHROPIC_API_KEY is set; with a key, samples are read live
+// like any photo.
 import path from 'node:path';
 import type { SampleId } from '@/lib/client/api';
 import { MenuExtractionSchema, type MenuExtraction } from '@/lib/ai/schemas';
