@@ -46,6 +46,23 @@ Each item passes or fails, with evidence (screenshots at 390 px and 1440 px wide
 - No lorem ipsum or fake stats. Content is real or realistic.
 - The design shows real choices: a deliberate type pairing, a palette tied to the product, and a consistent spacing scale.
 
+**Anti-AI-slop, 2026 patterns** (amendment approved by the human on 6 Nov 2026). Today's AI design tools default to a "warm editorial" look. Count these banned patterns on each screen. **A screen with 2 or more of them fails**, and the judge lists every one it finds, per screen:
+- cream or beige page backgrounds;
+- serif display headlines with italic serif section headings;
+- a mustard or orange primary button;
+- a hairline-bordered box around everything;
+- dotted leader lines between item and price;
+- monospace prices;
+- a highlighter stripe behind headline words;
+- zig-zag "receipt" edges;
+- a small grey explanatory sentence under almost every element;
+- an icon on every label;
+- boxed status chips everywhere;
+- walls of identical cards;
+- the stock tag-icon logo.
+
+**Real-product check** (same amendment). Put each judged screen side by side with the reference screenshots of real storefronts and operations apps (Toast, DoorDash, Uber Eats, Instagram shops, Square). Would a designer take this for a real product? A "no" on any judged screen is a fail, with the reason.
+
 **Frontend design**
 - Design tokens (colour, type, spacing, radius) are defined once and used everywhere.
 - Typography has a clear scale and comfortable line length.
