@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 06:40 IST (session 4)_
+_Last updated: 2026-11-06 06:56 IST (session 4)_
 
 ## Current phase
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
@@ -21,7 +21,13 @@ _Last updated: 2026-11-06 06:40 IST (session 4)_
 - **Milestone code review** (25c80c2..885caa3): 7 findings, all fixed.
 - **EVIDENCE 5b:** 3 verified seller voices.
 
-**Running:** the full screenshot set for judge round 2 (`docs/judge/screenshots/round-2/`, production server). Then judge round 2.
+**Judge round 2: ship.** Part A 22 (up from 21; A2 4 → 5), Part B 21, 0 Part C fails (`docs/judge/round-2.md`, 66 screens with 0 axe violations from one production-build run).
+
+**Running:**
+- the round-3 workers (r3a: copy, Share tab, retake photo, size words; r3b: the dev reload loop);
+- the capture gate re-run on the real sandbox, for new-look `capture/` screenshots.
+
+**Done in docs:** `docs/DEMO.md` now opens on the Store Sync contrast and adds the Claude Code beat; `npm run screenshots:prod` runs the screenshots against a production build.
 
 **Session 3 (04:55–05:24 IST):** judge round 1 scored Part A 21, Part B 21, with 1 Part C fail (raw AI notes on the review card). Verdict: **fix**. Session 3 then started the five workers above.
 
@@ -71,12 +77,23 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The dashboard loading skeleton has no screenshot.
 
 ## Next steps
-1. Push to GitHub (see Needs from human). Then run judge round 1 on main with `docs/judge/screenshots/round-1/` and the test output.
-2. In parallel, run the visual-direction round: two workers, A "Menu board" and B "Counter ledger", in their own worktrees. The brief is `.superpowers/sdd/2026-11-06-shelfie/visual-directions.md`. The judge compares their 390/1440 screenshots and the winner is merged.
-3. Judge round 2 and later rounds: work through the top-3 fixes until the verdict is "ship", tracked in `docs/judge/SCORES.md`.
-4. A final whole-branch code review. Add the capture gate and `npm run screenshots` to the README.
+1. Merge the round-3 workers once they're reviewed. Their reports are `.superpowers/sdd/2026-11-06-shelfie/s4-r3a-report.md` and `s4-r3b-report.md`.
+   - **r3a:** size words left out of item names when the sizes are options, a start sub-line that leads with the seller's outcome, one filled primary on the Share tab, "Retry 2 items", and a non-menu photo for the retake fixture.
+   - **r3b:** the dev-server reload loop the round-2 judge saw once.
+2. Re-run the capture gate with `SHELFIE_SCREENSHOTS=1` (real sandbox) so `docs/judge/screenshots/capture/` shows the current design. Re-shoot the outside-client dashboard evidence too.
+3. A final whole-branch code review. Then judge round 3 with `npm run screenshots:prod -- docs/judge/screenshots/round-3`.
+4. Each round after that takes the next-highest gain from the judge's top 3, limited to what can be done in code and docs in this run.
 
 ## Needs from human
+- **Before 12 Nov 12:00 PT, required for the submission:**
+  - make the GitHub repo **public** (it's private now, as the run brief requires);
+  - record the under-3-minute demo video from `docs/DEMO.md` and post it publicly on YouTube;
+  - submit on Devpost.
+- **Deploy (optional but valuable):**
+  - apply `render.yaml` on Render (a paid instance for the persistent disk), paste the secrets, and run `npm run seed` in Render Shell;
+  - create the PayPal webhook for `https://<service>.onrender.com/api/paypal/webhook` and set `PAYPAL_WEBHOOK_ID`; that verifies the webhook path;
+  - put the URL at the top of the README.
+- **To pay each seller directly (judge round 2, top fix 1):** a second **US sandbox Business** account, created in the PayPal Developer Dashboard. Its email would be set as `payee.email_address` on a shop's orders, and the payment and tracking verified against it. Not built in this run, because it can't be verified without that account.
 - (Resolved in session 3.) From 04:52 IST on 6 Nov, `git push` failed with `remote: fatal error in commit_refs`. The REST API still accepted writes, so `.scratch/api-push.py` (gitignored) rebuilt the 15 commits through the Git Data API with identical SHAs and moved `main`. Plain `git push` worked again from 05:05 IST. If it fails again, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main`.
 - Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
 - Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD` in `.env`. It contains `#`, and dotenv cuts the value there.
