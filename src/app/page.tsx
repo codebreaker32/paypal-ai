@@ -54,7 +54,7 @@ export default async function StartPage() {
           Your price list, open to <span className="mark-highlight">AI shoppers.</span>
         </h1>
         <p className="mt-5 max-w-measure type-lead text-ink-soft">
-          Photograph your menu. Shelfie reads it and opens a PayPal shop any AI assistant can order from.
+          Prepaid orders from a photo of your price list. Shelfie reads it and opens a PayPal shop any AI assistant can order from.
         </p>
         <div className="mt-8">
           <StartActions />
