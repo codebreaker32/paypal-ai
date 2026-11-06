@@ -78,6 +78,14 @@ describe('edits', () => {
       expect(out).toHaveLength(4);
     });
 
+    it('clears only the "listed twice" flag when asked, so an item keeps its own question', () => {
+      const [big] = items.replaceDrafts(db, shopId, [
+        draft('Gift box', [150_000], { issues: ['CHECK', 'DUPLICATE'], issueDetail: 'We set $1500.00, which looks unusual. Is that right?' }),
+      ]);
+      const out = applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: big.id, resolveDuplicate: true }] }));
+      expect(out.find((i) => i.id === big.id)).toMatchObject({ issues: ['CHECK'], issueDetail: 'We set $1500.00, which looks unusual. Is that right?' });
+    });
+
     it('moves an "ask in person" item back to the menu with today\'s price', () => {
       applyItemUpdates(db, shopId, parseItemUpdates({
         updates: [{ itemId: ids.Galette, status: 'draft', variants: [{ label: null, priceCents: 2400 }], resolveIssues: true }],

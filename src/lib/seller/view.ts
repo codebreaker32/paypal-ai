@@ -20,7 +20,7 @@ export function groupOrders(orders: Order[]): OrderGroups {
   return g;
 }
 
-/** The money in a group, for its header ("Paid $43.50", "Not charged yet $83.00"). */
+/** The money in a group, for its header ("Paid $43.50", "Not paid yet $83.00"). */
 export function groupTotalCents(orders: Pick<Order, 'totalCents'>[]): number {
   return orders.reduce((sum, o) => sum + o.totalCents, 0);
 }

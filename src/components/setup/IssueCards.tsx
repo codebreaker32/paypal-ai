@@ -11,7 +11,7 @@ import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
-import { ISSUE_LABEL, priceSummary, type Card as CardModel } from './review-model';
+import { ISSUE_LABEL, duplicateUpdates, priceSummary, type Card as CardModel } from './review-model';
 
 export type OnUpdate = (u: ItemUpdate, opts?: { resolved?: boolean }) => void;
 
@@ -238,10 +238,8 @@ function CheckCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants;
 /** DUPLICATE: the same name with different prices. Merge into one (pick the price) or keep both. */
 function DuplicateCard({ id, items, onUpdate }: { id: string; items: ItemWithVariants[]; onUpdate: OnUpdate }) {
   const [merging, setMerging] = useState(false);
-  const keep = (kept: ItemWithVariants) => {
-    for (const other of items) if (other.id !== kept.id) onUpdate({ itemId: other.id, status: 'removed', resolveIssues: true });
-    onUpdate({ itemId: kept.id, resolveIssues: true }, { resolved: true });
-  };
+  const keep = (kept: ItemWithVariants | 'all') =>
+    duplicateUpdates(items, kept).forEach((u, i, all) => onUpdate(u, { resolved: i === all.length - 1 }));
   return (
     <CardShell id={id} name={items[0].name} section={items[0].section} issue="DUPLICATE">
       <p className="text-sm text-ink-soft">Your menu lists this {items.length === 2 ? 'twice' : `${items.length} times`} with different prices.</p>
@@ -277,7 +275,7 @@ function DuplicateCard({ id, items, onUpdate }: { id: string; items: ItemWithVar
           <Button
             variant="secondary"
             icon={Copy}
-            onClick={() => items.forEach((it, i) => onUpdate({ itemId: it.id, resolveIssues: true }, { resolved: i === items.length - 1 }))}
+            onClick={() => keep('all')}
           >
             Keep both
           </Button>

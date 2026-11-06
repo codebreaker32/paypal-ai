@@ -16,9 +16,10 @@ const MAX_PRICE_CENTS = 100_000; // $1,000
 
 // Spec §9. Matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
-// Something on the menu was crossed out or struck through. Whole words only: "across" and a
-// "hot cross bun" are not.
-const CROSSED_RE = /\b(crossed|cross(es|ing)? out|struck|strike|striking|strikethrough)\b/i;
+// Something on the menu was crossed out or struck through ("cross-out", "crossout", "strikes",
+// "striked", "scored out", "scratched out"). Whole words only: "across" and a "hot cross bun" are not.
+const CROSSED_RE =
+  /\b(crossed|cross(es|ing)?[\s-]?outs?|struck|strik(e|es|ed|ing)|strikethrough|(scored|scratched) (out|through))\b/i;
 // Notes that mean the reading itself is shaky, even when the model felt "medium" about it.
 const SHAKY_NOTE_RE = /blur|smudg|illegib|unclear|unsure|guess|hard to read|faded|obscur/i;
 const isShakyNote = (note: string) => CROSSED_RE.test(note) || SHAKY_NOTE_RE.test(note);
@@ -176,10 +177,11 @@ function issueDetailFor({ it, variants, flags, unusual, shaky, note }: DetailInp
 // The model's warnings are shown as written only when they read like a note to the owner. One that
 // talks about cents, field names or how the photo was read is dropped; in its place the owner gets
 // one fixed sentence, so the point (check this against the photo) survives without the jargon.
-// "Match" alone is plain English ("these prices don't match the board"); "matched by row" is not.
+// "Match" alone is plain English ("these prices don't match the board"); "matched by row", "matched
+// to items" and "in reading order" describe how the photo was read.
 
 const METHOD_TALK_RE =
-  /\bcents?\b|\bmatched by\b|\bby (row|position)\b|row position|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text|\bnull\b|\bOCR\b/i;
+  /\bcents?\b|\bmatched (by|to|with)\b|\bby (row|position)\b|row position|reading order|unit price|confidence|best reading|amount_cents|price_kind|deal_text|source_text|\bnull\b|\bOCR\b/i;
 const CHECK_PHOTO = 'Check the names and prices against your photo before you publish.';
 
 function sellerWarnings(warnings: string[]): string[] {

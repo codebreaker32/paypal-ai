@@ -74,7 +74,8 @@ export function CopyButton({
       icon={copied ? Check : Copy}
       onClick={onCopy}
       className={className}
-      aria-label={label ? undefined : `Copy ${what}`}
+      // After a copy the visible "Copied" alone would lose which link it was: say it in full.
+      aria-label={copied ? `${what} copied` : label ? undefined : `Copy ${what}`}
     >
       {copied ? 'Copied' : (label ?? 'Copy')}
     </Button>

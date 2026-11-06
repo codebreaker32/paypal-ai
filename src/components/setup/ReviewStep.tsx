@@ -126,7 +126,7 @@ export function ReviewStep(props: ReviewProps) {
         return next;
       });
       // Taps save at once; typing (names, prices) waits for a pause.
-      queueItem(u, { immediate: Boolean(opts.resolved) || u.status !== undefined || Boolean(u.resolveIssues) });
+      queueItem(u, { immediate: Boolean(opts.resolved) || u.status !== undefined || Boolean(u.resolveIssues || u.resolveDuplicate) });
     },
     [queueItem],
   );

@@ -27,8 +27,10 @@ function crafted(): MenuExtraction {
   return raw;
 }
 
-/** A sample shop owned by this page's browser, read with `raw` (or failing) without Claude. */
-/** A draft shop (the Marigold sample, or `photo` from public/samples uploaded as the owner would) with the given reading. */
+/**
+ * A draft shop owned by this page's browser (the Marigold sample, or `photo` from public/samples uploaded as
+ * the owner would), read with `raw` (or failing) without Claude.
+ */
 async function shopWithReading(page: Page, raw: MenuExtraction | Error, photo?: string): Promise<string> {
   const res = photo
     ? await page.request.post('/api/shops', { multipart: { photos: samplePhoto(photo) } })

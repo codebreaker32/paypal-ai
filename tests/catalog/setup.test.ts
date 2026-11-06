@@ -259,6 +259,20 @@ describe('shop setup', () => {
       expect(view.items.find((i) => i.id === focaccia.id)!.issueDetail).toBe(old);
     });
 
+    it('keeps an open card’s stored text when today’s reading of the item has none', async () => {
+      const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
+      await runReading(deps(), shop.id);
+      // Flagged under an older normaliser; read today, the croissant has no question.
+      const croissant = items.listWithVariants(db, shop.id).find((i) => i.issues.length === 0 && i.status === 'draft')!;
+      items.update(db, croissant.id, { issues: ['CHECK'], issueDetail: 'Hard to read in the photo. Are the name and price right?' });
+      const view = loadSetupView(db, shops.byId(db, shop.id)!, t);
+      if (view.step !== 'review') throw new Error(`expected review, got ${view.step}`);
+      expect(view.items.find((i) => i.id === croissant.id)).toMatchObject({
+        issues: ['CHECK'],
+        issueDetail: 'Hard to read in the photo. Are the name and price right?',
+      });
+    });
+
     it('shows the live step once the shop is published', async () => {
       const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
       await runReading(deps(), shop.id);
