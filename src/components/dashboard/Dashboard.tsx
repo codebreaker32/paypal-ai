@@ -29,8 +29,8 @@ export interface DashboardProps {
   /** `payeeEmail`: where buyers' money goes (owner only); `isDemo`: Shelfie's demo shop, which may have none. */
   shop: {
     id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null;
-    /** For the header's picture (`ShopAvatar`): its logo, the kind and whether there is a menu photo to fall back on. */
-    logoUrl?: string | null; kind?: ShopKind; hasMenuPhoto?: boolean;
+    /** For the header's picture (`ShopAvatar`): its logo, the kind and where its first menu photo is shown from, if any. */
+    logoUrl?: string | null; kind?: ShopKind; menuPhotoSrc?: string | null;
   };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
@@ -182,9 +182,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
           <ShopAvatar
-            shop={{ logoUrl, coverUrl, slug: shop.slug, kind, menuPhotoPaths: shop.hasMenuPhoto ? ['page-1'] : [] }}
+            shop={{ logoUrl, coverUrl, kind, menuPhotoSrc: shop.menuPhotoSrc ?? null }}
             items={listedItems(items)}
-            menuPhotoSrc={`/api/shops/${shop.id}/photo/1`}
             className="hidden sm:block"
           />
           <div className="flex min-w-0 flex-col gap-1">

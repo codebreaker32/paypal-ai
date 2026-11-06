@@ -12,6 +12,7 @@ import { getDb } from '@/lib/db';
 import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { LISTED_STATUSES } from '@/lib/domain/listed';
 import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
@@ -84,13 +85,14 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
 
 function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariants[]; photoCount: number }) {
   const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
+  const avatar = { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') };
   return (
     <div className="flex flex-col gap-5">
       {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
           stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
-      {hasCover && <ShopAvatar shop={shop} items={items} size="xl" className="relative z-10 -mt-16 -mb-1 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20" />}
+      {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 -mt-16 -mb-1 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20" />}
       <div className="flex items-start gap-4">
-        {!hasCover && <ShopAvatar shop={shop} items={items} size="lg" />}
+        {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" />}
         <div className="min-w-0 flex-1">
           <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">

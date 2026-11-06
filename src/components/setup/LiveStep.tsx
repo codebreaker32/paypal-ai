@@ -28,7 +28,7 @@ export interface LiveProps {
   /** Names of the items still waiting for PayPal (a publish that partly failed). */
   pendingNames: string[];
   /** The shop's picture beside its name (`ShopAvatar`): never letters. */
-  avatar?: Pick<ShopAvatarProps, 'shop' | 'items' | 'menuPhotoSrc'>;
+  avatar?: Pick<ShopAvatarProps, 'shop' | 'items'>;
 }
 
 const subscribeNothing = () => () => {};

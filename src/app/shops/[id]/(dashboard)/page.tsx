@@ -8,6 +8,7 @@ import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
+import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { isDemoShop } from '@/lib/domain/payee';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]'>): Promise<Metadata> {
@@ -27,7 +28,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
 
   return (
     <Dashboard
-      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind, hasMenuPhoto: shop.menuPhotoPaths.length > 0 }}
+      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') }}
       initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}

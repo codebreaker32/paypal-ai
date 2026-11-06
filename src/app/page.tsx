@@ -5,6 +5,7 @@ import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
 import { listOwnedShops } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
+import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { StorePreview } from './_start/StorePreview';
 import { StartActions } from './_start/StartActions';
 
@@ -23,7 +24,7 @@ async function getReturningShops(): Promise<ReturningShop[]> {
       id: s.id,
       name: s.name,
       avatar: {
-        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, slug: s.slug, kind: s.kind, menuPhotoPaths: s.menuPhotoPaths },
+        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, kind: s.kind, menuPhotoSrc: menuPhotoAvatarSrc(s, 'owner') },
         items: itemsRepo.avatarItems(db, s.id),
       },
     }));
@@ -46,7 +47,7 @@ function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
         {shops.map((shop) => (
           <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span className="flex min-w-0 items-center gap-3">
-              <ShopAvatar {...shop.avatar} size="sm" menuPhotoSrc={`/api/shops/${shop.id}/photo/1`} />
+              <ShopAvatar {...shop.avatar} size="sm" />
               <span className="truncate text-lg font-bold">{shop.name}</span>
             </span>
             <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>

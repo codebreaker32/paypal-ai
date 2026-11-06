@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 
-const bare = { logoUrl: null, coverUrl: null, slug: 'tia-lupe', menuPhotoPaths: [], kind: 'food' as const };
+const bare = { logoUrl: null, coverUrl: null, menuPhotoSrc: null, kind: 'food' as const };
 const taco = (name: string) => ({ name, section: 'TACOS', description: null, category: null });
 
 describe('ShopAvatar', () => {
@@ -27,12 +27,11 @@ describe('ShopAvatar', () => {
     expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: bare, items: [] }))).toContain('href="/illustrations.svg#meal"');
   });
 
-  it('the logo, the cover and the menu photo are images; owner pages can point the menu photo at the owner route', () => {
+  it('the logo, the cover and the menu photo are images; the menu photo is shown from the src the page gives', () => {
     expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, logoUrl: '/i/l.webp', coverUrl: '/i/c.webp' }, items: [] }))).toContain('src="/i/l.webp"');
     expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, coverUrl: '/i/c.webp' }, items: [] }))).toContain('src="/i/c.webp"');
-    const menu = { ...bare, menuPhotoPaths: ['shp_1/page-1.jpg'] };
-    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: menu, items: [] }))).toContain('src="/s/tia-lupe/photo/1"');
-    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: menu, items: [], menuPhotoSrc: '/api/shops/shp_1/photo/1' }))).toContain(
+    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, menuPhotoSrc: '/s/tia-lupe/photo/1' }, items: [] }))).toContain('src="/s/tia-lupe/photo/1"');
+    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, menuPhotoSrc: '/api/shops/shp_1/photo/1' }, items: [] }))).toContain(
       'src="/api/shops/shp_1/photo/1"',
     );
   });

@@ -9,6 +9,7 @@ import { getDb } from '@/lib/db';
 import * as extractions from '@/lib/db/repos/extractions';
 import * as items from '@/lib/db/repos/items';
 import { loadSetupView } from '@/lib/catalog/setup';
+import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { isPendingPublish } from '@/lib/catalog/rules';
 import { LiveStep } from '@/components/setup/LiveStep';
 import { SetupFlow } from '@/components/setup/SetupFlow';
@@ -43,9 +44,8 @@ export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup
         pendingCount={all.filter(isPendingPublish).length}
         pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
         avatar={{
-          shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, slug: shop.slug, kind: shop.kind, menuPhotoPaths: shop.menuPhotoPaths },
+          shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') },
           items: items.avatarItems(db, id),
-          menuPhotoSrc: `/api/shops/${id}/photo/1`,
         }}
       />
     );
