@@ -300,11 +300,10 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       if (await failed.isVisible()) throw new Error(`snap your counter failed: ${await failed.innerText()}`);
       await imagesLoaded('[data-proposal] img');
       await hold(2500); // Claude's crops, one per item it found
-      // Use on each proposal for an item with no photo (one that has a photo says Replace, and is left as it is).
-      const use = sheet.getByRole('button', { name: /^Use: / });
-      for (let guard = 0; (await use.count()) > 0 && guard < 8; guard++) {
-        const b = use.first();
-        const name = ((await b.getAttribute('aria-label')) ?? '').replace(/^Use: /, '');
+      // Use on the croissants' proposals only (they have no photo now); any other item Claude finds is left as it is.
+      for (const name of COUNTER_ITEMS) {
+        const b = sheet.getByRole('button', { name: `Use: ${name}`, exact: true });
+        if (!(await b.count())) continue;
         await press(b, 600);
         await sheet.locator(`[data-proposal="${name}"]`).getByText('Added').waitFor({ timeout: 30_000 });
         await hold(1000);
@@ -322,6 +321,10 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
     say(`  snap your counter: photos now on ${kept.join(', ') || 'neither croissant'}`);
   } finally {
     await stage.close();
+    // Not recorded: the demo shop gets its bundled photos back, whether the take worked or not. The crops are seller
+    // uploads (/i/), which the seed never replaces, so without this they (or no photo) would stay on the shop.
+    console.log('  resetting the demo shop after 03b (npm run seed -- --reset)…');
+    await resetDemoShop(app, LOGINS);
   }
 }
 
