@@ -38,6 +38,13 @@ Used as the display-case photo for "Snap your counter" in the demo clip and the 
 
 - Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
+## UI components and motion (run 3)
+
+- **shadcn/ui** (https://ui.shadcn.com, MIT): the component base. Its pattern (`components.json`, `cva` variants, `cn()`) is used, and the primitives in `src/components/ui/` are our own, written onto that pattern in the Storefront tokens. Built with `class-variance-authority` (Apache-2.0), `clsx` (MIT) and `tailwind-merge` (MIT).
+- **motion** (https://motion.dev, formerly Framer Motion, MIT): all animation, through `src/components/motion/`.
+- **lucide-react** (ISC): icons.
+- **Skiper UI** (https://skiper-ui.com): **ideas only; no code, markup, styles or assets copied.** Its free tier names no licence and its terms forbid redistribution (DECISIONS, run 3, session 1). The kinds of interaction we looked at there and then wrote from scratch in our own tokens: a number that rolls to its new value (`CountUp`), a shimmer sweep on loading text and skeletons, a card that lifts on hover and presses on tap (`Pressable`), and a list that rises in one item after another (`Stagger`).
+
 ## Demo video
 
 - **Voice-over:** synthesised locally on the CPU with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (`hexgrad/Kokoro-82M`, open weights under the **Apache License 2.0**), through the `kokoro` Python package 0.9.4 (Apache-2.0) and its `misaki` grapheme-to-phoneme library. Voice **`af_heart`** (American English, female; graded A, the highest grade, in the model's `VOICES.md`). No cloud text-to-speech service, no voice cloning, no real person's voice. Script: `video/voice/kokoro_tts.py`; output: `video/project/audio/`.
