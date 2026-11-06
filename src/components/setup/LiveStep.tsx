@@ -42,6 +42,7 @@ function LiveBeat({ delay = 0, className, children }: { delay?: number; classNam
   const [initial] = useState(clientMount ? { opacity: 0, scale: 0.86 } : false);
   return (
     <m.div
+      data-entrance=""
       className={className}
       initial={initial}
       animate={{ opacity: 1, scale: 1 }}

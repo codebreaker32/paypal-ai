@@ -130,7 +130,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 
 ## Motion (`src/components/motion`)
 
-`MotionProvider` (root layout) is `LazyMotion` (`domAnimation`, loaded by a dynamic import after first paint, retried once; if both tries fail, `<html data-motion-off>` makes everything the primitives were hiding visible) in `strict` mode, plus `MotionConfig reducedMotion="user"`. Inside it, use `m.div` from `motion/react`, never `motion.div` (strict mode throws). Server HTML is never hidden: content visible at hydration stays put; only content below the fold, or mounted later on the client, plays an entrance.
+`MotionProvider` (root layout) is `LazyMotion` (`domAnimation`, loaded by a dynamic import after first paint, retried once; if both tries fail, `<html data-motion-off>` makes everything the primitives were hiding visible, and any other `m.*` with an entrance carries `data-entrance` so it shows too) in `strict` mode, plus `MotionConfig reducedMotion="user"`. Inside it, use `m.div` from `motion/react`, never `motion.div` (strict mode throws). Server HTML is never hidden: content visible at hydration stays put; only content below the fold, or mounted later on the client, plays an entrance.
 
 | Component | Props | Does |
 |---|---|---|

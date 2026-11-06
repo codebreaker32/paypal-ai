@@ -394,6 +394,7 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
           return (
             <m.div
               key={entry.key}
+              data-entrance=""
               initial={fresh ? { opacity: 0, y: 8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: MOTION_S.base, ease: EASE_OUT }}

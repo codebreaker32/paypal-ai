@@ -43,6 +43,7 @@ function SwapItem({ instant, children, ref }: SwapItemProps) {
     <m.span
       ref={ref}
       aria-hidden={present ? undefined : true}
+      data-entrance=""
       className="inline-flex"
       initial={instant ? false : { opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
