@@ -139,8 +139,33 @@ test.describe('dashboard', () => {
     const row = group(page, /To prepare/).locator(`[data-order="${waiting.number}"]`);
     await expect(row).toHaveAttribute('data-just-paid', 'true');
     await expect(page.getByText(`New paid order ${already.number}`)).toHaveCount(0);
+    // On a wide screen the title ("New paid order SHF-… · $5.50") stays on one line.
+    expect((await toast.locator('p').first().boundingBox())!.height).toBeLessThan(30);
     // The glow is gone after its 2.4 s fade.
     await expect(row).not.toHaveAttribute('data-just-paid', /.*/, { timeout: 5_000 });
+  });
+
+  test('on a phone, the toast never covers the row it announces', async ({ page, context }) => {
+    await page.setViewportSize({ width: 390, height: 640 });
+    const shop = createFixtureShop('Toast Clear Bakery');
+    addFixtureOrder(shop, { status: 'paid', fulfillment: 'pickup', minutesAgo: 5, buyerName: 'Ana', lines: [['Butter croissant', 1]] });
+    const waiting = addFixtureOrder(shop, { status: 'awaiting_approval', fulfillment: 'pickup', minutesAgo: 1, buyerName: 'Lee', lines: [['Butter croissant', 2]] });
+    await signInAsOwner(context, shop, BASE);
+    await page.goto(dashboard(shop));
+    await expect(page.locator(`[data-order="${waiting.number}"]`)).toBeAttached();
+
+    ordersRepo.casStatus(getDb(), waiting.id, 'awaiting_approval', 'paid');
+    ordersRepo.update(getDb(), waiting.id, { paidAt: new Date().toISOString(), captureId: 'E2ECLEARCAP001', payerName: 'Lee Ames', payerEmail: 'lee@example.com' });
+
+    await expect(page.getByText(`New paid order ${waiting.number}`)).toBeVisible({ timeout: 12_000 });
+    const row = group(page, /To prepare/).locator(`[data-order="${waiting.number}"]`);
+    await expect
+      .poll(async () => {
+        const r = await row.boundingBox();
+        const t = await page.locator('[data-toast-region]').boundingBox();
+        return Boolean(r && t && r.y >= 0 && r.y + r.height <= t.y);
+      })
+      .toBe(true);
   });
 
   test('an empty filter says so in one line', async ({ page, context }) => {
