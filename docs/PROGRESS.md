@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 18:02 IST (run 2, session 7)_
+_Last updated: 2026-11-06 18:38 IST (run 2, session 7)_
 
 ## Current phase
 **Run 2, session 7 (from 17:35 IST).**
@@ -8,7 +8,11 @@ _Last updated: 2026-11-06 18:02 IST (run 2, session 7)_
 - **done: round-7 fix 1's change of approach:** "Needs from human" is one ~20-minute checklist with exact commands.
 - **done: round-7 fix 3:** about half the grey lines are gone from setup review, the live step and the Share tab (which stay, and why: DECISIONS); the README opens with 4 screenshots (`docs/images/`); screenshot entries for the counter sheet's reading, none-found and error states and one live Claude answer.
 - **done, verified: the demo clips (item 7) on the new UI.** 12 clips, 1920x1080 at a constant 30 fps, 0 duplicated and 0 dropped frames, every clip's frames viewed by the worker and spot-checked by the coordinator (03b, 03, 08): the new UI, the seller email typed as dots, the payee masked, no owner token or key. New: `03b-snap-counter` (a live Claude call found both croissants in about 3.5 s; Use on each). This take: Claude Code placed SHF-JH58AZ in 28.4 s; the console order SHF-RU3CTH → PayPal `59S52578CM472772V` → capture `66272875295764339` ($27.00), the brief flagged the allergy, and the console read back USPS tracking. `video/architecture.html` is restyled to Storefront. The MP4s are in `video/clips/` (gitignored); `video/clips/README.md` lists them.
-- **done:** a `code-review` (medium) of the session's diff found 9 items (fixes below).
+- **done:** a `code-review` (medium) of the session's diff found 9 items: 7 fixed, 1 refuted (clip 08's framing), 1 kept (DECISIONS). The 03b reset is committed but not re-run (DECISIONS).
+- **Verified: the full e2e suite on main `3120886` (17:58–18:09 IST): 173 passed, 3 skipped, 0 failed** (`docs/judge/round-8-tests.txt`), with `SHELFIE_SCREENSHOTS=1`, so `docs/judge/screenshots/capture/` is re-shot in the Storefront design (round-7 fix 2). Seller payout: SHF-PXUQHF → PayPal `5BS40454W45644825` → capture `9RX261380T155022Y` COMPLETED ($27.00), payee = the US sandbox seller, PayPal wallet login; brief flagged the allergy; tracking saved in Shelfie and read back. Demo shop: SHF-S6EX9E → PayPal `1KY14200PH607015N` → capture `1TK16972JJ957364J` COMPLETED, guest card, USPS tracker SHIPPED at PayPal.
+- **done: `docs/judge/screenshots/round-8/`**: 96 screens on a production build, **0 axe violations**, including Snap your counter's reading, none-found, error and live (real Claude) states.
+- **done, verified (TDD): a photo picked before the page hydrates is no longer lost** (item, cover, Snap your counter). Found by the round-8 screenshot run; `e2e/menu-tab.spec.ts` 6/6 and `e2e/setup-review.spec.ts` 8/8 on `306dab8`.
+- **Running: judge round 8** on the round-8 screenshots, the capture re-shoot and the clips.
 - **Unit test count:** `npm test` runs **942** tests in 76 files (no network); `npx vitest run` adds the 15 sandbox and live-Claude tests (**957**). Both pass on `c7a7593`.
 - **done:** secret scan of the entire git history (17:45 IST): gitleaks `gitleaks git . --log-opts=--all`, 393 commits, **no leaks found**; every `.env` value (9): 0 hits in `git log --all -p` (5.9 MB) and in 1,144 tracked files.
 
