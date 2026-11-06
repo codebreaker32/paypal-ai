@@ -9,6 +9,7 @@ import { cx } from '@/components/ui/cx';
 import type { ShopFulfillment } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { parseFeeInput, priceInputValue } from '@/lib/catalog/rules';
+import { parsePayeeEmail } from '@/lib/domain/payee';
 import type { ShopPatch } from './api';
 import { PriceInput } from './PriceInput';
 
@@ -18,8 +19,25 @@ const OPTIONS: { value: ShopFulfillment; label: string; hint: string; icon: Luci
   { value: 'both', label: 'Both', hint: 'They choose', icon: Package },
 ];
 
-/** Name, about, pickup notes and how orders reach people. Every valid change autosaves. */
-export function ShopDetails({ shop, onChange }: { shop: ReviewShop; onChange: (p: ShopPatch) => void }) {
+/** The wrapper of the PayPal email field: the publish bar's "Add your PayPal email" focuses the field inside it. */
+export const PAYEE_FIELD_ID = 'payee-email';
+
+/**
+ * Name, about, pickup notes, how orders reach people and where the money goes. Every valid change autosaves.
+ * `onPayeeChange` hears whether the PayPal email field holds a valid email right now (publishing needs one).
+ */
+export function ShopDetails({
+  shop,
+  onChange,
+  onPayeeChange,
+}: {
+  shop: ReviewShop;
+  onChange: (p: ShopPatch) => void;
+  onPayeeChange?: (valid: boolean) => void;
+}) {
+  const [payee, setPayee] = useState(shop.payeeEmail ?? '');
+  const [payeeTouched, setPayeeTouched] = useState(false);
+  const payeeParsed = parsePayeeEmail(payee);
   const [name, setName] = useState(shop.name);
   const [about, setAbout] = useState(shop.about);
   const [pickupNotes, setPickupNotes] = useState(shop.pickupNotes);
@@ -136,6 +154,38 @@ export function ShopDetails({ shop, onChange }: { shop: ReviewShop; onChange: (p
           className="w-56"
         />
       )}
+
+      {/* Where the money goes (spec §8a): each shop is paid into its seller's own PayPal account. */}
+      <div id={PAYEE_FIELD_ID} className="rule-dashed flex scroll-mt-24 flex-col gap-3 pt-5">
+        <Field
+          label="Your PayPal email"
+          required
+          hint="Buyers pay straight into this PayPal account. Use the email you log in to PayPal with."
+          error={payeeTouched && !payeeParsed.ok ? payeeParsed.message : undefined}
+        >
+          {(c) => (
+            <TextInput
+              {...c}
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={254}
+              placeholder="rosa@example.com"
+              value={payee}
+              onChange={(e) => {
+                const v = e.currentTarget.value;
+                setPayee(v);
+                const p = parsePayeeEmail(v);
+                onPayeeChange?.(p.ok);
+                if (p.ok) onChange({ payeeEmail: p.email });
+              }}
+              onBlur={() => setPayeeTouched(true)}
+            />
+          )}
+        </Field>
+      </div>
     </Card>
   );
 }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleCheck, CirclePause, ExternalLink, PencilLine } from 'lucide-react';
+import { CircleCheck, CirclePause, ExternalLink, PencilLine, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { FieldError } from '@/components/ui/Field';
@@ -15,13 +15,15 @@ import { mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
 import { MenuPanel } from './MenuPanel';
 import { OrdersPanel } from './OrdersPanel';
+import { SettingsPanel } from './SettingsPanel';
 import { SharePanel } from './SharePanel';
 import { Switch } from './Switch';
 
-export type DashboardTab = 'orders' | 'menu' | 'share';
+export type DashboardTab = 'orders' | 'menu' | 'share' | 'settings';
 
 export interface DashboardProps {
-  shop: { id: string; name: string; slug: string; status: ShopStatus };
+  /** `payeeEmail`: where buyers' money goes (owner only); `isDemo`: Shelfie's demo shop, which may have none. */
+  shop: { id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
   initialPaypalReachable: boolean;
@@ -29,7 +31,9 @@ export interface DashboardProps {
   initialTab: DashboardTab;
 }
 
-function ShopStatusBadge({ status }: { status: ShopStatus }) {
+function ShopStatusBadge({ status, payeeMissing }: { status: ShopStatus; payeeMissing: boolean }) {
+  // A shop live from before payees existed takes no orders until it says where to be paid (spec §8a).
+  if (status !== 'draft' && payeeMissing) return <Badge tone="warn" icon={TriangleAlert}>Not taking orders: add your PayPal email</Badge>;
   if (status === 'live') return <Badge tone="ok" icon={CircleCheck}>Live, taking orders</Badge>;
   if (status === 'paused') return <Badge tone="warn" icon={CirclePause}>Agent orders paused</Badge>;
   return <Badge icon={PencilLine}>Not published yet</Badge>;
@@ -42,6 +46,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const [items, setItems] = useState(initialItems);
   const [paypalReachable, setPaypalReachable] = useState(initialPaypalReachable);
   const [status, setStatus] = useState<ShopStatus>(shop.status);
+  const [payeeEmail, setPayeeEmail] = useState(shop.payeeEmail);
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
@@ -139,7 +144,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         <div className="flex flex-col gap-2">
           <h1 className="type-display">{shop.name}</h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <ShopStatusBadge status={status} />
+            <ShopStatusBadge status={status} payeeMissing={payeeEmail === null && !shop.isDemo} />
             {status !== 'draft' ? (
               <Link
                 href={`/s/${shop.slug}`}
@@ -211,6 +216,11 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             id: 'share',
             label: 'Share',
             content: <SharePanel shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} />,
+          },
+          {
+            id: 'settings',
+            label: 'Settings',
+            content: <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />,
           },
         ]}
       />

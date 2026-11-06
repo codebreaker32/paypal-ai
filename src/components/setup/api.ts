@@ -78,6 +78,8 @@ export interface ShopPatch {
   pickupNotes?: string;
   fulfillment?: ShopFulfillment;
   shippingFeeCents?: number;
+  /** Already checked with parsePayeeEmail (the server checks again). */
+  payeeEmail?: string;
 }
 
 export async function patchShop(shopId: string, patch: ShopPatch): Promise<void> {

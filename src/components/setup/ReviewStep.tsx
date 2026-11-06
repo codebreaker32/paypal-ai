@@ -16,7 +16,7 @@ import { IssueCard, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
 import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
-import { ShopDetails } from './ShopDetails';
+import { PAYEE_FIELD_ID, ShopDetails } from './ShopDetails';
 import { StepHeader } from './StepHeader';
 import { applyLocal, cardId, flaggedCards, openSkipped } from './review-model';
 import { useAutosave, type SaveState } from './useAutosave';
@@ -33,6 +33,8 @@ export interface ReviewProps {
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+const PAYEE_REASON = 'Add your PayPal email to publish.';
 
 function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   if (state.status === 'error') {
@@ -66,9 +68,12 @@ export function ReviewStep(props: ReviewProps) {
   // details, and remount the cards and lists (keyed by `synced`) so their fields show what was saved.
   const [server, setServer] = useState({ items: props.items, shop: props.shop });
   const [synced, setSynced] = useState(0);
+  // Whether the PayPal email field holds a valid email: publishing needs one (spec §8a).
+  const [payeeReady, setPayeeReady] = useState(props.shop.payeeEmail !== null);
   if (server.items !== props.items || server.shop !== props.shop) {
     setServer({ items: props.items, shop: props.shop });
     setItems(props.items);
+    setPayeeReady(props.shop.payeeEmail !== null);
     setSynced((n) => n + 1);
   }
   const [skipped] = useState(props.skipped);
@@ -204,12 +209,20 @@ export function ReviewStep(props: ReviewProps) {
   }
 
   // ───────────── Review (step 2) ─────────────
-  const disabledReason =
-    toPublish === 0 && !finishOnly
-      ? needYou > 0
-        ? 'Fix an item above, or give one a price, to publish.'
-        : 'Give at least one item a price to publish.'
+  const nothingToPublish = toPublish === 0 && !finishOnly;
+  const disabledReason = nothingToPublish
+    ? needYou > 0
+      ? 'Fix an item above, or give one a price, to publish.'
+      : 'Give at least one item a price to publish.'
+    : !payeeReady
+      ? PAYEE_REASON
       : null;
+  // The PayPal email sits at the end of the shop details: the reason takes the seller straight to it.
+  const goToPayee = () => {
+    const field = document.getElementById(PAYEE_FIELD_ID);
+    field?.scrollIntoView({ block: 'center' });
+    field?.querySelector('input')?.focus({ preventScroll: true });
+  };
 
   return (
     <div className="flex w-full flex-1 flex-col">
@@ -326,7 +339,7 @@ export function ReviewStep(props: ReviewProps) {
             )}
           </div>
 
-          <ShopDetails shop={server.shop} onChange={autosave.queueShop} />
+          <ShopDetails shop={server.shop} onChange={autosave.queueShop} onPayeeChange={setPayeeReady} />
         </div>
 
         <aside aria-label="Your menu photo" className="hidden lg:col-span-5 lg:block">
@@ -347,7 +360,19 @@ export function ReviewStep(props: ReviewProps) {
             <SaveStatus state={autosave.state} onRetry={() => void autosave.flush().catch(() => {})} />
             {(disabledReason || publishError) && (
               <span id="publish-reason" className="text-sm text-ink-soft">
-                {publishError ? <FieldError>{publishError}</FieldError> : disabledReason}
+                {publishError ? (
+                  <FieldError>{publishError}</FieldError>
+                ) : disabledReason === PAYEE_REASON ? (
+                  <button
+                    type="button"
+                    onClick={goToPayee}
+                    className="text-left font-medium text-ink underline decoration-accent decoration-2 underline-offset-4 hover:decoration-ink"
+                  >
+                    {PAYEE_REASON}
+                  </button>
+                ) : (
+                  disabledReason
+                )}
               </span>
             )}
             {finishOnly && !publishError && (
@@ -365,7 +390,7 @@ export function ReviewStep(props: ReviewProps) {
             size="lg"
             icon={Send}
             onClick={() => void doPublish()}
-            disabled={toPublish === 0 && !finishOnly}
+            disabled={nothingToPublish || !payeeReady}
             aria-describedby={disabledReason || publishError ? 'publish-reason' : undefined}
             className="sm:order-2"
           >

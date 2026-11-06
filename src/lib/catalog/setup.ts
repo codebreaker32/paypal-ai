@@ -206,6 +206,8 @@ export interface ReviewShop {
   fulfillment: Shop['fulfillment'];
   shippingFeeCents: number;
   kind: Shop['kind'];
+  /** The seller's PayPal email (where buyers' money goes); publishing needs it (spec §8a). */
+  payeeEmail: string | null;
 }
 
 interface Base {
@@ -263,7 +265,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     step: 'review',
     shop: {
       id: shop.id, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
-      fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind,
+      fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind, payeeEmail: shop.payeeEmail,
     },
     items: listed,
     skipped: last.skipped,

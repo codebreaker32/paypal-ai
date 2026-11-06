@@ -37,7 +37,11 @@ export const addTracking = (shopId: string, orderId: string, input: { carrier: s
 export const setShopStatus = (shopId: string, status: 'live' | 'paused') =>
   call<{ shop: Shop }>(`/api/shops/${shopId}`, { method: 'PATCH', body: JSON.stringify({ status }) });
 
-export const setSoldOut = (shopId: string, itemId: string, soldOut: boolean) =>
+/** The seller's PayPal email (null: only the demo shop, which is then paid to Shelfie's demo account). */
+export const setPayeeEmail = (shopId: string, payeeEmail: string | null) =>
+  call<{ shop: Shop }>(`/api/shops/${shopId}`, { method: 'PATCH', body: JSON.stringify({ payeeEmail }) });
+
+export const setSoldOut =(shopId: string, itemId: string, soldOut: boolean) =>
   call<{ items: ItemWithVariants[] }>(`/api/shops/${shopId}/items`, {
     method: 'PATCH',
     body: JSON.stringify({ updates: [{ itemId, soldOut }] }),
