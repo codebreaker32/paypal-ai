@@ -1,10 +1,17 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { formatUSD } from '@/lib/domain/money';
 import { cn } from '@/lib/utils';
-import { COUNT_UP_MS, stepCents } from './count-up-step';
+import { finishCount, startCount, type FrameClock } from './count-up-step';
+import { useIsoLayoutEffect } from './use-iso-layout-effect';
+
+const browserClock: FrameClock = {
+  now: () => performance.now(),
+  request: (cb) => requestAnimationFrame(cb),
+  cancel: (id) => cancelAnimationFrame(id),
+};
 
 export interface CountUpProps {
   /** The amount to show, in integer cents. */
@@ -27,37 +34,27 @@ export function CountUp({ cents, format = formatUSD, className }: CountUpProps) 
   const shownRef = useRef(cents);
   const formatRef = useRef(format);
 
-  useEffect(() => {
+  useIsoLayoutEffect(() => {
     formatRef.current = format;
   }, [format]);
 
-  useEffect(() => {
+  // A layout effect, not a passive one: React commits the new total into the final span, and this hides it and puts the
+  // old value in the overlay before the browser paints. With useEffect, an update that isn't user input (a poll) could
+  // paint the new total for a frame, then jump back to the old one and count.
+  useIsoLayoutEffect(() => {
     const finalEl = finalRef.current;
     const tweenEl = tweenRef.current;
     if (!finalEl || !tweenEl) return;
+    const targets = { final: finalEl, tween: tweenEl };
     const from = shownRef.current;
-    const finish = () => {
-      shownRef.current = cents;
-      tweenEl.textContent = '';
-      finalEl.style.opacity = '';
-    };
     if (from === cents || reduce) {
-      finish();
+      shownRef.current = cents;
+      finishCount(targets);
       return;
     }
-    let frame = 0;
-    const start = performance.now();
-    finalEl.style.opacity = '0';
-    const tick = (now: number) => {
-      const progress = (now - start) / COUNT_UP_MS;
-      const value = stepCents(from, cents, progress);
+    return startCount(targets, from, cents, (c) => formatRef.current(c), browserClock, (value) => {
       shownRef.current = value;
-      tweenEl.textContent = formatRef.current(value);
-      if (progress < 1) frame = requestAnimationFrame(tick);
-      else finish();
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
+    });
   }, [cents, reduce]);
 
   return (
