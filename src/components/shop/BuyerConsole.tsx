@@ -23,6 +23,7 @@ import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
 import {
   approvalCard,
+  CONFIRM_POLL_FOR_MS,
   CONFIRM_POLL_MS,
   confirmingWithPayPal,
   consoleReducer,
@@ -109,7 +110,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
 
   // A card saying "Confirming with PayPal" keeps its order's refs unchanged, so re-read on a timer until none does.
   const confirming = confirmingWithPayPal(state);
-  useEffect(() => (confirming ? pollEvery(CONFIRM_POLL_MS, checkOrders) : undefined), [confirming, checkOrders]);
+  useEffect(() => (confirming ? pollEvery(CONFIRM_POLL_MS, checkOrders, CONFIRM_POLL_FOR_MS) : undefined), [confirming, checkOrders]);
 
   // Back from PayPal with the browser's Back button (bfcache), or back to this tab.
   useEffect(() => {

@@ -182,6 +182,8 @@ export function refsToCheck(state: ConsoleState): string[] {
 
 /** How often the console re-reads its orders while a card says "Confirming with PayPal" (the receipt's pace). */
 export const CONFIRM_POLL_MS = 3000;
+/** How long the console keeps re-reading on its own; after that, showing the page again re-checks. */
+export const CONFIRM_POLL_FOR_MS = 2 * 60_000;
 
 /** True while some approval card says "Confirming with PayPal": the poller or webhook may finish it any moment. */
 export function confirmingWithPayPal(state: ConsoleState): boolean {
@@ -192,13 +194,18 @@ export function confirmingWithPayPal(state: ConsoleState): boolean {
   });
 }
 
-/** Runs `check` every `ms`, each wait starting once the previous check is done. Returns a function that stops it. */
-export function pollEvery(ms: number, check: () => Promise<void>): () => void {
+/**
+ * Runs `check` every `ms`, each wait starting once the previous check is done, for at most `forMs` (Infinity by
+ * default). Returns a function that stops it.
+ */
+export function pollEvery(ms: number, check: () => Promise<void>, forMs = Infinity): () => void {
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let left = Math.floor(forMs / ms);
   const tick = async () => {
+    left--;
     await check();
-    if (!stopped) timer = setTimeout(tick, ms);
+    if (!stopped && left > 0) timer = setTimeout(tick, ms);
   };
   timer = setTimeout(tick, ms);
   return () => {

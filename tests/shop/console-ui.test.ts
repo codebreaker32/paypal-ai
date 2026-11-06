@@ -5,6 +5,7 @@ import type { ItemWithVariants } from '@/lib/domain/types';
 import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/components/shop/activity-format';
 import {
   approvalCard,
+  CONFIRM_POLL_FOR_MS,
   CONFIRM_POLL_MS,
   confirmingWithPayPal,
   consoleReducer,
@@ -266,6 +267,16 @@ describe('cards confirming with PayPal', () => {
     stop();
     await vi.advanceTimersByTimeAsync(30_000);
     expect(checks).toBe(2);
+  });
+  it('stop on their own after 2 minutes (a payment PayPal holds as pending can take days)', async () => {
+    vi.useFakeTimers();
+    expect(CONFIRM_POLL_FOR_MS).toBe(120_000);
+    let checks = 0;
+    pollEvery(CONFIRM_POLL_MS, async () => {
+      checks++;
+    }, CONFIRM_POLL_FOR_MS);
+    await vi.advanceTimersByTimeAsync(10 * 60_000);
+    expect(checks).toBe(40);
   });
 });
 
