@@ -1,19 +1,27 @@
 # Progress
 
-_Last updated: 2026-11-06 06:08 IST (session 4)_
+_Last updated: 2026-11-06 06:40 IST (session 4)_
 
 ## Current phase
-**Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main so far:
-- **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both; A wins on "this is my shop" and video moments).
-- **Round-1 fix 1a:** plain seller copy on the review cards. Fixed sentences replace model notes, method-talk notes are filtered out, and the samples were re-recorded with the real model.
-- **Round-1 fix 2 (the allowed parts):** `render.yaml` (validated against Render's schema), `GET /api/health`, the `RENDER_EXTERNAL_URL` fallback and a README deploy section (not yet run). Also an outside MCP client: the **Claude Code CLI ordered through the agent door** and got a real PayPal approval link (`docs/judge/evidence/outside-client-claude-code.md`).
+**Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
+- **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
+  - the order number never splits;
+  - the live-step gutter is fixed;
+  - the console scroll keeps the latest turn's Activity card in view;
+  - the dashboard shows group subtotals;
+  - phone slips show the total next to the order number;
+  - order detail has a Total block;
+  - the review list uses menu rows;
+  - the publish bar shows refused items apart.
+- **Round-1 fix 1a:** plain seller copy on the review cards (fixed sentences, notes with method talk filtered out, samples re-recorded with the real model).
+- **Round-1 fix 2 (the parts allowed in this run):**
+  - `render.yaml` (validated against Render's schema), `GET /api/health`, the `RENDER_EXTERNAL_URL` fallback, and a README deploy section (not yet run);
+  - **the Claude Code CLI ordered through the agent door** as an outside MCP client and got a real PayPal approval link (`docs/judge/evidence/outside-client-claude-code.md`).
+- **8 more async states screenshotted:** publishing, retry, console thinking / rate-limited / error, brief writing, tracking error, PayPal unreachable.
+- **Milestone code review** (25c80c2..885caa3): 7 findings, all fixed.
 - **EVIDENCE 5b:** 3 verified seller voices.
 
-**Running:**
-- a polish worker on direction A (the judge's 3 layout fixes and 4 take-from-B items);
-- a worker adding the 9 missing async states to the screenshot spec.
-
-**Then:** regenerate the full screenshot set into `docs/judge/screenshots/round-2/`, and run judge round 2.
+**Running:** the full screenshot set for judge round 2 (`docs/judge/screenshots/round-2/`, production server). Then judge round 2.
 
 **Session 3 (04:55–05:24 IST):** judge round 1 scored Part A 21, Part B 21, with 1 Part C fail (raw AI notes on the review card). Verdict: **fix**. Session 3 then started the five workers above.
 
@@ -38,6 +46,8 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- **Outside MCP client (session 4):** the Claude Code CLI (2.1.318, headless, `--mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config`), with only the shop's agent door loaded, called `get_shop_info` → `list_products` → `create_order`. That produced order SHF-A8PD7A, PayPal order `3RG62077NC717421B` (`PAYER_ACTION_REQUIRED`, $8.50) and a real approval link. The dashboard shows it "via Claude Code". It ran on localhost, not a deployed URL.
+- **Re-recorded samples (session 4):** all three sample readings were recorded again with real `claude-sonnet-5-5` and the owner-facing prompt. Item names and prices are identical, and Marigold still shows 10 items, 4 needing the seller.
 - **Capture gate re-run on main after the Task 11 fixes (session 3, ~05:10 IST), passed in 3.5 min:** order `SHF-7D5KQN` → PayPal order `18424242KV221112J` → capture `7L534834RM8417808` COMPLETED ($27.00). The Claude brief flagged the nut allergy against the almond croissants. USPS tracker `9400111179392174599760` SHIPPED at PayPal, and `get_order_status` read it back.
 - **Capture gate, end to end on the real sandbox (`e2e/capture.spec.ts`, passed twice in a row):** a new shop from the sample photo read live by Claude → published to the PayPal Catalog → an MCP client over HTTP calls `get_shop_info` → `list_products` → `create_order` (shipped, nut-allergy note) → PayPal guest card checkout → our return URL captures → receipt **Paid** → the stored capture id matches PayPal's own order record (COMPLETED) → the order brief is written by the Claude agent → USPS tracking from the order page exists at PayPal (SHIPPED) → `get_order_status` returns the tracking number. Example run: order `9SS11373NT603413P`, capture `3K941065XR757601S`.
 - `npm run test:sandbox` (PayPal client): product create, order create → PAYER_ACTION_REQUIRED + approval link, same request id → same order, capture before approval → ORDER_NOT_APPROVED, Agent Toolkit `get_order` on a real order, toolkit error for a non-existent order (5/5).
@@ -48,7 +58,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - **Approval + capture on the real sandbox (session 2 spike):** order `3K582170DV477391D` built with the app's `createPayPalClient` + `buildOrderBody` (shipping order, $18.25), approved on PayPal's approval page via guest card checkout (country US, PayPal sandbox test Visa `4012000033330026`), then `captureOrder` → order COMPLETED, capture `9BV852348L665241F` COMPLETED.
 - **Full paid path through the app (session 2, Task 7 fix round):** buyer console order over the real MCP door → PayPal guest card checkout → our return URL → capture → receipt **Paid** → the console card switches to "Paid · View receipt".
 - **Photo → live shop, measured (Task 9c):** 6 real runs (3 sample photos × 2) uploading the photo, real Claude reading, real PayPal Catalog publish: 8–14 s machine time (reading 6.5–9.4 s, publish 1.5–3.7 s). Table in `docs/EVIDENCE.md`.
-- Unit tests: 518 pass on main; typecheck and lint clean. Full e2e suite (minus the capture gate): 103 passed, 1 skipped (Task 9b run). `e2e/flow.spec.ts` covers sample menu → review → publish → shop → console order → approval link, with real Claude and the real sandbox.
+- Unit tests: 573 pass on main (session 4); typecheck and lint clean. Full e2e suite (minus the capture gate): 103 passed, 1 skipped (Task 9b run). `e2e/flow.spec.ts` covers sample menu → review → publish → shop → console order → approval link, with real Claude and the real sandbox.
 - `npm run seed` on a fresh DB publishes the Marigold Bakehouse demo shop (9 real sandbox products) at the reserved slug `marigold-bakehouse`; a second run changes nothing.
 - Round-1 screenshots: 50 screens (390 and 1440 px), axe WCAG 2.1 A/AA, 0 violations (`docs/judge/screenshots/round-1/axe-results.json`).
 - Task 7 (session 2, real sandbox): the buyer console ordered from a live shop over the real MCP door and got a real PayPal approval link ($27.00); PayPal's own "Cancel and return" link landed on our cancelled receipt.
@@ -57,6 +67,8 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 ## Unverified
 - Paying with a PayPal wallet login: the sandbox merchant and the `.env` buyer are both India accounts, and PayPal blocks IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
 - Webhooks (no public URL on the VM).
+- The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
+- The dashboard loading skeleton has no screenshot.
 
 ## Next steps
 1. Push to GitHub (see Needs from human). Then run judge round 1 on main with `docs/judge/screenshots/round-1/` and the test output.
