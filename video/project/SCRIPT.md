@@ -92,7 +92,7 @@ On-screen text: "47% of US accommodation and food-service employer firms reporte
 
 ### dashboard (14.37 s voice, 15.82 s scene)
 
-**Screen:** Clip 08: the dashboard's Orders tab, To prepare, the new order paid with its AI brief and the nut-allergy warning; the order page with Paid to (masked), the PayPal order and transaction ids, the timeline.
+**Screen:** Clip 08: the dashboard the seller left open while the buyer paid: the toast New paid order and the row's glow as the order lands in To prepare, with its AI brief and the nut-allergy warning; the order page with the AI brief by Claude, Paid to (masked), the PayPal order and transaction ids, the timeline.
 
 > Rosa's dashboard shows the order as paid. A Claude agent reads PayPal's record of the order through the PayPal Agent Toolkit, and writes her a brief. It catches the nut allergy, so she can check with the buyer before shipping.
 
