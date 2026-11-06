@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { CircleCheck, Info, TriangleAlert, Wallet } from 'lucide-react';
+import { CircleCheck, Info, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Field, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { useToast } from '@/components/ui/Toast';
@@ -59,34 +58,26 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
   };
 
   return (
-    <Card as="section" aria-labelledby="settings-paid-title" padding="lg" className="flex max-w-measure flex-col gap-5">
-      <div className="flex items-start gap-3">
-        <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-soft">
-          <Icon icon={Wallet} />
-        </span>
-        <div className="flex flex-col gap-1">
-          <h2 id="settings-paid-title" className="type-heading">
-            Where you get paid
-          </h2>
-          <p className="text-ink-soft">
-            Buyers pay straight into the PayPal account with this email. Orders already sent to PayPal keep the email they were made with.
-          </p>
-        </div>
+    <section aria-labelledby="settings-paid-title" className="flex max-w-measure flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <h2 id="settings-paid-title" className="type-title">
+          Where you get paid
+        </h2>
+        <p className="text-ink-soft">Buyers pay straight into the PayPal account with this email.</p>
       </div>
 
       {!isDemo && saved === null && (
-        <p className="flex items-start gap-2 rounded-md bg-warn-soft px-3.5 py-3 text-sm text-warn">
+        <p className="flex items-start gap-2 rounded-(--card-radius) bg-warn-soft px-4 py-3 text-sm font-medium text-warn">
           <Icon icon={TriangleAlert} size="sm" className="mt-0.5" />
           <span>Your shop can’t take orders until you add your PayPal email.</span>
         </p>
       )}
 
       {isDemo && saved === null && (
-        <p className="flex items-start gap-2 rounded-md bg-info-soft px-3.5 py-3 text-sm text-info" data-testid="demo-payee-note">
+        <p className="flex items-start gap-2 rounded-(--card-radius) bg-info-soft px-4 py-3 text-sm text-info" data-testid="demo-payee-note">
           <Icon icon={Info} size="sm" className="mt-0.5" />
           <span>
-            This is Shelfie’s demo shop, so with no email here its orders are paid to Shelfie’s own demo PayPal account. Add an email to
-            have them paid to that account instead.
+            Shelfie’s demo shop: with no email, its orders are paid to Shelfie’s demo PayPal account. Add one to be paid there instead.
           </span>
         </p>
       )}
@@ -132,6 +123,6 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
           </p>
         </div>
       </form>
-    </Card>
+    </section>
   );
 }
