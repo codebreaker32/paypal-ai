@@ -1,7 +1,7 @@
 import { unstable_rethrow } from 'next/navigation';
 import { LayoutDashboard } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
+import { monogram } from '@/components/shop/ItemPhoto';
 import { listOwnedShops } from '@/lib/auth/owner';
 import { StorePreview } from './_start/StorePreview';
 import { StartActions } from './_start/StartActions';
@@ -25,21 +25,27 @@ async function getReturningShops(): Promise<ReturningShop[]> {
 
 function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
   return (
-    <Card as="section" aria-labelledby="welcome-back" className="mb-8 flex flex-col gap-3">
-      <h2 id="welcome-back" className="type-label">
+    // A quiet row above the headline, divided off by a rule: the shop's mark, its name, and the way back in. No box.
+    <section aria-labelledby="welcome-back" className="mb-8 flex flex-col gap-3 border-b border-line pb-5">
+      <h2 id="welcome-back" className="type-label text-ink-muted">
         Welcome back
       </h2>
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-3">
         {shops.slice(0, 3).map((shop) => (
           <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span className="font-semibold">{shop.name}</span>
+            <span className="flex min-w-0 items-center gap-3">
+              <span aria-hidden="true" className="inline-flex size-10 shrink-0 items-center justify-center rounded-(--thumb-radius) bg-accent font-extrabold text-on-accent">
+                {monogram(shop.name)}
+              </span>
+              <span className="truncate text-lg font-bold">{shop.name}</span>
+            </span>
             <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>
               Open your dashboard
             </ButtonLink>
           </li>
         ))}
       </ul>
-    </Card>
+    </section>
   );
 }
 
