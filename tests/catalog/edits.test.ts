@@ -55,6 +55,10 @@ describe('edits', () => {
       expect(errorOf(() => parseShopPatch({ shippingFeeCents: 100001 }))?.code).toBe('INVALID_REQUEST');
     });
 
+    it('accepts a $0 shipping fee (free shipping)', () => {
+      expect(parseShopPatch({ shippingFeeCents: 0 }).shippingFeeCents).toBe(0);
+    });
+
     it('only toggles live and paused on a published shop', () => {
       const draftShop = shops.byId(db, shopId)!;
       expect(errorOf(() => applyShopPatch(db, draftShop, parseShopPatch({ status: 'live' })))).toEqual({ code: 'NOT_PUBLISHED', status: 409 });
@@ -109,8 +113,11 @@ describe('edits', () => {
       expect(items.byIdForShop(db, other, theirs.id)!.status).toBe('draft');
     });
 
-    it('validates prices as whole cents between 0 and $500 (the online order cap)', () => {
+    it('validates prices as whole cents from 1 cent to $500 (the online order cap)', () => {
       const up = (priceCents: unknown) => ({ updates: [{ itemId: ids['Butter croissant'], variants: [{ label: null, priceCents }] }] });
+      expect(errorOf(() => parseItemUpdates(up(0)))?.code).toBe('INVALID_REQUEST');
+      expect(parseItemUpdates(up(1)).updates[0].variants![0].priceCents).toBe(1);
+      expect(parseItemUpdates(up(null)).updates[0].variants![0].priceCents).toBeNull();
       expect(errorOf(() => parseItemUpdates(up(4.5)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up(-1)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up(50_001)))?.code).toBe('INVALID_REQUEST');
@@ -137,6 +144,10 @@ describe('edits', () => {
       expect(item).toMatchObject({ name: 'Add guac', issues: [], status: 'draft', section: 'Extras', sourceText: '+$1.5 add guac', kind: 'PHYSICAL' });
       expect(item.variants).toMatchObject([{ label: null, priceCents: 150 }]);
       expect(items.listWithVariants(db, shopId).at(-1)!.id).toBe(item.id);
+    });
+
+    it('turns down a $0 price', () => {
+      expect(errorOf(() => parseNewItem({ name: 'Free refill', priceCents: 0, sourceText: 'Free refill $0' }))?.code).toBe('INVALID_REQUEST');
     });
 
     it('flags an item added without a price', () => {

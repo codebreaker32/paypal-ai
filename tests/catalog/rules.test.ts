@@ -15,9 +15,14 @@ describe('catalog rules', () => {
     expect(parsePriceInput('$12')).toBe(1200);
     expect(parsePriceInput(' 3,25 ')).toBe(325);
     expect(parsePriceInput('.75')).toBe(75);
-    expect(parsePriceInput('0')).toBe(0);
+    expect(parsePriceInput('0.01')).toBe(1);
     expect(parsePriceInput('500')).toBe(50_000);
     for (const bad of ['', 'abc', '4.555', '500.01', '1000', '-2', '4.5.0', '12 dollars']) expect(parsePriceInput(bad)).toBeNull();
+  });
+
+  it('turns down a $0 price, which the shop could never sell', () => {
+    for (const zero of ['0', '0.00', '$0', '.0', '00']) expect(parsePriceInput(zero)).toBeNull();
+    expect(firstAmountIn('free refill $0')).toBeNull();
   });
 
   it('turns cents back into an editable value', () => {
