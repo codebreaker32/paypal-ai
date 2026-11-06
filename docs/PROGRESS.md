@@ -1,15 +1,17 @@
 # Progress
 
-_Last updated: 2026-11-06 15:27 IST (run 2, session 5)_
+_Last updated: 2026-11-06 16:20 IST (run 2, session 6)_
 
 ## Current phase
-**Run 2, session 5 (from 15:11 IST; the runner stops it at about 17:11). Top priority: the design reset** (human decision, 6 Nov afternoon; spec §4b, plan Wave 5).
-- **done, merged:** round-6 fix 3 (the in-app console enforces its read-back; 881 unit tests pass) and the clip recorder (`npm run clips`; its clips show the old UI and will be re-taken).
-- **done:** the rubric amendment (`docs/JUDGING.md` Part C: 13 banned patterns, 2 or more on a screen fails, plus a real-product check), spec §4b/§4c/§6/§14 and plan Wave 5 (Tasks 14–21).
-- **done, on main (`3974554`):** the photo contract, `items.photo_url` and `shops.cover_url` (TDD, added to older databases on open; 884 unit tests pass).
-- **done:** reference screenshots in `.scratch/refs/` (never committed): Toast store pages (Bakey, Felipe's Taqueria), Toast Local, Square for bakeries. Uber Eats, DoorDash and Toast's desktop landing gave headless Chromium a captcha or a 403.
-- **Running, each in its own worktree:** the photo worker (Pexels photos for the demo shops, `docs/ASSETS.md`, the seed, the photo upload API, `image_url` for agents), direction **Storefront** and direction **Feed** (start page, shop page, dashboard Orders tab + order detail, new tokens and brand).
-- **Next:** merge the photos, judge the two directions side by side with the references, merge the winner, carry it across every screen, then the PWA, the full e2e suite with the capture gate, judge round 7, and the clips.
+**Run 2, session 6 (from 15:46 IST). Top priority: the design reset** (spec §4b, plan Wave 5). Session 5's three workers were killed by a VM reboot at about 15:40 IST; their WIP is committed on their branches.
+- **done, merged (`fe52c56`, `b8eb94e`):** the photo worker (Task 15): Pexels photos for Marigold Bakehouse and Ravi (`docs/ASSETS.md`), the seed sets the demo shop's cover and item photos, `POST/DELETE` item photo and cover routes, `GET /i/[file]`, `image_url` in `list_products` and `image` in the JSON-LD. Tía Lupe has no photos on purpose (the fixture for the designed fallback).
+- **done, on main (`89b91d7`): snap your counter, server side** (TDD): `POST /api/shops/[id]/counter` returns one 4:3 WebP crop per item Claude finds in a display-case photo, stored nowhere. **Verified live** (real `claude-sonnet-5-5`, a Pexels display case, 8 Marigold items): 2 proposals in 4.7 s, the plain croissant (high) and the almond croissant (medium), both correct crops. The UI (Menu tab) comes with the carry-across.
+- **done:** `settle()` makes pending lazy images eager and caps the image wait at 15 s (a below-the-fold `loading="lazy"` photo held phone screenshots until the test timed out).
+- **Running:** the direction judge (Task 17) on both directions' screenshots, re-taken at each branch's WIP head (9 screens × 2 widths each).
+- **Next:** merge the winner, carry it across every screen (Task 18, two workers), the PWA (Task 19), the full e2e suite with the capture gate, judge round 7, the clips.
+- **Verified on main (`89b91d7`):** 941 unit tests pass; typecheck and lint are clean.
+
+**Run 2, session 5 (15:11–~15:40 IST, cut short by the reboot).** Merged round-6 fix 3 and the clip recorder; the rubric amendment, spec §4b/§4c/§6/§14 and plan Wave 5; the photo contract; reference screenshots in `.scratch/refs/` (Toast store pages, Toast Local, Square for bakeries; Uber Eats, DoorDash and Toast's desktop landing gave headless Chromium a captcha or a 403); the PWA groundwork on `pwa-wip`; snap-your-counter's pure parts.
 
 **Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: **judge round 6**, and the clip recorder (item 7) in a worktree.
 - **Verified on `9851adb` (14:14–14:22 IST):**
