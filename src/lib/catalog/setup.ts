@@ -243,12 +243,14 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
 
   // Card text and notes are worked out again from the raw reading, so a shop read before they
   // were plain shows plain text too. Only open cards change: every card action clears the item's
-  // issues, so an item with open issues is still exactly as it was read.
+  // issues, so an item with open issues is still exactly as it was read. A card that today's
+  // reading would not raise keeps its stored text, so it never loses its explanation.
   const key = (i: { sourceText: string; name: string }) => `${i.sourceText}\n${i.name}`;
   const details = new Map(result.items.map((i) => [key(i), i.issueDetail]));
-  const listed = items.listWithVariants(db, shop.id).map((i) =>
-    i.issues.length > 0 && details.has(key(i)) ? { ...i, issueDetail: details.get(key(i))! } : i,
-  );
+  const listed = items.listWithVariants(db, shop.id).map((i) => {
+    const detail = i.issues.length > 0 ? details.get(key(i)) : null;
+    return detail ? { ...i, issueDetail: detail } : i;
+  });
 
   return {
     ...base,
