@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 16:00 IST (run 2, session 5)_
+_Last updated: 2026-11-06 15:27 IST (run 2, session 5)_
 
 ## Current phase
 **Run 2, session 5 (from 15:11 IST; the runner stops it at about 17:11). Top priority: the design reset** (human decision, 6 Nov afternoon; spec §4b, plan Wave 5).
