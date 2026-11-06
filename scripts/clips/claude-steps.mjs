@@ -9,7 +9,7 @@
 // the summaries below), and it blanks anything shaped like an Anthropic key, so no secret reaches the screen.
 import readline from 'node:readline';
 
-const WIDTH = 100;
+const WIDTH = 110;
 const C = { reset: '\x1b[0m', bold: '\x1b[1m', muted: '\x1b[90m', ok: '\x1b[32m', warn: '\x1b[33m', call: '\x1b[34m', bad: '\x1b[31m' };
 const scrub = (s) => String(s).replace(/sk-ant-[\w-]+/g, 'sk-ant-…');
 

@@ -1,4 +1,4 @@
-// npm run clips [-- --only 03,06] [--base-url http://localhost:3251] [--display :97] [--build]
+// npm run clips [-- --only 03,06] [--base-url http://localhost:3251] [--display :97] [--port 3251] [--build]
 //
 // Records the raw screen clips for the demo video, one MP4 per shot of docs/DEMO.md, into video/clips/ (1920x1080,
 // constant 30 fps, H.264). No narration, music or editing: a person cuts the video from these. video/clips/README.md
@@ -36,6 +36,7 @@ const ONLY = arg('--only')?.split(',').map((s) => s.trim()).filter(Boolean) ?? n
 const BASE_URL = arg('--base-url');
 const DISPLAY = arg('--display') ?? ':97';
 const BUILD = process.argv.includes('--build');
+const PORT = Number(arg('--port') ?? 3251);
 
 /** .env as values (never printed); the process env wins, as with the app. */
 const fileEnv = fs.existsSync('.env') ? parse(fs.readFileSync('.env')) : {};
@@ -591,7 +592,7 @@ async function main(): Promise<void> {
   let app: App | null = null;
   const failures: string[] = [];
   try {
-    app = await startApp({ baseUrl: BASE_URL, port: 3251, build: BUILD, logins: LOGINS });
+    app = await startApp({ baseUrl: BASE_URL, port: PORT, build: BUILD, logins: LOGINS });
     for (const scene of scenes) {
       say(`Recording ${scene.ids.filter(wanted).join(', ')}…`);
       try {

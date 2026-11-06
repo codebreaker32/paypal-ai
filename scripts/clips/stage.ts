@@ -14,8 +14,8 @@ export const W = 1920;
 export const H = 1080;
 export const FPS = 30;
 export const PHONE = { width: 390, height: 844 };
-/** The terminal clips' xterm: a character grid that fills 1920x1080 at this font size (measured on Xvfb's 96 dpi). */
-export const TERMINAL = { fontSize: 19, padding: 40, cols: 100, rows: 30 };
+/** The terminal clips' xterm: 16x32 px cells at 19 pt on Xvfb, so 115x31 cells and 40 px of padding fill 1920x1080. */
+export const TERMINAL = { fontSize: 19, padding: 40, cols: 115, rows: 31 };
 /** The backdrop behind phone shots: the app's sunken paper (--paper-100, docs/DESIGN.md), a shade darker than the page. */
 const BACKDROP = '#e7e2d6';
 
