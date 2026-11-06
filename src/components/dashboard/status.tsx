@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Badge, type BadgeTone } from '@/components/ui/Badge';
 import type { Order } from '@/lib/domain/types';
+import { cx } from '@/components/ui/cx';
 
 interface StatusMeta {
   label: string;
@@ -50,5 +51,25 @@ export function OrderStatusBadge({ order, className }: { order: Pick<Order, 'sta
     <Badge tone={m.tone} icon={m.icon} className={className}>
       {m.label}
     </Badge>
+  );
+}
+
+const DOT_TONE: Record<BadgeTone, string> = {
+  neutral: 'text-ink-muted',
+  accent: 'text-accent-ink',
+  ok: 'text-ok',
+  warn: 'text-warn',
+  danger: 'text-danger',
+  info: 'text-info',
+};
+
+/** Status in a list row: a coloured dot and the word, no box. */
+export function OrderStatusText({ order, className }: { order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>; className?: string }) {
+  const m = orderStatusMeta(order);
+  return (
+    <span className={cx('inline-flex items-center gap-2 text-sm font-semibold', DOT_TONE[m.tone], className)}>
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
+      {m.label}
+    </span>
   );
 }

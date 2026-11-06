@@ -3,7 +3,7 @@ import { LayoutDashboard } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { listOwnedShops } from '@/lib/auth/owner';
-import { OrderPreview } from './_start/OrderPreview';
+import { StorePreview } from './_start/StorePreview';
 import { StartActions } from './_start/StartActions';
 
 /** A shop this browser owns, for the "Open your dashboard" shortcut. */
@@ -25,7 +25,7 @@ async function getReturningShops(): Promise<ReturningShop[]> {
 
 function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
   return (
-    <Card as="section" aria-labelledby="welcome-back" tone="flat" className="mb-8 flex flex-col gap-3">
+    <Card as="section" aria-labelledby="welcome-back" className="mb-8 flex flex-col gap-3">
       <h2 id="welcome-back" className="type-label">
         Welcome back
       </h2>
@@ -47,22 +47,22 @@ export default async function StartPage() {
   const returningShops = await getReturningShops();
 
   return (
-    <div className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 pb-section lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-12">
-      <section aria-labelledby="start-title" className="lg:col-span-5">
+    <div className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 pb-section lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-14">
+      <section aria-labelledby="start-title" className="lg:col-span-6">
         {returningShops.length > 0 && <WelcomeBack shops={returningShops} />}
-        <h1 id="start-title" className="type-hero">
-          Your price list, open to <span className="mark-highlight">AI shoppers.</span>
+        <h1 id="start-title" className="type-hero max-w-[12ch]">
+          Your price list, open to AI shoppers.
         </h1>
-        <p className="mt-5 max-w-measure type-lead text-ink-soft">
-          Prepaid orders from a photo of your price list. Shelfie reads it and opens a PayPal shop any AI assistant can order from.
+        <p className="mt-5 max-w-[30rem] type-lead text-ink-soft">
+          Snap the paper menu on your counter. Shelfie turns it into a PayPal shop any AI assistant can order from.
         </p>
         <div className="mt-8">
           <StartActions />
         </div>
       </section>
 
-      <div className="lg:col-span-7">
-        <OrderPreview />
+      <div className="lg:col-span-6">
+        <StorePreview />
       </div>
     </div>
   );

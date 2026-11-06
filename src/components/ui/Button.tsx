@@ -15,7 +15,7 @@ const BASE =
 const VARIANT: Record<ButtonVariant, string> = {
   primary:
     'border-(length:--button-border-w) border-(--button-primary-border) bg-(--button-primary-bg) text-(--button-primary-fg) ' +
-    'shadow-xs hover:bg-(--button-primary-bg-hover) active:bg-(--button-primary-bg-active)',
+    'hover:bg-(--button-primary-bg-hover) active:bg-(--button-primary-bg-active)',
   secondary:
     'border-(length:--button-border-w) border-(--button-secondary-border) bg-(--button-secondary-bg) ' +
     'text-(--button-secondary-fg) hover:bg-(--button-secondary-bg-hover)',

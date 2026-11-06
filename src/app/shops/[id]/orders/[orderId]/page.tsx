@@ -14,16 +14,18 @@ import { withFallbackBrief } from '@/lib/ai/template';
 import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
 import { LocalTime } from '@/components/dashboard/LocalTime';
 import { TrackingForm } from '@/components/dashboard/TrackingForm';
-import { OrderStatusBadge } from '@/components/dashboard/status';
+import { OrderStatusBadge, OrderStatusText } from '@/components/dashboard/status';
+import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
+import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
 import { TRACK_IN_YOUR_PAYPAL, isDemoShop } from '@/lib/domain/payee';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { actionWords, agentLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, buyerLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -199,25 +201,22 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
   );
 }
 
-function ItemsCard({ order, className }: { order: Order; className?: string }) {
+function ItemsCard({ order, photos, className }: { order: Order; photos: ReadonlyMap<string, string | null>; className?: string }) {
   return (
-    <div className={cx('paper-drop', className)}>
-    <Card
-      as="section"
-      aria-labelledby="items-title"
-      tone="flat"
-      padding="none"
-      className="perforated flex flex-col gap-4 border-0 px-5 pt-5 sm:px-7 sm:pt-7"
-    >
+    <div className={className}>
+    <Card as="section" aria-labelledby="items-title" padding="lg" className="flex flex-col gap-4">
       <SectionTitle id="items-title">Items</SectionTitle>
-      <dl className="type-receipt rule-dashed flex flex-col gap-3 pt-4">
+      <dl className="type-receipt flex flex-col gap-3 text-base">
         {order.lines.map((l, i) => (
-          <div key={i} className="flex items-baseline justify-between gap-4">
-            <dt className="flex flex-col">
-              <span>
-                <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
+          <div key={i} className="flex items-center justify-between gap-4">
+            <dt className="flex min-w-0 flex-1 items-center gap-3">
+              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId) ?? null} size="sm" decorative className="size-11 shrink-0 rounded-(--thumb-radius)" />
+              <span className="flex min-w-0 flex-col">
+                <span>
+                  <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
+                </span>
+                <span className="type-meta text-ink-muted">{formatUSD(l.unitCents)} each</span>
               </span>
-              <span className="type-meta text-ink-muted">{formatUSD(l.unitCents)} each</span>
             </dt>
             <dd>{formatUSD(l.unitCents * l.qty)}</dd>
           </div>
@@ -232,7 +231,7 @@ function ItemsCard({ order, className }: { order: Order; className?: string }) {
             <dd>{formatUSD(order.shippingCents)}</dd>
           </div>
         )}
-        <div className="rule-dashed flex items-baseline justify-between gap-4 pt-3 text-xl leading-7 font-semibold">
+        <div className="rule-dashed flex items-baseline justify-between gap-4 pt-3 text-xl leading-7 font-bold">
           <dt>Total</dt>
           <dd>{formatUSD(order.totalCents)}</dd>
         </div>
@@ -258,8 +257,8 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
       <ol className="flex flex-col">
         {entries.map((e, i) => (
           <li key={e.id} className="relative flex gap-3 pb-4 last:pb-0">
-            {i < entries.length - 1 && <span aria-hidden="true" className="absolute top-4 bottom-0 left-[4px] border-l-[1.5px] border-dashed border-line-strong" />}
-            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rotate-45', DOT[e.tone])} />
+            {i < entries.length - 1 && <span aria-hidden="true" className="absolute top-4 bottom-0 left-[4px] border-l-2 border-line" />}
+            <span aria-hidden="true" className={cx('mt-1.5 size-2.5 shrink-0 rounded-full', DOT[e.tone])} />
             <div className="flex flex-col">
               <span className="font-medium">{e.text}</span>
               <LocalTime iso={e.at} className="type-meta text-ink-muted" />
@@ -309,6 +308,41 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
   );
 }
 
+/** Desktop only: the shop's orders beside the open one (list + detail), the open one marked. */
+function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, string | null> }) {
+  return (
+    <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto rounded-(--card-radius) bg-(--card-bg) shadow-(--card-shadow) lg:block">
+      <ul className="divide-y divide-line">
+        {orders.map((o) => {
+          const first = o.lines[0];
+          const here = o.id === current;
+          return (
+            <li key={o.id}>
+              <Link
+                href={`/shops/${shopId}/orders/${o.id}`}
+                aria-current={here ? 'page' : undefined}
+                className={cx('flex items-center gap-3 px-4 py-3 no-underline hover:bg-surface-subtle', here && 'bg-accent-soft hover:bg-accent-soft')}
+              >
+                <ItemPhoto name={first?.name ?? o.number} photoUrl={first ? (photos.get(first.itemId) ?? null) : null} size="sm" decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="flex items-baseline justify-between gap-2">
+                    <span className="type-price text-sm font-bold">{o.number}</span>
+                    <span className="type-price text-sm font-semibold">{formatUSD(o.totalCents)}</span>
+                  </span>
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate text-xs text-ink-muted">{buyerLabel(o)}</span>
+                    <OrderStatusText order={o} className="shrink-0 text-xs" />
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
 export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]/orders/[orderId]'>) {
   const { id, orderId } = await params;
   const shop = await requireOwner(id);
@@ -321,10 +355,14 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   const events = eventsRepo.list(db, order.id);
   const entries = timelineEntries(events, order);
   const pending = isOpen(order.status) || ((order.status === 'paid' || order.status === 'fulfilled') && !order.brief);
+  const allOrders = ordersRepo.listByShop(db, shop.id);
+  const photos = new Map(itemsRepo.listWithVariants(db, shop.id).map((i) => [i.id, i.photoUrl]));
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-4 pb-section lg:pt-8">
+    <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
       <AutoRefresh active={pending} />
+      <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} />
+      <div className="flex min-w-0 flex-col gap-6">
       <Link
         href={`/shops/${shop.id}`}
         className="-ml-1 inline-flex min-h-tap items-center gap-1.5 self-start rounded-sm px-1 font-semibold text-ink-soft hover:text-ink"
@@ -334,7 +372,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
       </Link>
 
       {/* Phone: number, status, who placed it, then the total as a till line. Wider: the total is the right-hand block. */}
-      <header className="flex flex-col gap-4 border-b-2 border-ink pb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+      <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
         <div className="flex min-w-0 flex-col gap-3">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
             {/* The reference never breaks; if the line is too narrow, it wraps after "Order". */}
@@ -349,7 +387,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
         </div>
         <p className="rule-dashed flex items-baseline justify-between gap-4 pt-3 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1 sm:border-t-0 sm:pt-0">
           <span className="type-label text-ink-muted">Total</span>
-          <span className="type-price text-3xl leading-none font-semibold sm:text-4xl">{formatUSD(order.totalCents)}</span>
+          <span className="type-price text-3xl leading-none font-extrabold tracking-tight sm:text-4xl">{formatUSD(order.totalCents)}</span>
         </p>
       </header>
 
@@ -357,7 +395,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-start lg:gap-6">
         <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-6">
           <BriefCard order={order} className="order-1 lg:order-none" />
-          <ItemsCard order={order} className="order-4 lg:order-none" />
+          <ItemsCard order={order} photos={photos} className="order-4 lg:order-none" />
           <TimelineCard entries={entries} className="order-5 lg:order-none" />
         </div>
         <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
@@ -373,6 +411,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
           <BuyerCard shop={shop} order={order} className="order-3 lg:order-none" />
           <PayPalCard shop={shop} order={order} className="order-6 lg:order-none" />
         </div>
+      </div>
       </div>
     </div>
   );

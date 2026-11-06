@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { PauseCircle, Store, Truck } from 'lucide-react';
+/* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
 import { AgentDoor } from '@/components/shop/AgentDoor';
+import { monogram } from '@/components/shop/ItemPhoto';
 import { Menu, menuSections } from '@/components/shop/Menu';
 import { ShopAssistant } from '@/components/shop/ShopAssistant';
 import { starterPrompts } from '@/components/shop/starters';
-import { Icon } from '@/components/ui/Icon';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
@@ -14,7 +14,7 @@ import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
-import type { Shop } from '@/lib/domain/types';
+import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 
 /** Published shops only: drafts and unknown slugs are 404. */
 function loadShop(slug: string): Shop {
@@ -33,86 +33,104 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Prom
   };
 }
 
+const KIND: Record<Shop['kind'], string> = { food: 'Food', goods: 'Goods', services: 'Services' };
+
+/** Pickup and shipping, one compact line each: the label in bold, the details beside it. */
 function HowToGetIt({ shop }: { shop: Shop }) {
   const pickup = shop.fulfillment !== 'shipping';
   const shipping = shop.fulfillment !== 'pickup';
   return (
-    <section aria-labelledby="get-it-title" className="flex flex-col gap-3">
-      <h2 id="get-it-title" className="type-label text-ink-soft">
-        How to get it
-      </h2>
-      <dl className="flex flex-col gap-3">
-        {pickup && (
-          <div>
-            <dt className="flex items-center gap-3 font-semibold">
-              <Icon icon={Store} className="text-ink-soft" />
-              Pickup
-            </dt>
-            <dd className="pl-8 text-ink-soft">{shop.pickupNotes || 'Ask the shop when and where to pick up.'}</dd>
-          </div>
-        )}
-        {shipping && (
-          <div>
-            <dt className="flex items-center gap-3 font-semibold">
-              <Icon icon={Truck} className="text-ink-soft" />
-              Shipping
-            </dt>
-            <dd className="pl-8 text-ink-soft">
-              <span className="type-figures font-semibold text-ink">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
-              per order, to the address you give PayPal.
-            </dd>
-          </div>
-        )}
-      </dl>
-    </section>
+    <dl aria-label="How to get it" className="flex flex-col gap-1.5 text-[0.9375rem]">
+      {pickup && (
+        <div className="flex gap-2">
+          <dt className="w-18 shrink-0 font-bold">Pickup</dt>
+          <dd className="text-ink-soft">{shop.pickupNotes || 'Ask the shop when and where to pick up.'}</dd>
+        </div>
+      )}
+      {shipping && (
+        <div className="flex gap-2">
+          <dt className="w-18 shrink-0 font-bold">Shipping</dt>
+          <dd className="text-ink-soft">
+            <span className="type-figures font-semibold text-ink">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
+            per order
+          </dd>
+        </div>
+      )}
+    </dl>
   );
 }
 
-function Intro({ shop, photoCount }: { shop: Shop; photoCount: number }) {
+/** The cover: the shop's own photo, else a strip of its item photos (like a store-front window), else nothing. */
+function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
+  const strip = items.filter((i) => i.photoUrl).slice(0, 4);
+  if (!shop.coverUrl && strip.length < 2) return null;
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-start gap-5 sm:gap-8">
-        <div className="min-w-0 flex-1 pt-1">
+    <div className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
+      <div className="relative h-44 overflow-hidden bg-surface-sunken sm:h-64 sm:rounded-(--cover-radius) lg:h-80">
+        {shop.coverUrl ? (
+          <img src={shop.coverUrl} alt="" className="size-full object-cover" />
+        ) : (
+          <div className="grid size-full grid-flow-col auto-cols-fr gap-1">
+            {strip.map((i) => (
+              <img key={i.id} src={i.photoUrl!} alt="" className="size-full object-cover" />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariants[]; photoCount: number }) {
+  const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-start gap-4">
+        {!hasCover && (
+          <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-2xl font-extrabold text-on-accent sm:size-20 sm:text-3xl">
+            {monogram(shop.name)}
+          </span>
+        )}
+        <div className="min-w-0 flex-1">
           <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
-          {shop.about && <p className="mt-4 max-w-measure type-lead text-ink-soft">{shop.about}</p>}
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">
+            <span>{KIND[shop.kind]}</span>
+            <span aria-hidden="true">·</span>
+            <span>{shop.fulfillment === 'both' ? 'Pickup or shipping' : shop.fulfillment === 'pickup' ? 'Pickup' : 'Shipping'}</span>
+            <span aria-hidden="true">·</span>
+            <span className="font-semibold text-ink">Paid with PayPal</span>
+          </p>
         </div>
+      </div>
+      {shop.about && <p className="max-w-measure type-lead text-ink-soft">{shop.about}</p>}
+      {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
+      {!takesOrders(shop) && (
+        <p role="status" className="rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
+          {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
+          <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
+        </p>
+      )}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <HowToGetIt shop={shop} />
         {photoCount > 0 && (
           <a
             href={`/s/${shop.slug}/photo/1`}
             target="_blank"
             rel="noopener"
-            className="group relative flex shrink-0 flex-col items-center gap-2 rounded-sm pt-2"
+            className="group inline-flex min-h-tap shrink-0 items-center gap-3 self-start rounded-(--card-radius) pr-2 font-semibold no-underline"
           >
-            {/* A strip of tape holding the original price list to the board */}
-            <span
-              aria-hidden="true"
-              className="absolute top-0 left-1/2 z-10 h-5 w-14 -translate-x-1/2 rotate-3 bg-accent/70 shadow-xs"
-            />
             <Image
               src={`/s/${shop.slug}/photo/1`}
               alt={`The price list ${shop.name} was made from`}
-              width={176}
-              height={224}
+              width={88}
+              height={88}
               unoptimized
-              className="h-32 w-26 -rotate-2 border-4 border-surface-raised object-cover shadow-lg transition-transform duration-(--duration-base) group-hover:rotate-0 sm:h-48 sm:w-38"
+              className="size-12 rounded-(--thumb-radius) object-cover shadow-(--card-shadow)"
             />
-            <span className="type-meta font-semibold text-ink-soft underline decoration-accent-hover underline-offset-2">
-              The original
-            </span>
+            <span className="text-sm text-ink-soft group-hover:text-ink group-hover:underline">Original price list</span>
           </a>
         )}
       </div>
-      {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
-      {!takesOrders(shop) && (
-        <p role="status" className="flex items-start gap-2.5 rounded-md bg-warn-soft px-4 py-3 font-semibold text-warn">
-          <Icon icon={PauseCircle} className="mt-0.5" />
-          <span>
-            {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
-            <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
-          </span>
-        </p>
-      )}
-      <HowToGetIt shop={shop} />
     </div>
   );
 }
@@ -142,7 +160,8 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         shopName={shop.name}
         starters={starterPrompts(shop, items, { takesOrders: ordersOpen })}
         initiallyOpen={assistant === '1'}
-        intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
+        cover={<Cover shop={shop} items={items} />}
+        intro={<Intro shop={shop} items={items} photoCount={shop.menuPhotoPaths.length} />}
         menu={<Menu sections={menuSections(items)} />}
         door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
         takesOrders={ordersOpen}

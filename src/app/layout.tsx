@@ -1,31 +1,15 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { IBM_Plex_Mono, Playfair_Display, Schibsted_Grotesk } from 'next/font/google';
+import { Figtree } from 'next/font/google';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
 import { ToastProvider } from '@/components/ui/Toast';
 import './globals.css';
 
-// Display: a high-contrast menu serif, roman and italic (menu sections are set in the italic).
-const playfair = Playfair_Display({
+// One family for everything: a modern grotesk with a real weight range (400 to 800).
+const figtree = Figtree({
   subsets: ['latin'],
-  variable: '--font-playfair',
-  style: ['normal', 'italic'],
-  display: 'swap',
-});
-
-// UI text: a newspaper grotesk.
-const schibsted = Schibsted_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-schibsted',
-  display: 'swap',
-});
-
-// Receipt lines and order numbers.
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  variable: '--font-plex-mono',
-  weight: ['400', '500', '600'],
+  variable: '--font-figtree',
   display: 'swap',
 });
 
@@ -41,7 +25,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${playfair.variable} ${schibsted.variable} ${plexMono.variable}`}>
+    <html lang="en" className={figtree.variable}>
       <body className="flex min-h-dvh flex-col bg-surface text-ink">
         <a
           href="#main"
