@@ -308,13 +308,13 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     const created = ok<{ order_ref: string; approval_url: string }>('create_order', await call(client, 'create_order', defaultOrder()));
     const waiting = ok<{ status: string; approval_url: string | null; message: string }>(
       'get_order_status', await call(client, 'get_order_status', { order_ref: created.order_ref }));
-    expect(waiting).toMatchObject({ status: 'awaiting_approval', approval_url: created.approval_url });
+    expect(waiting).toMatchObject({ status: 'awaiting_approval', approval_url: created.approval_url, capture_refused: false });
     expect(waiting.message).toMatch(/approve/i);
 
     fake.approve(orders.byId(db, created.order_ref)!.paypalOrderId, { name: 'Dana Buyer', shipTo: { city: 'Austin', state: 'TX' } });
     clock += 6_000;
     const paid = ok<Record<string, unknown>>('get_order_status', await call(client, 'get_order_status', { order_ref: created.order_ref }));
-    expect(paid).toMatchObject({ order_ref: created.order_ref, status: 'paid', total: '26.50', approval_url: null, tracking: [] });
+    expect(paid).toMatchObject({ order_ref: created.order_ref, status: 'paid', total: '26.50', approval_url: null, tracking: [], capture_refused: false });
     expect(paid.paid_at).toEqual(expect.any(String));
     expect(paid.message).toMatch(/^Paid/);
     expect(fake.calls.filter((c) => c.method === 'captureOrder')).toHaveLength(1);
@@ -375,7 +375,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     fake.approve(orders.byId(db, order_ref)!.paypalOrderId);
     fake.failNext('captureOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'TRANSACTION_REFUSED', 'dbg-tr', 'refused'));
     const first = ok<{ status: string; approval_url: string | null; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref }));
-    expect(first).toMatchObject({ status: 'approved', approval_url: null });
+    expect(first).toMatchObject({ status: 'approved', approval_url: null, capture_refused: true });
     expect(first.message).toMatch(/PayPal refused/i);
     expect(first.message).toMatch(/nothing (has been|was) charged/i);
     clock += 6_000;

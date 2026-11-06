@@ -108,9 +108,9 @@ function applyEvent(state: ConsoleState, e: ConsoleEvent): ConsoleState {
       );
       const next = { ...state, entries };
       // "Did my payment go through?": the answer moves the approval card of that order too.
-      const r = e.result as { order_ref?: unknown; status?: unknown } | null;
+      const r = e.result as { order_ref?: unknown; status?: unknown; capture_refused?: unknown } | null;
       if (call?.name === 'get_order_status' && e.ok && r && typeof r.order_ref === 'string' && isOrderStatus(r.status)) {
-        return withOrderStatus(next, r.order_ref, r.status);
+        return withOrderStatus(next, r.order_ref, r.status, typeof r.capture_refused === 'boolean' ? r.capture_refused : undefined);
       }
       return next;
     }

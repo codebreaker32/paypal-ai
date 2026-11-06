@@ -179,6 +179,20 @@ describe('approval cards', () => {
     expect(approvalOf(askStatus(s, 't4', { order_ref: 'ord_other', status: 'cancelled' })).status).toBe('paid');
   });
 
+  it('follow a capture PayPal refused, as get_order_status reports it, so the card stops saying "Confirming with PayPal"', () => {
+    const refused = { approve: false, label: 'Payment refused', tone: 'danger' };
+    // Read as approved while the capture was still running, then PayPal refused it.
+    let s = consoleReducer(placed(), { type: 'order_status', orderRef: 'ord_1', status: 'approved', captureRefused: false });
+    s = askStatus(s, 't1', { order_ref: 'ord_1', status: 'approved', capture_refused: true });
+    expect(approvalCard(approvalOf(s))).toEqual(refused);
+    expect(refsToCheck(s)).toEqual([]);
+    // The console's own status check ran the capture, and PayPal refused it.
+    expect(approvalCard(approvalOf(askStatus(placed(), 't2', { order_ref: 'ord_1', status: 'approved', capture_refused: true })))).toEqual(refused);
+    // A capture that went through after all clears it.
+    s = askStatus(s, 't3', { order_ref: 'ord_1', status: 'approved', capture_refused: false });
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: false, label: 'Confirming with PayPal', tone: 'info' });
+  });
+
   it('follow a status read in the same turn as the order (the card is still held until the turn ends)', () => {
     const s = run(
       consoleReducer(initialConsoleState, { type: 'send', text: 'Yes, and check it' }),
