@@ -1,0 +1,38 @@
+# Render Blueprint: Shelfie as one Node web service with a persistent disk (README, "Deploy to Render").
+# Spec: https://render.com/docs/blueprint-spec
+# A persistent disk needs a paid instance type; the free type has no disk, and SQLite plus uploaded photos live there.
+services:
+  - type: web
+    name: shelfie
+    runtime: node
+    plan: 0.5c-512mb # Starter: 0.5 CPU, 512 MB, the smallest paid instance type; a persistent disk needs a paid type
+    # NODE_ENV=production is set at runtime only, so npm ci installs the devDependencies next build needs.
+    # The disk is not mounted during the build; the build never opens the database.
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health # one SQLite query; never PayPal or Claude
+    disk:
+      name: shelfie-data
+      mountPath: /var/data # only files under this path survive deploys and restarts
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "22" # matches package.json engines (>=22); an unbounded range alone would resolve to the latest Node
+      - key: PORT
+        value: "10000" # Render's default web port; `next start` reads PORT
+      - key: DATABASE_PATH
+        value: /var/data/shelfie.db
+      - key: UPLOADS_DIR
+        value: /var/data/uploads
+      # APP_URL is not set here: the app falls back to RENDER_EXTERNAL_URL (https://<name>.onrender.com), which Render
+      # sets for every web service. With a custom domain, add APP_URL=https://your.domain in the Dashboard.
+      # Secrets: Render asks for these once, when the Blueprint is first created. No values are committed.
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_SECRET_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # The webhook id exists only after you create the webhook for this service's URL (README); leave it empty at first.
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false

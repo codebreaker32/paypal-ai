@@ -35,7 +35,8 @@ export function getConfig(): Config {
     paypalBase: PAYPAL_SANDBOX_BASE,
     paypalWebhookId: opt('PAYPAL_WEBHOOK_ID'),
     anthropicApiKey: opt('ANTHROPIC_API_KEY'),
-    appUrl: (opt('APP_URL') ?? 'http://localhost:3000').replace(/\/+$/, ''),
+    // RENDER_EXTERNAL_URL is set by Render at runtime (https://<service>.onrender.com).
+    appUrl: (opt('APP_URL') ?? opt('RENDER_EXTERNAL_URL') ?? 'http://localhost:3000').replace(/\/+$/, ''),
     databasePath: opt('DATABASE_PATH') ?? 'data/shelfie.db',
     uploadsDir: opt('UPLOADS_DIR') ?? 'data/uploads',
     buyerEmail: opt('PAYPAL_SANDBOX_BUYER_EMAIL'),

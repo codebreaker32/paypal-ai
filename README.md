@@ -55,7 +55,7 @@ Fill in `.env`. No credentials are committed; here is how to get yours.
 |---|---|
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` | [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → Create App. Use the app's Client ID, and its **Secret** as `PAYPAL_SECRET_KEY`. |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys. Without it, sample menus still work (recorded reading), but your own photos, order briefs and the buyer console do not. |
-| `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:3000`. |
+| `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:3000`; on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
 | `PAYPAL_WEBHOOK_ID` (optional) | Only once deployed on a public HTTPS URL: the webhook id from your PayPal app. Locally the 15 s poller confirms payments. |
 | `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` (optional) | A sandbox Personal account, only for the wallet-login variant of the end-to-end tests. Single-quote the password in `.env` if it contains `#`. Not needed to pay (see below). |
 | `DATABASE_PATH`, `UPLOADS_DIR` (optional) | Defaults `data/shelfie.db` and `data/uploads`. |
@@ -88,9 +88,9 @@ Paying with a sandbox Personal account login also works when that buyer is in a 
 
 The MCP URL is `http://localhost:3000/s/<slug>/mcp` (Streamable HTTP, POST only, stateless).
 
-- **Claude Code:** `claude mcp add --transport http <slug> http://localhost:3000/s/<slug>/mcp`
+- **Claude Code:** `claude mcp add --transport http <slug> http://localhost:3000/s/<slug>/mcp`. To try it without changing your Claude Code settings, pass a config file for one run instead. For example, `claude -p "<your order>" --mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config --allowedTools "mcp__marigold-bakehouse__*"`. We ran this against the demo shop: Claude Code placed a real sandbox order and returned its PayPal link. The config points at port 3143, so edit the URL for your port. Transcript: [docs/judge/evidence/outside-client-claude-code.md](docs/judge/evidence/outside-client-claude-code.md).
 - **MCP Inspector:** `npx @modelcontextprotocol/inspector`, choose Streamable HTTP, paste the URL. Call `create_order` with an extra `"price": 0.01`: the server rejects it with `INVALID_ARGUMENTS`.
-- **Claude.ai, ChatGPT and other hosted assistants** need a public HTTPS URL, so deploy the app first and set `APP_URL`.
+- **Claude.ai, ChatGPT and other hosted assistants** need a public HTTPS URL, so deploy the app first ([Deploy to Render](#deploy-to-render)).
 
 Tools:
 
@@ -100,6 +100,39 @@ Tools:
 | `list_products` | Items with `item_id`, `option_id` and price; optional `query` and `section` filters; in-person-only items are marked not orderable |
 | `create_order` | Item ids, option ids and quantities only, plus fulfillment, buyer name and note, `client_request_id`; returns `order_ref` and the PayPal `approval_url` |
 | `get_order_status` | Status, total, paid time and shipping tracking for an `order_ref` |
+
+## Deploy to Render
+
+**Not yet run.** `render.yaml` validates against Render's published Blueprint schema, and the app's Render fallback is unit-tested, but nobody has deployed it yet.
+
+`render.yaml` is a Render Blueprint for one Node web service, `shelfie`, with a 1 GB persistent disk mounted at `/var/data`. The SQLite database and uploaded menu photos live on that disk.
+
+- **A persistent disk needs a paid instance type.** The Blueprint uses Starter (`0.5c-512mb`). The free type has no disk, so the database would be wiped on every deploy and restart.
+- With a disk, each deploy has a few seconds of downtime, and the service runs as one instance.
+
+1. Push the repo to GitHub, or fork it.
+2. In the Render Dashboard choose **New → Blueprint**, connect the repo and pick the branch. Render reads `render.yaml`.
+3. Render asks for the secret values once, when it creates the Blueprint. Paste these:
+
+   | Key | Value |
+   |---|---|
+   | `PAYPAL_CLIENT_ID` | Your sandbox app's Client ID (see [Quick start](#quick-start)) |
+   | `PAYPAL_SECRET_KEY` | Your sandbox app's Secret |
+   | `ANTHROPIC_API_KEY` | Your Anthropic API key |
+   | `PAYPAL_WEBHOOK_ID` | Leave it empty for now (step 6) |
+
+   `render.yaml` sets the rest: `NODE_VERSION=22`, `PORT=10000`, `DATABASE_PATH=/var/data/shelfie.db` and `UPLOADS_DIR=/var/data/uploads`. Don't set `APP_URL`. The app uses `RENDER_EXTERNAL_URL` (`https://<service>.onrender.com`), which Render sets for you. Set `APP_URL` only if you add a custom domain.
+4. Click **Apply**. Render builds with `npm ci && npm run build` and starts with `npm start`. It sends traffic only after `GET /api/health` returns `{"ok":true}`.
+5. Open `https://<service>.onrender.com`. Payments are already confirmed through the return URL and the 15 s poller.
+6. Add the webhook:
+   1. Open [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → your app → **Add Webhook**.
+   2. Set the URL to `https://<service>.onrender.com/api/paypal/webhook`.
+   3. Select the events `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.DENIED`, then save.
+   4. Copy the **Webhook ID**. In Render, open the service → **Environment**, set `PAYPAL_WEBHOOK_ID` and save. The service redeploys.
+
+   Until `PAYPAL_WEBHOOK_ID` is set, the deployed webhook answers 503 (PayPal retries it), and the poller still confirms payments. Render prompts for secret values only when it creates the Blueprint, so change them later on the **Environment** page.
+7. Open the service → **Shell** and run `npm run seed`. This publishes the demo shop, Marigold Bakehouse, to your sandbox catalog. It prints the shop link, the agent door link and, this one time only, the owner link. Keep the owner link private.
+8. Any hosted assistant can now use the agent door at `https://<service>.onrender.com/s/marigold-bakehouse/mcp`.
 
 ## Tests
 

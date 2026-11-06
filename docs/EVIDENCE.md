@@ -66,3 +66,9 @@ Range: 8 to 14 s from upload to live, of which reading is 6.5 to 9.4 s and publi
 How it was measured: `scripts/measure-photo-to-live.ts` uploads each photo to `POST /api/shops` (not the recorded sample path), runs `POST /extract` (real Claude), resolves every flagged item through `PATCH /items` the way a seller would (fills a missing or market price with $5.00, keeps the first of any duplicate pair, confirms CHECK items), then `POST /publish` and waits for the shop to go `live`. Total includes shop creation and the resolving call, which take well under a second. The app ran with a throwaway `DATABASE_PATH` under `data/measure/`.
 
 The six runs created 52 real sandbox Catalog products (9+9+10+10+7+7). A seller's own prices replace the $5.00 fill used here for missing or market prices; prices stay in Shelfie and are not sent to PayPal's catalog.
+
+## Verified: a third-party MCP client ordering (2026-11-06)
+
+The Claude Code CLI (2.1.318), run headless with only the demo shop's agent door as its MCP server (`--mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config`), ordered from Marigold Bakehouse without Shelfie's own console. It called `get_shop_info`, then `list_products` (query "croissant"), then `create_order` (2 × butter croissant, pickup, buyer Sam Lee). It got back order SHF-A8PD7A and a real PayPal sandbox approval link, `https://www.sandbox.paypal.com/checkoutnow?token=3RG62077NC717421B`.
+
+PayPal's own record of order `3RG62077NC717421B` shows `PAYER_ACTION_REQUIRED`, USD 8.50 and `custom_id` `ord_zl6qfjzrixvghorj`. The seller's dashboard shows the order "via Claude Code". The run used a production build on `localhost`. The order was not paid; the capture gate covers payment. Transcript, command and screenshots: [docs/judge/evidence/outside-client-claude-code.md](judge/evidence/outside-client-claude-code.md).
