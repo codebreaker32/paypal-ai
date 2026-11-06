@@ -232,3 +232,6 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **Agents (`list_products` `image_url`) and the JSON-LD get only the seller's own photos, never an example.** Reason: an agent or search engine would present the image as the product itself; the example is a visual aid for people, labelled as such.
 - **The previous run's clips and render (2:42.3) are superseded:** the final clips are re-recorded and the video re-rendered after Part A3 lands. Reason: the human asked for A3 before the final clips and video, and the review and shop screens change.
 - **`.env` has no `PEXELS_API_KEY`, so the live Pexels search is built and unit-tested with a fake fetch, and listed as unverified.** Reason: getting a key is a sign-up, which the run forbids.
+
+## Run 3, session 5 (2026-11-07 IST, from 01:24)
+- **Session 4's A3 workers are resumed in their own worktrees, not restarted from scratch.** Reason: the code worker had three tested commits and the photo worker 26 viewed photos with their Pexels metadata; redoing them would cost most of a session.
