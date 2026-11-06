@@ -45,12 +45,12 @@ describe('receiptView paidTo', () => {
     const view = receiptView(db, o.id)!;
     expect(view).toMatchObject({ status: 'payment_pending', paidTo: null });
     expect(view.goingTo).toEqual({ kind: 'seller', shopName: 'Rosa Bakes', maskedEmail: 'r•••@exmaple.com' });
-    expect(goingToText(view.goingTo!)).toBe('Going to Rosa Bakes’s own PayPal account (r•••@exmaple.com). PayPal is still confirming it.');
+    expect(goingToText(view.goingTo!)).toBe('Going to Rosa Bakes’s own PayPal account (r•••@exmaple.com).');
   });
 
   it("a held payment for the demo shop is going to Shelfie's demo account", () => {
     expect(goingToText({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true })).toBe(
-      'Going to Shelfie’s demo PayPal account for Marigold Bakehouse. PayPal is still confirming it.',
+      'Going to Shelfie’s demo PayPal account for Marigold Bakehouse.',
     );
   });
 

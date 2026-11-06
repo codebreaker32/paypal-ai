@@ -59,9 +59,12 @@ export function paidToText(p: PaidTo): string {
   return `Paid to ${accountText(p)}`;
 }
 
-/** A payment PayPal still holds: "Going to Marigold Bakehouse’s own PayPal account (r•••@…). PayPal is still confirming it." */
+/**
+ * A payment PayPal still holds: "Going to Marigold Bakehouse’s own PayPal account (r•••@…)." The receipt's status above
+ * it already says PayPal is still clearing it.
+ */
 export function goingToText(p: PaidTo): string {
-  return `Going to ${accountText(p)}. PayPal is still confirming it.`;
+  return `Going to ${accountText(p)}.`;
 }
 
 /** Statuses the receipt keeps polling for. */
