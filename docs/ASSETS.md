@@ -6,7 +6,7 @@ The demo shops in `public/demo/<shop-slug>/` use real food photos from [Pexels](
 
 Every photo below is under the [Pexels License](https://www.pexels.com/license/): free to use for commercial and non-commercial purposes, no attribution required, and modification is allowed. We credit each photographer anyway. The licence does not allow selling unaltered copies or implying endorsement by the people or brands shown, so we picked photos with no visible brand, logo, product label, legible shop sign or identifiable face.
 
-Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped to 1200×900 for items and 2000×900 for covers, JPEG quality 78, progressive.
+Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped to 1200×900 for items and 2000×900 for covers, JPEG quality 78, progressive; then (run 3, for page weight) scaled to 800×600 for items (quality 74) and 1600×720 for covers (quality 72), mozjpeg, progressive.
 
 ## Marigold Bakehouse (marigold-bakehouse, the seeded demo shop)
 
