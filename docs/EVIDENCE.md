@@ -12,6 +12,7 @@ All sources were fetched on 2026-11-05.
 6. The US had 12,487 food truck and cart businesses with paid staff in 2023 (Census County Business Patterns, NAICS 722330).
 7. USDA listed 8,771 farmers markets in 2019 (USDA AMS directory).
 8. Among 775 surveyed cottage food producers, 83% were women, median sales were $2,000 a year, and only 15% sold online or by phone (Institute for Justice, *Flour Power*, 2017).
+9. A Virginia home baker took orders by "text messages and Facebook messages and Instagram DMs ... And then tracking them on a spreadsheet" (Radio IQ, 28 Jul 2026). A Louisiana bakery owner said a rush-order customer "never paid for the other half of it" and "Never came and picked it up" (TODAY, 12 Nov 2024).
 
 ## Detail
 
@@ -30,7 +31,22 @@ All sources were fetched on 2026-11-05.
 | 4b | 8,771 farmers market listings, "voluntary and self-reported". | 2019 | https://www.ams.usda.gov/sites/default/files/media/NationalCountofFarmersMarketDirectoryListings082019.pdf | Verified (primary). Counts markets, not vendors. |
 | 4c | 25,418 registered cottage food producers in the 25 states sampled. No national count. | 2017 | https://ij.org/wp-content/uploads/2017/12/Cottage-Foods-Report-Sep-2018.pdf | Verified (primary) |
 | 5a | Sales venues: farmers markets 49%, home 33%, online/by phone 15%. n=775, phone survey, Mar–Apr 2017. | 2017 | same IJ report, Figure 9 | Verified (primary) |
-| 5b | Sellers take orders by DM or phone and lose money to no-shows. | — | — | Not found (no credible US source) |
+| 5b | Seller voices on taking orders by DM and on no-shows. Three sellers, quoted in the press (table below). | 2024–2026 | see "Seller voices" | Verified (pages fetched, quotes seen). No verified quote was found on having no website. |
+
+## Seller voices (5b, fetched 2026-11-06 IST)
+
+Only quotes from pages that were fetched, with the quote seen on the page, are listed as verified. Reddit blocks the fetch tool, so no Reddit posts were read directly.
+
+| # | Quote | Who (as the source describes them) | Source | Pain point | Verified |
+|---|---|---|---|---|---|
+| V1 | "I just used the manual process of getting orders by text messages and Facebook messages and Instagram DMs ... And then tracking them on a spreadsheet." | Homayra Quoreshi, home baker, Monarch Bakery, Sterling, Virginia | Brad Kutner, "Changes to Virginia's cottage industry laws invigorate home bakers", Radio IQ (WVTF), 28 Jul 2026, https://www.wvtf.org/news/2026-07-28/changes-to-virginias-cottage-industry-laws-invigorate-home-bakers | Orders arrive by text and DM and are tracked by hand | Yes. The ellipsis joins two consecutive sentences. |
+| V2 | "never paid for the other half of it"; "Never came and picked it up." | Abi Caswell, owner of Batter bakery, Louisiana, about a rush-ordered custom cake | "Baker has words for customer who rush-ordered $77 custom cake, then never paid or picked it up", TODAY via Yahoo, 12 Nov 2024, https://www.yahoo.com/lifestyle/baker-words-customer-rush-ordered-015733517.html. The same incident is in PEOPLE via Yahoo, 7 Nov 2024 ("It sat in our cooler for a few days"), https://www.yahoo.com/lifestyle/baker-knocks-customer-rush-ordered-210157597.html | An unpaid balance and a no-show on a pre-order | Yes. Batter is a storefront bakery, not a home baker. The two articles disagree on the price ($70 vs $77) and the town (Hammond vs New Orleans), and neither says how the order was placed. |
+| V3 | "I rely on peer-to-peer payment apps like CashApp, Zelle and Venmo to keep my business running." She also describes a customer who "challenges the payment the next day on false grounds." | Raye Lomini, owner of Raye's Mobile Kitchen & Convenience (food truck and catering), Farmingdale, NY | Raye Lomini, "Stop crooks, not technology: A small business perspective on Zelle lawsuit" (op-ed), Long Island Press, 21 Sep 2025, https://www.longislandpress.com/2025/09/21/op-ed-ny-zelle-lawsuit | Informal payment apps and disputed payments | Yes. It is about payments, not about taking orders. |
+
+**Not used:**
+- A Reddit post read through a third-party mirror (a mother selling cakes on Instagram, described by her child). It is second-hand, from India, and has an inferred date.
+- A CakeCentral thread on no-shows that returned HTTP 521.
+- Vendor marketing pages about sellers having no website.
 
 ## Measured: photo → live shop (2026-11-06)
 
