@@ -36,3 +36,7 @@ services:
       # The webhook id exists only after you create the webhook for this service's URL (README); leave it empty at first.
       - key: PAYPAL_WEBHOOK_ID
         sync: false
+      # Optional: a sandbox Business account email. The seeded demo shop is then paid into it, like any seller's shop;
+      # left empty, the demo shop is paid into the app's own account (spec §8a).
+      - key: PAYPAL_SANDBOX_SELLER_EMAIL
+        sync: false
