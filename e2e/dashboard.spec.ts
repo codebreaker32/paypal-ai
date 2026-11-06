@@ -242,6 +242,51 @@ test.describe('dashboard', () => {
     await a11y(page);
   });
 
+  test('exactly one tab panel is ever in the page: on load and at every frame of quick tab switches', async ({ page }) => {
+    // Samples every animation frame and every DOM change from the first script on, counting panels as the DOM has them,
+    // hidden or not. A second copy is two panels to a screen reader: in a production build the server's streamed copy
+    // used to stay in a hidden `<div id="S:0">` beside a client-rendered one (a context update reached the route's
+    // still-pending loading boundary, so React client-rendered it; see src/components/motion/load-features.ts).
+    await page.addInitScript(() => {
+      const w = window as unknown as { __panels: { max: number; where: string } };
+      w.__panels = { max: 0, where: '' };
+      const where = (el: Element) => {
+        const chain: string[] = [];
+        for (let e: Element | null = el; e && chain.length < 6; e = e.parentElement) chain.push(e.tagName + (e.id ? `#${e.id}` : ''));
+        return chain.join('<');
+      };
+      const sample = () => {
+        const panels = [...new Set(document.querySelectorAll('[role="tabpanel"], [id*="-panel-"]'))];
+        const notes = [...document.querySelectorAll('[data-testid="demo-payee-note"]')];
+        const n = Math.max(panels.length, notes.length);
+        if (n > w.__panels.max) w.__panels = { max: n, where: [...panels, ...notes].map(where).join(' | ') };
+      };
+      new MutationObserver(sample).observe(document, { subtree: true, childList: true, attributes: true });
+      const frame = () => {
+        sample();
+        requestAnimationFrame(frame);
+      };
+      requestAnimationFrame(frame);
+    });
+    const most = async () => (await page.evaluate(() => (window as unknown as { __panels: { max: number; where: string } }).__panels));
+    for (const tab of ['settings', 'share', 'menu']) {
+      await page.goto(dashboard(full, `?tab=${tab}`));
+      await expect(page.getByRole('tabpanel')).toHaveCount(1);
+      await page.waitForTimeout(1000);
+      const seen = await most();
+      expect(seen.max, `panels at once after loading ?tab=${tab}: ${seen.where}`).toBe(1);
+    }
+    for (const name of ['Orders', 'Menu', 'Share', 'Settings', 'Orders', 'Settings', 'Share']) {
+      const tab = page.getByRole('tab', { name: new RegExp(`^${name}`) });
+      await tab.click();
+      await expect(tab).toHaveAttribute('aria-selected', 'true');
+    }
+    await page.waitForTimeout(1000);
+    const seen = await most();
+    expect(seen.max, `panels at once during quick tab switches: ${seen.where}`).toBe(1);
+    await expect(page.getByRole('tabpanel', { name: 'Share' })).toHaveCount(1);
+  });
+
   test('Settings tab: Your PayPal email is checked on blur, saved through PATCH /api/shops/[id], and new orders use it', async ({ page, context }) => {
     // The real route (nothing mocked): its own shop, so the other tests' shops keep their email.
     const seller = createFixtureShop('Settings Test Bakery');
