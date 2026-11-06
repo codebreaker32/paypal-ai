@@ -15,6 +15,7 @@ import { m, useInView, type Variants } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { EASE_OUT, MOTION_S } from './tokens';
 import { useIsoLayoutEffect } from './use-iso-layout-effect';
+import { usePrefersReducedMotion } from './use-prefers-reduced-motion';
 
 /** Tags a Reveal, Stagger or StaggerItem can render as. */
 export type MotionTag = 'div' | 'section' | 'article' | 'header' | 'footer' | 'aside' | 'ul' | 'ol' | 'li' | 'p' | 'span';
@@ -36,6 +37,9 @@ function useMountedAfterHydration(): boolean {
  * plays its entrance as it scrolls into view.
  */
 function useRevealState(ref: RefObject<Element | null>, once: boolean) {
+  // Reduced motion holds nothing back for an entrance: whatever is waiting below the fold shows (a fade at most), also
+  // when the setting changes after the page has loaded.
+  const reduce = usePrefersReducedMotion();
   const clientMount = useMountedAfterHydration();
   const [initial] = useState<'hidden' | false>(clientMount ? 'hidden' : false);
   const [armed, setArmed] = useState(clientMount);
@@ -57,7 +61,7 @@ function useRevealState(ref: RefObject<Element | null>, once: boolean) {
     if (inView && !once) setArmed(true);
   }, [inView, once]);
 
-  return { motionProps: { initial, animate: !armed || inView ? 'show' : 'hidden' } as const, visibleAtStart };
+  return { motionProps: { initial, animate: reduce || !armed || inView ? 'show' : 'hidden' } as const, visibleAtStart };
 }
 
 export interface RevealProps {

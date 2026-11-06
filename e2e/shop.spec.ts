@@ -404,6 +404,28 @@ test.describe('console states', () => {
     }
   });
 
+  test('switching to reduced motion shows every menu section at once, also below the fold (nothing waits to scroll in)', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    await page.goto(`/s/${SLUG}`);
+    await page.waitForLoadState('load');
+    // Switched on after the page has hydrated (as a visitor might, and as the screenshot helper does): sections already
+    // waiting below the fold for their entrance must show too. The last one starts far below a 1440x900 first screen;
+    // no scrolling happens in this test.
+    await page.waitForTimeout(1_000);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const coffee = page.getByRole('heading', { name: 'Coffee', level: 3 });
+    await expect(coffee).toBeAttached();
+    expect((await coffee.boundingBox())!.y).toBeGreaterThan(900);
+    await expect(async () => {
+      const hidden = await page.evaluate(() =>
+        Array.from(document.querySelectorAll('[data-slot="reveal"], [data-slot="stagger-item"]')).filter(
+          (el) => Number(getComputedStyle(el).opacity) < 1,
+        ).length,
+      );
+      expect(hidden).toBe(0);
+    }).toPass({ timeout: 5_000 });
+  });
+
   test('the order card counts its total up once; with reduced motion it shows the total at once', async ({ page }) => {
     for (const reduced of [false, true]) {
       await page.setViewportSize(DESKTOP);
