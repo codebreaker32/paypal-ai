@@ -1,0 +1,26 @@
+# Round-5 test output (main 81288d8, 2026-11-06 09:59 IST)
+
+$ npm test
+ Test Files  53 passed (53)
+      Tests  651 passed (651)
+
+$ npm run typecheck
+exit 0
+
+$ npm run lint
+exit 0
+
+$ npx playwright test (every spec except screenshots; dev server, fresh e2e database; real Claude and the real PayPal sandbox), 09:52 IST
+  56 passed, 1 skipped (4.6m)
+  skipped: dashboard.spec.ts "Other carrier asks for the carrier name" (hidden until verified in the sandbox)
+  capture gate (e2e/capture.spec.ts):
+    [capture-gate] order SHF-GG6GDJ (ord_c7sktucf2rwwnbic) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+    [capture-gate] PayPal order 3EH35781PT3793628
+    [capture-gate] capture 3HK74446UV304740E COMPLETED at PayPal, $27.00
+    [capture-gate] PayPal tracker 3HK74446UV304740E-9400111179393894505923 USPS SHIPPED
+    [capture-gate] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179393894505923.
+    [capture-gate] brief (agent): flags the nut allergy
+
+$ npm run screenshots:prod -- docs/judge/screenshots/round-5   (production build, 68 screens, axe on each)
+68 passed (3.0m)
+axe: 0 violations on 68 screens (axe-results.json)
