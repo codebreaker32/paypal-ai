@@ -50,6 +50,7 @@ const SELLER_MESSAGES = {
   outage: 'PayPal had a problem on its side. Retry in a moment.',
   offline: "We couldn’t reach PayPal. Check the connection, then retry.",
   other: "PayPal didn’t add this item. Retry in a moment.",
+  changed: 'This item changed while publishing, so it wasn’t sent to PayPal.',
 } as const;
 
 const NETWORK_ERROR = /fetch failed|network|socket|timed? ?out|timeout|abort|ECONN|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|UND_ERR/i;
@@ -162,10 +163,16 @@ export async function publishShop(
   const run = { listenerFailed: false };
 
   await pool(todo, PUBLISH_CONCURRENCY, async (queued) => {
-    // Read again at its turn, so a rename made since the run started reaches PayPal. (An item
-    // removed meanwhile is still sent, but setPayPalProductId leaves it removed.)
-    const item = items.byIdForShop(db, shopId, queued.id) ?? queued;
+    // Read again at its turn, so a rename made since the run started reaches PayPal, and an item
+    // removed, moved to "ask in person" or unpriced meanwhile is not sent (it is reported as not added).
+    const item = items.byIdForShop(db, shopId, queued.id);
     let event: PublishProgress;
+    if (!item || !isPendingPublish(item)) {
+      const message = SELLER_MESSAGES.changed;
+      result.failed.push({ itemId: queued.id, message });
+      notify(onProgress, { type: 'item', itemId: queued.id, ok: false, message }, run);
+      return;
+    }
     try {
       const { id } = await paypal.createProduct(productFor(item, shop), `pub-${item.id}`);
       items.setPayPalProductId(db, item.id, id);

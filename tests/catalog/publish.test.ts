@@ -266,8 +266,46 @@ describe('publishShop', () => {
     const sent = paypal.calls.filter((c) => c.method === 'createProduct').map((c) => (c.args[0] as { name: string }).name);
     expect(sent).toContain('Thing four, renamed');
     expect(sent).not.toContain('Thing 3');
-    expect(r.failed).toEqual([]);
-    expect(items.listWithVariants(db, many).find((i) => i.id === fifth.id)!.status).toBe('removed');
+    // The removed one is never sent: it comes back as not added.
+    expect(r.failed.map((f) => f.itemId)).toEqual([fifth.id]);
+    expect(items.listWithVariants(db, many).find((i) => i.id === fifth.id)).toMatchObject({ status: 'removed', paypalProductId: null });
+  });
+
+  it('skips an item moved to "ask in person" or removed while it waited its turn, and still reports it', async () => {
+    const many = shops.create(db, { name: 'Many' }).shop.id;
+    items.replaceDrafts(db, many, Array.from({ length: 5 }, (_, i) => draft(`Thing ${i}`, [100 + i])));
+    const [, , , fourth, fifth] = items.listWithVariants(db, many);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const deferred = {
+      ...paypal,
+      async createProduct(p: Parameters<FakePayPal['createProduct']>[0], requestId: string) {
+        await gate;
+        return paypal.createProduct(p, requestId);
+      },
+    };
+    const events: PublishProgress[] = [];
+    const running = publishShop({ db, paypal: deferred }, many, (e) => events.push(e));
+    // The first 3 are with PayPal; the 4th and 5th wait their turn while the seller changes them.
+    items.update(db, fourth.id, { status: 'in_person' });
+    items.update(db, fifth.id, { status: 'removed' });
+    release();
+    const r = await running;
+
+    const sent = paypal.calls.filter((c) => c.method === 'createProduct').map((c) => c.args[1]);
+    expect(sent).toHaveLength(3);
+    expect(sent).not.toContain(`pub-${fourth.id}`);
+    expect(sent).not.toContain(`pub-${fifth.id}`);
+    expect(items.byIdForShop(db, many, fourth.id)).toMatchObject({ status: 'in_person', paypalProductId: null });
+    expect(items.byIdForShop(db, many, fifth.id)).toMatchObject({ status: 'removed', paypalProductId: null });
+
+    // Every queued item still gets one line of progress, and the result agrees with the stream.
+    expect(r.published).toBe(3);
+    expect(events).toHaveLength(5);
+    const notAdded = events.filter((e) => !e.ok);
+    expect(notAdded.map((e) => e.itemId).sort()).toEqual([fourth.id, fifth.id].sort());
+    expect(r.failed.map((f) => f.itemId).sort()).toEqual([fourth.id, fifth.id].sort());
+    for (const f of r.failed) expect(f.message).toBe('This item changed while publishing, so it wasn’t sent to PayPal.');
   });
 
   it('makes the shop live and keeps it live on later runs', async () => {
