@@ -42,7 +42,7 @@ describe('ItemPhoto fallback', () => {
     const html = renderToStaticMarkup(createElement(ItemPhoto, { name: 'Country sourdough loaf', photoUrl: null, category: 'bread', tone: 1 }));
     expect(html).toContain('role="img"');
     expect(html).toContain('aria-label="Country sourdough loaf"');
-    expect(html).toContain('href="/illustrations.svg#bread"');
+    expect(html).toContain('href="/illustrations.svg#bread-boule"');
     expect(html).toContain('bg-tile-sage');
     expect(html).not.toContain('>Cs<');
   });
