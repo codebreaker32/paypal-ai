@@ -1,6 +1,6 @@
 # Installable on a phone (spec §4c)
 
-`e2e/pwa.spec.ts`, run on main on 6 Nov 2026 (16:45 IST) with `PWA_OUT=docs/judge/evidence/pwa E2E_PORT=3150 npx playwright test e2e/pwa.spec.ts`: **1 passed**.
+`e2e/pwa.spec.ts`, run on main on 6 Nov 2026 (16:06 IST) with `PWA_OUT=docs/judge/evidence/pwa E2E_PORT=3150 npx playwright test e2e/pwa.spec.ts`: **1 passed**.
 
 - **`Page.getInstallabilityErrors` returned `[]`** in full Chromium (new-headless, a persistent profile). Playwright's default headless shell answers `[]` even for a page with no manifest, and its normal contexts are incognito, so the test uses neither.
 - **The check can fail:** with `public/icons/` moved away, the same test failed with `["no-acceptable-icon"]`.
