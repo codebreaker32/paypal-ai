@@ -231,12 +231,12 @@
       "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, follows it to the shop's llms.txt, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
       "video": "clips/05-claude-code-discovery.mp4",
       "narration": "This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
-      "holdSec": 4,
+      "holdSec": 2.5,
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
       "narrationSec": 11.651,
       "durationSec": 16.101,
-      "captionPlacement": "top",
+      "captionPlacement": "bottom",
       "beats": [
         {
           "atSec": 0,

@@ -10,6 +10,8 @@ Shelfie's demo video (under 3:00, 1920x1080, 30 fps, H.264 + AAC) is built from 
 
 [`remotion/`](remotion/) composes them: demoday's Remotion template, restyled in the Shelfie brand ([`docs/DESIGN.md`](../docs/DESIGN.md): white page, ink `#111214`, one pomegranate accent `#c21a4b`, Figtree embedded in the bundle, no gradients, glow or glass), with captions burned in from the word timings.
 
+The render step normalises the mix to -14 LUFS integrated with true peak at or below -1 dBTP (two ffmpeg `loudnorm` passes, the video stream copied; `--no-loudnorm` skips it).
+
 Outputs (in `out/`, gitignored): `out/shelfie-demo.mp4`, `out/poster.png`, `out/shelfie-demo.srt`. The SRT is also written to [`shelfie-demo.srt`](shelfie-demo.srt), which is committed.
 
 ## Setup

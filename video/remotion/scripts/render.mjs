@@ -13,11 +13,14 @@
  * goes to ../out/shelfie-demo.srt and the committed ../shelfie-demo.srt (a test
  * cut writes ../out/<scenes>.srt only). The poster is demo.json's
  * `poster: { scene, atSec }` (default: the end card, 2 s in).
+ * The mix is then loudness-normalised in two ffmpeg passes to -14 LUFS
+ * integrated, true peak <= -1 dBTP (YouTube's playback level; --no-loudnorm
+ * skips it); the video stream is copied, not re-encoded.
  * Run one render at a time; Remotion uses every core.
  */
 import path from "node:path";
-import { spawn } from "node:child_process";
-import { mkdir } from "node:fs/promises";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdir, rename } from "node:fs/promises";
 import { APP_DIR, buildProps, parseArgs, sceneStarts, writeProps, probeSec, DEFAULT_MANIFEST } from "./build-props.mjs";
 import { writeSrt } from "./srt.mjs";
 
@@ -27,6 +30,21 @@ const run = (cmd, args) =>
     p.on("error", reject);
     p.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`${cmd} ${args[1]} exited ${code}`))));
   });
+
+/** Two-pass EBU R128 normalisation of the audio to -14 LUFS / -1 dBTP; the video is stream-copied. */
+const TARGET = "I=-14:TP=-1:LRA=11";
+async function loudnorm(file) {
+  const measure = spawnSync("ffmpeg", ["-hide_banner", "-nostats", "-i", file, "-af", `loudnorm=${TARGET}:print_format=json`, "-f", "null", "-"], { encoding: "utf8" });
+  const json = measure.stderr?.match(/\{[^{}]*"input_i"[^{}]*\}/);
+  if (measure.status !== 0 || !json) throw new Error(`loudnorm measure failed: ${measure.stderr?.slice(-400)}`);
+  const m = JSON.parse(json[0]);
+  const filter = `loudnorm=${TARGET}:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}:linear=true`;
+  const tmp = file.replace(/\.mp4$/i, ".loudnorm.mp4");
+  const apply = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-i", file, "-af", filter, "-ar", "48000", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp], { encoding: "utf8" });
+  if (apply.status !== 0) throw new Error(`loudnorm apply failed: ${apply.stderr?.slice(-400)}`);
+  await rename(tmp, file);
+  console.log(`  loudness: ${m.input_i} LUFS -> -14 LUFS (true peak ${m.input_tp} dBTP before)`);
+}
 
 const args = parseArgs(process.argv.slice(2));
 const manifestPath = args.manifest ? path.resolve(args.manifest) : DEFAULT_MANIFEST;
@@ -52,6 +70,7 @@ try {
   if (typeof args.frames === "string") renderArgs.push("--frames", args.frames);
   renderArgs.push("--concurrency", String(args.concurrency || 2));
   await run("npx", renderArgs);
+  if (!args["no-loudnorm"]) await loudnorm(outFile);
 
   if (!args["no-poster"]) {
     const pick = manifest.poster || { scene: "end", atSec: 2 };

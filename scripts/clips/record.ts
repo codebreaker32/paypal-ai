@@ -566,7 +566,10 @@ async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
 
 async function sceneConsole(display: Display, app: App): Promise<void> {
   if (!BUYER.email || !BUYER.password) throw new Error('06 needs PAYPAL_SANDBOX_BUYER_EMAIL and PAYPAL_SANDBOX_BUYER_PASSWORD in .env');
-  cancelUnpaid(app, LOGINS);
+  // When 05 ran in this take it reset the shop, so its one unpaid order is Claude Code's: keep it alive, so the
+  // dashboard in 08 shows the agent's order waiting for payment rather than "Cancelled" (video round fix 1). A take
+  // without 05 clears rehearsal orders first (one caller can hold 3 unpaid orders).
+  if (!wanted('05-claude-code-discovery')) cancelUnpaid(app, LOGINS);
   const stage = await desktopStage(display, app, 'console');
   try {
     const p = stage.page;
