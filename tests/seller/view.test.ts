@@ -124,7 +124,7 @@ describe('seller view helpers', () => {
       expect(heldForUnknownEmail(held, events)).toBe(true);
       const [title, text] = actionWords(held, false, false, true);
       expect(title).toBe('PayPal is holding this payment');
-      expect(text).toMatch(/^PayPal is holding this payment: no PayPal account uses rosa@exmaple\.com yet\./);
+      expect(text).toMatch(/^No PayPal account uses rosa@exmaple\.com yet\./);
       expect(text).toMatch(/Settings/);
       expect(text).toMatch(/Don’t hand over or ship/);
       expect(timelineEntries(events, held).at(-1)).toEqual(

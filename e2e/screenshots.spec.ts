@@ -202,9 +202,8 @@ function seedSellerPaidOrders(f: FixtureShop) {
   });
   sellerOrders.held = addFixtureOrder(f, {
     status: 'payment_pending', fulfillment: 'pickup', minutesAgo: 40, buyerName: 'Lu', lines: [['Morning bun', 3]],
-    payeeEmail: 'rosa@exmaple.com', payer: { name: 'Lu Chen', email: 'lu.chen@example.com' },
+    payeeEmail: 'rosa@exmaple.com', pendingReason: 'UNILATERAL', payer: { name: 'Lu Chen', email: 'lu.chen@example.com' },
   });
-  eventsRepo.add(getDb(), sellerOrders.held.id, 'capture_pending', 'return_url', { captureStatus: 'PENDING', pendingReason: 'UNILATERAL' });
 }
 
 /** What a seller does on review: "Looks right" on the checks, "Ask in person" on the market price. */
@@ -743,7 +742,7 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, briefShop.shop.id, briefShop.ownerToken);
       await page.goto(`/shops/${briefShop.shop.id}/orders/${sellerOrders.held.id}`);
-      await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('no PayPal account uses rosa@exmaple.com yet');
+      await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('No PayPal account uses rosa@exmaple.com yet.');
     },
   },
   {
@@ -756,7 +755,8 @@ const SCREENS: Screen[] = [
       await field.fill('rosa@example');
       await field.blur();
       await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
-      await field.scrollIntoViewIfNeeded();
+      // Centred, so the sticky publish bar (with its "Add your PayPal email" reason) doesn't cover the field's error.
+      await field.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     },
     viewport: true,
   },

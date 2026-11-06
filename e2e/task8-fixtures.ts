@@ -102,6 +102,8 @@ interface OrderSpec {
   tracking?: { carrier: string; trackingNumber: string };
   /** The payee the order was made with; default the shop's (null: paid to the platform, as the demo shop). */
   payeeEmail?: string | null;
+  /** payment_pending only: PayPal's reason for holding it (UNILATERAL: no PayPal account uses the payee email yet). */
+  pendingReason?: string;
 }
 
 const AUSTIN: ShipTo = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 'Apt 3', city: 'Austin', state: 'TX', postalCode: '78702', countryCode: 'US' };
@@ -140,7 +142,9 @@ export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
   if (spec.status !== 'awaiting_approval' && spec.status !== 'cancelled' && spec.status !== 'expired') {
     events.push(['paypal_approved', 'return_url', t0 - 2]);
   }
-  if (spec.status === 'payment_pending') events.push(['capture_pending', 'return_url', t0 - 2, { captureId: capture }]);
+  if (spec.status === 'payment_pending') {
+    events.push(['capture_pending', 'return_url', t0 - 2, { captureId: capture, ...(spec.pendingReason ? { pendingReason: spec.pendingReason } : {}) }]);
+  }
   if (paidLike) events.push(['capture_completed', 'return_url', t0 - 2, { captureId: capture }]);
   if (spec.status === 'cancelled') events.push(['cancelled', 'cancel_url', t0 - 3]);
   if (spec.status === 'expired') events.push(['expired', 'poller', t0 - 60]);

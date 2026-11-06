@@ -7,7 +7,6 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE } from './helpers';
 import { getDb } from '@/lib/db';
-import * as eventsRepo from '@/lib/db/repos/events';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 
@@ -323,13 +322,12 @@ test.describe('order detail', () => {
     await signInAsOwner(context, scratch, BASE);
     const o = addFixtureOrder(scratch, {
       status: 'payment_pending', fulfillment: 'pickup', minutesAgo: 7, buyerName: 'Lu', lines: [['Morning bun', 2]],
-      payeeEmail: 'rosa@exmaple.com', payer: { name: 'Lu Chen', email: 'lu@example.com' },
+      payeeEmail: 'rosa@exmaple.com', pendingReason: 'UNILATERAL', payer: { name: 'Lu Chen', email: 'lu@example.com' },
     });
-    eventsRepo.add(getDb(), o.id, 'capture_pending', 'return_url', { captureStatus: 'PENDING', pendingReason: 'UNILATERAL' });
     await page.goto(detail(scratch, o.id));
     const action = page.locator('section[aria-labelledby="action-title"]');
     await expect(action.getByRole('heading', { name: 'PayPal is holding this payment' })).toBeVisible();
-    await expect(action).toContainText('no PayPal account uses rosa@exmaple.com yet');
+    await expect(action).toContainText('No PayPal account uses rosa@exmaple.com yet.');
     await expect(page.getByTestId('paid-to')).toHaveText('rosa@exmaple.com');
     await action.getByRole('link', { name: 'Check your PayPal email' }).click();
     await expect(page).toHaveURL(new RegExp(`/shops/${scratch.shop.id}\\?tab=settings$`));

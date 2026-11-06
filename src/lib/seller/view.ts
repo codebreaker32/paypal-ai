@@ -161,7 +161,8 @@ export function actionWords(
   if (order.status === 'payment_pending' && held) {
     return [
       'PayPal is holding this payment',
-      `${heldWords(order.payeeEmail ?? null)}. If that’s your email, sign up for PayPal with it to receive the money. ` +
+      // The title already says PayPal is holding it; the text says why and what to do.
+      `No PayPal account uses ${order.payeeEmail ?? 'your PayPal email'} yet. If that’s your email, sign up for PayPal with it to receive the money. ` +
         'If it has a typo, correct it in Settings so new orders reach you. Don’t hand over or ship until it shows Paid.',
     ];
   }
