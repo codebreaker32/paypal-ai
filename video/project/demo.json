@@ -83,7 +83,8 @@
       "audio": "audio/problem.mp3",
       "words": "audio/problem.words.json",
       "narrationSec": 26.384,
-      "durationSec": 27.434
+      "durationSec": 27.434,
+      "playbackRate": 0.365
     },
     {
       "id": "snap",
@@ -96,7 +97,20 @@
       "audio": "audio/snap.mp3",
       "words": "audio/snap.words.json",
       "narrationSec": 5.329,
-      "durationSec": 7.279
+      "durationSec": 7.279,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.2
+        },
+        {
+          "atSec": 6.0,
+          "shot": "screen",
+          "videoStartSec": 15.6
+        }
+      ]
     },
     {
       "id": "review",
@@ -109,7 +123,36 @@
       "audio": "audio/review.mp3",
       "words": "audio/review.words.json",
       "narrationSec": 18.233,
-      "durationSec": 19.683
+      "durationSec": 19.683,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.5
+        },
+        {
+          "atSec": 2.5,
+          "shot": "screen",
+          "videoStartSec": 5.3
+        },
+        {
+          "atSec": 5.6,
+          "shot": "screen",
+          "videoStartSec": 21.0
+        },
+        {
+          "atSec": 9.6,
+          "shot": "screen",
+          "videoStartSec": 25.0,
+          "playbackRate": 1.5
+        },
+        {
+          "atSec": 13.3,
+          "shot": "screen",
+          "videoStartSec": 30.5
+        }
+      ]
     },
     {
       "id": "counter",
@@ -122,7 +165,29 @@
       "audio": "audio/counter.mp3",
       "words": "audio/counter.words.json",
       "narrationSec": 5.878,
-      "durationSec": 7.328
+      "durationSec": 7.328,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 8.3
+        },
+        {
+          "atSec": 2.6,
+          "shot": "screen",
+          "videoStartSec": 11.6
+        },
+        {
+          "atSec": 4.4,
+          "shot": "screen",
+          "videoStartSec": 16.8
+        },
+        {
+          "atSec": 5.9,
+          "shot": "screen",
+          "videoStartSec": 21.2
+        }
+      ]
     },
     {
       "id": "card",
@@ -134,7 +199,20 @@
       "audio": "audio/card.mp3",
       "words": "audio/card.words.json",
       "narrationSec": 7.784,
-      "durationSec": 8.234
+      "durationSec": 8.234,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 2.9
+        },
+        {
+          "atSec": 2.2,
+          "shot": "screen",
+          "videoStartSec": 6.1
+        }
+      ]
     },
     {
       "id": "discovery",
@@ -147,7 +225,42 @@
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
       "narrationSec": 11.677,
-      "durationSec": 16.127
+      "durationSec": 16.127,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 3.4,
+          "playbackRate": 2.5
+        },
+        {
+          "atSec": 3.8,
+          "shot": "screen",
+          "videoStartSec": 14.6
+        },
+        {
+          "atSec": 5.2,
+          "shot": "screen",
+          "videoStartSec": 26.8
+        },
+        {
+          "atSec": 6.7,
+          "shot": "screen",
+          "videoStartSec": 38.5,
+          "playbackRate": 2.5
+        },
+        {
+          "atSec": 8.5,
+          "shot": "screen",
+          "videoStartSec": 44.8
+        },
+        {
+          "atSec": 9.9,
+          "shot": "screen",
+          "videoStartSec": 49.6
+        }
+      ]
     },
     {
       "id": "console",
@@ -160,7 +273,37 @@
       "audio": "audio/console.mp3",
       "words": "audio/console.words.json",
       "narrationSec": 13.923,
-      "durationSec": 16.873
+      "durationSec": 16.873,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.8
+        },
+        {
+          "atSec": 3.6,
+          "shot": "screen",
+          "videoStartSec": 4.4,
+          "playbackRate": 2.0
+        },
+        {
+          "atSec": 6.2,
+          "shot": "screen",
+          "videoStartSec": 11.0
+        },
+        {
+          "atSec": 10.4,
+          "shot": "screen",
+          "videoStartSec": 22.5,
+          "playbackRate": 2.0
+        },
+        {
+          "atSec": 12.0,
+          "shot": "screen",
+          "videoStartSec": 28.5
+        }
+      ]
     },
     {
       "id": "paypal",
@@ -173,7 +316,25 @@
       "audio": "audio/paypal.mp3",
       "words": "audio/paypal.words.json",
       "narrationSec": 9.091,
-      "durationSec": 11.541
+      "durationSec": 11.541,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.8
+        },
+        {
+          "atSec": 2.6,
+          "shot": "screen",
+          "videoStartSec": 11.0
+        },
+        {
+          "atSec": 9.6,
+          "shot": "screen",
+          "videoStartSec": 21.0
+        }
+      ]
     },
     {
       "id": "tamper",
@@ -186,7 +347,20 @@
       "audio": "audio/tamper.mp3",
       "words": "audio/tamper.words.json",
       "narrationSec": 4.676,
-      "durationSec": 6.126
+      "durationSec": 6.126,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 1.2,
+          "playbackRate": 2.5
+        },
+        {
+          "atSec": 2.6,
+          "shot": "screen",
+          "videoStartSec": 12.6
+        }
+      ]
     },
     {
       "id": "dashboard",
@@ -199,7 +373,9 @@
       "audio": "audio/dashboard.mp3",
       "words": "audio/dashboard.words.json",
       "narrationSec": 14.367,
-      "durationSec": 15.817
+      "durationSec": 15.817,
+      "captionPlacement": "top",
+      "videoStartSec": 1.6
     },
     {
       "id": "tracking",
@@ -212,7 +388,21 @@
       "audio": "audio/tracking.mp3",
       "words": "audio/tracking.words.json",
       "narrationSec": 3.918,
-      "durationSec": 6.368
+      "durationSec": 6.368,
+      "captionPlacement": "top",
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 8.6
+        },
+        {
+          "atSec": 1.6,
+          "shot": "screen",
+          "videoStartSec": 19.0,
+          "playbackRate": 1.5
+        }
+      ]
     },
     {
       "id": "close",
