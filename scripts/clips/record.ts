@@ -10,14 +10,19 @@
 // login itself is never recorded (06 stops before it, 06b starts after it).
 //
 // --only takes clip ids or their prefixes (03, 03b, 06, 08-dashboard-brief). A shot that needs an earlier one still runs it
-// unrecorded (03 drives 02's steps), 06 and 06b are recorded together, and 08/09 use the order 06 paid. 03b is a live
-// Claude call too: it first clears the photos of the two croissants it finds (unrecorded), so they fill in on camera.
+// unrecorded (03 drives 02's steps), 06, 06b and 08 are recorded together (08 opens on the dashboard the seller left open
+// while the buyer paid, so its toast and glow play on camera), and 09 uses the order 06 paid. 08 alone opens a fresh
+// dashboard on that order (no toast: it is paid already). 03b is a live Claude call too: it first clears the photos of the
+// two croissants it finds (unrecorded), so they fill in on camera.
+//
+// The UI moves (sections rise in, totals count up, statuses crossfade: up to about 400 ms), so a shot waits for what it
+// shows to come to rest (`settled`) and for its photos and drawings to load (`picturesReady`) before holding on it.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { parse } from 'dotenv';
-import type { Frame, Locator, Page } from '@playwright/test';
+import type { BrowserContext, Frame, Locator, Page } from '@playwright/test';
 import { cancelUnpaid, readState, resetDemoShop, startApp, writeState, WORK, type App } from './app';
 import { leaks, redactorScript } from './redact';
 import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDisplay, type Display, type Stage } from './stage';
@@ -92,13 +97,77 @@ async function clip(display: Display, id: string, body: () => Promise<void>, opt
   }
 }
 
+/** Screen time for the viewer (reading, looking). Never a wait for the app: that is `settled` or a locator's wait. */
 const hold = sleep;
 
-/** Scrolls `loc` into view the way a person would (smoothly), then lets it settle. */
-async function bring(loc: Locator, block: 'center' | 'start' | 'end' | 'nearest' = 'center', settle = 900): Promise<void> {
+/**
+ * Waits until `loc` is at rest: visible, its box and its opacity (with its ancestors') unchanged for about 100 ms, the
+ * same for the Motion entrances inside it (stagger items, reveals, console entries: Motion drives those from script,
+ * not as Web Animations), and no finite CSS or Web animation running inside it. Covers the UI's entrances (rise-ins,
+ * count-ups, crossfades, up to about 400 ms) and a smooth scroll still moving it. Spinners and shimmer don't count.
+ */
+async function settled(loc: Locator, timeoutMs = 6000): Promise<void> {
+  await loc.waitFor({ state: 'visible', timeout: 30_000 });
+  await loc.evaluate(async (el, ms) => {
+    const end = performance.now() + ms;
+    const frame = () => new Promise((r) => requestAnimationFrame(r));
+    const box = (e: Element, o: number) => {
+      const r = e.getBoundingClientRect();
+      return `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)},${o.toFixed(2)}`;
+    };
+    const snap = () => {
+      let o = 1;
+      for (let n: Element | null = el; n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
+      const inner = [...el.querySelectorAll('[data-slot="stagger-item"], [data-slot="reveal"], [data-entrance]')]
+        .slice(0, 40)
+        .map((e) => box(e, Number(getComputedStyle(e).opacity)));
+      // A total counting up shows the running figure in an overlay that is empty once it lands.
+      const counting = [...el.querySelectorAll('[data-slot="count-up"] > [aria-hidden="true"]')].map((e) => e.textContent).join('');
+      const self = el.matches('[data-slot="count-up"]') ? (el.querySelector('[aria-hidden="true"]')?.textContent ?? '') : '';
+      return [box(el, o), ...inner, counting + self].join(' ');
+    };
+    const moving = () =>
+      el.getAnimations({ subtree: true }).some((a) => a.playState === 'running' && Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
+    let last = '';
+    for (let still = 0; performance.now() < end; ) {
+      await frame();
+      const now = snap();
+      still = now === last && !moving() ? still + 1 : 0;
+      if (still >= 6) return;
+      last = now;
+    }
+  }, timeoutMs);
+}
+
+/** Scrolls `loc` into view the way a person would (smoothly), waits for it to come to rest, then holds `pause` ms. */
+async function bring(loc: Locator, block: 'center' | 'start' | 'end' | 'nearest' = 'center', pause = 500): Promise<void> {
   await loc.waitFor({ state: 'visible', timeout: 30_000 });
   await loc.evaluate((el, b) => el.scrollIntoView({ behavior: 'smooth', block: b }), block);
-  await sleep(settle);
+  await settled(loc);
+  await hold(pause);
+}
+
+/**
+ * Waits for the pictures inside `scope` to be drawn: every photo on screen loaded, and the drawings' sprite
+ * (`/illustrations.svg`, which items with no photo point at) fetched. Best effort: a slow one is not a failed shot.
+ */
+async function picturesReady(where: Page | Frame, scope = 'body', timeoutMs = 15_000): Promise<void> {
+  await where
+    .waitForFunction(
+      (s) => {
+        const root = document.querySelector(s);
+        if (!root) return true;
+        const onScreen = (el: Element) => el.getBoundingClientRect().top < innerHeight;
+        if (![...root.querySelectorAll('img')].every((i) => i.complete || (i.loading === 'lazy' && !onScreen(i)))) return false;
+        return (
+          !root.querySelector('[data-illustration]') ||
+          performance.getEntriesByType('resource').some((e) => e.name.includes('/illustrations.svg') && (e as PerformanceResourceTiming).responseEnd > 0)
+        );
+      },
+      scope,
+      { timeout: timeoutMs },
+    )
+    .catch(() => say(`  note: pictures in ${scope} still loading after ${timeoutMs / 1000} s`));
 }
 
 /** Hovers (the button's hover state is the viewer's cue), pauses, clicks. */
@@ -154,11 +223,18 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       const chooser = stage.page.waitForEvent('filechooser');
       await press(f.getByRole('button', { name: /Snap your price list/ }));
       await (await chooser).setFiles(PHOTO);
-      await hold(1800);
+      // The picked photo's thumbnail and the button that became "Read my menu".
+      await picturesReady(f, 'ul[aria-label="Photos to read"]');
+      await hold(1500);
       await press(f.getByRole('button', { name: /Read my menu/ }));
-      await f.getByRole('heading', { level: 1, name: 'Reading your menu…' }).waitFor({ timeout: 60_000 });
+      const reading = f.getByRole('heading', { level: 1, name: 'Reading your menu…' });
+      await reading.waitFor({ timeout: 60_000 });
+      await picturesReady(f); // the menu photo under its scan line
       await f.getByRole('heading', { level: 1, name: 'Check your menu' }).waitFor({ timeout: 180_000 });
       await fontsReady(f);
+      // The review rises in (its header, then the first question card with the item's drawing).
+      await settled(f.locator('section[aria-labelledby="needs-title"] article').first());
+      await picturesReady(f);
       await hold(3000);
     });
     const shopId = new URL(f.url()).pathname.split('/')[2];
@@ -170,7 +246,7 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       const needs = f.locator('section[aria-labelledby="needs-title"] article');
       for (let left = await needs.count(), guard = 0; left > 0 && guard < 12; left = await needs.count(), guard++) {
         const card = needs.first();
-        await bring(card, 'center', 1000);
+        await bring(card, 'center', 400);
         await hold(1800); // time to read the question
         let done = false;
         for (const name of ['Looks right', 'Ask in person', 'Keep both']) {
@@ -189,22 +265,26 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       }
       // "Your PayPal email": the sandbox seller's, typed into a field drawn as dots (the login never shows).
       const email = f.getByLabel('Your PayPal email');
-      await bring(email, 'center', 1000);
+      await bring(email, 'center', 600);
       await email.evaluate((el) => (el as HTMLElement).style.setProperty('-webkit-text-security', 'disc'));
       await email.click();
       await email.pressSequentially(SELLER, { delay: 55 });
       await f.getByText('Saved', { exact: true }).first().waitFor({ timeout: 20_000 });
       await hold(1500);
       const publish = f.getByRole('button', { name: /^Publish \d+ items? to PayPal$/ });
-      await bring(publish, 'center', 800);
+      await bring(publish, 'center', 400);
       await press(publish, 700);
-      await f.getByRole('heading', { level: 1, name: 'Your shop is live' }).waitFor({ timeout: 180_000 });
+      const live = f.getByRole('heading', { level: 1, name: 'Your shop is live' });
+      await live.waitFor({ timeout: 180_000 });
       await fontsReady(f);
+      // The shop's picture and its name beat in beside "Live".
+      await settled(f.locator('header').filter({ has: live }));
+      await picturesReady(f);
       await hold(3500);
       // "Your agent door" with the new shop's door link, then "Your shop link" under it.
       const door = f.getByRole('heading', { name: 'Your agent door' });
       if (await door.count()) {
-        await bring(door, 'start', 1200);
+        await bring(door, 'start', 800);
         await hold(3000);
       }
     });
@@ -233,18 +313,18 @@ async function sceneCard(display: Display, app: App): Promise<void> {
     const share = p.getByRole('tab', { name: 'Share' });
     await share.waitFor();
     await fontsReady(p);
-    await sleep(800);
+    await picturesReady(p); // the shop's picture in the header
     await clip(display, '04-counter-card', async () => {
       await hold(1500);
       await press(share);
       const print = p.getByRole('link', { name: 'Print counter card' });
-      await bring(print, 'center', 1200);
+      await bring(print, 'center', 800);
       await hold(1200);
       await press(print, 600);
       await p.waitForURL(/\/card$/);
       await p.getByText(/Order ahead with any AI assistant/).first().waitFor();
       await fontsReady(p);
-      await p.waitForLoadState('networkidle').catch(() => {});
+      await picturesReady(p); // the cover photo and the QR code
       await hold(5000);
     });
   } finally {
@@ -272,23 +352,22 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
     const menuTab = p.getByRole('tab', { name: 'Menu' });
     await menuTab.waitFor();
     await fontsReady(p);
-    await p.waitForLoadState('networkidle').catch(() => {});
-    await sleep(800);
+    await picturesReady(p); // the shop's picture in the header
     const row = (name: string) => p.locator(`li[data-item="${name}"]`);
-    const imagesLoaded = (sel: string) =>
-      p.waitForFunction((s) => [...document.querySelectorAll(s)].every((i) => (i as HTMLImageElement).complete), sel, { timeout: 15_000 }).catch(() => {});
+    /** A row's photo: an <img> named for the item (a row with no photo shows its drawing, which is decorative). */
+    const rowPhoto = (name: string) => row(name).locator('img').and(p.getByAltText(name, { exact: true }));
 
     await clip(display, '03b-snap-counter', async () => {
       await hold(1500);
       await press(menuTab);
       const snap = p.locator('label').filter({ has: p.locator('input[aria-label="Snap your counter"]') });
       await snap.waitFor();
-      await imagesLoaded('li[data-item] img');
+      await picturesReady(p, '[role="tabpanel"]'); // the rows' photos, and the croissants' drawings
       await hold(1200);
-      // The two croissant rows, with the designed no-photo tile.
-      await bring(row(COUNTER_ITEMS[0]), 'center', 1200);
+      // The two croissant rows, with their drawings (no photo).
+      await bring(row(COUNTER_ITEMS[0]), 'center', 600);
       await hold(1800);
-      await bring(snap, 'center', 900);
+      await bring(snap, 'center', 400);
       const chooser = p.waitForEvent('filechooser');
       await press(snap, 700);
       await (await chooser).setFiles(COUNTER_PHOTO);
@@ -298,8 +377,10 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       const failed = sheet.getByRole('alert');
       await found.or(failed).first().waitFor({ timeout: 120_000 });
       if (await failed.isVisible()) throw new Error(`snap your counter failed: ${await failed.innerText()}`);
-      await imagesLoaded('[data-proposal] img');
-      await hold(2500); // Claude's crops, one per item it found
+      // Claude's crops, one per item it found, rise in one after another.
+      await picturesReady(p, 'dialog[open]');
+      await settled(found);
+      await hold(2500);
       // Use on the croissants' proposals only (they have no photo now); any other item Claude finds is left as it is.
       for (const name of COUNTER_ITEMS) {
         const b = sheet.getByRole('button', { name: `Use: ${name}`, exact: true });
@@ -312,12 +393,12 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       await press(sheet.getByRole('button', { name: 'Done' }), 500);
       await sheet.waitFor({ state: 'hidden' });
       // The rows' thumbnails, filled in.
-      await bring(row(COUNTER_ITEMS[0]), 'center', 1200);
-      await imagesLoaded('li[data-item] img');
+      await bring(row(COUNTER_ITEMS[0]), 'center', 400);
+      await picturesReady(p, '[role="tabpanel"]');
       await hold(4000);
     });
     const kept = [];
-    for (const n of COUNTER_ITEMS) if (await row(n).getByRole('img', { name: n }).count()) kept.push(n);
+    for (const n of COUNTER_ITEMS) if (await rowPhoto(n).count()) kept.push(n);
     say(`  snap your counter: photos now on ${kept.join(', ') || 'neither croissant'}`);
   } finally {
     await stage.close();
@@ -427,9 +508,10 @@ async function sceneTamper(display: Display, app: App): Promise<void> {
 // ---- 06, 06b: the buyer console orders, PayPal, the receipt (laptop) ---------------------------------------------------
 
 async function waitTurn(region: Locator): Promise<void> {
-  // The turn is over when the console offers "Start over" again and nothing is streaming.
+  // The turn is over when the console offers "Start over" again and nothing is streaming; then its last entry (a reply,
+  // or the order card, whose total counts up) has to finish rising in.
   await region.getByRole('button', { name: 'Start over' }).waitFor({ state: 'visible', timeout: 180_000 });
-  await sleep(400);
+  await settled(region.getByRole('log', { name: 'Conversation' }).locator(':scope > [data-entrance]').last());
 }
 
 /** The rest of PayPal's buttons on its review page. */
@@ -489,7 +571,7 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     await p.goto(`${app.origin}/s/${DEMO_SLUG}`);
     await p.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' }).waitFor();
     await fontsReady(p);
-    await sleep(800);
+    await picturesReady(p); // the cover, the shop's picture, the menu's photos
     const region = p.getByRole('complementary', { name: 'Order with an assistant' });
     const input = region.getByRole('textbox', { name: 'Message to the assistant' });
     const approve = region.getByRole('link', { name: /^Approve \$[\d,.]+ on PayPal$/ });
@@ -516,13 +598,24 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
         await hold(1500);
       }
       await approve.waitFor({ timeout: 10_000 });
-      await bring(approve, 'center', 800);
+      await bring(approve, 'center', 400);
       await hold(2500);
       await press(approve, 700);
       await p.waitForURL(/sandbox\.paypal\.com/, { timeout: 60_000 });
       await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
       await hold(4000); // PayPal's page: the shop, the amount
     });
+
+    // Not recorded: the seller's dashboard opens in a second window of this browser and goes behind the buyer's, like a
+    // tab left open in the background while the buyer pays. 08 comes back to it.
+    let dash: Page | null = null;
+    if (wanted('08-dashboard-brief')) {
+      dash = await backgroundDashboard(stage, app).catch((e) => {
+        say(`  note: no dashboard left open for 08 (${e instanceof Error ? e.message.split('\n')[0] : e}); 08 opens a fresh one`);
+        return null;
+      });
+      await p.bringToFront();
+    }
 
     // Not recorded: the PayPal login (the sandbox buyer's email and password).
     const pay = await loginToPayPal(p, display);
@@ -545,15 +638,16 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
       const paidTo = p.getByText(/own PayPal account/).first();
       await paidTo.waitFor({ timeout: 90_000 });
       await fontsReady(p);
+      // "Paid.": the icon pops in, the title and its line rise after it (or crossfade from "Confirming").
+      await settled(p.getByRole('heading', { level: 1 }));
       await hold(3500);
-      await bring(paidTo, 'center', 1200);
+      await bring(paidTo, 'center', 600);
       await hold(3000);
       await press(p.getByRole('link', { name: 'Back to the assistant' }), 700);
       await p.waitForURL(/assistant=1/);
       const paid = region.getByRole('link', { name: /Paid · View receipt/ });
       await paid.waitFor({ timeout: 30_000 });
-      await hold(800);
-      await bring(paid, 'center', 1200);
+      await bring(paid, 'center', 800); // its status crossfades to Paid
       await hold(3500);
     });
 
@@ -564,6 +658,13 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     const total = (await p.getByText(/^\$\d+\.\d{2}$/).last().innerText().catch(() => '')).trim();
     writeState({ order: { ref: orderRef, number, total }, console: value ? { key, value } : undefined });
     say(`  order ${number} (${orderRef}) paid`);
+
+    if (dash) {
+      // 08 from the dashboard left open; if that fails, sceneDashboard records 08 from a fresh one.
+      await shot08FromBackground(display, app, stage, dash).catch((e) => {
+        say(`  note: 08 from the open dashboard failed (${e instanceof Error ? e.message.split('\n')[0] : e}); trying a fresh dashboard`);
+      });
+    }
   } finally {
     await stage.close();
   }
@@ -596,7 +697,86 @@ async function paidOrder(app: App, stage: Stage, needBrief: boolean): Promise<Ap
   }
 }
 
+/**
+ * Makes one page behave as a background tab until `__clipsShowTab()` brings it back. Playwright reports every page as
+ * visible, so without this the dashboard would poll while the buyer pays and its "New paid order" toast and the row's
+ * glow would play off camera. The rest is the app's own code: it skips its poll while hidden and polls at once on
+ * `visibilitychange`, as when a seller comes back to the tab.
+ */
+const BACKGROUND_TAB = `(() => {
+  let hidden = true;
+  try { hidden = sessionStorage.getItem('clips:tab-shown') !== '1'; } catch {}
+  Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => (hidden ? 'hidden' : 'visible') });
+  window.__clipsShowTab = () => {
+    hidden = false;
+    try { sessionStorage.setItem('clips:tab-shown', '1'); } catch {}
+    document.dispatchEvent(new Event('visibilitychange'));
+  };
+})();`;
+
+/** The demo shop's dashboard in a second window of the console's browser (logged in as the owner), as a background tab. */
+async function backgroundDashboard(stage: Stage, app: App): Promise<Page> {
+  const owner = JSON.parse(fs.readFileSync(app.ownerStateFile, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
+  await stage.context.addCookies(owner.cookies);
+  const dash = await stage.context.newPage();
+  await dash.addInitScript({ content: BACKGROUND_TAB });
+  await dash.goto(`${app.origin}/shops/${app.demoShopId}`);
+  await dash.getByRole('tab', { name: 'Orders' }).waitFor();
+  await fontsReady(dash);
+  await picturesReady(dash);
+  return dash;
+}
+
+/**
+ * The rest of 08 once the order list is on screen: the order's row (thumbnail, items, its AI brief, total, Paid, Add
+ * tracking), then its page: the AI brief (a note), Paid to (masked), the PayPal order and transaction ids, the timeline.
+ */
+async function orderTour(p: Page, order: ApiOrder, rowHold: number): Promise<void> {
+  const orderRow = p.locator(`li[data-order="${order.number}"]`);
+  await bring(orderRow, 'nearest', 400);
+  await hold(rowHold);
+  const link = orderRow.getByRole('link', { name: order.number, exact: true });
+  await press(link, 700);
+  await p.waitForURL(/\/orders\//);
+  const paidTo = p.getByText('Paid to', { exact: true });
+  await paidTo.waitFor();
+  await fontsReady(p);
+  await picturesReady(p);
+  await settled(p.locator('section[aria-labelledby="brief-title"]'));
+  await hold(3500); // the AI brief and its warning
+  await bring(paidTo, 'center', 400);
+  await hold(3500); // Paid to, the PayPal order and transaction ids
+  const timeline = p.getByRole('heading', { name: 'What happened' }).first();
+  if (await timeline.count()) {
+    await bring(timeline, 'start', 400);
+    await hold(3500);
+  }
+}
+
+/**
+ * 08, recorded in the console's browser right after 06b: the dashboard the seller left open before the buyer paid
+ * (the order still under Waiting for payment) comes to the front; its poll sees the order paid, so the toast "New paid
+ * order …" shows and the row rises into To prepare with a glow; then the order tour.
+ */
+async function shot08FromBackground(display: Display, app: App, stage: Stage, dash: Page): Promise<void> {
+  const order = await paidOrder(app, stage, true); // the brief is written about 10 s after payment
+  say(`  ${order.number}: PayPal order ${order.paypalOrderId}, transaction ${order.captureId ?? '—'}`);
+  await dash.bringToFront();
+  await picturesReady(dash);
+  await clip(display, '08-dashboard-brief', async () => {
+    await hold(2000); // the dashboard as the seller left it
+    await dash.evaluate(() => (window as unknown as { __clipsShowTab: () => void }).__clipsShowTab());
+    await dash.getByText(`New paid order ${order.number}`).waitFor({ timeout: 15_000 });
+    await settled(dash.locator(`li[data-order="${order.number}"]`));
+    await hold(3000); // the toast, and the row's glow fading (2.4 s)
+    await orderTour(dash, order, 2500);
+  });
+}
+
+/** 08 on its own (`--only 08`, or when 06's open dashboard failed): a fresh dashboard, the order already paid (no toast). */
 async function sceneDashboard(display: Display, app: App): Promise<void> {
+  if (results.some((r) => r.id === '08-dashboard-brief')) return; // recorded with 06, from the dashboard left open
   const stage = await desktopStage(display, app, 'dashboard', { owner: true });
   try {
     const p = stage.page;
@@ -605,26 +785,11 @@ async function sceneDashboard(display: Display, app: App): Promise<void> {
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
     await p.getByRole('tab', { name: 'Orders' }).waitFor();
     await fontsReady(p);
-    await sleep(800);
+    await picturesReady(p);
     await clip(display, '08-dashboard-brief', async () => {
       await hold(2500);
       // The filters, To prepare with its paid subtotal, and the order's row: thumbnail, items, total and its AI brief.
-      const orderRow = p.locator(`li[data-order="${order.number}"]`);
-      await bring(orderRow, 'nearest', 1200);
-      await hold(5000);
-      const link = orderRow.getByRole('link', { name: order.number, exact: true });
-      await press(link, 700);
-      await p.waitForURL(/\/orders\//);
-      await p.getByText('Paid to', { exact: true }).waitFor();
-      await fontsReady(p);
-      await hold(3500);
-      await bring(p.getByText('Paid to', { exact: true }), 'center', 1200);
-      await hold(3500); // Paid to, the PayPal order and transaction ids
-      const timeline = p.getByRole('heading', { name: 'What happened' }).first();
-      if (await timeline.count()) {
-        await bring(timeline, 'start', 1200);
-        await hold(3500);
-      }
+      await orderTour(p, order, 5000);
     });
   } finally {
     await stage.close();
@@ -646,16 +811,17 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
     await p.getByRole('tab', { name: 'Orders' }).waitFor();
     await fontsReady(p);
-    await sleep(800);
+    await picturesReady(p);
     await clip(display, '09-tracking', async () => {
       await hold(1500);
       const add = p.locator(`li[data-order="${order.number}"]`).getByRole('link', { name: /Add tracking/ });
-      await bring(add, 'center', 1000);
+      await bring(add, 'center', 500);
       await hold(1200);
       await press(add, 600);
       const form = p.getByRole('form', { name: 'Add tracking' });
       await form.waitFor();
-      await bring(form, 'center', 1000);
+      await picturesReady(p);
+      await bring(form, 'center', 500);
       await hold(1000);
       await form.getByLabel('Carrier').selectOption('USPS');
       await hold(700);
@@ -663,11 +829,12 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
       await form.getByLabel('Tracking number').pressSequentially(tracking, { delay: 45 });
       await hold(600);
       await press(form.getByRole('button', { name: /Save tracking|Send tracking to PayPal/ }));
-      // "Saved…" shows for a moment, then the form becomes the "Shipped" card with the number and the PayPal note.
+      // "Saved…" shows for a moment (with the toast "Tracking saved"), then the page refreshes into the "Shipped" card
+      // with the number and the PayPal note.
       await p.getByText(tracking).first().waitFor({ timeout: 60_000 });
-      await sleep(1500);
       const shipped = p.getByRole('heading', { name: 'Shipped' }).first();
-      await bring((await shipped.count()) ? shipped : p.getByText(tracking).first(), 'center', 800);
+      const ok = await shipped.waitFor({ timeout: 20_000 }).then(() => true, () => false);
+      await bring(ok ? shipped : p.getByText(tracking).first(), 'center', 400);
       await hold(4000);
 
       // The buyer's console: "Where's my order?"
@@ -676,6 +843,7 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
       const input = region.getByRole('textbox', { name: 'Message to the assistant' });
       await input.waitFor();
       await fontsReady(p);
+      await picturesReady(p);
       await hold(2000);
       await input.click();
       await input.pressSequentially("Where's my order?", { delay: 60 });
@@ -684,7 +852,7 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
       await waitTurn(region);
       const answer = region.getByText(tracking).last();
       await answer.waitFor({ timeout: 10_000 }).catch(() => say('  note: the answer did not quote the tracking number'));
-      if (await answer.count()) await bring(answer, 'center', 1000);
+      if (await answer.count()) await bring(answer, 'center', 600);
       await hold(5000);
     });
     say(`  tracking USPS ${tracking} on ${order.number}`);
@@ -728,8 +896,10 @@ const SCENES: { ids: string[]; run: (d: Display, a: App) => Promise<void> }[] = 
 
 async function main(): Promise<void> {
   fs.mkdirSync(OUT, { recursive: true });
-  // 06 and 06b are one take (the PayPal login sits between them).
-  if (ONLY && ONLY.some((o) => '06b-paypal-complete'.startsWith(o) || '06-console-order'.startsWith(o))) ONLY.push('06-console-order', '06b-paypal-complete');
+  // 06 and 06b are one take (the PayPal login sits between them), and 08 opens on the dashboard left open during it.
+  if (ONLY && ONLY.some((o) => '06b-paypal-complete'.startsWith(o) || '06-console-order'.startsWith(o))) {
+    ONLY.push('06-console-order', '06b-paypal-complete', '08-dashboard-brief');
+  }
   shot01();
   const scenes = SCENES.filter((s) => s.ids.some(wanted));
   if (!scenes.length) return;
