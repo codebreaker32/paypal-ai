@@ -72,12 +72,6 @@ export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemSt
   return withVariants(db, rows);
 }
 
-/** Each of a shop's items' photo URL (or null), without reading their variants. */
-export function photoUrls(db: Db, shopId: string): Map<string, string | null> {
-  const rows = db.prepare('SELECT id, photo_url FROM items WHERE shop_id = ?').all(shopId) as { id: string; photo_url: string | null }[];
-  return new Map(rows.map((r) => [r.id, r.photo_url ?? null]));
-}
-
 /** Each of a shop's items' thumbnail (photo, else its drawing's category), without reading their variants: order lines. */
 export function itemPictures(db: Db, shopId: string, shopKind: ShopKind): Map<string, ItemPicture> {
   const rows = db.prepare('SELECT id, photo_url, category, name, section, description FROM items WHERE shop_id = ?').all(shopId) as {

@@ -12,8 +12,6 @@ export interface ItemPhotoProps {
   category: ItemCategory;
   /** Index of the item's menu section, for the fallback tint. */
   tone?: number;
-  /** Kept for callers' layout hints; the drawing scales to the tile at every size. */
-  size?: 'sm' | 'md' | 'lg';
   dim?: boolean;
   className?: string;
   /** Load at once rather than lazily: the few thumbnails of one order, which a phone may only reach by scrolling. */

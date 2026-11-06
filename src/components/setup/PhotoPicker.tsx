@@ -178,7 +178,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, tone
         </button>
       ) : (
         <FileLabel label={`Add a photo of ${name}`} onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(box, 'group')}>
-          <ItemPhoto name={name} photoUrl={null} category={category} tone={tone} size="sm" decorative className="size-full rounded-(--thumb-radius)" />
+          <ItemPhoto name={name} photoUrl={null} category={category} tone={tone} decorative className="size-full rounded-(--thumb-radius)" />
           <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-surface text-ink shadow-sm transition-transform group-hover:scale-110">
             <Icon icon={ImagePlus} size="sm" />
           </span>

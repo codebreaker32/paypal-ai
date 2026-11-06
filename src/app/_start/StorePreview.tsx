@@ -48,7 +48,7 @@ export function StorePreview() {
                   <p className="truncate text-sm font-bold text-ink">{i.name}</p>
                   <p className="text-xs font-semibold text-ink-soft tabular-nums">{formatUSD(i.cents)}</p>
                 </div>
-                <ItemPhoto name={i.name} photoUrl={i.photo} category={i.category} tone={n} size="sm" decorative className="size-14 rounded-(--thumb-radius)" />
+                <ItemPhoto name={i.name} photoUrl={i.photo} category={i.category} tone={n} decorative className="size-14 rounded-(--thumb-radius)" />
               </li>
             ))}
           </ul>

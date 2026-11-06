@@ -79,7 +79,6 @@ export function OrderCard({
       <ItemPhoto
         name={first?.name ?? order.number}
         {...(first ? linePicture(photos, first, shopKind) : { photoUrl: null, category: kindDefault(shopKind) })}
-        size="sm"
         decorative
         eager
         dim={muted}

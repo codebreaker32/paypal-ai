@@ -66,7 +66,7 @@ describe('repos', () => {
     });
     expect(orders.listByShop(db, shop.id, { limit: 2 }).map((o) => o.id)).toEqual([ids[2], ids[1]]);
     expect(orders.listByShop(db, shop.id)).toHaveLength(3);
-    expect(items.photoUrls(db, shop.id)).toEqual(new Map([[item.id, '/i/img_a.webp']]));
+    expect(items.itemPictures(db, shop.id, shop.kind)).toEqual(new Map([[item.id, { photoUrl: '/i/img_a.webp', category: 'pastry' }]]));
   });
 
   it('replaces draft items and keeps variant order', () => {
