@@ -39,7 +39,7 @@ export function whereLabel(order: Pick<Order, 'fulfillment' | 'shipTo'>): string
 }
 
 export function buyerLabel(order: Pick<Order, 'payerName' | 'buyerName'>): string {
-  return order.payerName?.trim() || order.buyerName?.trim() || 'Buyer';
+  return order.payerName?.trim() || order.buyerName?.trim() || 'No name given';
 }
 
 /** "shelfie-assistant" → "Shelfie Assistant"; names that already have capitals are kept as written. */

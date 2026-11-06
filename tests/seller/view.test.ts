@@ -52,7 +52,7 @@ describe('seller view helpers', () => {
   it('names the buyer and the assistant in plain words', () => {
     expect(buyerLabel(base)).toBe('Dana Buyer');
     expect(buyerLabel(o({ payerName: null }))).toBe('Dana');
-    expect(buyerLabel(o({ payerName: null, buyerName: null }))).toBe('Buyer');
+    expect(buyerLabel(o({ payerName: null, buyerName: null }))).toBe('No name given');
     expect(agentLabel('Claude')).toBe('Claude');
     expect(agentLabel('shelfie-assistant')).toBe('Shelfie Assistant');
     expect(agentLabel('claude-code')).toBe('Claude Code');
