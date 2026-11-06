@@ -353,7 +353,7 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
       await hold(1000);
       await sayToConsole(CONSOLE_ASK);
       await hold(3500); // the read-back, with the $8 shipping
-      for (const reply of ['yes', 'Yes, please place it.', 'Yes, place the order.']) {
+      for (const reply of ['Yes, the almond croissants. Please place it.', 'Yes, please place it.', 'Yes, place the order.']) {
         if (await approve.count()) break;
         await sayToConsole(reply, 90);
         await hold(1500);
@@ -368,6 +368,8 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     });
 
     // Not recorded: the PayPal login (the sandbox buyer's email and password).
+    const pay = p.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/ }).first();
+    try {
     const emailField = p.locator('#email');
     if (!(await emailField.isVisible().catch(() => false))) {
       const login = p.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
@@ -380,10 +382,14 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
     await p.locator('#password').fill(BUYER.password);
     await p.locator('#btnLogin').click();
-    const pay = p.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/ }).first();
     await pay.waitFor({ state: 'visible', timeout: 90_000 });
     await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
     await sleep(1500);
+    } catch (e) {
+      // The page is redacted (the login shows masked), so the screenshot is safe to keep in /tmp for a look.
+      await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-login-failed.png') }).catch(() => {});
+      throw new Error(`PayPal login stopped on ${new URL(p.url()).host}${new URL(p.url()).pathname} (screenshot: /tmp/shelfie-clips-login-failed.png): ${e instanceof Error ? e.message.split('\n')[0] : e}`);
+    }
 
     let orderRef = '';
     await clip(display, '06b-paypal-complete', async () => {

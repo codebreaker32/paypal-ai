@@ -16,7 +16,10 @@
     return t.replace(CLAIM, '/claim/••••••••');
   };
   const ATTRS = ['href', 'title', 'aria-label', 'alt', 'placeholder', 'aria-description'];
+  // Never rewrite what isn't drawn: a page's own data (PayPal keeps the login it posts in a script tag) must stay intact.
+  const HIDDEN = new Set(['SCRIPT', 'STYLE', 'TEMPLATE', 'NOSCRIPT', 'TEXTAREA']);
   const scrubText = (n) => {
+    if (n.parentNode && HIDDEN.has(n.parentNode.nodeName)) return;
     const v = n.nodeValue;
     if (v && v.length > 4) {
       const f = fix(v);

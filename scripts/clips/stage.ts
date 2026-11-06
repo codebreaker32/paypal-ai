@@ -104,14 +104,16 @@ export async function openStage(
   },
 ): Promise<Stage> {
   fs.rmSync(opts.profileDir, { recursive: true, force: true });
+  const dsf = opts.deviceScaleFactor ?? 1;
   const context = await chromium.launchPersistentContext(opts.profileDir, {
     headless: false,
     env: { ...process.env, DISPLAY: display.name },
     viewport: null,
     locale: 'en-US',
     timezoneId: 'America/Los_Angeles',
-    args: ['--kiosk', '--window-position=0,0', `--window-size=${W},${H}`, '--no-first-run', '--no-default-browser-check',
-      '--disable-infobars', '--hide-crash-restore-bubble', `--force-device-scale-factor=${opts.deviceScaleFactor ?? 1}`, '--hide-scrollbars'],
+    // --window-size is in CSS px (DIPs): at a scale factor of 4/3, 1440x810 fills the 1920x1080 display exactly.
+    args: ['--kiosk', '--window-position=0,0', `--window-size=${Math.round(W / dsf)},${Math.round(H / dsf)}`, '--no-first-run',
+      '--no-default-browser-check', '--disable-infobars', '--hide-crash-restore-bubble', `--force-device-scale-factor=${dsf}`, '--hide-scrollbars'],
   });
   for (const content of opts.initScripts ?? []) await context.addInitScript({ content });
   if (opts.storageState) {
@@ -169,7 +171,8 @@ const XTERM_LOOK = [
   '-fa', 'DejaVu Sans Mono', '-fs', String(TERMINAL.fontSize), '-b', String(TERMINAL.padding), '-bw', '0', '+sb',
   '-bg', '#fffefa', '-fg', '#1a1f1b', '-cr', '#1a1f1b',
   '-xrm', 'XTerm*color1: #9b1e1b', '-xrm', 'XTerm*color2: #2e6a3d', '-xrm', 'XTerm*color3: #9c3f0b',
-  '-xrm', 'XTerm*color4: #33506b', '-xrm', 'XTerm*color8: #6b7069', '-xrm', 'XTerm*cursorBlink: false',
+  '-xrm', 'XTerm*color4: #33506b', '-xrm', 'XTerm*color8: #6b7069', '-xrm', 'XTerm*color10: #2e6a3d', '-xrm', 'XTerm*boldColors: false',
+  '-xrm', 'XTerm*cursorBlink: false',
 ];
 
 /**
