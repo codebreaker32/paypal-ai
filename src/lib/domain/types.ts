@@ -1,4 +1,5 @@
 // Shared domain contracts. Frozen in Task 0: change only with a ledger ruling.
+import type { ItemCategory } from './category';
 
 export type ShopKind = 'food' | 'goods' | 'services';
 export type ShopFulfillment = 'pickup' | 'shipping' | 'both';
@@ -23,6 +24,8 @@ export interface Shop {
   payeeEmail: string | null;
   /** Cover photo, a site-relative URL (`/demo/...` bundled, `/i/<file>` uploaded); null shows the designed fallback. */
   coverUrl: string | null;
+  /** The shop's logo, a site-relative URL to a square WebP; null: the avatar uses the cover, a menu photo or a drawing. */
+  logoUrl: string | null;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';
@@ -53,6 +56,8 @@ export interface Item {
   soldOut: boolean;
   /** Item photo, a site-relative URL like `Shop.coverUrl`; null shows the designed fallback. */
   photoUrl: string | null;
+  /** The picture drawn for the item when it has no photo (Claude's pick); null on older rows: `itemCategory` guesses. */
+  category: ItemCategory | null;
   sort: number;
   paypalProductId: string | null;
   publishedAt: string | null;
@@ -78,6 +83,8 @@ export interface DraftItem {
   issues: IssueCode[];
   issueDetail: string | null;
   status: 'draft' | 'in_person' | 'removed';
+  /** Claude's picture for the item; null when the reading has none (older recordings). */
+  category: ItemCategory | null;
   variants: DraftVariant[];
 }
 
