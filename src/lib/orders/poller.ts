@@ -1,16 +1,24 @@
 // Polling fallback (spec §7): every 15 s, sync open orders under 3 h old, plus the expiry sweep.
 import * as ordersRepo from '@/lib/db/repos/orders';
-import { syncOrder, type OrderDeps } from './service';
+import { lastCaptureFailure, syncOrder, type OrderDeps } from './service';
 
 export const POLL_WINDOW_MS = 3 * 60 * 60_000;
 
-/** One pass: open orders created in the last 3 h, and any older order still waiting past its expiry. */
+/**
+ * One pass: open orders created in the last 3 h, plus any older order past its expiry that is still waiting for
+ * approval or holds a refused capture (both settle on that sync).
+ */
 export async function pollOnce(deps: OrderDeps): Promise<void> {
   const nowMs = deps.now?.() ?? Date.now();
   const since = new Date(nowMs - POLL_WINDOW_MS).toISOString();
   const due = ordersRepo
     .listOpen(deps.db, new Date(0).toISOString())
-    .filter((o) => o.createdAt >= since || (o.status === 'awaiting_approval' && Date.parse(o.expiresAt) <= nowMs));
+    .filter(
+      (o) =>
+        o.createdAt >= since ||
+        (Date.parse(o.expiresAt) <= nowMs &&
+          (o.status === 'awaiting_approval' || (o.status === 'approved' && lastCaptureFailure(deps.db, o) !== null))),
+    );
   for (const o of due) {
     try {
       await syncOrder(deps, o.id, 'poller');

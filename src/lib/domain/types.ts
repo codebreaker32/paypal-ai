@@ -119,6 +119,7 @@ export type OrderEvent =
   | 'capture_pending'
   | 'capture_declined'
   | 'capture_denied'
+  | 'capture_refused'
   | 'mismatch'
   | 'cancelled'
   | 'expired'
