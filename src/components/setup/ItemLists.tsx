@@ -6,12 +6,12 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Field, TextInput } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
-import { cx } from '@/components/ui/cx';
+import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { OnUpdate } from './IssueCards';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
-import { SKIP_REASON, bySection, priceSummary } from './review-model';
+import { SKIP_REASON, bySection } from './review-model';
 
 /** One ready item: name and price at a glance, Edit opens name, prices and Remove in place. */
 function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpdate }) {
@@ -37,17 +37,26 @@ function ReadyRow({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpda
   };
 
   return (
-    <li className="py-3 first:pt-0 last:pb-0">
-      <div className="flex min-h-tap items-center gap-3">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <span className="font-semibold [overflow-wrap:anywhere]">{item.name}</span>
-          <span className={cx('type-price text-sm', isPriced(item) ? 'text-ink-soft' : 'text-warn')}>
-            {isPriced(item) ? priceSummary(item) : (
-              <span className="inline-flex items-center gap-1">
-                <Icon icon={TriangleAlert} size="sm" /> Needs a price
-              </span>
-            )}
-          </span>
+    <li className="py-1.5 first:pt-0 last:pb-0">
+      {/* Printed like the shop's menu: name, leader dots, the price in a right-hand column, then Edit. */}
+      <div className="flex min-h-tap items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <span className="min-w-0 text-base leading-6 font-semibold [overflow-wrap:anywhere] sm:text-lg">{item.name}</span>
+          <span aria-hidden="true" className="min-w-4 flex-1 -translate-y-1 border-b-2 border-dotted border-line-strong" />
+          {isPriced(item) ? (
+            <span className="type-receipt flex shrink-0 flex-col items-end text-right text-base">
+              {item.variants.map((v) => (
+                <span key={v.id} className="whitespace-nowrap">
+                  {v.label && <span className="mr-1.5 text-sm text-ink-muted">{v.label}</span>}
+                  <span className="font-medium">{formatUSD(v.priceCents!)}</span>
+                </span>
+              ))}
+            </span>
+          ) : (
+            <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-warn">
+              <Icon icon={TriangleAlert} size="sm" className="self-center" /> Needs a price
+            </span>
+          )}
         </div>
         {inPayPal ? (
           <Badge tone="ok" icon={CircleCheck}>
@@ -101,9 +110,9 @@ export function ReadyList({ items, onUpdate }: { items: ItemWithVariants[]; onUp
   return (
     <div className="flex flex-col gap-6">
       {bySection(items).map((g) => (
-        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-3">
-          {g.section && <h3 className="type-label text-ink-soft">{g.section}</h3>}
-          <ul className="flex flex-col divide-y divide-line">
+        <section key={g.section ?? '—'} aria-label={g.section ?? 'Items'} className="flex flex-col gap-1">
+          {g.section && <h3 className="type-kicker">{g.section}</h3>}
+          <ul className="flex flex-col">
             {g.items.map((it) => (
               <ReadyRow key={it.id} item={it} onUpdate={onUpdate} />
             ))}

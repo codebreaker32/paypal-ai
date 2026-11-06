@@ -20,6 +20,11 @@ export function groupOrders(orders: Order[]): OrderGroups {
   return g;
 }
 
+/** The money in a group, for its header ("Paid $43.50", "Not charged yet $83.00"). */
+export function groupTotalCents(orders: Pick<Order, 'totalCents'>[]): number {
+  return orders.reduce((sum, o) => sum + o.totalCents, 0);
+}
+
 export const lineName = (l: Pick<OrderLine, 'name' | 'label'>) => (l.label ? `${l.name} (${l.label})` : l.name);
 
 export function itemSummary(lines: OrderLine[]): string {

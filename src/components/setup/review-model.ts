@@ -38,6 +38,29 @@ export function priceSummary(it: Pick<ItemWithVariants, 'variants'>): string {
   return s === 'no price' ? 'No price' : s;
 }
 
+export interface PublishCounts {
+  total: number;
+  /** In PayPal now. */
+  added: number;
+  /** PayPal refused them this time. */
+  failed: number;
+  /** PayPal has answered for these (added or failed). */
+  finished: number;
+  /** 0..1: how much of the progress bar is added items. */
+  addedShare: number;
+  /** 0..1: added plus failed; the failed part sits between the two shares. */
+  finishedShare: number;
+}
+
+/** Counts for the publish progress bar and its label, so the two always agree. */
+export function publishCounts(rows: { state: 'pending' | 'ok' | 'failed' }[]): PublishCounts {
+  const total = rows.length;
+  const added = rows.filter((r) => r.state === 'ok').length;
+  const failed = rows.filter((r) => r.state === 'failed').length;
+  const finished = added + failed;
+  return { total, added, failed, finished, addedShare: total ? added / total : 0, finishedShare: total ? finished / total : 0 };
+}
+
 export const ISSUE_LABEL: Record<IssueCode, string> = {
   MISSING_PRICE: 'No price',
   MARKET_PRICE: 'Market price',

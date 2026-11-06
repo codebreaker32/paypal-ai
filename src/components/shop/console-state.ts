@@ -180,6 +180,23 @@ export function refsToCheck(state: ConsoleState): string[] {
   return [...new Set(refs)];
 }
 
+/**
+ * Where the latest turn starts on screen: the first reply entry after the buyer's latest message (its Activity card),
+ * or the message itself while no reply has arrived. -1 when there is nothing to show.
+ */
+export function turnStartIndex(entries: Pick<Entry, 'kind'>[]): number {
+  if (!entries.length) return -1;
+  let user = -1;
+  for (let i = entries.length - 1; i >= 0; i--) {
+    if (entries[i].kind === 'user') {
+      user = i;
+      break;
+    }
+  }
+  if (user === -1) return 0;
+  return user + 1 < entries.length ? user + 1 : user;
+}
+
 // ---- saving across page loads (sessionStorage) ---------------------------------------------------------
 
 const str = (v: unknown): v is string => typeof v === 'string';
