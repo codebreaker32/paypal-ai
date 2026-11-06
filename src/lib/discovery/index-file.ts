@@ -27,7 +27,7 @@ export function liveShopsForIndex(db: Db): IndexShop[] {
 
 const TOOLS: [string, string][] = [
   ['get_shop_info', 'pickup and shipping options, the shipping fee, order limits, and whether the shop is taking orders.'],
-  ['list_products', 'the menu: items with item_id, option_id and price (USD).'],
+  ['list_products', 'the menu, with each item’s item_id and its options’ option_id and price (USD).'],
   ['create_order', 'item IDs, option IDs and quantities only (no prices). Returns the order and a PayPal approval_url.'],
   ['get_order_status', 'payment, pickup and shipping tracking for an order_ref.'],
 ];
@@ -67,7 +67,7 @@ function agentsTxt(shops: IndexShop[], appUrl: string): string {
     `Tools: ${TOOLS.map(([name]) => name).join(', ')}`,
     ...TOOLS.map(([name, what]) => `Tool-${name}: ${what}`),
     `Ordering: ${ORDERING}`,
-    `Prices: ${PRICES}`,
+    'Prices: set by the shop only. No tool accepts a price.',
     'Payment: PayPal (USD). The buyer approves every payment on PayPal.',
     `Connect: claude mcp add --transport http <slug> ${doorUrl(appUrl, '<slug>')}`,
     'Shop-Page: each shop page carries schema.org JSON-LD with an OrderAction whose target is its agent door, and <link rel="alternate" type="application/json" title="Agent door (MCP)">.',
