@@ -5,7 +5,7 @@ import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import { slugify } from '@/lib/domain/ids';
-import { PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, isDemoShop } from '@/lib/domain/payee';
+import { PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, canBePaid } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
@@ -91,7 +91,7 @@ function describeError(err: unknown): string {
  * may publish without one: it is then paid to the platform account (spec §8a). Throws EditError PAYEE_REQUIRED (409).
  */
 export function assertPayee(shop: Shop): void {
-  if (shop.payeeEmail === null && !isDemoShop(shop)) throw new EditError('PAYEE_REQUIRED', 409, PAYEE_REQUIRED_MESSAGE);
+  if (!canBePaid(shop)) throw new EditError('PAYEE_REQUIRED', 409, PAYEE_REQUIRED_MESSAGE);
 }
 
 /** Runs fn over list with at most `limit` calls in flight. */

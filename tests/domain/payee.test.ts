@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PAYEE_EMAIL_MESSAGE, PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, isDemoShop, maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
+import { PAYEE_EMAIL_MESSAGE, PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, canBePaid, isDemoShop, maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 
 describe('parsePayeeEmail', () => {
   it.each([
@@ -97,5 +97,19 @@ describe('isDemoShop', () => {
     expect(isDemoShop({ slug: 'marigold-bakehouse-2' })).toBe(false);
     expect(isDemoShop({ slug: 'tia-lupe-tacos' })).toBe(false);
     expect(isDemoShop({ slug: 'draft-abcdefgh' })).toBe(false);
+  });
+});
+
+describe('canBePaid', () => {
+  // The one rule (spec §8a): a shop is paid into its seller's PayPal account; only the demo shop may have none.
+  it.each([
+    ['rosa-bakes', 'rosa@example.com', true],
+    ['rosa-bakes', null, false],
+    ['marigold-bakehouse', 'rosa@example.com', true],
+    ['marigold-bakehouse', null, true],
+    ['marigold-bakehouse-2', null, false],
+    ['draft-abcdefgh', null, false],
+  ] as const)('%s with payee %j → %s', (slug, payeeEmail, expected) => {
+    expect(canBePaid({ slug, payeeEmail })).toBe(expected);
   });
 });

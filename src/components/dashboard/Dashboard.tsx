@@ -10,6 +10,7 @@ import { Icon } from '@/components/ui/Icon';
 import { Tabs } from '@/components/ui/Tabs';
 import { useToast } from '@/components/ui/Toast';
 import { formatUSD } from '@/lib/domain/money';
+import { canBePaid } from '@/lib/domain/payee';
 import type { ItemWithVariants, Order, ShopStatus } from '@/lib/domain/types';
 import { mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
@@ -144,7 +145,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         <div className="flex flex-col gap-2">
           <h1 className="type-display">{shop.name}</h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <ShopStatusBadge status={status} payeeMissing={payeeEmail === null && !shop.isDemo} />
+            <ShopStatusBadge status={status} payeeMissing={!canBePaid({ slug: shop.slug, payeeEmail })} />
             {status !== 'draft' ? (
               <Link
                 href={`/s/${shop.slug}`}
