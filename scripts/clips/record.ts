@@ -271,6 +271,7 @@ async function terminalClip(display: Display, id: string, cwd: string, steps: Te
 
 async function sceneDiscovery(display: Display, app: App): Promise<void> {
   if (!env('ANTHROPIC_API_KEY')) throw new Error('05 needs ANTHROPIC_API_KEY in .env');
+  cancelUnpaid(app, LOGINS); // one caller can hold 3 unpaid orders, and this run's 05 adds one
   const shopUrl = `${app.origin}/s/${DEMO_SLUG}`;
   const command =
     `claude --bare -p "There's a bakery I like at ${shopUrl} . Please order two almond croissants for pickup, under the name Sam. ` +
@@ -306,7 +307,7 @@ async function sceneTamper(display: Display, app: App): Promise<void> {
     jsonrpc: '2.0', id: 1, method: 'tools/call',
     params: { name: 'create_order', arguments: { items: [{ item_id: ids.item, option_id: ids.option, quantity: 2, price: 0.01 }], fulfillment: 'pickup', buyer_name: 'Sam' } },
   });
-  const curl = `curl -s -X POST ${app.origin}/s/${DEMO_SLUG}/mcp \\\n  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \\\n  -d '${body}' \\\n  | jq '.result.structuredContent'`;
+  const curl = `curl -s -X POST ${app.origin}/s/${DEMO_SLUG}/mcp \\\n  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \\\n  -d '${body}' \\\n  | jq '.result.content[0].text | fromjson'`;
   await terminalClip(display, '07-price-tamper', '/tmp/shelfie-price-test', [
     { pause: 1000 },
     { type: '# An agent asks the door for two almond croissants at $0.01 each', msPerChar: 30 },

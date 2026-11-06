@@ -7,6 +7,7 @@
 // Needs: Xvfb, ffmpeg (with libx264), xterm for terminal shots (`sudo apt-get install -y xvfb ffmpeg xterm`).
 import { spawn, type ChildProcess } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { chromium, type BrowserContext, type Frame, type Page } from '@playwright/test';
 
@@ -77,6 +78,17 @@ export function startCapture(display: Display, file: string): Capture {
   };
 }
 
+/**
+ * Chromium started through `nice -n 10`: rendering heavy pages in software (PayPal's blurred "Thanks for using PayPal")
+ * can starve ffmpeg, and x11grab then repeats frames. A lower-priority browser keeps the capture at a steady 30 fps.
+ */
+function niceChromium(): string {
+  const wrapper = path.join(os.tmpdir(), 'shelfie-clips-bin', 'chromium-nice');
+  fs.mkdirSync(path.dirname(wrapper), { recursive: true });
+  fs.writeFileSync(wrapper, `#!/bin/sh\nexec nice -n 10 "${chromium.executablePath()}" "$@"\n`, { mode: 0o755 });
+  return wrapper;
+}
+
 export interface Stage {
   context: BrowserContext;
   page: Page;
@@ -120,6 +132,7 @@ export async function openStage(
   const dsf = opts.deviceScaleFactor ?? 1;
   const context = await chromium.launchPersistentContext(opts.profileDir, {
     headless: false,
+    executablePath: niceChromium(),
     env: { ...process.env, DISPLAY: display.name },
     viewport: null,
     locale: 'en-US',
