@@ -1,6 +1,6 @@
 'use client';
 
-import { categoryOf } from '@/lib/domain/category';
+import { itemCategory } from '@/lib/domain/category';
 import { useId, useState, type ReactNode } from 'react';
 import { Check, ChevronDown, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Field, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
-import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
+import type { ItemWithVariants, ShopKind, SkippedLine } from '@/lib/domain/types';
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { OnUpdate } from './IssueCards';
 import { ItemPhotoPicker, PhotoError } from './PhotoPicker';
@@ -18,6 +18,8 @@ import { SKIP_REASON, bySection } from './review-model';
 /** What a row needs to show and change its photo. */
 export interface PhotoProps {
   shopId: string;
+  /** Decides an item's drawing while it has no photo, as on the public menu (`itemCategory(item, shopKind)`). */
+  shopKind: ShopKind;
   onPhoto: (itemId: string, photoUrl: string | null) => void;
 }
 
@@ -32,7 +34,7 @@ function StatusText({ tone, children }: { tone: 'ok' | 'warn'; children: ReactNo
 }
 
 /** One ready item: its photo (tap to add one), name and price; Edit opens name, prices and Remove in place. */
-function ReadyRow({ item, tone, onUpdate, shopId, onPhoto }: { item: ItemWithVariants; tone: number; onUpdate: OnUpdate } & PhotoProps) {
+function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto }: { item: ItemWithVariants; tone: number; onUpdate: OnUpdate } & PhotoProps) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(item.name);
   const [texts, setTexts] = useState(() => item.variants.map((v) => priceInputValue(v.priceCents)));
@@ -63,7 +65,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, onPhoto }: { item: ItemWithVar
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
-          category={categoryOf(item)}
+          category={itemCategory(item, shopKind)}
           tone={tone}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
@@ -132,7 +134,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, onPhoto }: { item: ItemWithVar
   );
 }
 
-export function ReadyList({ items, onUpdate, shopId, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
+export function ReadyList({ items, onUpdate, shopId, shopKind, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
     <div className="flex flex-col gap-8">
       {bySection(items).map((g, n) => (
@@ -140,7 +142,7 @@ export function ReadyList({ items, onUpdate, shopId, onPhoto }: { items: ItemWit
           {g.section && <h3 className="type-heading">{g.section}</h3>}
           <ul className="flex flex-col divide-y divide-line">
             {g.items.map((it) => (
-              <ReadyRow key={it.id} item={it} tone={n} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+              <ReadyRow key={it.id} item={it} tone={n} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
             ))}
           </ul>
         </section>
@@ -150,7 +152,7 @@ export function ReadyList({ items, onUpdate, shopId, onPhoto }: { items: ItemWit
 }
 
 /** "Ask in person" items: on the shop, not orderable. A price moves them onto the PayPal menu. */
-function InPersonRow({ item, onUpdate, shopId, onPhoto }: { item: ItemWithVariants; onUpdate: OnUpdate } & PhotoProps) {
+function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto }: { item: ItemWithVariants; onUpdate: OnUpdate } & PhotoProps) {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [touched, setTouched] = useState(false);
@@ -164,7 +166,7 @@ function InPersonRow({ item, onUpdate, shopId, onPhoto }: { item: ItemWithVarian
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
-          category={categoryOf(item)}
+          category={itemCategory(item, shopKind)}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
         />
@@ -208,11 +210,11 @@ function InPersonRow({ item, onUpdate, shopId, onPhoto }: { item: ItemWithVarian
   );
 }
 
-export function InPersonList({ items, onUpdate, shopId, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
+export function InPersonList({ items, onUpdate, shopId, shopKind, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
     <ul className="flex flex-col divide-y divide-line">
       {items.map((it) => (
-        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
       ))}
     </ul>
   );

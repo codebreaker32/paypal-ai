@@ -148,7 +148,8 @@ export function ReviewStep(props: ReviewProps) {
     setItems((all) => all.map((it) => (it.id === itemId ? { ...it, photoUrl } : it)));
   }, []);
 
-  const photoContext = useMemo(() => ({ shopId, onPhoto }), [shopId, onPhoto]);
+  const shopKind = server.shop.kind;
+  const photoContext = useMemo(() => ({ shopId, shopKind, onPhoto }), [shopId, shopKind, onPhoto]);
 
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
@@ -312,7 +313,7 @@ export function ReviewStep(props: ReviewProps) {
                 Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>
               {ready.length ? (
-                <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+                <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
               ) : (
                 <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
               )}
@@ -328,7 +329,7 @@ export function ReviewStep(props: ReviewProps) {
                   </h2>
                   <p className="text-ink-soft">On your shop without a price. Assistants can’t order them.</p>
                 </div>
-                <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
+                <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
               </section>
             </Reveal>
           )}

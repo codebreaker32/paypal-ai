@@ -1,4 +1,4 @@
-import type { ItemKind, ShopKind } from './types';
+import type { ShopKind } from './types';
 
 /**
  * The pictures Shelfie draws for an item with no photo of its own (src/components/illustrations). Claude picks one per
@@ -74,17 +74,6 @@ export function itemCategory(
 export interface ItemPicture {
   photoUrl: string | null;
   category: ItemCategory;
-}
-
-/**
- * `itemCategory` where only the item is at hand (setup and Menu tab rows): a services shop's items are the SERVICE
- * ones; anything else is read as a food or goods shop's (`shopKind`, food when not known).
- */
-export function categoryOf(
-  item: { category: ItemCategory | null; name: string; section: string | null; description: string | null; kind: ItemKind },
-  shopKind: ShopKind = 'food',
-): ItemCategory {
-  return itemCategory(item, item.kind === 'SERVICE' ? 'services' : shopKind);
 }
 
 /**

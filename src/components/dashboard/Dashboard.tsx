@@ -256,7 +256,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'menu',
             label: 'Menu',
-            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />,
+            content: <MenuPanel items={items} shopId={shop.id} shopKind={kind} slug={shop.slug} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />,
           },
           {
             id: 'share',
