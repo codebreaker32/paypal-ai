@@ -150,3 +150,31 @@ describe('shop page agent door section', () => {
     expect(html).toContain(`${getConfig().appUrl}/s/${slug}/mcp`);
   });
 });
+
+describe('shop page assistant card', () => {
+  /** The whole layout (intro, menu, door and the assistant card) as HTML, with the console closed. */
+  const layoutHtml = async (seed: Seed) => {
+    const { nodes } = await pageFor(seed);
+    const layout = nodes.find((n) => (n.props as { door?: ReactNode }).door !== undefined)! as ReactElement;
+    return renderToStaticMarkup(createElement(ToastProvider, null, layout)).replaceAll('<!-- -->', '');
+  };
+
+  it.each([
+    ['a live shop with its PayPal email', { name: 'Rosa Bakes' }],
+    ['the live demo shop, paid to the platform', { name: 'Marigold Bakehouse' }],
+  ] as [string, Seed][])('offers to order for %s', async (_label, seed) => {
+    const html = await layoutHtml(seed);
+    expect(html).toContain('Order with an assistant');
+    expect(html).not.toContain('Ask the assistant');
+  });
+
+  it.each([
+    ['a live shop with no PayPal email (it refuses every order)', { name: 'Rosa Bakes', payeeEmail: null }],
+    ['a paused shop', { name: 'Rosa Bakes', status: 'paused' }],
+  ] as [string, Seed][])('offers only questions for %s', async (_label, seed) => {
+    const html = await layoutHtml(seed);
+    expect(html).toContain('Ask the assistant');
+    expect(html).not.toContain('Order with an assistant');
+    expect(html).not.toContain('hands payment to PayPal');
+  });
+});

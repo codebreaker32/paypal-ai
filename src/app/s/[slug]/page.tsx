@@ -145,6 +145,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         intro={<Intro shop={shop} photoCount={shop.menuPhotoPaths.length} />}
         menu={<Menu sections={menuSections(items)} />}
         door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
+        takesOrders={ordersOpen}
       />
     </>
   );

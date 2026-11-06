@@ -28,15 +28,26 @@ export interface ShopAssistantProps {
   intro: ReactNode;
   menu: ReactNode;
   door: ReactNode;
+  /** `takesOrders(shop)`: false for a paused shop or one with nowhere to be paid, where the assistant only answers questions. */
+  takesOrders: boolean;
 }
 
-const PITCH = 'An AI assistant reads the menu, checks the order with you, and hands payment to PayPal. You see every step.';
+const ORDER = {
+  title: 'Order with an assistant',
+  pitch: 'An AI assistant reads the menu, checks the order with you, and hands payment to PayPal. You see every step.',
+};
+const ASK = {
+  title: 'Ask the assistant',
+  pitch: 'This shop isn’t taking orders right now. An AI assistant can still answer questions about the menu.',
+};
 
 /**
- * The shop page layout and its one primary action, **Order with an assistant**. The console opens as a bottom sheet on
+ * The shop page layout and its one primary action, **Order with an assistant** (**Ask the assistant** while the shop
+ * doesn't take orders). The console opens as a bottom sheet on
  * phones and as a side panel next to the menu from 1024 px, so the menu and the conversation stay side by side.
  */
-export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, menu, door }: ShopAssistantProps) {
+export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, menu, door, takesOrders }: ShopAssistantProps) {
+  const { title, pitch } = takesOrders ? ORDER : ASK;
   const api = useBuyerConsole(slug);
   const [open, setOpen] = useState(initiallyOpen);
   const isDesktop = useIsDesktop();
@@ -75,21 +86,21 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, 
         {intro}
         <div className="flex flex-col gap-2 lg:hidden">
           <Button size="lg" icon={Bot} fullWidth onClick={show}>
-            Order with an assistant
+            {title}
           </Button>
-          <p className="type-meta text-ink-muted">{PITCH}</p>
+          <p className="type-meta text-ink-muted">{pitch}</p>
         </div>
         {menu}
         {door}
       </div>
 
-      <aside aria-label="Order with an assistant" className="hidden lg:sticky lg:top-6 lg:col-span-5 lg:block">
+      <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-5 lg:block">
         {panelOpen ? (
           // Fits the first screen under the header (and stays in view, sticky, as the menu scrolls).
           <Card padding="none" className="flex h-[min(52rem,calc(100dvh-8.5rem))] min-h-96 flex-col overflow-hidden">
             <div className="flex items-start gap-3 border-b border-line px-5 pt-4 pb-3">
               <div className="flex-1 pt-1.5">
-                <h2 className="type-heading">Order with an assistant</h2>
+                <h2 className="type-heading">{title}</h2>
                 <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
               </div>
               <button
@@ -107,10 +118,10 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, 
           </Card>
         ) : (
           <Card className="flex flex-col gap-4" padding="lg">
-            <h2 className="type-heading">Order with an assistant</h2>
-            <p className="text-ink-soft">{PITCH}</p>
+            <h2 className="type-heading">{title}</h2>
+            <p className="text-ink-soft">{pitch}</p>
             <Button ref={openerRef} size="lg" icon={Bot} fullWidth onClick={show}>
-              Order with an assistant
+              {title}
             </Button>
             <p className="type-meta text-ink-muted">
               Or connect your own assistant to the{' '}
@@ -127,7 +138,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, 
         <Sheet
           open={open}
           onClose={hide}
-          title="Order with an assistant"
+          title={title}
           footer={<ConsoleComposer api={api} />}
         >
           {conversation}
