@@ -325,6 +325,54 @@ async function waitTurn(region: Locator): Promise<void> {
   await sleep(400);
 }
 
+/** The rest of PayPal's buttons on its review page. */
+const PAY_BUTTON = /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/;
+
+/** Switches the redactor on in every frame (it starts off on paypal.com, so that PayPal's login works). */
+async function redactNow(p: Page): Promise<void> {
+  for (const fr of p.frames()) await fr.evaluate(() => (window as unknown as { __shelfieRedact?: () => void }).__shelfieRedact?.()).catch(() => {});
+}
+
+/**
+ * Logs in on PayPal's page as the sandbox buyer, with no capture running, and returns PayPal's pay button on the review
+ * page, once the redactor is on there and no login is visible.
+ */
+async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
+  const pay = p.locator('button:visible', { hasText: PAY_BUTTON }).first();
+  try {
+    const emailField = p.locator('#email');
+    if (!(await emailField.isVisible().catch(() => false))) {
+      const login = p.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
+      if (await login.count()) await login.click();
+    }
+    await emailField.waitFor({ state: 'visible', timeout: 60_000 });
+    await emailField.fill(BUYER.email!);
+    const next = p.locator('#btnNext');
+    if (await next.isVisible().catch(() => false)) await next.click();
+    await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
+    await p.locator('#password').fill(BUYER.password!);
+    await p.locator('#btnLogin').click();
+    await pay.waitFor({ state: 'visible', timeout: 90_000 });
+    await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
+    await sleep(1500);
+    await redactNow(p);
+    const shown = await Promise.all(p.frames().map((fr) => fr.locator('body').innerText({ timeout: 2_000 }).catch(() => '')));
+    if (leaks(shown.join('\n'), LOGINS)) throw new Error("a sandbox login is visible on PayPal's review page, so 06b is not recorded");
+    if (process.env.CLIPS_CHECK_LOGIN) {
+      // A look at the whole display after the login (browser UI included), without recording 06b.
+      spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'x11grab', '-video_size', `${W}x${H}`, '-i', `${display.name}.0`, '-frames:v', '1', path.join(os.tmpdir(), 'shelfie-clips-after-login.png')]);
+      throw new Error('CLIPS_CHECK_LOGIN: stopped after the login (see /tmp/shelfie-clips-after-login.png)');
+    }
+    return pay;
+  } catch (e) {
+    // Masked first, so the screenshot (kept in /tmp for a look) shows no login.
+    await redactNow(p);
+    await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-login-failed.png') }).catch(() => {});
+    const where = new URL(p.url());
+    throw new Error(`PayPal login stopped on ${where.host}${where.pathname} (screenshot: /tmp/shelfie-clips-login-failed.png): ${e instanceof Error ? e.message.split('\n')[0] : e}`);
+  }
+}
+
 async function sceneConsole(display: Display, app: App): Promise<void> {
   if (!BUYER.email || !BUYER.password) throw new Error('06 needs PAYPAL_SANDBOX_BUYER_EMAIL and PAYPAL_SANDBOX_BUYER_PASSWORD in .env');
   cancelUnpaid(app, LOGINS);
@@ -369,41 +417,11 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     });
 
     // Not recorded: the PayPal login (the sandbox buyer's email and password).
-    const pay = p.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/ }).first();
-    try {
-    const emailField = p.locator('#email');
-    if (!(await emailField.isVisible().catch(() => false))) {
-      const login = p.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
-      if (await login.count()) await login.click();
-    }
-    await emailField.waitFor({ state: 'visible', timeout: 60_000 });
-    await emailField.fill(BUYER.email);
-    const next = p.locator('#btnNext');
-    if (await next.isVisible().catch(() => false)) await next.click();
-    await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
-    await p.locator('#password').fill(BUYER.password);
-    await p.locator('#btnLogin').click();
-    await pay.waitFor({ state: 'visible', timeout: 90_000 });
-    await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
-    await sleep(1500);
-    // Logged in: switch the redactor on in PayPal's frames (it stays off there so the login works), then make sure.
-    for (const fr of p.frames()) await fr.evaluate(() => (window as unknown as { __shelfieRedact?: () => void }).__shelfieRedact?.()).catch(() => {});
-    const shown = await Promise.all(p.frames().map((fr) => fr.locator('body').innerText({ timeout: 2_000 }).catch(() => '')));
-    if (leaks(shown.join('\n'), LOGINS)) throw new Error("a sandbox login is visible on PayPal's review page, so 06b is not recorded");
-    if (process.env.CLIPS_CHECK_LOGIN) {
-      // A look at the whole display after the login (browser UI included), without recording 06b.
-      spawnSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'x11grab', '-video_size', `${W}x${H}`, '-i', `${display.name}.0`, '-frames:v', '1', path.join(os.tmpdir(), 'shelfie-clips-after-login.png')]);
-      throw new Error('CLIPS_CHECK_LOGIN: stopped after the login (see /tmp/shelfie-clips-after-login.png)');
-    }
-    } catch (e) {
-      // The page is redacted (the login shows masked), so the screenshot is safe to keep in /tmp for a look.
-      await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-login-failed.png') }).catch(() => {});
-      throw new Error(`PayPal login stopped on ${new URL(p.url()).host}${new URL(p.url()).pathname} (screenshot: /tmp/shelfie-clips-login-failed.png): ${e instanceof Error ? e.message.split('\n')[0] : e}`);
-    }
+    const pay = await loginToPayPal(p, display);
 
     let orderRef = '';
     await clip(display, '06b-paypal-complete', async () => {
-      await hold(2500); // PayPal's review: Marigold Bakehouse, the items, the total
+      await hold(3000); // PayPal's review: the total, ship-to, pay with
       await press(pay, 800);
       const deadline = Date.now() + 120_000;
       while (!p.url().startsWith(app.origin) && Date.now() < deadline) {
