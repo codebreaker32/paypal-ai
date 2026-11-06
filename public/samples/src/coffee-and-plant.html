@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8">
+<!-- Not a menu: a coffee cup and a potted plant on a wooden table, no text. The retake fixture's photo. -->
+<style>
+body{margin:0;width:1200px;height:1500px;overflow:hidden;position:relative;
+ background:linear-gradient(180deg,#d9d2c4 0%,#cfc6b4 34%,#b9a98e 34.2%,#a98f6c 36%,#9a7d58 100%)}
+/* the wall behind, with soft window light */
+.wall{position:absolute;inset:0 0 66% 0;background:radial-gradient(ellipse at 78% 30%,rgba(255,250,235,.85),transparent 55%),linear-gradient(90deg,#d6cebf,#e3dccd 60%,#d2c9b8)}
+/* the table top: planks and grain */
+.table{position:absolute;left:0;right:0;top:34%;bottom:0;
+ background:
+  repeating-linear-gradient(90deg,transparent 0 238px,rgba(60,38,20,.45) 238px 241px),
+  repeating-linear-gradient(88deg,rgba(255,255,255,.04) 0 6px,rgba(0,0,0,.05) 6px 13px,transparent 13px 22px),
+  radial-gradient(ellipse at 30% 60%,rgba(255,230,190,.25),transparent 60%),
+  linear-gradient(180deg,#b08f66,#94724d 45%,#7d5d3c);
+ transform:perspective(1100px) rotateX(38deg);transform-origin:top center}
+.shadow{position:absolute;border-radius:50%;background:radial-gradient(ellipse,rgba(40,25,10,.55),transparent 70%);filter:blur(10px)}
+/* saucer, cup, coffee */
+.saucer{position:absolute;left:170px;top:930px;width:440px;height:150px;border-radius:50%;
+ background:radial-gradient(ellipse at 45% 40%,#ffffff,#ece8e1 55%,#cfc8bd 80%,#b8b0a3);box-shadow:0 14px 24px rgba(30,20,10,.35)}
+.cup{position:absolute;left:250px;top:760px;width:280px;height:240px;border-radius:0 0 140px 140px / 0 0 120px 120px;
+ background:linear-gradient(90deg,#d8d3ca,#ffffff 35%,#f3f0ea 60%,#c9c2b6)}
+.rim{position:absolute;left:250px;top:722px;width:280px;height:84px;border-radius:50%;
+ background:radial-gradient(ellipse at 50% 55%,#5a3720 0 52%,#6e4528 60%,#f7f4ee 64%,#ffffff 74%,#ddd7cc 100%)}
+.crema{position:absolute;left:300px;top:742px;width:180px;height:44px;border-radius:50%;
+ background:radial-gradient(ellipse at 40% 45%,rgba(214,170,120,.9),rgba(150,95,55,.6) 55%,transparent 75%)}
+.handle{position:absolute;left:505px;top:800px;width:110px;height:120px;border-radius:50%;border:24px solid #ece8e1;border-left-color:transparent;transform:rotate(-8deg);box-shadow:inset -4px 0 6px rgba(0,0,0,.08)}
+.steam{position:absolute;width:40px;height:220px;border-radius:50%;border-left:6px solid rgba(255,255,255,.35);filter:blur(4px)}
+/* pot and plant */
+.pot{position:absolute;left:700px;top:600px;width:300px;height:330px;
+ clip-path:polygon(0 0,100% 0,86% 100%,14% 100%);
+ background:linear-gradient(90deg,#9c4f2f,#c8714a 30%,#d98a60 45%,#b45f3b 70%,#8a4228)}
+.potlip{position:absolute;left:688px;top:578px;width:324px;height:58px;border-radius:10px;
+ background:linear-gradient(90deg,#a3532f,#d38358 40%,#b8623c 75%,#8f4628);box-shadow:0 6px 10px rgba(60,25,10,.35)}
+.soil{position:absolute;left:705px;top:580px;width:290px;height:30px;border-radius:50%;background:radial-gradient(ellipse,#3b2a1c,#2a1d12)}
+.leaf{position:absolute;width:120px;height:300px;border-radius:50% 50% 50% 50% / 60% 60% 40% 40%;
+ background:linear-gradient(90deg,#2f5a33,#4f8a4c 45%,#3c6d3d 55%,#284c2b);transform-origin:bottom center;box-shadow:inset 0 0 18px rgba(0,0,0,.25)}
+.leaf::after{content:"";position:absolute;left:50%;top:8%;bottom:4%;width:3px;margin-left:-1px;background:rgba(200,230,180,.45)}
+.light{position:absolute;inset:0;background:linear-gradient(115deg,transparent 40%,rgba(255,245,220,.12) 55%,transparent 70%);pointer-events:none}
+.grain{position:absolute;inset:0;opacity:.08;background:repeating-radial-gradient(circle at 20% 30%,#000 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
+</style></head><body>
+<div class="wall"></div>
+<div class="table"></div>
+<div class="shadow" style="left:150px;top:990px;width:520px;height:140px"></div>
+<div class="shadow" style="left:690px;top:880px;width:380px;height:110px"></div>
+<div class="saucer"></div>
+<div class="cup"></div>
+<div class="handle"></div>
+<div class="rim"></div>
+<div class="crema"></div>
+<div class="steam" style="left:350px;top:470px;transform:rotate(8deg)"></div>
+<div class="steam" style="left:410px;top:440px;transform:rotate(-6deg)"></div>
+<div class="leaf" style="left:790px;top:300px;transform:rotate(-34deg)"></div>
+<div class="leaf" style="left:800px;top:250px;transform:rotate(-8deg)"></div>
+<div class="leaf" style="left:800px;top:280px;transform:rotate(22deg)"></div>
+<div class="leaf" style="left:810px;top:330px;transform:rotate(48deg);height:250px"></div>
+<div class="leaf" style="left:780px;top:350px;transform:rotate(-58deg);height:240px"></div>
+<div class="leaf" style="left:805px;top:220px;transform:rotate(6deg);height:330px;width:100px"></div>
+<div class="pot"></div>
+<div class="potlip"></div>
+<div class="soil" style="z-index:-1"></div>
+<div class="light"></div>
+<div class="grain"></div>
+</body></html>

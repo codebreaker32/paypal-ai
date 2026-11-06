@@ -149,7 +149,7 @@ export function LiveStep(p: LiveProps) {
             <PublishProgress run={run} />
           )}
           <Button variant="secondary" icon={RotateCcw} loading={run.phase === 'running'} loadingLabel="Retrying…" onClick={() => void retry()} className="self-start">
-            Retry {p.pendingCount}
+            Retry {p.pendingCount} {p.pendingCount === 1 ? 'item' : 'items'}
           </Button>
         </Card>
       )}

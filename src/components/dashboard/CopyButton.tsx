@@ -16,8 +16,25 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-/** "Copy" with a label, or an icon-only copy button (`what` names it: "Copy PayPal order ID"). */
-export function CopyButton({ text, what, iconOnly, className }: { text: string; what: string; iconOnly?: boolean; className?: string }) {
+/**
+ * "Copy" with a label, or an icon-only copy button (`what` names it: "Copy PayPal order ID").
+ * `label` replaces "Copy" with the whole action ("Copy agent door link"); `primary` makes it the screen's one filled button.
+ */
+export function CopyButton({
+  text,
+  what,
+  iconOnly,
+  label,
+  primary,
+  className,
+}: {
+  text: string;
+  what: string;
+  iconOnly?: boolean;
+  label?: string;
+  primary?: boolean;
+  className?: string;
+}) {
   const toast = useToast();
   const [copied, setCopied] = useState(false);
 
@@ -52,8 +69,14 @@ export function CopyButton({ text, what, iconOnly, className }: { text: string; 
     );
   }
   return (
-    <Button variant="secondary" icon={copied ? Check : Copy} onClick={onCopy} className={className} aria-label={`Copy ${what}`}>
-      {copied ? 'Copied' : 'Copy'}
+    <Button
+      variant={primary ? 'primary' : 'secondary'}
+      icon={copied ? Check : Copy}
+      onClick={onCopy}
+      className={className}
+      aria-label={label ? undefined : `Copy ${what}`}
+    >
+      {copied ? 'Copied' : (label ?? 'Copy')}
     </Button>
   );
 }

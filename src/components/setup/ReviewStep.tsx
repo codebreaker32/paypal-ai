@@ -186,7 +186,7 @@ export function ReviewStep(props: ReviewProps) {
         {(failed > 0 || run.phase === 'error') && (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Button size="lg" icon={RotateCcw} onClick={() => void doPublish()}>
-              {failed > 0 ? `Retry ${failed}` : 'Try again'}
+              {failed > 0 ? `Retry ${plural(failed, 'item')}` : 'Try again'}
             </Button>
             {anyLive ? (
               <Button size="lg" variant="secondary" onClick={() => router.refresh()}>

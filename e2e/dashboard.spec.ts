@@ -170,7 +170,7 @@ test.describe('dashboard', () => {
     await expect(page).toHaveURL(/\?tab=share/);
     await expect(page.getByTestId('share-door-url')).toHaveText(`${APP_URL}/s/${full.shop.slug}/mcp`);
     await expect(page.getByTestId('share-shop-url')).toHaveText(`${APP_URL}/s/${full.shop.slug}`);
-    await expect(page.getByRole('button', { name: 'Copy Agent door link' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeVisible();
     await a11y(page);
   });
 

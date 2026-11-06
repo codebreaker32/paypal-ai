@@ -14,7 +14,7 @@ import { recordedReading } from '@/lib/ai/samples';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { runReading } from '@/lib/catalog/setup';
 import { itemsToPublish, publishShop } from '@/lib/catalog/publish';
-import { PHONE, settle } from './helpers';
+import { PHONE, samplePhoto, settle } from './helpers';
 
 function crafted(): MenuExtraction {
   const raw = recordedReading('marigold-bakehouse');
@@ -28,8 +28,11 @@ function crafted(): MenuExtraction {
 }
 
 /** A sample shop owned by this page's browser, read with `raw` (or failing) without Claude. */
-async function shopWithReading(page: Page, raw: MenuExtraction | Error): Promise<string> {
-  const res = await page.request.post('/api/shops', { data: { sample: 'marigold-bakehouse' } });
+/** A draft shop (the Marigold sample, or `photo` from public/samples uploaded as the owner would) with the given reading. */
+async function shopWithReading(page: Page, raw: MenuExtraction | Error, photo?: string): Promise<string> {
+  const res = photo
+    ? await page.request.post('/api/shops', { multipart: { photos: samplePhoto(photo) } })
+    : await page.request.post('/api/shops', { data: { sample: 'marigold-bakehouse' } });
   const { shopId } = (await res.json()) as { shopId: string };
   await runReading(
     { db: getDb(), hasAiKey: true, extract: async () => { if (raw instanceof Error) throw raw; return raw; } },
@@ -136,7 +139,7 @@ test('every kind of flagged card can be fixed with a tap or two, and edits autos
 
 test('a photo that is not a menu shows the retake screen with its tip', async ({ page }) => {
   const notAMenu = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tests/ai/fixtures/not-a-menu.json'), 'utf8'));
-  const shopId = await shopWithReading(page, notAMenu);
+  const shopId = await shopWithReading(page, notAMenu, 'coffee-and-plant.jpg');
   await page.goto(`/shops/${shopId}/setup`);
   await expect(page.getByRole('heading', { level: 1, name: "This doesn’t look like a price list" })).toBeVisible();
   await expect(page.getByText(/Point the camera at your price list/)).toBeVisible();
@@ -170,7 +173,7 @@ test('a partly failed publish shows the live shop with Retry for the rest', asyn
   await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
   await expect(page.getByText('1 item hasn’t reached PayPal yet')).toBeVisible();
   await expect(page.getByText(/Country sourdough loaf is ready but PayPal didn’t take it/)).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Retry 1' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry 1 item' })).toBeVisible();
   await settle(page);
 });
 

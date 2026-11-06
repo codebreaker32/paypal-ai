@@ -14,6 +14,7 @@ function LinkBlock({
   children,
   url,
   what,
+  copyLabel,
   openHref,
 }: {
   id: string;
@@ -22,6 +23,8 @@ function LinkBlock({
   children: React.ReactNode;
   url: string;
   what: string;
+  /** Spelled-out copy action; set on the one block whose copy is the screen's primary action. */
+  copyLabel?: string;
   openHref?: string;
 }) {
   return (
@@ -45,7 +48,7 @@ function LinkBlock({
           {url}
         </p>
         <div className="flex gap-2">
-          <CopyButton text={url} what={what} className="flex-1 sm:flex-none" />
+          <CopyButton text={url} what={what} label={copyLabel} primary={!!copyLabel} className="flex-1 sm:flex-none" />
           {openHref && (
             <ButtonLink href={openHref} variant="ghost" icon={ExternalLink} className="flex-1 sm:flex-none">
               Open
@@ -60,7 +63,7 @@ function LinkBlock({
 export function SharePanel({ shopUrl, doorUrl, slug }: { shopUrl: string; doorUrl: string; slug: string }) {
   return (
     <div className="flex flex-col gap-5">
-      <LinkBlock id="share-door" icon={DoorOpen} title="Your agent door" url={doorUrl} what="Agent door link">
+      <LinkBlock id="share-door" icon={DoorOpen} title="Your agent door" url={doorUrl} what="Agent door link" copyLabel="Copy agent door link">
         Your agent door is a link any AI assistant can use to read your menu and place an order, which the buyer then approves and pays for on PayPal.
       </LinkBlock>
       <LinkBlock id="share-shop" icon={Store} title="Your shop link" url={shopUrl} what="Shop link" openHref={`/s/${slug}`}>

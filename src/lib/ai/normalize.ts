@@ -199,12 +199,33 @@ function duplicateDetail(group: Built[]): string {
   return `Listed ${times} with different prices: ${listOf(group.map((g) => pricesOf(g.item.variants)))}.`;
 }
 
+const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * "Horchata sm / lg" with sizes sm and lg → "Horchata": the sizes are options, so they shouldn't
+ * appear in the name as well. Only when every variant has a label, at least two of them end the
+ * name (joined by "/", ",", "|" or spaces, optionally in brackets), and something is left.
+ */
+function withoutSizeWords(name: string, variants: DraftVariant[]): string {
+  if (variants.length < 2 || variants.some((v) => !v.label)) return name;
+  const labels = [...new Set(variants.map((v) => v.label!))].sort((a, b) => b.length - a.length).map(escapeRe);
+  const label = `(?:${labels.join('|')})`;
+  const sep = '(?:\\s*[/,|]\\s*|\\s+)';
+  // A separator run first, so a label never starts mid-word; the labels then run to the end.
+  const group = new RegExp(`[\\s,:(\\[\\-–—]+${label}(?:${sep}${label})+\\s*[)\\]]?\\s*$`, 'iu');
+  const match = group.exec(name);
+  if (!match) return name;
+  const rest = name.slice(0, match.index).trim();
+  return rest === '' ? name : rest;
+}
+
 function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
-  const name = cleanOrNull(it.name, MAX_NAME);
-  if (!name) return null;
+  const cleaned = cleanOrNull(it.name, MAX_NAME);
+  if (!cleaned) return null;
 
   const issues = new Set<IssueCode>();
   const { variants, flags } = buildVariants(it);
+  const name = withoutSizeWords(cleaned, variants);
   const note = cleanOrNull(it.note, 200);
 
   if (it.price_kind === 'market') {

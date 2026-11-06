@@ -20,7 +20,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type BrowserContext, type Locator, type Page, type Route } from '@playwright/test';
 import { recordedReading } from '@/lib/ai/samples';
 import { itemsToPublish, publishShop, sellerMessageFor } from '@/lib/catalog/publish';
-import { createShopFromSample, runReading } from '@/lib/catalog/setup';
+import { createShopFromPhotos, createShopFromSample, runReading } from '@/lib/catalog/setup';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
@@ -135,9 +135,12 @@ function seedDemoOrders(f: FixtureShop) {
 }
 
 /** A Marigold sample shop as a visitor makes it from the Start page, read with `raw` (or failing) without Claude. */
-async function sampleShop(raw: MenuExtraction | Error | null): Promise<Setup> {
+/** A draft shop with the Marigold sample photo, or `photo` from public/samples, and the given reading. */
+async function sampleShop(raw: MenuExtraction | Error | null, photo?: string): Promise<Setup> {
   const db = getDb();
-  const { shop, ownerToken } = await createShopFromSample(db, 'marigold-bakehouse');
+  const { shop, ownerToken } = photo
+    ? await createShopFromPhotos(db, [samplePhoto(photo).buffer])
+    : await createShopFromSample(db, 'marigold-bakehouse');
   if (raw === null) {
     extractions.start(db, shop.id, 'claude-sonnet-5-5'); // a reading that is still running
   } else {
@@ -165,7 +168,11 @@ test.beforeAll(async () => {
   const recorded = recordedReading('marigold-bakehouse');
   setups.reading = await sampleShop(null);
   setups.review = await sampleShop(recorded);
-  setups.retake = await sampleShop(JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tests/ai/fixtures/not-a-menu.json'), 'utf8')) as MenuExtraction);
+  // A photo that really isn't a price list (a coffee cup and a plant), so the retake screen doesn't show a menu.
+  setups.retake = await sampleShop(
+    JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tests/ai/fixtures/not-a-menu.json'), 'utf8')) as MenuExtraction,
+    'coffee-and-plant.jpg',
+  );
   setups.failed = await sampleShop(new Error('Request timed out.'));
   setups.live = await sampleShop(recorded);
   sellerChecked(setups.live.shopId);
@@ -400,7 +407,7 @@ const SCREENS: Screen[] = [
       await openReview(page, context);
       await page.getByRole('button', { name: `Publish ${items.length} items to PayPal` }).click();
       await expect(page.getByRole('heading', { level: 1, name: 'Almost there' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Retry 2' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Retry 2 items' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Continue to your live shop' })).toBeVisible();
     },
   },
