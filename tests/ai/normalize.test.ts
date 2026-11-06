@@ -260,13 +260,16 @@ describe('seller-facing issue text', () => {
     expect(item.issues).toEqual(['CHECK']);
     expect(item.issueDetail).toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
   });
-  it('a condition only in the printed line still asks; "gluten-free" alone does not', () => {
+  it('a condition only in the printed line (", else $10") still asks; diet words and names do not', () => {
     const item = (name: string, source_text: string) => catalog(raw({ name, source_text, prices: [price(1000, '$10')] })).items[0];
     const kids = item('Kids bike safety check', 'Kids bike safety check FREE w/ tune-up, else $10');
     expect(kids.issues).toEqual(['CHECK']);
     expect(kids.issueDetail).toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
     expect(item('Gluten-free brownie', 'Gluten-free brownie $10').issues).toEqual([]);
     expect(item('Free-range egg sandwich', 'Free-range egg sandwich with cheese $10').issues).toEqual([]);
+    expect(item('Veg curry', 'Veg curry, gluten free with rice $10').issues).toEqual([]);
+    expect(item('Something Else Burger', 'Something Else Burger $10').issues).toEqual([]);
+    expect(item('Coffee refill', 'Coffee refill free w/ any pastry; otherwise $10').issues).toEqual(['CHECK']);
   });
   it('sizes keep their labels', () => {
     expect(detail({ prices: [price(300, '3ish', 'S'), price(400, '$4', 'L')] }))

@@ -67,8 +67,11 @@ interface PriceFlags {
   tooMany: boolean;
 }
 
-/** A price that depends on something: "FREE w/ tune-up, else $10". */
-const CONDITION_RE = /\bfree\s+(?:w\/|with\b)|\b(?:else|otherwise)\b/i;
+/**
+ * A price that depends on something, printed as a clause: "FREE w/ tune-up, else $10", "…; otherwise $10". Only an
+ * "else"/"otherwise" after a comma or semicolon counts, so "gluten free with rice" or a "Something Else Burger" don't.
+ */
+const CONDITION_RE = /[,;]\s*(?:or\s+)?(?:else|otherwise)\b/i;
 
 function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: PriceFlags } {
   const flags: PriceFlags = { unusable: null, printedAs: null, tooMany: it.prices.length > MAX_VARIANTS };
@@ -94,7 +97,7 @@ function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: Pr
   // A condition printed beside a plain price ("FREE w/ tune-up, else $10" read as $10) is still worth asking about.
   const condition = it.price_kind !== 'deal' && it.deal_text ? clean(it.deal_text) : '';
   if (condition !== '' && parseAmountToCents(condition) === null && variants.some((v) => v.priceCents != null)) flags.printedAs ??= condition;
-  // ...or one that is only in the printed line ("free w/", "else", "otherwise"; "gluten-free" alone is not one).
+  // ...or one that is only in the printed line (", else $10").
   const printed = clean(it.source_text);
   if (!flags.printedAs && it.price_kind !== 'deal' && CONDITION_RE.test(printed) && variants.some((v) => v.priceCents != null)) {
     const name = clean(it.name ?? '');
