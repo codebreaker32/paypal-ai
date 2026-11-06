@@ -108,31 +108,29 @@ const hold = sleep;
  */
 async function settled(loc: Locator, timeoutMs = 6000): Promise<void> {
   await loc.waitFor({ state: 'visible', timeout: 30_000 });
+  // Browser code: no named inner functions (tsx's esbuild wraps those in a `__name` helper the page doesn't have).
   await loc.evaluate(async (el, ms) => {
     const end = performance.now() + ms;
-    const frame = () => new Promise((r) => requestAnimationFrame(r));
-    const box = (e: Element, o: number) => {
-      const r = e.getBoundingClientRect();
-      return `${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)},${o.toFixed(2)}`;
-    };
-    const snap = () => {
-      let o = 1;
-      for (let n: Element | null = el; n; n = n.parentElement) o *= Number(getComputedStyle(n).opacity);
-      const inner = [...el.querySelectorAll('[data-slot="stagger-item"], [data-slot="reveal"], [data-entrance]')]
-        .slice(0, 40)
-        .map((e) => box(e, Number(getComputedStyle(e).opacity)));
-      // A total counting up shows the running figure in an overlay that is empty once it lands.
-      const counting = [...el.querySelectorAll('[data-slot="count-up"] > [aria-hidden="true"]')].map((e) => e.textContent).join('');
-      const self = el.matches('[data-slot="count-up"]') ? (el.querySelector('[aria-hidden="true"]')?.textContent ?? '') : '';
-      return [box(el, o), ...inner, counting + self].join(' ');
-    };
-    const moving = () =>
-      el.getAnimations({ subtree: true }).some((a) => a.playState === 'running' && Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
+    const entrances = '[data-slot="stagger-item"], [data-slot="reveal"], [data-entrance]';
     let last = '';
     for (let still = 0; performance.now() < end; ) {
-      await frame();
-      const now = snap();
-      still = now === last && !moving() ? still + 1 : 0;
+      await new Promise((r) => requestAnimationFrame(r));
+      let opacity = 1;
+      for (let n: Element | null = el; n; n = n.parentElement) opacity *= Number(getComputedStyle(n).opacity);
+      const parts: string[] = [];
+      for (const e of [el, ...[...el.querySelectorAll(entrances)].slice(0, 40)]) {
+        const r = e.getBoundingClientRect();
+        const o = e === el ? opacity : Number(getComputedStyle(e).opacity);
+        parts.push(`${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.width)},${Math.round(r.height)},${o.toFixed(2)}`);
+      }
+      // A total counting up shows the running figure in an overlay that is empty once it lands.
+      for (const c of el.querySelectorAll('[data-slot="count-up"] > [aria-hidden="true"]')) parts.push(c.textContent ?? '');
+      if (el.matches('[data-slot="count-up"]')) parts.push(el.querySelector('[aria-hidden="true"]')?.textContent ?? '');
+      const now = parts.join(' ');
+      const moving = el
+        .getAnimations({ subtree: true })
+        .some((a) => a.playState === 'running' && Number.isFinite(Number(a.effect?.getComputedTiming().endTime)));
+      still = now === last && !moving ? still + 1 : 0;
       if (still >= 6) return;
       last = now;
     }
@@ -155,10 +153,12 @@ async function picturesReady(where: Page | Frame, scope = 'body', timeoutMs = 15
   await where
     .waitForFunction(
       (s) => {
+        // Browser code: no named inner functions (see settled).
         const root = document.querySelector(s);
         if (!root) return true;
-        const onScreen = (el: Element) => el.getBoundingClientRect().top < innerHeight;
-        if (![...root.querySelectorAll('img')].every((i) => i.complete || (i.loading === 'lazy' && !onScreen(i)))) return false;
+        for (const i of root.querySelectorAll('img')) {
+          if (!i.complete && !(i.loading === 'lazy' && i.getBoundingClientRect().top >= innerHeight)) return false;
+        }
         return (
           !root.querySelector('[data-illustration]') ||
           performance.getEntriesByType('resource').some((e) => e.name.includes('/illustrations.svg') && (e as PerformanceResourceTiming).responseEnd > 0)
