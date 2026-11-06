@@ -16,9 +16,10 @@ const MAX_PRICE_CENTS = 100_000; // $1,000
 
 // Spec §9. Matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
-// Something on the menu was crossed out or struck through. Whole words only: "across" and a
-// "hot cross bun" are not.
-const CROSSED_RE = /\b(crossed|cross(es|ing)? out|struck|strike|striking|strikethrough)\b/i;
+// Something on the menu was crossed out or struck through ("cross-out", "crossout", "strikes",
+// "striked", "scored out", "scratched out"). Whole words only: "across" and a "hot cross bun" are not.
+const CROSSED_RE =
+  /\b(crossed|cross(es|ing)?[\s-]?outs?|struck|strik(e|es|ed|ing)|strikethrough|(scored|scratched) (out|through))\b/i;
 // Notes that mean the reading itself is shaky, even when the model felt "medium" about it.
 const SHAKY_NOTE_RE = /blur|smudg|illegib|unclear|unsure|guess|hard to read|faded|obscur/i;
 const isShakyNote = (note: string) => CROSSED_RE.test(note) || SHAKY_NOTE_RE.test(note);

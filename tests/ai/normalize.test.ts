@@ -204,6 +204,20 @@ describe('seller-facing issue text', () => {
     expect(at('The old name Rye is crossed out; we used Spelt.')).toBe('Hard to read in the photo. Are the name and price right?');
     expect(at('A smudge runs across the name; please check it.')).toBe('Hard to read in the photo. Are the name and price right?');
   });
+  it('hears every way a note says a price is crossed out', () => {
+    const at = (note: string) => detail({ prices: [price(800, '$8')], confidence: 'medium', note });
+    const CROSSED = 'A price is crossed out. We set $8.00. Is that right?';
+    for (const note of [
+      'The $7 has a cross-out; $8 is written above it.',
+      'A crossout over $7, with $8 beside it.',
+      'Two strikes through the $7; we used $8.',
+      'The $7 is striked; $8 above it.',
+      'Strike-out on the $7, $8 written beside it.',
+      'Old price struck, $8 written above.',
+      'The $7 is scored out and $8 written beside it.',
+      'The $7 is scratched out; we used $8.',
+    ]) expect(at(note), note).toBe(CROSSED);
+  });
   it('"across" or a hot cross bun is not a crossed-out reading', () => {
     const item = (note: string, name = 'Thing') =>
       catalog(raw({ name, prices: [price(800, '$8')], confidence: 'medium', note })).items[0];
