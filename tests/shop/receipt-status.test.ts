@@ -21,6 +21,7 @@ const base: ReceiptOrder = {
   paidAt: null,
   declined: false,
   captureRefused: false,
+  cancelledByShop: false,
   lines: [{ name: 'Almond croissant', label: null, qty: 2, unitCents: 500 }],
 };
 const order = (patch: Partial<ReceiptOrder>): ReceiptOrder => ({ ...base, ...patch });
@@ -86,6 +87,16 @@ describe('statusView', () => {
       expect(v.body).toMatch(/nothing was charged/i);
       expect(v.approve).toBeUndefined();
     }
+  });
+});
+
+describe('an order the shop cancelled', () => {
+  it('tells the buyer the shop cancelled it, and nothing was charged', () => {
+    const v = statusView(order({ status: 'cancelled', approvalUrl: null, cancelledByShop: true }), PICKUP, null);
+    expect(v.title).toBe('Order cancelled');
+    expect(v.body).toMatch(/cancelled by the shop/i);
+    expect(v.body).toMatch(/nothing was charged/i);
+    expect(statusView(order({ status: 'cancelled', approvalUrl: null }), PICKUP, null).body).toMatch(/^You cancelled on PayPal/);
   });
 });
 

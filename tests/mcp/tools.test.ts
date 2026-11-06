@@ -8,7 +8,7 @@ import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
-import { markFulfilled } from '@/lib/orders/service';
+import { cancelOrder, markFulfilled } from '@/lib/orders/service';
 import { createShopServer, type ShopServerDeps } from '@/lib/mcp/server';
 import { TOOL_OUTPUT_SCHEMAS, type ToolName } from '@/lib/mcp/tools';
 import { resetRateLimits } from '@/lib/rate-limit';
@@ -301,6 +301,15 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     fake.failNext('createOrder', new PayPalApiError(503, 'SERVICE_UNAVAILABLE', null, 'dbg', 'down'));
     const e = fail(await call(await connect(), 'create_order', defaultOrder({ client_request_id: 'retry-me' })));
     expect(e).toMatchObject({ code: 'PAYPAL_UNAVAILABLE', retryable: true });
+  });
+
+  it('get_order_status says the shop cancelled an order it cancelled, not the user', async () => {
+    const client = await connect();
+    const created = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder({ client_request_id: 'shop-cancels' })));
+    await cancelOrder(deps, created.order_ref, 'seller');
+    const out = ok<{ status: string; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref: created.order_ref }));
+    expect(out.status).toBe('cancelled');
+    expect(out.message).toMatch(/^The shop cancelled this order before payment/);
   });
 
   it('get_order_status syncs with PayPal and reports paid after the buyer approves', async () => {

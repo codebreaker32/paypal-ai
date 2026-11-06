@@ -21,7 +21,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { actionWords, agentLabel, cardDeclined, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, cancelledByShop, cardDeclined, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -38,7 +38,7 @@ function SectionTitle({ id, children }: { id: string; children: React.ReactNode 
   );
 }
 
-function ActionCard({ shop, order, trackers, declined, className }: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; className?: string }) {
+function ActionCard({ shop, order, trackers, declined, byShop, className }: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; byShop: boolean; className?: string }) {
   const body = (() => {
     if (order.status === 'paid' && order.fulfillment === 'pickup') {
       return (
@@ -90,7 +90,7 @@ function ActionCard({ shop, order, trackers, declined, className }: { shop: Shop
         </>
       );
     }
-    const [title, text] = actionWords(order, declined);
+    const [title, text] = actionWords(order, declined, byShop);
     return (
       <>
         <SectionTitle id="action-title">{title}</SectionTitle>
@@ -331,7 +331,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
           <TimelineCard entries={entries} className="order-5 lg:order-none" />
         </div>
         <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
-          <ActionCard shop={shop} order={order} trackers={trackers} declined={cardDeclined(order, events)} className="order-2 lg:order-none" />
+          <ActionCard shop={shop} order={order} trackers={trackers} declined={cardDeclined(order, events)} byShop={cancelledByShop(order, events)} className="order-2 lg:order-none" />
           <BuyerCard shop={shop} order={order} className="order-3 lg:order-none" />
           <PayPalCard order={order} className="order-6 lg:order-none" />
         </div>

@@ -96,7 +96,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
         body: pickup ? 'Picked up. Enjoy!' : tracking ? `Shipped with ${tracking.carrier}, tracking number ${tracking.number}.` : 'Shipped.',
       };
     case 'cancelled':
-      return { tone: 'neutral', icon: CircleX, title: 'Order cancelled', body: 'You cancelled on PayPal, so nothing was charged.' };
+      return { tone: 'neutral', icon: CircleX, title: 'Order cancelled', body: o.cancelledByShop ? 'This order was cancelled by the shop before payment, so nothing was charged.' : 'You cancelled on PayPal, so nothing was charged.' };
     case 'expired':
       return {
         tone: 'neutral',

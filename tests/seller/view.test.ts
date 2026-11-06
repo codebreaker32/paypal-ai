@@ -136,3 +136,20 @@ describe('seller view helpers', () => {
     expect(mergePolledOrders([o({ id: 'a', status: 'paid' })], [o({ id: 'a', status: 'fulfilled' })])[0].status).toBe('fulfilled');
   });
 });
+
+describe('an order the shop cancelled before payment (npm run seed -- --cancel-unpaid)', () => {
+  const cancel = (source: OrderEventRow['source']): OrderEventRow => ({
+    id: `evt_${source}`, orderId: 'ord_1', type: 'cancelled', source, detail: null, createdAt: '2026-11-06T18:00:00.000Z',
+  });
+
+  it('says the shop cancelled it, not the buyer', () => {
+    const [title, text] = actionWords(o({ status: 'cancelled' }), false, true);
+    expect(title).toBe('Cancelled');
+    expect(text).toMatch(/shop cancelled/i);
+    expect(text).toMatch(/nothing was charged/i);
+    expect(actionWords(o({ status: 'cancelled' }))[1]).toMatch(/buyer cancelled on PayPal/);
+
+    expect(timelineEntries([cancel('seller')], o({}))[0].text).toBe('Cancelled by the shop before payment');
+    expect(timelineEntries([cancel('cancel_url')], o({}))[0].text).toBe('Cancelled on PayPal by the buyer');
+  });
+});

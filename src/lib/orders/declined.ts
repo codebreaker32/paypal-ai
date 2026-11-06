@@ -9,3 +9,11 @@ export function cardDeclined(order: Pick<Order, 'status'>, events: OrderEventRow
     events.some((e) => e.type === 'capture_declined' && !(e.detail as { ignored?: boolean } | null)?.ignored)
   );
 }
+
+/** The shop cancelled this order before payment (the seed's --cancel-unpaid), rather than the buyer on PayPal. */
+export function cancelledByShop(order: Pick<Order, 'status'>, events: OrderEventRow[]): boolean {
+  return (
+    order.status === 'cancelled' &&
+    events.some((e) => e.type === 'cancelled' && e.source === 'seller' && !(e.detail as { ignored?: boolean } | null)?.ignored)
+  );
+}

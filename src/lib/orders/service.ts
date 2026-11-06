@@ -563,14 +563,14 @@ function runOnPaid(deps: OrderDeps, order: Order): void {
 // ---- seller / buyer actions -----------------------------------------------------------------------
 
 /** Buyer backed out on PayPal (cancel URL). Only an order still waiting for approval is cancelled. */
-export async function cancelOrder(deps: OrderDeps, orderId: string): Promise<Order> {
+export async function cancelOrder(deps: OrderDeps, orderId: string, source: 'cancel_url' | 'seller' = 'cancel_url'): Promise<Order> {
   const order = ordersRepo.byId(deps.db, orderId);
   if (!order) throw orderNotFound(orderId);
   try {
-    return advanceOrder(deps.db, order, 'cancelled', 'cancel_url').order;
+    return advanceOrder(deps.db, order, 'cancelled', source).order;
   } catch (e) {
     if (!(e instanceof InvalidTransition)) throw e;
-    eventsRepo.add(deps.db, order.id, 'cancelled', 'cancel_url', { ignored: true, status: order.status });
+    eventsRepo.add(deps.db, order.id, 'cancelled', source, { ignored: true, status: order.status });
     return order;
   }
 }

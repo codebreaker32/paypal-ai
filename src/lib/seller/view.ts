@@ -100,7 +100,7 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry("Stopped: PayPal’s amount didn’t match this order", 'danger');
         break;
       case 'cancelled':
-        entry('Cancelled on PayPal by the buyer');
+        entry(e.source === 'seller' ? 'Cancelled by the shop before payment' : 'Cancelled on PayPal by the buyer');
         break;
       case 'expired':
         entry('Expired: not approved within 60 minutes');
@@ -119,10 +119,11 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
 }
 
 /** PayPal declined the card the buyer approved with (the same rule as the receipt and get_order_status). */
-export { cardDeclined } from '@/lib/orders/declined';
+export { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 
 /** Title and text of the order detail's action card for an order the seller can't act on yet (or any more). */
-export function actionWords(order: Pick<Order, 'status' | 'captureRefused'>, declined = false): [string, string] {
+export function actionWords(order: Pick<Order, 'status' | 'captureRefused'>, declined = false, byShop = false): [string, string] {
+  if (order.status === 'cancelled' && byShop) return ['Cancelled', 'The shop cancelled it before the buyer paid. Nothing was charged.'];
   if (order.status === 'awaiting_approval' && declined) {
     return ['Card declined', 'PayPal declined the buyer’s card. They can pick another on PayPal. Nothing to prepare until it shows Paid.'];
   }

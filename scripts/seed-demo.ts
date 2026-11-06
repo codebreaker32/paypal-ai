@@ -125,7 +125,7 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
       // Ask PayPal first: a buyer who approved a moment ago is captured, not cancelled.
       const synced = await syncOrder(deps, o.id, 'poller').catch(() => o);
       if (synced.status !== 'awaiting_approval') continue;
-      if ((await cancelOrder(deps, o.id)).status === 'cancelled') cancelled++;
+      if ((await cancelOrder(deps, o.id, 'seller')).status === 'cancelled') cancelled++;
     }
   }
   return {

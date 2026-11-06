@@ -651,6 +651,12 @@ describe('order service', () => {
       expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'cancelled', source: 'cancel_url' });
     });
 
+    it('records a cancel by the shop (the seed --cancel-unpaid) with source seller', async () => {
+      const o = await order();
+      expect((await cancelOrder(deps, o.id, 'seller')).status).toBe('cancelled');
+      expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'cancelled', source: 'seller' });
+    });
+
     it('does not cancel an order that is already paid', async () => {
       const o = await order();
       fake.approve(o.paypalOrderId);

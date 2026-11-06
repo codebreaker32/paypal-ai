@@ -4,7 +4,7 @@ import type { Db } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
-import { cardDeclined } from './declined';
+import { cancelledByShop, cardDeclined } from './declined';
 import { lastCaptureFailure } from './service';
 import { ORDER_REF, type ReceiptOrder } from './receipt-types';
 
@@ -17,7 +17,8 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
   const shop = shopsRepo.byId(db, order.shopId);
   if (!shop) return null;
   const awaiting = order.status === 'awaiting_approval';
-  const declined = awaiting && cardDeclined(order, eventsRepo.list(db, order.id));
+  const events = eventsRepo.list(db, order.id);
+  const declined = awaiting && cardDeclined(order, events);
   return {
     number: order.number,
     status: order.status,
@@ -30,6 +31,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     approvalUrl: awaiting ? order.approvalUrl : null,
     paidAt: order.paidAt,
     declined,
+    cancelledByShop: cancelledByShop(order, events),
     captureRefused: lastCaptureFailure(db, order) !== null,
     lines: order.lines.map((l) => ({ name: l.name, label: l.label, qty: l.qty, unitCents: l.unitCents })),
   };

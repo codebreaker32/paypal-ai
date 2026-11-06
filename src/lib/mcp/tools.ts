@@ -8,7 +8,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { toPayPalValue } from '@/lib/domain/money';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
-import { cardDeclined } from '@/lib/orders/declined';
+import { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 import { OrderError } from '@/lib/orders/errors';
 import { ORDER_LIMITS, isListed, optionViews, shopModes, unavailableReason } from '@/lib/orders/pricing';
 import { createOrderForShop, lastCaptureFailure, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
@@ -323,7 +323,8 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       const tracking = ordersRepo.trackers(db, order.id);
       const captureFailure = lastCaptureFailure(db, order);
       // Same test as the buyer's receipt: back to awaiting approval because PayPal declined the card.
-      const declined = cardDeclined(order, eventsRepo.list(db, order.id));
+      const events = eventsRepo.list(db, order.id);
+      const declined = cardDeclined(order, events);
       return {
         order_ref: order.id,
         order_number: order.number,
@@ -335,7 +336,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         capture_refused: captureFailure !== null,
         declined,
         tracking: tracking.map((t) => ({ carrier: t.carrier, tracking_number: t.trackingNumber, status: t.paypalStatus })),
-        message: statusMessage(order, shop, tracking, captureFailure, declined) + staleNote,
+        message: statusMessage(order, shop, tracking, captureFailure, declined, cancelledByShop(order, events)) + staleNote,
       };
     },
   });
@@ -385,7 +386,9 @@ function orderView(order: Order): z.infer<typeof TOOL_OUTPUT_SCHEMAS.create_orde
   };
 }
 
-function statusMessage(order: Order, shop: Shop, tracking: Tracker[], captureFailure: { issue: string | null } | null, declined: boolean): string {
+function statusMessage(
+  order: Order, shop: Shop, tracking: Tracker[], captureFailure: { issue: string | null } | null, declined: boolean, byShop: boolean,
+): string {
   const name = sanitizeShopName(shop.name);
   switch (order.status) {
     case 'awaiting_approval':
@@ -413,7 +416,9 @@ function statusMessage(order: Order, shop: Shop, tracking: Tracker[], captureFai
     case 'failed':
       return 'The payment did not go through, so nothing was charged. If the user still wants these items, create a new order.';
     case 'cancelled':
-      return 'The user cancelled on PayPal. Nothing was charged.';
+      return byShop
+        ? 'The shop cancelled this order before payment. Nothing was charged. Create a new order if the user still wants it.'
+        : 'The user cancelled on PayPal. Nothing was charged.';
     case 'expired':
       return 'The approval link expired after 60 minutes without payment. Nothing was charged. Create a new order if the user still wants it.';
   }
