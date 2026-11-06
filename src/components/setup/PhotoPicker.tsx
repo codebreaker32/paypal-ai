@@ -1,7 +1,7 @@
 'use client';
 
 /* eslint-disable @next/next/no-img-element -- site-relative uploads of unknown size, as in ItemPhoto */
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
@@ -62,6 +62,21 @@ function usePhotoActions(
   return { busy, error, pick, remove: () => run(async () => (await remove(), null)) };
 }
 
+/**
+ * A photo picked before React hydrated. A label opens the native picker before the page's scripts run, so the input's
+ * change event is lost and the file stays in it (picking the same photo again fires no change). On mount, the file is
+ * handed to `onPick` and the input cleared, as its own change handler would have done.
+ */
+export function usePickedBeforeHydration(ref: RefObject<HTMLInputElement | null>, onPick: (files: FileList) => void) {
+  useEffect(() => {
+    const input = ref.current;
+    if (!input?.files?.length) return;
+    onPick(input.files);
+    input.value = '';
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on mount: later picks go through onChange
+  }, []);
+}
+
 /** The file input fills its label, invisible: the label's whole area is the input's own tap target. */
 export const FILE_INPUT = 'absolute inset-0 z-0 size-full cursor-pointer opacity-0 file:cursor-pointer';
 
@@ -79,6 +94,8 @@ function FileLabel({
   className?: string;
   children: ReactNode;
 }) {
+  const input = useRef<HTMLInputElement>(null);
+  usePickedBeforeHydration(input, onPick);
   return (
     <label
       className={cx(
@@ -88,6 +105,7 @@ function FileLabel({
       )}
     >
       <input
+        ref={input}
         type="file"
         accept={PHOTO_ACCEPT}
         aria-label={label}

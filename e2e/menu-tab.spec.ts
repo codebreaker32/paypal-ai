@@ -122,6 +122,24 @@ test.describe('on a phone', () => {
     await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
     await expect(sheet.getByRole('alert')).toHaveText('Finding items in a photo needs an Anthropic API key on the server.');
   });
+
+  test('a photo picked before the page hydrates is still used (Snap your counter and an item photo)', async ({ page }) => {
+    await page.route(`**/api/shops/${shop.shop.id}/counter`, (route) => route.fulfill({ json: { proposals: [] } }));
+    // The page's scripts are held, so both picks land on the server-rendered inputs before React is there to see them.
+    let release!: () => void;
+    const held = new Promise<void>((r) => (release = r));
+    // Only the scripts: a held stylesheet would stall the HTML parser at its first inline script, before the inputs.
+    await page.route((url) => url.pathname.startsWith('/_next/static/') && url.pathname.endsWith('.js'), async (route) => {
+      await held;
+      await route.continue();
+    });
+    await page.goto(`/shops/${shop.shop.id}?tab=menu`, { waitUntil: 'commit' });
+    await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
+    await page.getByLabel('Add a photo of Almond croissant').setInputFiles(path.join(PHOTOS, 'almond-croissant.jpg'));
+    release();
+    await expect(page.getByRole('dialog', { name: 'Snap your counter' })).toContainText('We couldn’t match any items. Try a closer photo.');
+    await expect.poll(() => photoOf(shop, 'Almond croissant'), { timeout: 15_000 }).toMatch(/^\/i\//);
+  });
 });
 
 test.describe('on a desktop', () => {

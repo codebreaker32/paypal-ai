@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { Sheet } from '@/components/ui/Sheet';
 import { cx } from '@/components/ui/cx';
-import { FILE_INPUT, PHOTO_ACCEPT, pickOne } from '@/components/setup/PhotoPicker';
+import { FILE_INPUT, PHOTO_ACCEPT, pickOne, usePickedBeforeHydration } from '@/components/setup/PhotoPicker';
 import { ApiError } from '@/lib/client/http';
 import { dataUrlToBlob, proposeFromCounter, uploadItemPhoto, type CounterProposal } from '@/lib/client/item-photos';
 
@@ -74,12 +74,16 @@ export function CounterSnap({
     }
   };
 
+  const input = useRef<HTMLInputElement>(null);
+  usePickedBeforeHydration(input, (files) => void start(files));
+
   const shown = run.phase === 'done' ? run.proposals.filter((p) => choices[p.itemId] !== 'skipped') : [];
 
   return (
     <>
       <label className="relative inline-flex min-h-tap cursor-pointer items-center justify-center gap-2 rounded-full bg-ink px-5 font-semibold text-surface transition-colors hover:bg-ink-hover has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus">
         <input
+          ref={input}
           type="file"
           accept={PHOTO_ACCEPT}
           aria-label="Snap your counter"
