@@ -1,14 +1,17 @@
 # Progress
 
-_Last updated: 2026-11-06 16:00 IST (run 2, session 6)_
+_Last updated: 2026-11-06 16:10 IST (run 2, session 6)_
 
 ## Current phase
 **Run 2, session 6 (from 15:46 IST). Top priority: the design reset** (spec §4b, plan Wave 5). Session 5's three workers were killed by a VM reboot at about 15:40 IST; their WIP is committed on their branches.
 - **done, merged (`fe52c56`, `b8eb94e`):** the photo worker (Task 15): Pexels photos for Marigold Bakehouse and Ravi (`docs/ASSETS.md`), the seed sets the demo shop's cover and item photos, `POST/DELETE` item photo and cover routes, `GET /i/[file]`, `image_url` in `list_products` and `image` in the JSON-LD. Tía Lupe has no photos on purpose (the fixture for the designed fallback).
 - **done, on main (`89b91d7`): snap your counter, server side** (TDD): `POST /api/shops/[id]/counter` returns one 4:3 WebP crop per item Claude finds in a display-case photo, stored nowhere. **Verified live** (real `claude-sonnet-5-5`, a Pexels display case, 8 Marigold items): 2 proposals in 4.7 s, the plain croissant (high) and the almond croissant (medium), both correct crops. The UI (Menu tab) comes with the carry-across.
 - **done:** `settle()` makes pending lazy images eager and caps the image wait at 15 s (a below-the-fold `loading="lazy"` photo held phone screenshots until the test timed out).
-- **Running:** the direction judge (Task 17) on both directions' screenshots, re-taken at each branch's WIP head (9 screens × 2 widths each).
-- **Next:** merge the winner, carry it across every screen (Task 18, two workers), the PWA (Task 19), the full e2e suite with the capture gate, judge round 7, the clips.
+- **done: directions round 2 (Task 17).** The judge picked **Storefront** (A2 4 vs 4, one Part C fail each; `docs/judge/directions-2.md`), merged as `17ed677`. Both sets are in `docs/judge/screenshots/direction-storefront/` and `direction-feed/`.
+- **done, verified: the PWA (decision 4, Task 19).** A new mark (a camera viewfinder framing a scored loaf) replaces the jar-and-bun the judge said read as a "user" glyph; the icons (192, 512, maskable 512, apple-touch 180) are drawn from it. **`Page.getInstallabilityErrors` returns none** in full Chromium, and the same test fails with `no-acceptable-icon` when the icons are removed. No service worker. Manifest and icon sheet: `docs/judge/evidence/pwa/`.
+- **Found and handed to worker B:** the Figtree letter gaps the judge saw ("nut s", "shelf ie") come from the `next/font` woff2 rendered by Linux Chromium; `text-rendering: geometricPrecision` removes them (reproduced in a bare page).
+- **Running (Task 18), two workers in worktrees until about 17:35 IST:** S (setup with a photo per item and a cover, the Menu tab with photos and snap-your-counter, Share, Settings, counter card) and B (the judge's fix list, order detail, receipt, console, start states, dashboard empty and loading, `docs/DESIGN.md`).
+- **Next:** merge S and B, the full e2e suite with the capture gate, `npm run screenshots:prod` into `docs/judge/screenshots/round-7/`, judge round 7, the clips.
 - **Verified on main (`89b91d7`):** 941 unit tests pass; typecheck and lint are clean.
 
 **Run 2, session 5 (15:11–~15:40 IST, cut short by the reboot).** Merged round-6 fix 3 and the clip recorder; the rubric amendment, spec §4b/§4c/§6/§14 and plan Wave 5; the photo contract; reference screenshots in `.scratch/refs/` (Toast store pages, Toast Local, Square for bakeries; Uber Eats, DoorDash and Toast's desktop landing gave headless Chromium a captcha or a 403); the PWA groundwork on `pwa-wip`; snap-your-counter's pure parts.
