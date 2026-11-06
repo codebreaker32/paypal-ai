@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
 import { Icon } from '@/components/ui/icon';
 import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
@@ -128,12 +129,15 @@ export function CounterSnap({
         {run.phase === 'done' && run.proposals.length === 0 && <p role="status">{NONE_FOUND}</p>}
 
         {run.phase === 'done' && run.proposals.length > 0 && (
+          // The crops arrive together after Claude answers: they rise in one after another.
+          <Stagger>
           <ul className="grid grid-cols-2 gap-x-3 gap-y-5" aria-label="Photos found">
             {shown.map((p) => {
               const choice = choices[p.itemId];
               const replace = hasPhoto(p.itemId) && choice !== 'used';
               return (
-                <li key={p.itemId} className="flex flex-col gap-2" data-proposal={p.name}>
+                <li key={p.itemId} className="flex flex-col" data-proposal={p.name}>
+                <StaggerItem className="flex flex-col gap-2">
                   <img src={p.image} alt={p.name} className={cx('aspect-[4/3] w-full rounded-(--thumb-radius) object-cover', choice === 'used' && 'opacity-60')} />
                   <span className="font-semibold leading-5 [overflow-wrap:anywhere]">{p.name}</span>
                   {choice === 'used' ? (
@@ -166,10 +170,12 @@ export function CounterSnap({
                       {choice.error}
                     </p>
                   )}
+                </StaggerItem>
                 </li>
               );
             })}
           </ul>
+          </Stagger>
         )}
         {run.phase === 'done' && run.proposals.length > 0 && shown.length === 0 && <p>All skipped. Snap again any time.</p>}
       </Sheet>
