@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 08:52 IST (end of session 5)_
+_Last updated: 2026-11-06 09:10 IST (end of session 5)_
 
 ## Current phase
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
@@ -134,8 +134,8 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 ## Next steps
 1. (Done at 08:53 IST: the full e2e run passed after the review fixes; see Verified.)
 2. (Done at 08:58 IST: `docs/judge/screenshots/round-4/` has 68/68 with 0 axe violations, and `docs/judge/round-4-tests.txt` is written.)
-3. **Judge round 4** (fresh subagent, the round-3 prompt pattern; session 5 started it at ~09:00 IST on branch `worktree-agent-afb3ab46f31fd708b`. If `docs/judge/round-4.md` isn't on main, merge that branch if it has the commit (`git log main..worktree-agent-afb3ab46f31fd708b`); otherwise run the judge again): give it `docs/judge/round-3.md` for the fix accounting, plus `docs/reviews/2026-11-06-whole-codebase.md` as an artifact.
-4. Then the next-highest in-scope gain from the judge. The QR and discovery work needs the human's go-ahead (see below).
+3. (Done at ~09:10 IST: judge round 4 (`docs/judge/round-4.md`) says **ship** with Part A 22, Part B 21 and 0 Part C fails, the same scores as round 3. The judge checked the R6 fix live (`IDEMPOTENCY_CONFLICT` on a reused id with different items, the same order on an exact retry). Its top 3: make the door findable, which is a spec non-goal and needs the human's go-ahead; pay the seller, which needs a second sandbox Business account; and deploy, video and public repo, which are human steps.)
+4. **Every lever the judge has left for Part A needs the human: the go-ahead for discovery, a second sandbox account, or the deploy, video and public repo.** Until then, the in-scope work is hardening and demo readiness. The QR and discovery work needs the human's go-ahead (see below).
 
 ## Needs from human
 - **Decision: build "make the door findable"?** Judge round 3's only code-doable lever for Innovation (A4), Idea (B1) and B5 is:
