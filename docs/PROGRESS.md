@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 09:40 IST (session 6 running)_
+_Last updated: 2026-11-06 09:55 IST (session 6 running)_
 
 ## Current phase
 **Session 6 (from 09:07 IST; ends by ~11:08 IST).** Running:
@@ -15,7 +15,14 @@ _Last updated: 2026-11-06 09:40 IST (session 6 running)_
   - D1: the "Can't reach PayPal" banner now appears during an outage;
   - B1: a reload mid-reply keeps the PayPal approval card;
   - B2: `get_order_status` reports `capture_refused`, so the console card shows a refused payment.
-- **running:** fixers for the 5 wave-2 findings (L1 the `APP_URL` port fallback, L2 the poller when keys arrive late plus caps that ignore expired orders, C1 a declined card shown consistently, C3 the console card re-checks while confirming, C6 "the address you give PayPal" copy). Also running: the full e2e suite on main with wave 1 merged.
+- **done, merged:** the 5 wave-2 fixes (651 unit tests pass; typecheck and lint are clean):
+  - L1: with no `APP_URL`, the app URL follows the port the server bound, and `.env.example` no longer pins it to 3000;
+  - L2: the poller retries every 15 s if PayPal keys arrive after boot, and the unpaid-order caps ignore orders past their expiry;
+  - C1: a declined card reads the same on the door (`declined`), the seller page ("Card declined") and the receipt;
+  - C3: the console card re-checks every 3 s while it says "Confirming with PayPal";
+  - C6: buyer copy says "the address you give PayPal", which fits guest card checkout.
+- **Verified:** the full e2e suite on main with wave 1 merged: the capture gate passed (SHF-YZ3EVV → PayPal `4CH44248N9892281R` → capture `5LL32704TR754451L` COMPLETED, $27.00, nut-allergy brief, USPS tracker SHIPPED, `get_order_status` read it back). 54 passed, 1 skipped, and 2 shop-page tests at 1440 px timed out waiting for network idle while the fixers were running test suites on the same 4 CPUs. On merged main, `e2e/shop.spec.ts` alone passed 24/24.
+- **running:** the full e2e suite on the final main, then `npm run screenshots:prod` into `docs/judge/screenshots/round-5/`, then judge round 5.
 - **done:** `npm run seed` now reports the demo shop's unpaid orders, and `npm run seed -- --cancel-unpaid` cancels rehearsal orders before a recording (one caller can hold 3 unpaid orders per shop). DEMO.md and the README say so.
 
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
