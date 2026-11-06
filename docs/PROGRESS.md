@@ -1,10 +1,13 @@
 # Progress
 
-_Last updated: 2026-11-06 14:14 IST (run 2, session 3)_
+_Last updated: 2026-11-06 14:45 IST (run 2, session 3)_
 
 ## Current phase
-**Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: the round-6 screenshots on a production build, the capture gate alone, and the shop and discovery specs; the clip recorder (item 7) is being built in a worktree. Next: judge round 6.
-- **Full e2e suite on `7dde5e1` (13:44–14:08 IST): 141 passed, 3 skipped, 9 failed.** All 9 failures are 60 s `waitForLoadState` timeouts in the shop and screenshot specs on the dev server, while the clip recorder and the review fixer ran on the same 4 CPUs (the run took 23.6 min against the usual 5–9). Both capture gates passed in that run; they and the timed-out specs are being re-run alone.
+**Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: **judge round 6**, and the clip recorder (item 7) in a worktree.
+- **Verified on `9851adb` (14:14–14:22 IST):**
+  - `npm run screenshots:prod`: **82/82 screens** on a production build, **axe 0 violations** (`docs/judge/screenshots/round-6/`, with a README that labels fixtures and mocks);
+  - **the capture gate, 2 passed in 2.6 min (real sandbox).** Seller payout: SHF-ASZZQ3 → PayPal `13E02733KE540843L` → capture `3P893955RL283505N` COMPLETED, $27.00, payee = the US sandbox seller, paid by **PayPal wallet login**; the brief flagged the nut allergy; tracking saved in Shelfie and read back by `get_order_status`. Demo shop: SHF-5JAJ48 → PayPal `1T9831750R9951101` → capture `5P192305RS2006105` COMPLETED, paid to the platform account by guest card; USPS tracker SHIPPED at PayPal.
+- **Not yet clean: e2e on a loaded machine.** The full suite on `7dde5e1` (13:44–14:08) gave 141 passed, 3 skipped, 9 failed, and later runs of `e2e/shop.spec.ts` lost 1–3 tests each. Every failure is the 60 s `networkidle` wait in `settle()`, on a different test each time; one trace shows every request done in 0.3 s and the browser drawing 5 frames in 60 s while the clip recorder's ffmpeg used ~130% CPU. `e2e/discovery.spec.ts` passed 10/10, and the test that failed twice passed 2/2 alone. A full run on an idle machine is due after the clips. A React "unique key" warning (`ShopAssistant` / `ShopPage`) showed once in the dev server's output and not in three later runs.
 
 **Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended.
 - **Verified (spike, 11:20–11:30 IST, real sandbox):**
