@@ -12,6 +12,7 @@ import {
 import type { BadgeTone } from '@/components/ui/badge';
 import type { Order } from '@/lib/domain/types';
 import { cx } from '@/components/ui/cx';
+import { StatusSwap } from '@/components/motion/status-swap';
 
 interface StatusMeta {
   label: string;
@@ -56,7 +57,7 @@ const DOT_TONE: Record<BadgeTone, string> = {
   info: 'text-info',
 };
 
-/** Status as a coloured dot and the word, no box: `sm` in list rows, `md` beside a page title. */
+/** Status as a coloured dot and the word, no box: `sm` in list rows, `md` beside a page title. A change crossfades. */
 export function OrderStatusText({
   order,
   size = 'sm',
@@ -68,9 +69,11 @@ export function OrderStatusText({
 }) {
   const m = orderStatusMeta(order);
   return (
-    <span className={cx('inline-flex items-center gap-2 font-semibold', size === 'md' ? 'text-lg' : 'text-sm', DOT_TONE[m.tone], className)}>
-      <span aria-hidden="true" className={cx('shrink-0 rounded-full bg-current', size === 'md' ? 'size-2.5' : 'size-2')} />
-      {m.label}
-    </span>
+    <StatusSwap value={m.label} className={cx('font-semibold', size === 'md' ? 'text-lg' : 'text-sm', DOT_TONE[m.tone], className)}>
+      <span className="inline-flex items-center gap-2">
+        <span aria-hidden="true" className={cx('shrink-0 rounded-full bg-current', size === 'md' ? 'size-2.5' : 'size-2')} />
+        {m.label}
+      </span>
+    </StatusSwap>
   );
 }

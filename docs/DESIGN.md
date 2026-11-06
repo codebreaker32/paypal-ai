@@ -39,7 +39,7 @@ The tokens come in three layers, and components only use the second and third:
 | `accent-hover` / `accent-active` | pom-700 / pom-800 | `#a3153f` / `#861235` | |
 | `accent-soft`, `selection` | pom-50 / pom-100 | `#fdeaf0` / `#f9d3df` | Text selection |
 | `ok` / `ok-soft` | green-700 / green-50 | `#1e7a45` / `#e4f3ea` | Paid, live |
-| `warn` / `warn-soft` | amber-800 / amber-50 | `#9a4a00` / `#fff0de` | Waiting, a brief's warning, the "Can't reach PayPal" banner |
+| `warn` / `warn-soft` | ochre-800 / ochre-50 | `#7a5a00` / `#fbf1d5` | Waiting, a brief's warning, the "Can't reach PayPal" banner. A deep ochre (hue 84°), so it never reads as `error` at 14 px |
 | `error` / `error-soft` | vermilion-700 / vermilion-50 | `#b5380c` / `#fdebe5` | Error messages, invalid fields, refused and failed states. `danger` / `danger-soft` are older names for the same values |
 | `note` / `note-soft` / `note-ink` | slate-600 / slate-50 / ink-900 | `#475569` / `#eef2f6` / `#111214` | Helpful notes: the AI brief's well (`Card tone="note"`), its "AI brief" label, the allergy chip (`Badge tone="note"`). Calm help, not a warning: a cool tint and ink text |
 | `info` / `info-soft` | blue-700 / blue-50 | `#2457a6` / `#e7eefa` | Shipped, picked up |
@@ -59,8 +59,9 @@ The tokens come in three layers, and components only use the second and third:
 | white on PayPal blue | 5.22:1 |
 | ok on white | 5.35:1 |
 | ok on ok-soft | 4.66:1 |
-| warn on white | 6.26:1 |
-| warn on warn-soft | 5.60:1 |
+| warn on white | 6.38:1 |
+| warn on warn-soft | 5.67:1 |
+| warn on surface-sunken | 5.81:1 |
 | error on white, white on error | 5.94:1 |
 | error on error-soft | 5.14:1 |
 | error on surface-sunken | 5.44:1 |
@@ -76,7 +77,7 @@ The tokens come in three layers, and components only use the second and third:
 
 A dimmed fallback tile (sold out, a cancelled or expired order) switches to surface-sunken and shows its drawing in greyscale at half opacity. The drawing is decorative (the item's name labels the tile), so it carries no text contrast requirement.
 
-**Error against the brand.** Pomegranate is a blue-leaning crimson (OKLCH hue 12°); the error vermilion leans orange (hue 37°, the old `#b42318` was 30°), so an error never reads as the brand. It stays redder and more saturated than `warn` (amber, hue 53°, chroma 0.13 against 0.17), and status always pairs the colour with a word.
+**Error against the brand.** Pomegranate is a blue-leaning crimson (OKLCH hue 12°); the error vermilion leans orange (hue 37°, the old `#b42318` was 30°), so an error never reads as the brand. `warn` is a deep ochre (hue 84°, chroma 0.10), 47° away from the error and much less saturated, so "PayPal refused payment" and "Waiting for approval" read as different states even at 14 px in a status list (the earlier amber `#9a4a00`, hue 53°, sat too close). Status always pairs the colour with a word.
 
 **shadcn names.** `components.json` points shadcn at these tokens. Its semantic names are mapped in `@theme`: `background`, `card`, `popover` = white; `foreground`, `*-foreground` = ink (white on `primary` and `destructive`); `primary` = ink (the black pill); `secondary`, `muted` = grey-50; `muted-foreground` = ink-600; `destructive` = error; `border` = line; `input` = control; `ring` = focus. `accent` keeps Shelfie's meaning (pomegranate): a shadcn component that uses `bg-accent` as a hover fill must be changed to `bg-muted` when it is added. No shadcn palette or oklch variables are imported, and the palette stays closed.
 

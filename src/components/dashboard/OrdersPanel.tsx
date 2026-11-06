@@ -6,7 +6,7 @@ import { Bot, ChevronDown, CloudOff } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
-import { formatUSD } from '@/lib/domain/money';
+import { CountUp } from '@/components/motion/count-up';
 import type { Order } from '@/lib/domain/types';
 import { groupOrders, groupTotalCents } from '@/lib/seller/view';
 import { OrderCard } from './OrderCard';
@@ -23,7 +23,7 @@ function Subtotal({ orders, label, as: Tag = 'p' }: { orders: Order[]; label: st
   return (
     <Tag className="ml-auto flex items-baseline gap-2 whitespace-nowrap">
       <span className="type-meta text-ink-muted">{label}</span>
-      <span className="type-price font-bold">{formatUSD(groupTotalCents(orders))}</span>
+      <CountUp cents={groupTotalCents(orders)} className="type-price font-bold" />
     </Tag>
   );
 }

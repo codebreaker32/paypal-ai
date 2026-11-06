@@ -3,12 +3,13 @@ import type { ItemPicture } from '@/lib/domain/category';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, CircleCheck, Mail, Settings, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleCheck, CircleX, Mail, Settings, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { BriefCard } from '@/components/dashboard/BriefCard';
+import { CountUp } from '@/components/motion/count-up';
 import { CopyButton } from '@/components/dashboard/CopyButton';
 import { withFallbackBrief } from '@/lib/ai/template';
 import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
@@ -113,10 +114,21 @@ function ActionCard({
       );
     }
     const [title, text] = actionWords(order, declined, byShop, held);
+    // A real failure (PayPal refused or failed the payment) is the error role; waiting and cancelled stay calm.
+    const failed = order.status === 'failed' || (order.status === 'approved' && order.captureRefused);
     return (
       <>
-        <SectionTitle id="action-title">{title}</SectionTitle>
-        <p className="text-ink-soft">{text}</p>
+        <SectionTitle id="action-title">
+          {failed ? (
+            <span className="flex items-center gap-2 text-error">
+              <Icon icon={CircleX} />
+              {title}
+            </span>
+          ) : (
+            title
+          )}
+        </SectionTitle>
+        <p className={failed ? 'rounded-md bg-error-soft px-3 py-2.5 font-medium text-error' : 'text-ink-soft'}>{text}</p>
         {order.status === 'awaiting_approval' && (
           <p className="type-meta text-ink-muted">
             The PayPal link expires at <LocalTime iso={order.expiresAt} />.
@@ -389,7 +401,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
         </div>
         <p className="rule-dashed flex items-baseline justify-between gap-4 pt-3 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1 sm:border-t-0 sm:pt-0">
           <span className="type-label text-ink-muted">Total</span>
-          <span className="type-price text-3xl leading-none font-extrabold tracking-tight sm:text-4xl">{formatUSD(order.totalCents)}</span>
+          <CountUp cents={order.totalCents} className="type-price text-3xl leading-none font-extrabold tracking-tight sm:text-4xl" />
         </p>
       </header>
 

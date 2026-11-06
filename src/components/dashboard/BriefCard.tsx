@@ -32,7 +32,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
   return (
     <Card as="section" tone="note" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 id="brief-title" className="flex items-center gap-2 type-label text-ink-muted">
+        <h2 id="brief-title" className="flex items-center gap-2 type-label text-note">
           <Icon icon={brief && order.briefSource === 'template' ? Info : Sparkles} size="sm" />
           {brief && order.briefSource === 'template' ? 'Order summary' : 'AI brief by Claude'}
         </h2>
@@ -66,8 +66,9 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             <ul className="flex flex-col gap-2" aria-label="Things to notice">
               {brief.flags.map((f, i) =>
                 f.severity === 'warn' ? (
-                  <li key={i} className="flex items-start gap-2 rounded-md bg-warn-soft px-3 py-2.5 font-medium text-warn">
-                    <Icon icon={TriangleAlert} className="mt-0.5" />
+                  // A heads-up inside a helpful note: a white callout in ink, only its icon in the warn ochre. Never the error red.
+                  <li key={i} className="flex items-start gap-2 rounded-md bg-surface px-3 py-2.5 font-medium text-note-ink shadow-xs">
+                    <Icon icon={TriangleAlert} className="mt-0.5 text-warn" />
                     <span>
                       <span className="sr-only">Warning: </span>
                       {f.text}

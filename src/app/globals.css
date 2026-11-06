@@ -44,8 +44,9 @@
   /* Status hues (text values pass AA on white and on their soft tint) */
   --green-50: #e4f3ea;
   --green-700: #1e7a45;
-  --amber-50: #fff0de;
-  --amber-800: #9a4a00;
+  /* Warn: a deep ochre (OKLCH hue 84°), far from the error vermilion (37°) so "Waiting" never reads as "Refused". */
+  --ochre-50: #fbf1d5;
+  --ochre-800: #7a5a00;
   /* Error: a vermilion, orange-leaning so it never reads as the pomegranate brand (OKLCH hue 37° against 12°). */
   --vermilion-50: #fdebe5;
   --vermilion-700: #b5380c;
@@ -120,8 +121,8 @@
 
   --color-ok: var(--green-700);
   --color-ok-soft: var(--green-50);
-  --color-warn: var(--amber-800);
-  --color-warn-soft: var(--amber-50);
+  --color-warn: var(--ochre-800);
+  --color-warn-soft: var(--ochre-50);
   /* Errors and failed states. `danger` is the older name of the same role. */
   --color-error: var(--vermilion-700);
   --color-error-soft: var(--vermilion-50);
