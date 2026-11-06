@@ -61,19 +61,29 @@ async function clip(display: Display, id: string, body: () => Promise<void>, opt
     await body();
     return;
   }
+  // Recorded under a temporary name and moved into place only if the shot worked, so a failed take keeps the last good one.
   const file = path.join(OUT, `${id}.mp4`);
-  const cap = startCapture(display, file);
+  const partial = path.join(OUT, `.partial-${id}.mp4`);
+  const cap = startCapture(display, partial);
   const t0 = Date.now();
   await sleep(opts.lead ?? 700);
+  let ok = false;
   try {
     await body();
     await sleep(opts.tail ?? 1200);
+    ok = true;
   } finally {
     const c = await cap.stop();
     const seconds = (Date.now() - t0) / 1000;
-    results.push({ id, seconds, ...c });
-    const behind = c.dup > c.frames * 0.02 ? '  ← x11grab fell behind: re-record this clip' : '';
-    say(`  ✔ ${id}.mp4  ${seconds.toFixed(1)} s, ${c.frames} frames (dup ${c.dup}, drop ${c.drop})${behind}`);
+    if (ok) {
+      fs.renameSync(partial, file);
+      results.push({ id, seconds, ...c });
+      const behind = c.dup > c.frames * 0.02 ? '  ← x11grab fell behind: re-record this clip' : '';
+      say(`  ✔ ${id}.mp4  ${seconds.toFixed(1)} s, ${c.frames} frames (dup ${c.dup}, drop ${c.drop})${behind}`);
+    } else {
+      fs.rmSync(partial, { force: true });
+      say(`  ✘ ${id}: not kept (the shot failed after ${seconds.toFixed(1)} s)`);
+    }
   }
 }
 
