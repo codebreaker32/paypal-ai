@@ -65,7 +65,7 @@ The tokens come in three layers, and components only use the second and third:
 | info on white | 7.03:1 |
 | the tile inks on their tints | 6.99 to 8.30:1 |
 
-A dimmed fallback tile (a cancelled or expired order) switches to ink-muted on surface-sunken (5.54:1) instead of fading with opacity.
+A dimmed fallback tile (sold out, a cancelled or expired order) switches to surface-sunken and shows its drawing in greyscale at half opacity. The drawing is decorative (the item's name labels the tile), so it carries no text contrast requirement.
 
 ### Type
 
