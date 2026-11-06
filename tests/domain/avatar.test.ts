@@ -67,4 +67,9 @@ describe('menuPhotoAvatarSrc', () => {
     expect(menuPhotoAvatarSrc(owned, 'public')).toMatch(/^\/s\/marigold-bakehouse\/photo\/1(\?|$)/);
     expect(menuPhotoAvatarSrc(owned, 'owner')).toMatch(/^\/api\/shops\/shp_1\/photo\/1(\?|$)/);
   });
+
+  it('asks for the small square, never the full photo, for a tile of at most 96 px', () => {
+    expect(menuPhotoAvatarSrc(owned, 'public')).toBe('/s/marigold-bakehouse/photo/1?size=avatar');
+    expect(menuPhotoAvatarSrc(owned, 'owner')).toBe('/api/shops/shp_1/photo/1?size=avatar');
+  });
 });

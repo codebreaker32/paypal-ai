@@ -12,12 +12,13 @@ export type AvatarShop = Pick<Shop, 'logoUrl' | 'coverUrl' | 'kind'> & {
 type AvatarItem = { category: ItemCategory | null; name: string; section: string | null; description: string | null };
 
 /**
- * Where the shop's picture shows its first menu photo from, or null when the shop has none. The shop page uses the
- * public route; the seller's own pages use the owner route, which also serves a draft's photo.
+ * Where the shop's picture shows its first menu photo from, or null when the shop has none: the photo route's small
+ * square (`?size=avatar`, 160 px WebP), never the full photo. The shop page uses the public route; the seller's own
+ * pages use the owner route, which also serves a draft's photo.
  */
 export function menuPhotoAvatarSrc(shop: Pick<Shop, 'id' | 'slug' | 'menuPhotoPaths'>, route: 'public' | 'owner'): string | null {
   if (shop.menuPhotoPaths.length === 0) return null;
-  return route === 'owner' ? `/api/shops/${shop.id}/photo/1` : `/s/${shop.slug}/photo/1`;
+  return `${route === 'owner' ? `/api/shops/${shop.id}` : `/s/${shop.slug}`}/photo/1?size=avatar`;
 }
 
 /**

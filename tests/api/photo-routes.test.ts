@@ -31,6 +31,7 @@ const itemPhotoRoute = await import('@/app/api/shops/[id]/items/[itemId]/photo/r
 const coverRoute = await import('@/app/api/shops/[id]/cover/route');
 const logoRoute = await import('@/app/api/shops/[id]/logo/route');
 const fileRoute = await import('@/app/i/[file]/route');
+const menuPhotoRoute = await import('@/app/api/shops/[id]/photo/[n]/route');
 
 const solid = (width: number, height: number) =>
   sharp({ create: { width, height, channels: 3, background: { r: 200, g: 150, b: 90 } } });
@@ -257,6 +258,30 @@ describe('photo upload routes', () => {
     state.jar.clear();
     expect((await logoRoute.POST(await upload(jpeg), shopCtx(shopId))).status).toBe(404);
     expect((await logoRoute.DELETE(new Request('http://x', { method: 'DELETE' }), shopCtx(shopId))).status).toBe(404);
+  });
+
+  it('GET /api/shops/[id]/photo/[n] (owner): the stored JPEG, uncached; ?size=avatar a 160 px square WebP, cached privately for a minute', async () => {
+    const ctx = { params: Promise.resolve({ id: shopId, n: '1' }) };
+    const full = await menuPhotoRoute.GET(new Request(`http://x/api/shops/${shopId}/photo/1`), ctx);
+    expect(full.status).toBe(200);
+    expect(full.headers.get('content-type')).toBe('image/jpeg');
+    expect(full.headers.get('cache-control')).toBe('private, no-store');
+    const original = Buffer.from(await full.arrayBuffer());
+
+    const res = await menuPhotoRoute.GET(new Request(`http://x/api/shops/${shopId}/photo/1?size=avatar`), { params: Promise.resolve({ id: shopId, n: '1' }) });
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('image/webp');
+    expect(res.headers.get('cache-control')).toBe('private, max-age=60');
+    const thumb = Buffer.from(await res.arrayBuffer());
+    expect(await sharp(thumb).metadata()).toMatchObject({ format: 'webp', width: 160, height: 160 });
+    expect(thumb.length).toBeLessThan(original.length / 4);
+
+    // Owner only, and only pages that exist.
+    const missing = await menuPhotoRoute.GET(new Request(`http://x/api/shops/${shopId}/photo/2?size=avatar`), { params: Promise.resolve({ id: shopId, n: '2' }) });
+    expect(missing.status).toBe(404);
+    state.jar.clear();
+    const stranger = await menuPhotoRoute.GET(new Request(`http://x/api/shops/${shopId}/photo/1?size=avatar`), { params: Promise.resolve({ id: shopId, n: '1' }) });
+    expect(stranger.status).toBe(404);
   });
 
   it('GET /i/[file] serves an uploaded photo as WebP, cached for a year', async () => {
