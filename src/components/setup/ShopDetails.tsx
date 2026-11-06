@@ -54,12 +54,9 @@ export function ShopDetails({
 
   return (
     <section aria-labelledby="shop-details-title" className="flex flex-col gap-6 border-t border-line pt-10">
-      <div className="flex flex-col gap-1">
-        <h2 id="shop-details-title" className="type-title">
-          Your shop
-        </h2>
-        <p className="text-ink-soft">Filled in from your photo. People and their assistants see this first.</p>
-      </div>
+      <h2 id="shop-details-title" className="type-title">
+        Your shop
+      </h2>
 
       <CoverPicker shopId={shop.id} shopName={name.trim() || shop.name} coverUrl={cover} onChange={setCover} />
 

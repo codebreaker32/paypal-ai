@@ -305,7 +305,7 @@ export function ReviewStep(props: ReviewProps) {
               <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
                 Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>
-              <p className="text-ink-soft">Each becomes a product in your PayPal catalog. Tap a tile to add a photo.</p>
+              <p className="text-ink-soft">Each becomes a product in your PayPal catalog.</p>
             </div>
             {ready.length ? (
               <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
