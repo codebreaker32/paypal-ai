@@ -1,13 +1,14 @@
 # Progress
 
-_Last updated: 2026-11-06 10:49 IST (session 7)_
+_Last updated: 2026-11-06 10:58 IST (end of session 7)_
 
 ## Current phase
 **Session 7 (10:39–11:08 IST, a short run).** Done:
 - **done, merged (`c32d337`):** session 6's noted follow-up. Orders the shop cancels (`npm run seed -- --cancel-unpaid`) no longer claim "the buyer cancelled on PayPal". `cancelOrder` records the cancel's source (`cancel_url` for PayPal's cancel link, `seller` from the seed). The seller's order page (action card and timeline), the buyer's receipt (`cancelledByShop` on `GET /api/orders/[ref]`) and `get_order_status` read it. TDD: 5 new tests. **670 unit tests pass; typecheck and lint are clean.**
 - **Verified on a running app** (dev server on port 3171, a throwaway seeded database, the real sandbox): an order through the door (SHF-CWXB7G, PayPal `2LN13155YE638222B`, $9.00) → `npm run seed -- --cancel-unpaid` cancelled it → the receipt API said `cancelledByShop: true`, the receipt page said "cancelled by the shop before payment", `get_order_status` said "The shop cancelled this order before payment", and the seller order page showed "The shop cancelled it before the buyer paid" with the timeline line "Cancelled by the shop before payment" (no "buyer cancelled" text). The throwaway database was deleted.
 - **done:** `code-review` (medium) over this session's diff found 8 items; 6 are fixed and 2 kept. Fixed: the agent is no longer told to re-order after a shop cancel (it says to contact the shop); a PayPal VOIDED order reads "PayPal voided the order before payment" in the timeline, not "by the buyer"; the receipt reads events only when a flag needs them; two stale comments; the README says the cancel is in Shelfie (PayPal has no cancel for an unapproved order; it expires). Kept, with reasons in DECISIONS: one extra events read in `get_order_status`, and the four inline "ignored event" checks. **670 unit tests pass; typecheck and lint are clean.**
-- **Not run this session:** the full e2e suite and a judge round (a 29-minute run; the change touches only the copy of cancelled orders and one optional argument, and no money path).
+- **Verified on the final main (`7174a1e`, 10:57 IST):** the full e2e suite (`E2E_PORT=3172 npm run e2e`, with the screenshots spec included this time) gave **122 passed, 3 skipped** (8.9 min, exit 0). The capture gate passed: SHF-VV5SCP → PayPal `83181282506060902` → capture `3YL02203KA0716642` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED at PayPal, and `get_order_status` read it back.
+- **Not run this session:** a judge round. Reason: the run was 29 minutes and this change is copy for cancelled orders plus one optional argument; it touches no money path. Round 5 still stands (22 / 21 / 0, ship).
 
 **Session 6 (09:07–~10:40 IST).** Done:
 - **done:** a secret scan of the full git history and the working tree before the repo goes public: no `.env` value, PayPal access token, bearer header or owner claim link anywhere (0 hits). GitHub detects the MIT license.
