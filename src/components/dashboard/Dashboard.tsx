@@ -23,7 +23,7 @@ export type DashboardTab = 'orders' | 'menu' | 'share' | 'settings';
 
 export interface DashboardProps {
   /** `payeeEmail`: where buyers' money goes (owner only); `isDemo`: Shelfie's demo shop, which may have none. */
-  shop: { id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean };
+  shop: { id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
   initialPaypalReachable: boolean;
@@ -227,7 +227,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'menu',
             label: 'Menu',
-            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} onItemsChange={setItems} />,
+            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} shopName={shop.name} coverUrl={shop.coverUrl} onItemsChange={setItems} />,
           },
           {
             id: 'share',

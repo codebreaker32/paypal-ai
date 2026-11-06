@@ -27,7 +27,7 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
 
   return (
     <Dashboard
-      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop) }}
+      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl }}
       initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}
