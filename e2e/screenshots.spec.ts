@@ -134,8 +134,10 @@ function seedDemoOrders(f: FixtureShop) {
   eventsRepo.add(db, orders.refused.id, 'capture_failed', 'return_url', { status: 422, issue: 'TRANSACTION_REFUSED', debugId: 'E2E' });
 }
 
-/** A Marigold sample shop as a visitor makes it from the Start page, read with `raw` (or failing) without Claude. */
-/** A draft shop with the Marigold sample photo, or `photo` from public/samples, and the given reading. */
+/**
+ * A draft shop as a visitor makes it from the Start page (the Marigold sample, or `photo` from public/samples),
+ * read with `raw` without Claude: an Error fails the reading and null leaves it running.
+ */
 async function sampleShop(raw: MenuExtraction | Error | null, photo?: string): Promise<Setup> {
   const db = getDb();
   const { shop, ownerToken } = photo
