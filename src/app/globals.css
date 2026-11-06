@@ -88,6 +88,12 @@
   --duration-base: 220ms;
   --duration-slow: 360ms;
 
+  /* buyer motion */
+  /* The shop page's sticky chrome on phones: the section tabs (top) and the order bar (bottom). A section heading
+     reached from a tab lands this far below the top, clear of the tabs, and never under the bar. */
+  --shop-tabs-h: 3rem;
+  --shop-bar-h: 5.25rem;
+
   /* Layers */
   --z-header: 20;
   --z-sheet: 50;

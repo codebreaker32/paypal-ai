@@ -377,6 +377,44 @@ test.describe('console states', () => {
     }
   });
 
+  test('at 390, each section tab lands its heading below the sticky tabs and above the order bar', async ({ page }) => {
+    // A tall phone and a short one (browser chrome showing): the last section can't scroll to the top on either.
+    for (const height of [PHONE.height, 560]) {
+      await page.setViewportSize({ width: PHONE.width, height });
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const tabs = page.getByRole('navigation', { name: 'Menu sections' });
+      const bar = page.locator('[data-order-bar]');
+      const links = tabs.getByRole('link');
+      const count = await links.count();
+      expect(count).toBeGreaterThan(1);
+      for (let i = 0; i < count; i++) {
+        const link = links.nth(i);
+        const name = (await link.innerText()).trim();
+        await link.click();
+        const heading = page.getByRole('heading', { level: 3, name, exact: true });
+        // Let the jump finish (smooth scrolling or not), then compare the boxes in the viewport.
+        await expect(async () => {
+          const [h, t, b] = await Promise.all([heading.boundingBox(), tabs.boundingBox(), bar.boundingBox()]);
+          expect(h && t && b, name).toBeTruthy();
+          expect(h!.y, `${name} at ${height}: below the tabs`).toBeGreaterThanOrEqual(t!.y + t!.height - 1);
+          expect(h!.y + h!.height, `${name} at ${height}: above the order bar`).toBeLessThanOrEqual(b!.y + 1);
+        }).toPass({ timeout: 5_000 });
+      }
+    }
+  });
+
+  test('on a phone the price sits directly under the item name', async ({ page }) => {
+    await page.setViewportSize(PHONE);
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const row = page.locator('[data-menu-item="Almond croissant"]');
+    const name = (await row.getByRole('heading', { level: 4 }).boundingBox())!;
+    const price = (await row.getByText('$5.00').boundingBox())!;
+    expect(price.y).toBeGreaterThanOrEqual(name.y + name.height - 1);
+    expect(price.y - (name.y + name.height)).toBeLessThanOrEqual(8);
+  });
+
   test('draft and unknown shops are 404', async ({ page }) => {
     const res = await page.goto('/s/no-such-shop-anywhere');
     expect(res?.status()).toBe(404);
