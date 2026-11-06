@@ -75,3 +75,5 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
   - docs: DEMO.md opens on the Store Sync contrast and adds the Claude Code beat;
   - re-shooting `capture/` and `evidence/` in the current look, after the code lands.
 - **Round-2 fix 3 (deploy, video, public repo) is a human step.** Reason: the run brief puts all three out of scope.
+- **Tailwind scans only `src/` (`@import "tailwindcss" source("..")`).** Reason: `@tailwindcss/turbopack` watches every non-gitignored folder, so each screenshot or doc written into `docs/` rebuilt the dev server. The judge's one-time reload loop was not reproduced in 5 fresh first starts, so this change is not claimed as its fix. The default DB stays in `data/`, because writes there were shown to trigger nothing.
+- **The capture gate was re-run on main after the restyle (real sandbox, passed).** Reason: the judge noted that `capture/` showed the old design, and a video recorded on the current UI must match the evidence.
