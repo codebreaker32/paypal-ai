@@ -136,7 +136,7 @@ const marks = {
     // square sitting on that shelf.
     const W = 9.5, L = W / 2;
     return (
-      `<path d="M22 60V20a11 11 0 0 1 11-11h4" fill="none" stroke="${c.ink}" stroke-width="${W}"/>` +
+      `<path d="M22 60V20a11 11 0 0 1 11-11h2" fill="none" stroke="${c.ink}" stroke-width="${W}"/>` +
       `<path d="M47 29.5V60" fill="none" stroke="${c.ink}" stroke-width="${W}"/>` +
       `<rect x="8" y="${29.5 - L}" width="${56 - 8}" height="${W}" rx="1" fill="${c.ink}"/>` +
       `<rect x="${47 - 7}" y="${29.5 - L - 2.5 - 14}" width="14" height="14" rx="2.5" fill="${c.acc}"/>`
