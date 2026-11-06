@@ -253,6 +253,18 @@ function pollerStalled(minutes: number) {
   getDb().prepare('UPDATE orders SET last_checked_at = MAX(created_at, ?) WHERE shop_id = ?').run(since, demo.shop.id);
 }
 
+/**
+ * Picks a photo for Snap your counter and waits for its sheet. A file set before React has hydrated the Menu tab loses
+ * its change event (the sheet never opens), so the file is set again until the sheet is up.
+ */
+async function snapCounter(page: Page, file: string) {
+  const input = page.locator('input[aria-label="Snap your counter"]');
+  await expect(async () => {
+    await input.setInputFiles(file);
+    await expect(page.getByRole('dialog')).toBeVisible({ timeout: 1500 });
+  }).toPass({ timeout: 20_000 });
+}
+
 async function signIn(context: BrowserContext, shopId: string, token: string) {
   await context.addCookies([{ name: `shelfie_owner_${shopId}`, value: token, url: BASE, httpOnly: true, sameSite: 'Lax' }]);
 }
@@ -649,7 +661,7 @@ const SCREENS: Screen[] = [
       ].map(([name, file]) => ({ itemId: demo.items[name].id, name, confidence: 'high', image: crop(file) }));
       await page.route(`**/api/shops/${demo.shop.id}/counter`, (route) => route.fulfill({ json: { proposals } }));
       await page.goto(`/shops/${demo.shop.id}?tab=menu`);
-      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'demo', 'marigold-bakehouse', 'cover.jpg'));
+      await snapCounter(page, path.join('public', 'demo', 'marigold-bakehouse', 'cover.jpg'));
       await expect(page.getByRole('button', { name: 'Replace: Cardamom bun' })).toBeVisible();
     },
     viewport: true,
@@ -670,7 +682,7 @@ const SCREENS: Screen[] = [
       // Reading: the request is never answered, so the sheet stays on "Finding your items…".
       await page.route(`**/api/shops/${demo.shop.id}/counter`, (route) => (answer ? route.fulfill(answer) : new Promise<void>(() => {})));
       await page.goto(`/shops/${demo.shop.id}?tab=menu`);
-      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'samples', 'counter-case.jpg'));
+      await snapCounter(page, path.join('public', 'samples', 'counter-case.jpg'));
       await expect(page.getByRole('dialog').getByText(text)).toBeVisible();
     },
   })),
@@ -683,7 +695,7 @@ const SCREENS: Screen[] = [
       pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}?tab=menu`);
       const answered = page.waitForResponse((r) => r.url().endsWith(`/api/shops/${demo.shop.id}/counter`), { timeout: 60_000 });
-      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'samples', 'counter-case.jpg'));
+      await snapCounter(page, path.join('public', 'samples', 'counter-case.jpg'));
       const res = await answered;
       test.skip(res.status() === 503, 'No ANTHROPIC_API_KEY on the server.');
       expect(res.status()).toBe(200);
