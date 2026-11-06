@@ -8,6 +8,8 @@ export interface Config {
   paypalBase: string;
   paypalWebhookId: string | null;
   anthropicApiKey: string | null;
+  /** SHELFIE_RECORDED_SAMPLES=1: sample menus use their recorded reading even with a key (demo recording). */
+  recordedSamples: boolean;
   appUrl: string;
   databasePath: string;
   uploadsDir: string;
@@ -35,6 +37,7 @@ export function getConfig(): Config {
     paypalBase: PAYPAL_SANDBOX_BASE,
     paypalWebhookId: opt('PAYPAL_WEBHOOK_ID'),
     anthropicApiKey: opt('ANTHROPIC_API_KEY'),
+    recordedSamples: opt('SHELFIE_RECORDED_SAMPLES') === '1',
     // RENDER_EXTERNAL_URL is set by Render at runtime (https://<service>.onrender.com).
     appUrl: (opt('APP_URL') ?? opt('RENDER_EXTERNAL_URL') ?? 'http://localhost:3000').replace(/\/+$/, ''),
     databasePath: opt('DATABASE_PATH') ?? 'data/shelfie.db',

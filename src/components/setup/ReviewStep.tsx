@@ -241,7 +241,7 @@ export function ReviewStep(props: ReviewProps) {
                   <Badge tone="info" icon={History}>
                     Recorded reading
                   </Badge>
-                  No Anthropic key is set, so this is Claude’s saved reading of the sample photo.
+                  This is Claude’s saved reading of the sample photo, made earlier, so there was no wait.
                 </p>
               )}
               {props.nonUsd && (

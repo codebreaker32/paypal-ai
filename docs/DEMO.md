@@ -7,7 +7,7 @@ PayPal's agent checkout reaches merchants who already have a website store. Rosa
 
 ## Setup before recording
 - `.env` filled (PayPal sandbox app, `ANTHROPIC_API_KEY`). Run `npm run build && npm start` (a production build has no dev-mode compile pauses on camera). Run `npm run seed` and keep the printed owner link.
-- **Browser 1** (phone frame, 390 px): the Shelfie start page. Have the Marigold photo ready to upload, or use **Try a sample menu**, which uses a recorded real reading with no wait on Claude.
+- **Browser 1** (phone frame, 390 px): the Shelfie start page. Have the Marigold photo ready to upload, or use **Try a sample menu**. With a key set, a sample is read live by Claude (about 9 s). For an instant reading, start the server with `SHELFIE_RECORDED_SAMPLES=1`: samples then use Claude's saved reading of the photo, and the review shows a **Recorded reading** badge. Your own photo is always read live.
 - **Browser 2** (laptop, 1440 px): the seeded shop at `http://localhost:3000/s/marigold-bakehouse`, and the dashboard opened through the owner link.
 - **Terminal** (large font): an empty folder holding a copy of `docs/judge/evidence/claude-code-mcp.json` with its URL changed to `http://localhost:3000/s/marigold-bakehouse/mcp`. Paste this command but don't run it yet:
   `claude -p "Order two butter croissants for Saturday pickup from this bakery. Name Sam Lee, sam@example.com. No need to check back with me." --mcp-config claude-code-mcp.json --strict-mcp-config --allowedTools "mcp__marigold-bakehouse__*"`
@@ -40,6 +40,6 @@ PayPal's agent checkout reaches merchants who already have a website store. Rosa
 
 ## If something breaks on the day
 - If PayPal's sandbox page is slow, cut from **Approve on PayPal** straight to the receipt of an order paid earlier.
-- If Claude is slow on reading, use **Try a sample menu** (a recorded real reading, no wait).
-- If the Claude Code run is slow, show the recorded run in `docs/judge/evidence/outside-client-claude-code.md` (17.6 s, real approval link) and say it was recorded.
+- If Claude is slow on reading, cut on the result, or restart with `SHELFIE_RECORDED_SAMPLES=1` and use **Try a sample menu** (Claude's saved reading, instant, labelled **Recorded reading** on screen; say it was recorded).
+- If the Claude Code run is slow, show the recorded run in `docs/judge/evidence/outside-client-claude-code.md` (15.9 s of agent time, real approval link) and say it was recorded.
 - The brief takes about 10 s after payment (measured on real orders). Record the dashboard shot after it appears. If Claude is down, a labelled template brief is stored instead.

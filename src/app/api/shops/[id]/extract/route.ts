@@ -46,6 +46,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/extr
         db,
         extract: (photos) => extractMenu(photos),
         hasAiKey: Boolean(getConfig().anthropicApiKey),
+        recordedSamples: getConfig().recordedSamples,
         recordedDelayMs: RECORDED_DELAY_MS,
       },
       shop.id,

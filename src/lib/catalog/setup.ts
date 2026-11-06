@@ -86,6 +86,8 @@ export interface ReadingDeps {
   db: Db;
   extract: (photos: MenuPhoto[]) => Promise<MenuExtraction>;
   hasAiKey: boolean;
+  /** Sample menus use their recorded reading even with a key (SHELFIE_RECORDED_SAMPLES=1, for demos). */
+  recordedSamples?: boolean;
   readPhoto?: (relPath: string) => Promise<Buffer>;
   now?: () => number;
   /** A short pause so a recorded reading still shows the reading screen. */
@@ -147,7 +149,7 @@ export async function runReading(deps: ReadingDeps, shopId: string): Promise<Rea
   if (last?.status === 'running' && !isStale(last.createdAt, now())) return { status: 'running' };
 
   const sample = sampleOf(shop);
-  const recorded = !deps.hasAiKey && sample !== null;
+  const recorded = sample !== null && (!deps.hasAiKey || deps.recordedSamples === true);
   const started = now();
   const id = extractions.start(db, shopId, recorded ? `${RECORDED_PREFIX}${MODEL_ID}` : MODEL_ID);
   const fail = (code: FailCode, detail: string): ReadingOutcome => {

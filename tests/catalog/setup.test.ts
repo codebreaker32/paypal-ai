@@ -191,6 +191,20 @@ describe('shop setup', () => {
       expect(calls).toBe(1);
     });
 
+    it('uses the recorded reading for a sample when recorded samples are switched on, even with a key', async () => {
+      const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
+      const out = await runReading(deps({ recordedSamples: true }), shop.id);
+      expect(out.status).toBe('done');
+      expect(calls).toBe(0);
+      expect(extractions.latest(db, shop.id)!.model).toBe('recorded:claude-sonnet-5-5');
+    });
+
+    it('still reads your own photo live when recorded samples are switched on', async () => {
+      const { shop } = await createShopFromPhotos(db, [photo]);
+      await runReading(deps({ recordedSamples: true }), shop.id);
+      expect(calls).toBe(1);
+    });
+
     it('explains that a key is needed for your own photo when there is none', async () => {
       const { shop } = await createShopFromPhotos(db, [photo]);
       const out = await runReading(deps({ hasAiKey: false }), shop.id);
