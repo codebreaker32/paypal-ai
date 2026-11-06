@@ -32,9 +32,16 @@ describe('DEMO_PHOTOS', () => {
     expect(Object.keys(set.items).sort()).toEqual(recordedReading('marigold-bakehouse').items.map((i) => i.name).sort());
   });
 
-  it('leaves Tía Lupe with no photos, so the fixtures show the designed fallback', () => {
-    expect(demoCoverFor('tia-lupe-chalkboard')).toBeNull();
-    expect(demoPhotoFor('tia-lupe-chalkboard', 'Al pastor')).toBeNull();
+  it('gives Tía Lupe a cover and a photo for every item', () => {
+    const set = DEMO_PHOTOS['tia-lupe-chalkboard'];
+    expect(set.cover).toBe('/demo/tia-lupe-chalkboard/cover.jpg');
+    expect(Object.keys(set.items).sort()).toEqual(recordedReading('tia-lupe-chalkboard').items.map((i) => i.name).sort());
+    expect(demoPhotoFor('tia-lupe-chalkboard', 'Agua fresca del dia')).toBe('/demo/tia-lupe-chalkboard/agua-fresca-del-dia.jpg');
+  });
+
+  it("leaves an item the seller adds themself with no photo, so it shows the designed fallback", () => {
+    expect(demoPhotoFor('tia-lupe-chalkboard', 'Birria quesatacos')).toBeNull();
+    expect(demoPhotoFor('ravi-bike-repair', 'Custom wheel build')).toBeNull();
   });
 });
 
