@@ -30,12 +30,6 @@ export async function uploadCover(shopId: string, file: Blob): Promise<string> {
   return body.coverUrl;
 }
 
-/** The shop's current cover photo URL, or null. */
-export async function fetchCover(shopId: string): Promise<string | null> {
-  const { body } = await call<{ coverUrl: string | null }>(`/api/shops/${enc(shopId)}/cover`);
-  return body.coverUrl;
-}
-
 /** Removes the shop's cover photo. */
 export async function removeCover(shopId: string): Promise<void> {
   await call(`/api/shops/${enc(shopId)}/cover`, { method: 'DELETE' });

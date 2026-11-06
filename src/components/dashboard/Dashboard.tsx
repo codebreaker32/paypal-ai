@@ -57,6 +57,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const [tab, setTab] = useState<DashboardTab>(initialTab);
   const [orders, setOrders] = useState(initialOrders);
   const [items, setItems] = useState(initialItems);
+  const [coverUrl, setCoverUrl] = useState(shop.coverUrl ?? null);
   const [paypalReachable, setPaypalReachable] = useState(initialPaypalReachable);
   const [status, setStatus] = useState<ShopStatus>(shop.status);
   const [payeeEmail, setPayeeEmail] = useState(shop.payeeEmail);
@@ -227,7 +228,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'menu',
             label: 'Menu',
-            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} shopName={shop.name} coverUrl={shop.coverUrl} onItemsChange={setItems} />,
+            content: <MenuPanel items={items} shopId={shop.id} slug={shop.slug} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />,
           },
           {
             id: 'share',

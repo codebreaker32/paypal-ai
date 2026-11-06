@@ -42,6 +42,11 @@ test.describe('on a phone', () => {
     await page.getByLabel('Add a cover photo').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
     await expect(page.getByRole('img', { name: /cover$/ })).toBeVisible();
     expect(shopsRepo.byId(getDb(), shop.shop.id)!.coverUrl).toMatch(/^\/i\//);
+    // Leaving the tab and coming back keeps the new cover (the dashboard holds it, like the items).
+    const coverSrc = shopsRepo.byId(getDb(), shop.shop.id)!.coverUrl!;
+    await page.getByRole('tab', { name: /Orders/ }).click();
+    await page.getByRole('tab', { name: 'Menu' }).click();
+    await expect(page.getByRole('img', { name: /cover$/ })).toHaveAttribute('src', coverSrc);
     // A reload reads the cover back.
     await page.reload();
     await expect(page.getByRole('img', { name: /cover$/ })).toBeVisible();
