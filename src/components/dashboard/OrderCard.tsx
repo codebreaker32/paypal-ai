@@ -6,9 +6,9 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
-import type { ItemPicture } from '@/lib/domain/category';
+import { kindDefault, linePicture, type ItemPicture } from '@/lib/domain/category';
 import { formatUSD } from '@/lib/domain/money';
-import type { Order } from '@/lib/domain/types';
+import type { Order, ShopKind } from '@/lib/domain/types';
 import { agentLabel, buyerLabel, itemSummary, whereLabel } from '@/lib/seller/view';
 import { LocalTime } from './LocalTime';
 import { MarkPickedUpButton } from './MarkPickedUpButton';
@@ -50,6 +50,7 @@ export function OrderCard({
   shopId,
   fresh,
   photos,
+  shopKind = 'food',
   onChange,
 }: {
   order: Order;
@@ -57,6 +58,8 @@ export function OrderCard({
   fresh?: boolean;
   /** itemId -> photo URL, for the first line's thumbnail. */
   photos?: ReadonlyMap<string, ItemPicture>;
+  /** For a line whose item is gone from the menu: its drawing is guessed from its name in this kind of shop. */
+  shopKind?: ShopKind;
   onChange: (order: Order) => void;
 }) {
   const href = `/shops/${shopId}/orders/${order.id}`;
@@ -75,8 +78,7 @@ export function OrderCard({
     >
       <ItemPhoto
         name={first?.name ?? order.number}
-        photoUrl={first ? (photos?.get(first.itemId)?.photoUrl ?? null) : null}
-        category={(first && photos?.get(first.itemId)?.category) || 'goods'}
+        {...(first ? linePicture(photos, first, shopKind) : { photoUrl: null, category: kindDefault(shopKind) })}
         size="sm"
         decorative
         eager

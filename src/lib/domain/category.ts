@@ -86,3 +86,15 @@ export function categoryOf(
 ): ItemCategory {
   return itemCategory(item, item.kind === 'SERVICE' ? 'services' : shopKind);
 }
+
+/**
+ * An order line's thumbnail: its item's picture while the item is on the menu, else (the item was deleted since) a
+ * drawing guessed from the line's name, so an old order never falls back to a generic picture.
+ */
+export function linePicture(
+  pictures: ReadonlyMap<string, ItemPicture> | undefined,
+  line: { itemId: string; name: string },
+  shopKind: ShopKind,
+): ItemPicture {
+  return pictures?.get(line.itemId) ?? { photoUrl: null, category: guessCategory({ name: line.name, shopKind }) };
+}

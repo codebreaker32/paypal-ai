@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { CATEGORIES, guessCategory, itemCategory, type ItemCategory } from '@/lib/domain/category';
+import { CATEGORIES, guessCategory, itemCategory, linePicture, type ItemCategory } from '@/lib/domain/category';
 import type { ShopKind } from '@/lib/domain/types';
+
+describe('linePicture (an order line’s thumbnail)', () => {
+  const pictures = new Map([['itm_1', { photoUrl: '/i/a.webp', category: 'pastry' as const }]]);
+
+  it('the item’s own picture when it is still on the menu', () => {
+    expect(linePicture(pictures, { itemId: 'itm_1', name: 'Almond croissant' }, 'food')).toEqual({ photoUrl: '/i/a.webp', category: 'pastry' });
+  });
+
+  it('an item gone from the menu: a drawing guessed from the line’s name, not a shopping bag by default', () => {
+    expect(linePicture(pictures, { itemId: 'itm_gone', name: 'Country sourdough loaf' }, 'food')).toEqual({ photoUrl: null, category: 'bread' });
+    expect(linePicture(undefined, { itemId: 'itm_gone', name: 'Full tune-up' }, 'services')).toEqual({ photoUrl: null, category: 'tool' });
+  });
+});
 
 describe('guessCategory', () => {
   it.each<[string, ShopKind, ItemCategory]>([

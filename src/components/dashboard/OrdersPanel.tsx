@@ -7,7 +7,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
-import type { Order } from '@/lib/domain/types';
+import type { Order, ShopKind } from '@/lib/domain/types';
 import { groupOrders, groupTotalCents } from '@/lib/seller/view';
 import { OrderCard } from './OrderCard';
 
@@ -68,6 +68,7 @@ export function OrdersPanel({
   slug,
   fresh,
   photos,
+  shopKind,
   paypalReachable,
   onOrderChange,
   onShowShare,
@@ -77,13 +78,14 @@ export function OrdersPanel({
   slug: string;
   fresh: ReadonlySet<string>;
   photos?: ReadonlyMap<string, ItemPicture>;
+  shopKind?: ShopKind;
   paypalReachable: boolean;
   onOrderChange: (order: Order) => void;
   onShowShare: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>('all');
   const g = groupOrders(orders);
-  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} fresh={fresh.has(o.id)} onChange={onOrderChange} />;
+  const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} shopKind={shopKind} fresh={fresh.has(o.id)} onChange={onOrderChange} />;
   const show = (f: Filter) => filter === 'all' || filter === f;
   const segments: [Filter, string, number][] = [
     ['all', 'All', orders.length],
