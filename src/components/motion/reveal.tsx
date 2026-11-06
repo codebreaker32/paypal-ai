@@ -5,7 +5,6 @@ import {
   createContext,
   useContext,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -15,11 +14,11 @@ import {
 import { m, useInView, type Variants } from 'motion/react';
 import { cn } from '@/lib/utils';
 import { EASE_OUT, MOTION_S } from './tokens';
+import { useIsoLayoutEffect } from './use-iso-layout-effect';
 
 /** Tags a Reveal, Stagger or StaggerItem can render as. */
 export type MotionTag = 'div' | 'section' | 'article' | 'header' | 'footer' | 'aside' | 'ul' | 'ol' | 'li' | 'p' | 'span';
 
-const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 const subscribeNothing = () => () => {};
 
 /** False while React hydrates server HTML, true for anything mounted later on the client. */
@@ -40,13 +39,17 @@ function useRevealState(ref: RefObject<Element | null>, once: boolean) {
   const clientMount = useMountedAfterHydration();
   const [initial] = useState<'hidden' | false>(clientMount ? 'hidden' : false);
   const [armed, setArmed] = useState(clientMount);
+  // Shown from the first paint: server HTML that was on screen at hydration (no entrance plays for it).
+  const [visibleAtStart, setVisibleAtStart] = useState(false);
   const inView = useInView(ref, { once, margin: '0px 0px -8% 0px' });
 
   useIsoLayoutEffect(() => {
+    if (initial === 'hidden') return;
     const el = ref.current;
     // Below the fold at hydration: hide it before the first paint after hydration, out of sight, so it can rise in.
     if (el && el.getBoundingClientRect().top > window.innerHeight) setArmed(true);
-  }, [ref]);
+    else setVisibleAtStart(true);
+  }, [ref, initial]);
 
   useEffect(() => {
     // A repeating reveal hides again once it has been seen and leaves the viewport.
@@ -54,7 +57,7 @@ function useRevealState(ref: RefObject<Element | null>, once: boolean) {
     if (inView && !once) setArmed(true);
   }, [inView, once]);
 
-  return { initial, animate: !armed || inView ? 'show' : 'hidden' } as const;
+  return { motionProps: { initial, animate: !armed || inView ? 'show' : 'hidden' } as const, visibleAtStart };
 }
 
 export interface RevealProps {
@@ -72,14 +75,14 @@ export interface RevealProps {
 /** Fades and rises in when scrolled into view (360 ms, ease-out). Use it for one block, not every section of a page. */
 export function Reveal({ as = 'div', delay = 0, y = 16, once = true, className, children }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
-  const state = useRevealState(ref, once);
+  const { motionProps } = useRevealState(ref, once);
   const Tag = m[as];
   const variants: Variants = {
     hidden: { opacity: 0, y, transition: { duration: 0 } },
     show: { opacity: 1, y: 0, transition: { duration: MOTION_S.slow, delay, ease: EASE_OUT } },
   };
   return (
-    <Tag ref={ref as never} data-slot="reveal" className={className} variants={variants} {...state}>
+    <Tag ref={ref as never} data-slot="reveal" className={className} variants={variants} {...motionProps}>
       {children}
     </Tag>
   );
@@ -102,8 +105,11 @@ export interface StaggerProps {
 /** A list whose StaggerItem children rise in one after another as it scrolls into view. */
 export function Stagger({ as = 'div', gap = 0.04, className, children }: StaggerProps) {
   const ref = useRef<HTMLElement>(null);
-  const state = useRevealState(ref, true);
-  const [shown, setShown] = useState(false);
+  const { motionProps, visibleAtStart } = useRevealState(ref, true);
+  // Shown means on screen for real: visible at hydration, or after its entrance has played. A list below the fold is
+  // not shown yet, so an item added to it before it scrolls in waits and staggers in with the rest.
+  const [animatedIn, setAnimatedIn] = useState(false);
+  const shown = visibleAtStart || animatedIn;
   const count = Math.max(1, Children.count(children));
   const Tag = m[as];
   const variants: Variants = {
@@ -111,14 +117,19 @@ export function Stagger({ as = 'div', gap = 0.04, className, children }: Stagger
     show: { transition: { staggerChildren: Math.min(gap, STAGGER_TOTAL_MAX / count) } },
   };
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- records that the list has played
-    if (state.animate === 'show') setShown(true);
-  }, [state.animate]);
-
   return (
     <StaggerShown.Provider value={shown}>
-      <Tag ref={ref as never} data-slot="stagger" className={className} variants={variants} {...state}>
+      <Tag
+        ref={ref as never}
+        data-slot="stagger"
+        data-state={shown ? 'shown' : 'waiting'}
+        className={className}
+        variants={variants}
+        onAnimationComplete={(definition) => {
+          if (definition === 'show') setAnimatedIn(true);
+        }}
+        {...motionProps}
+      >
         {children}
       </Tag>
     </StaggerShown.Provider>
