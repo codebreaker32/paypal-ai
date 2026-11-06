@@ -141,7 +141,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
         {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping. */}
         <Button size="lg" icon={Bot} fullWidth onClick={show}>
           {title}
-          <span className="font-medium text-surface/75"> · PayPal</span>
+          <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>
         </Button>
       </div>
 
