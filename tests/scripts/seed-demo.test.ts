@@ -140,4 +140,32 @@ describe('seedDemoShop', () => {
     expect(orders.byId(fresh, a.id)!.status).toBe('cancelled');
     expect(orders.byId(fresh, paid.id)!.status).toBe('approved');
   });
+
+  it('cancelUnpaid syncs with PayPal first: an order the buyer already approved is captured, not cancelled', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const { shop } = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    const croissant = items.listWithVariants(fresh, shop.id).find((i) => i.name === 'Almond croissant')!;
+    const deps = { db: fresh, paypal: pp, appUrl: 'http://localhost:3000' };
+    const place = (key: string) => createOrderForShop(deps, shop, { lines: [{ itemId: croissant.id, quantity: 1 }], fulfillment: 'pickup', clientKey: 'local', clientRequestId: key });
+    const approved = await place('approved-at-paypal');
+    const abandoned = await place('never-opened');
+    pp.approve(approved.paypalOrderId!);
+
+    const r = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir, cancelUnpaid: true });
+    expect(orders.byId(fresh, approved.id)!.status).toBe('paid');
+    expect(orders.byId(fresh, abandoned.id)!.status).toBe('cancelled');
+    expect(r).toMatchObject({ unpaid: 0, cancelled: 1 });
+  });
+
+  it('does not count orders past their expiry as waiting (they no longer hold the cap)', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const { shop } = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    const croissant = items.listWithVariants(fresh, shop.id).find((i) => i.name === 'Almond croissant')!;
+    const old = Date.now() - 2 * 60 * 60_000;
+    const deps = { db: fresh, paypal: pp, appUrl: 'http://localhost:3000', now: () => old };
+    await createOrderForShop(deps, shop, { lines: [{ itemId: croissant.id, quantity: 1 }], fulfillment: 'pickup', clientKey: 'local', clientRequestId: 'stale' });
+    expect((await seedDemoShop({ db: fresh, paypal: pp, uploadsDir })).unpaid).toBe(0);
+  });
 });

@@ -16,7 +16,7 @@ import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
-import { cancelOrder } from '@/lib/orders/service';
+import { cancelOrder, syncOrder } from '@/lib/orders/service';
 import type { PayPalPort } from '@/lib/paypal/types';
 
 config({ quiet: true });
@@ -116,16 +116,21 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
     const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
     log(e.ok ? `  PayPal product ${e.paypalProductId}  ${name}` : `  Not added: ${name}: ${e.message}`);
   });
-  const waiting = orders.listByShop(db, shopId, { status: ['awaiting_approval'] });
+  // Orders past their expiry no longer hold a caller's unpaid-order cap, so only live ones are reported.
+  const waiting = () => orders.listByShop(db, shopId, { status: ['awaiting_approval'] }).filter((o) => Date.parse(o.expiresAt) > Date.now());
   let cancelled = 0;
   if (opts.cancelUnpaid) {
-    for (const o of waiting) {
-      if ((await cancelOrder({ db, paypal: opts.paypal, appUrl: '' }, o.id)).status === 'cancelled') cancelled++;
+    const deps = { db, paypal: opts.paypal, appUrl: getConfig().appUrl };
+    for (const o of orders.listByShop(db, shopId, { status: ['awaiting_approval'] })) {
+      // Ask PayPal first: a buyer who approved a moment ago is captured, not cancelled.
+      const synced = await syncOrder(deps, o.id, 'poller').catch(() => o);
+      if (synced.status !== 'awaiting_approval') continue;
+      if ((await cancelOrder(deps, o.id)).status === 'cancelled') cancelled++;
     }
   }
   return {
     shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed,
-    unpaid: waiting.length - cancelled, cancelled,
+    unpaid: waiting().length, cancelled,
   };
 }
 
