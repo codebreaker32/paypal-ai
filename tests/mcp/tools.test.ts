@@ -310,6 +310,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     const out = ok<{ status: string; message: string }>('get_order_status', await call(client, 'get_order_status', { order_ref: created.order_ref }));
     expect(out.status).toBe('cancelled');
     expect(out.message).toMatch(/^The shop cancelled this order before payment/);
+    expect(out.message).not.toMatch(/create a new order/i);
   });
 
   it('get_order_status syncs with PayPal and reports paid after the buyer approves', async () => {

@@ -10,7 +10,7 @@ export function cardDeclined(order: Pick<Order, 'status'>, events: OrderEventRow
   );
 }
 
-/** The shop cancelled this order before payment (the seed's --cancel-unpaid), rather than the buyer on PayPal. */
+/** The shop cancelled this order before payment (a `seller` cancel event), rather than the buyer on PayPal. */
 export function cancelledByShop(order: Pick<Order, 'status'>, events: OrderEventRow[]): boolean {
   return (
     order.status === 'cancelled' &&

@@ -417,7 +417,7 @@ function statusMessage(
       return 'The payment did not go through, so nothing was charged. If the user still wants these items, create a new order.';
     case 'cancelled':
       return byShop
-        ? 'The shop cancelled this order before payment. Nothing was charged. Create a new order if the user still wants it.'
+        ? 'The shop cancelled this order before payment. Nothing was charged. Tell the user; they can contact the shop before ordering again.'
         : 'The user cancelled on PayPal. Nothing was charged.';
     case 'expired':
       return 'The approval link expired after 60 minutes without payment. Nothing was charged. Create a new order if the user still wants it.';

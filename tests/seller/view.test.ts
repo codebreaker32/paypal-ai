@@ -151,5 +151,6 @@ describe('an order the shop cancelled before payment (npm run seed -- --cancel-u
 
     expect(timelineEntries([cancel('seller')], o({}))[0].text).toBe('Cancelled by the shop before payment');
     expect(timelineEntries([cancel('cancel_url')], o({}))[0].text).toBe('Cancelled on PayPal by the buyer');
+    expect(timelineEntries([{ ...cancel('poller'), detail: { paypalStatus: 'VOIDED' } }], o({}))[0].text).toBe('PayPal voided the order before payment');
   });
 });

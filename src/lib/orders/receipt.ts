@@ -17,7 +17,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
   const shop = shopsRepo.byId(db, order.shopId);
   if (!shop) return null;
   const awaiting = order.status === 'awaiting_approval';
-  const events = eventsRepo.list(db, order.id);
+  const events = awaiting || order.status === 'cancelled' ? eventsRepo.list(db, order.id) : [];
   const declined = awaiting && cardDeclined(order, events);
   return {
     number: order.number,

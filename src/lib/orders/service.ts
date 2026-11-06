@@ -562,7 +562,10 @@ function runOnPaid(deps: OrderDeps, order: Order): void {
 
 // ---- seller / buyer actions -----------------------------------------------------------------------
 
-/** Buyer backed out on PayPal (cancel URL). Only an order still waiting for approval is cancelled. */
+/**
+ * Cancels an order still waiting for approval: the buyer backed out on PayPal (`cancel_url`) or the shop cancelled it
+ * (`seller`, today only the seed's --cancel-unpaid). Local only: PayPal has no cancel for an unapproved order (it expires).
+ */
 export async function cancelOrder(deps: OrderDeps, orderId: string, source: 'cancel_url' | 'seller' = 'cancel_url'): Promise<Order> {
   const order = ordersRepo.byId(deps.db, orderId);
   if (!order) throw orderNotFound(orderId);
