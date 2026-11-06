@@ -173,6 +173,7 @@ describe('GET /api/orders/[ref]', () => {
         captureRefused: false,
         cancelledByShop: false,
         paidTo: null,
+        goingTo: null,
         lines: [
           { name: 'Almond croissant', label: null, qty: 2, unitCents: 475 },
           { name: 'Sourdough loaf', label: null, qty: 1, unitCents: 900 },

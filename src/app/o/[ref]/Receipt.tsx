@@ -9,7 +9,7 @@ import { cx } from '@/components/ui/cx';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
 import { formatUSD } from '@/lib/domain/money';
 import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
-import { paidToText, type ReceiptOrder } from '@/lib/orders/receipt-types';
+import { goingToText, paidToText, type ReceiptOrder } from '@/lib/orders/receipt-types';
 
 const POLL_MS = 3000;
 
@@ -136,8 +136,10 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
             </div>
           </dl>
           <div className="rule-dashed flex flex-col gap-1.5 pt-3 text-center type-meta text-ink-muted">
-            {/* Whose PayPal account was paid (spec §8a): the shop's own, with its email masked, or Shelfie's demo account. */}
+            {/* Whose PayPal account was paid (spec §8a): the shop's own, with its email masked, or Shelfie's demo account.
+                While PayPal still holds the payment, where it is going instead (it isn't paid yet). */}
             {order.paidTo && <p className="font-medium text-ink-soft [overflow-wrap:anywhere]">{paidToText(order.paidTo)}</p>}
+            {order.goingTo && <p className="font-medium text-ink-soft [overflow-wrap:anywhere]">{goingToText(order.goingTo)}</p>}
             <p>
               {order.fulfillment === 'shipping'
                 ? 'Shipping to the address you gave PayPal.'
