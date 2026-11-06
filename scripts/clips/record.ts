@@ -25,7 +25,7 @@ import { parse } from 'dotenv';
 import type { BrowserContext, Frame, Locator, Page } from '@playwright/test';
 import { cancelUnpaid, readState, resetDemoShop, startApp, writeState, WORK, type App } from './app';
 import { leaks, redactorScript } from './redact';
-import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDisplay, type Display, type Stage } from './stage';
+import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDisplay, type Display, type Stage, type Terminal } from './stage';
 
 /** CLIPS_OUT=<dir> records somewhere else (a trial run that keeps the clips in video/clips). */
 const OUT = path.resolve(process.env.CLIPS_OUT || 'video/clips');
@@ -430,16 +430,18 @@ async function terminalClip(display: Display, id: string, cwd: string, steps: Te
   fs.writeFileSync(scriptFile, JSON.stringify({ cwd, prompt: `${cwd} $ `, doneFile, env: { keep, path: [bin] }, steps }, null, 2));
   const termEnv: Record<string, string> = { PATH: process.env.PATH ?? '/usr/bin:/bin', HOME: os.homedir(), TERM: 'xterm-256color', LANG: 'C.UTF-8' };
   for (const k of keep) if (!termEnv[k] && env(k)) termEnv[k] = env(k)!;
-  await clip(display, id, async () => {
-    const term = openTerminal(display, scriptFile, termEnv);
-    try {
-      await term.done(timeoutMs);
+  // The terminal closes after the capture has stopped, so the clip doesn't end on the bare (white) display.
+  const open: { term?: Terminal } = {};
+  try {
+    await clip(display, id, async () => {
+      open.term = openTerminal(display, scriptFile, termEnv);
+      await open.term.done(timeoutMs);
       await hold(4000);
-    } finally {
-      await term.close();
-    }
-  }, { lead: 1200, tail: 0 });
-  fs.rmSync(scriptFile, { force: true });
+    }, { lead: 1200, tail: 0 });
+  } finally {
+    await open.term?.close();
+    fs.rmSync(scriptFile, { force: true });
+  }
 }
 
 async function sceneDiscovery(display: Display, app: App): Promise<void> {
@@ -909,7 +911,10 @@ async function main(): Promise<void> {
   try {
     app = await startApp({ baseUrl: BASE_URL, port: PORT, build: BUILD, logins: LOGINS });
     for (const scene of scenes) {
-      say(`Recording ${scene.ids.filter(wanted).join(', ')}…`);
+      // 08 is usually recorded already, with 06 (from the dashboard left open).
+      const todo = scene.ids.filter((id) => wanted(id) && !results.some((r) => r.id === id));
+      if (!todo.length) continue;
+      say(`Recording ${todo.join(', ')}…`);
       try {
         await scene.run(display, app);
       } catch (e) {
