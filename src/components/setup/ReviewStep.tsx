@@ -35,7 +35,6 @@ export interface ReviewProps {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-
 function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   if (state.status === 'error') {
     return (

@@ -2,11 +2,12 @@
 // shop's door, in Markdown. The same as plain fields at /agents.txt.
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
-import { discoveryIndex, liveShopsForIndex } from '@/lib/discovery/index-file';
+import { listOrderableForIndex } from '@/lib/db/repos/shops';
+import { INDEX_LIMIT, discoveryIndex } from '@/lib/discovery/index-file';
 
 export const runtime = 'nodejs';
 
 export async function GET(): Promise<Response> {
-  const text = discoveryIndex(liveShopsForIndex(getDb()), getConfig().appUrl, 'llms');
+  const text = discoveryIndex(listOrderableForIndex(getDb(), INDEX_LIMIT), getConfig().appUrl, 'llms');
   return new Response(text, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 }

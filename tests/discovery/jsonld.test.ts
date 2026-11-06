@@ -93,6 +93,19 @@ describe('shopJsonLd', () => {
     });
   });
 
+  it('offers an OrderAction only to a shop that takes orders (has a PayPal email, or is the demo shop)', () => {
+    const db = createTestDb();
+    const ldOf = (opts: Parameters<typeof seedShop>[1]) => {
+      const { shop } = seedShop(db, opts);
+      return ldFor(shop, items.listWithVariants(db, shop.id), urlsFor(shop.slug));
+    };
+    const noEmail = ldOf({ name: 'Old Row Bakery', payeeEmail: null });
+    expect(noEmail).not.toHaveProperty('potentialAction');
+    expect(menuItemsOf(noEmail).length).toBeGreaterThan(0); // still a real menu
+    expect(ldOf({ name: 'Paid Row Bakery', payeeEmail: 'rosa@example.com' })).toHaveProperty('potentialAction');
+    expect(ldOf({ name: 'Marigold Bakehouse' })).toHaveProperty('potentialAction'); // demo shop, no email
+  });
+
   it('offers no OrderAction while the shop is paused', () => {
     const db = createTestDb();
     const { shop } = seedShop(db, { status: 'paused' });
@@ -103,7 +116,7 @@ describe('shopJsonLd', () => {
 
   it('describes a services shop as a LocalBusiness with an offer catalog', () => {
     const db = createTestDb();
-    const { shop } = shops.create(db, { name: 'Spoke & Chain Bike Repair', kind: 'services' });
+    const { shop } = shops.create(db, { name: 'Spoke & Chain Bike Repair', kind: 'services', payeeEmail: 'ana@example.com' });
     items.replaceDrafts(db, shop.id, [
       draft('Flat fix', [1500], { section: 'Repairs', kind: 'SERVICE' }),
       draft('Tune-up', [6000, 9000], { section: 'Repairs', kind: 'SERVICE' }),
