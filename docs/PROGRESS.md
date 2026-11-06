@@ -1,14 +1,19 @@
 # Progress
 
-_Last updated: 2026-11-06 05:40 IST (session 4)_
+_Last updated: 2026-11-06 06:08 IST (session 4)_
 
 ## Current phase
-**Session 4 (from 05:24 IST; this session is capped at 120 min, so it ends by ~07:24 IST):** session 3's four workers were cut off when it ended. Their work was still in their worktrees, so fresh workers are finishing it there instead of starting over:
-- visual direction A "Menu board" and B "Counter ledger": finish the polish, regenerate the 390/1440 screenshots in one run, and write the reports;
-- round-1 fix 1a: plain seller copy on the review cards, plus re-recorded sample readings;
-- round-1 fix 2 (the parts allowed in this run): the Render blueprint, a README deploy section, and evidence of an outside MCP client (the Claude Code CLI) ordering through the agent door;
-- research into sourced seller voices (EVIDENCE 5b).
-After that: the judge compares the two directions, the winner and the fixes are merged, and judge round 2 runs.
+**Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main so far:
+- **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both; A wins on "this is my shop" and video moments).
+- **Round-1 fix 1a:** plain seller copy on the review cards. Fixed sentences replace model notes, method-talk notes are filtered out, and the samples were re-recorded with the real model.
+- **Round-1 fix 2 (the allowed parts):** `render.yaml` (validated against Render's schema), `GET /api/health`, the `RENDER_EXTERNAL_URL` fallback and a README deploy section (not yet run). Also an outside MCP client: the **Claude Code CLI ordered through the agent door** and got a real PayPal approval link (`docs/judge/evidence/outside-client-claude-code.md`).
+- **EVIDENCE 5b:** 3 verified seller voices.
+
+**Running:**
+- a polish worker on direction A (the judge's 3 layout fixes and 4 take-from-B items);
+- a worker adding the 9 missing async states to the screenshot spec.
+
+**Then:** regenerate the full screenshot set into `docs/judge/screenshots/round-2/`, and run judge round 2.
 
 **Session 3 (04:55–05:24 IST):** judge round 1 scored Part A 21, Part B 21, with 1 Part C fail (raw AI notes on the review card). Verdict: **fix**. Session 3 then started the five workers above.
 
