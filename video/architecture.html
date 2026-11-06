@@ -1,51 +1,53 @@
 <!doctype html>
 <!-- The demo video's closing architecture card (docs/DEMO.md 2:30), recorded still by `npm run clips` (10-architecture).
-     Drawn at 1920x1080 in the app's "Menu board" look: tokens and fonts from docs/DESIGN.md and src/app/globals.css. -->
+     Drawn at 1920x1080 in the app's "Storefront" look: white page, Figtree, one pomegranate accent; tokens from
+     src/app/globals.css (docs/DESIGN.md), the mark from public/brand/mark.svg. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Shelfie: how it works</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Playfair+Display:ital,wght@0,700;0,800;1,600&family=Schibsted+Grotesk:wght@400;500;600&display=block" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&display=block" rel="stylesheet">
 <style>
   :root {
-    --paper-0: #fffefa; --paper-50: #f1eee6; --paper-100: #e7e2d6; --paper-300: #c4bba7; --paper-500: #7e7563;
-    --ink-900: #1a1f1b; --ink-700: #3b443e; --ink-600: #545d57;
-    --marigold-50: #fbebcf; --marigold-400: #f0a23a;
-    --leaf-50: #e2eedf; --leaf-700: #2e6a3d; --paypal-500: #0070ba; --slate-50: #e2e8ee; --slate-700: #33506b;
-    --display: 'Playfair Display', Georgia, serif; --sans: 'Schibsted Grotesk', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --white: #ffffff; --grey-50: #f4f5f7; --grey-100: #eceef1; --grey-200: #e2e4e8; --grey-300: #d4d6dc;
+    --ink-900: #111214; --ink-700: #3d4148; --ink-600: #5e636c;
+    --pom-50: #fdeaf0; --pom-600: #c21a4b; --pom-700: #a3153f;
+    --green-50: #e4f3ea; --green-700: #1e7a45; --blue-50: #e7eefa; --paypal-700: #005ea6;
+    --sans: 'Figtree', system-ui, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; }
-  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--paper-50); color: var(--ink-900); font-family: var(--sans); }
-  main { padding: 72px 104px 0; display: flex; flex-direction: column; gap: 40px; height: 100%; }
-  header { display: flex; align-items: baseline; gap: 28px; border-bottom: 3px solid var(--ink-900); padding-bottom: 22px; }
-  .logo { font-family: var(--display); font-weight: 800; font-size: 76px; letter-spacing: -0.01em; position: relative; z-index: 0; }
-  .logo::after { content: ''; position: absolute; left: -6px; right: -6px; bottom: 10px; height: 22px; background: var(--marigold-400); z-index: -1; transform: rotate(-1deg); }
-  header p { font-size: 30px; color: var(--ink-700); }
-  .row { display: flex; flex-direction: column; gap: 16px; }
-  .label { font-family: var(--display); font-style: italic; font-weight: 600; font-size: 34px; color: var(--ink-700); }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--white); color: var(--ink-900); font-family: var(--sans);
+               text-rendering: geometricPrecision; -webkit-font-smoothing: antialiased; }
+  main { padding: 72px 104px 0; display: flex; flex-direction: column; gap: 44px; height: 100%; }
+  header { display: flex; align-items: center; gap: 28px; border-bottom: 1px solid var(--grey-200); padding-bottom: 28px; }
+  .logo { display: inline-flex; align-items: center; gap: 18px; font-weight: 800; font-size: 64px; letter-spacing: -0.02em; }
+  .logo img { width: 68px; height: 68px; }
+  header p { font-size: 30px; color: var(--ink-600); font-weight: 500; }
+  .row { display: flex; flex-direction: column; gap: 18px; }
+  .label { font-weight: 800; font-size: 34px; letter-spacing: -0.01em; color: var(--ink-900); }
   .flow { display: grid; grid-template-columns: 1fr 64px 1fr 64px 1fr 64px 1fr; align-items: stretch; }
-  .slip { background: var(--paper-0); border: 2px solid var(--paper-300); border-radius: 6px; padding: 24px 26px 26px; display: flex; flex-direction: column; gap: 10px;
-          box-shadow: 0 2px 0 rgba(26, 31, 27, .06), 0 10px 24px rgba(26, 31, 27, .07); position: relative; }
-  .slip h2 { font-size: 31px; font-weight: 600; line-height: 1.15; }
+  .slip { background: var(--white); border: 1px solid var(--grey-200); border-radius: 16px; padding: 24px 26px 26px; display: flex; flex-direction: column; gap: 10px;
+          box-shadow: 0 1px 2px rgba(17, 18, 20, .06), 0 8px 24px rgba(17, 18, 20, .06); position: relative; }
+  .slip h2 { font-size: 31px; font-weight: 700; line-height: 1.15; letter-spacing: -0.01em; }
   .slip p { font-size: 22px; line-height: 1.35; color: var(--ink-600); }
-  .slip .tag { align-self: flex-start; font-family: var(--mono); font-size: 18px; font-weight: 500; padding: 3px 10px; border-radius: 4px; background: var(--paper-100); color: var(--ink-700); }
-  .slip.ai .tag { background: var(--marigold-50); color: var(--ink-900); }
-  .slip.pp .tag { background: var(--slate-50); color: var(--slate-700); }
-  .slip.money { border-color: var(--leaf-700); }
-  .slip.money .tag { background: var(--leaf-50); color: var(--leaf-700); }
+  .slip .tag { align-self: flex-start; font-size: 18px; font-weight: 700; padding: 4px 12px; border-radius: 999px; background: var(--grey-100); color: var(--ink-700); }
+  .slip.ai .tag { background: var(--pom-50); color: var(--pom-700); }
+  .slip.pp .tag { background: var(--blue-50); color: var(--paypal-700); }
+  .slip.money { border: 2px solid var(--green-700); }
+  .slip.money .tag { background: var(--green-50); color: var(--green-700); }
   .arrow { display: grid; place-items: center; }
   .arrow svg { width: 48px; height: 28px; }
-  footer { margin-top: auto; padding: 26px 0 60px; border-top: 2px dashed var(--paper-300); display: flex; justify-content: space-between; align-items: baseline; }
-  footer p { font-size: 27px; color: var(--ink-700); max-width: 1480px; line-height: 1.35; }
-  footer span { font-family: var(--mono); font-size: 20px; color: var(--ink-600); }
+  footer { margin-top: auto; padding: 28px 0 60px; border-top: 1px solid var(--grey-200); display: flex; justify-content: space-between; align-items: baseline; }
+  footer p { font-size: 27px; font-weight: 600; color: var(--ink-900); max-width: 1480px; line-height: 1.35; }
+  footer span { font-size: 20px; font-weight: 600; color: var(--ink-600); }
 </style>
 </head>
 <body>
 <main>
   <header>
-    <span class="logo">Shelfie</span>
+    <span class="logo"><img src="../public/brand/mark.svg" alt="">shelfie</span>
     <p>a photo of a price list becomes a PayPal shop any AI assistant can order from</p>
   </header>
 
@@ -53,11 +55,11 @@
     <h1 class="label">Once: a photo becomes a shop</h1>
     <div class="flow">
       <div class="slip"><span class="tag">photo</span><h2>The price list</h2><p>One phone photo of the handwritten menu</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
       <div class="slip ai"><span class="tag">Claude vision</span><h2>Read the menu</h2><p>Items, options and prices; asks only about what it isn't sure of</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
       <div class="slip pp"><span class="tag">PayPal Catalog Products</span><h2>Every item, a PayPal product</h2><p>Published from the seller's review</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
       <div class="slip"><span class="tag">MCP</span><h2>The agent door</h2><p>Found from the shop page: a link in its &lt;head&gt;, JSON-LD, /llms.txt</p></div>
     </div>
   </section>
@@ -66,11 +68,11 @@
     <h1 class="label">Every order: any assistant, paid to the seller</h1>
     <div class="flow">
       <div class="slip ai"><span class="tag">any AI assistant</span><h2>Orders through the door</h2><p>Claude Code, or Shelfie's console; prices set by the shop, never the agent</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
       <div class="slip pp money"><span class="tag">PayPal Orders v2</span><h2>Paid to the seller</h2><p>The payee is the seller's own PayPal account</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
-      <div class="slip pp"><span class="tag">approve + capture</span><h2>The buyer approves on PayPal</h2><p>Shelfie captures; the receipt is stamped paid</p></div>
-      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#1a1f1b" stroke-width="3"/></svg></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
+      <div class="slip pp"><span class="tag">approve + capture</span><h2>The buyer approves on PayPal</h2><p>Shelfie captures, and the buyer gets a receipt</p></div>
+      <div class="arrow"><svg viewBox="0 0 48 28"><path d="M2 14h38M30 4l12 10-12 10" fill="none" stroke="#111214" stroke-width="3"/></svg></div>
       <div class="slip ai"><span class="tag">PayPal Agent Toolkit</span><h2>A brief for the seller</h2><p>A Claude agent reads PayPal's record of the order and flags what matters</p></div>
     </div>
   </section>

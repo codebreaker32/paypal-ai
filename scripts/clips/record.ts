@@ -9,8 +9,9 @@
 // logins and owner links never reach the screen (scripts/clips/redact.browser.js) or this script's output; the PayPal
 // login itself is never recorded (06 stops before it, 06b starts after it).
 //
-// --only takes clip ids or their prefixes (03, 06, 08-dashboard-brief). A shot that needs an earlier one still runs it
-// unrecorded (03 drives 02's steps), 06 and 06b are recorded together, and 08/09 use the order 06 paid.
+// --only takes clip ids or their prefixes (03, 03b, 06, 08-dashboard-brief). A shot that needs an earlier one still runs it
+// unrecorded (03 drives 02's steps), 06 and 06b are recorded together, and 08/09 use the order 06 paid. 03b is a live
+// Claude call too: it first clears the photos of the two croissants it finds (unrecorded), so they fill in on camera.
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -24,6 +25,9 @@ import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDi
 /** CLIPS_OUT=<dir> records somewhere else (a trial run that keeps the clips in video/clips). */
 const OUT = path.resolve(process.env.CLIPS_OUT || 'video/clips');
 const PHOTO = path.resolve('public/samples/marigold-bakehouse.jpg');
+/** The display case for 03b (a Pexels photo, docs/ASSETS.md), and the demo shop's items Claude finds in it. */
+const COUNTER_PHOTO = path.resolve('public/samples/counter-case.jpg');
+const COUNTER_ITEMS = ['Butter croissant', 'Almond croissant'];
 const DEMO_SLUG = 'marigold-bakehouse';
 const CONSOLE_ASK = 'Two almond croissants and a sourdough, shipped to me. I have a nut allergy.';
 
@@ -197,10 +201,11 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       await f.getByRole('heading', { level: 1, name: 'Your shop is live' }).waitFor({ timeout: 180_000 });
       await fontsReady(f);
       await hold(3500);
-      const door = f.getByText(/\/s\/marigold-bakehouse-\d+\/mcp$/).first();
+      // "Your agent door" with the new shop's door link, then "Your shop link" under it.
+      const door = f.getByRole('heading', { name: 'Your agent door' });
       if (await door.count()) {
-        await bring(door, 'center', 1200);
-        await hold(2500);
+        await bring(door, 'start', 1200);
+        await hold(3000);
       }
     });
   } finally {
@@ -242,6 +247,79 @@ async function sceneCard(display: Display, app: App): Promise<void> {
       await p.waitForLoadState('networkidle').catch(() => {});
       await hold(5000);
     });
+  } finally {
+    await stage.close();
+  }
+}
+
+// ---- 03b: snap your counter (laptop) -------------------------------------------------------------------------------
+
+async function sceneCounter(display: Display, app: App): Promise<void> {
+  if (!env('ANTHROPIC_API_KEY')) throw new Error('03b needs ANTHROPIC_API_KEY in .env: Claude finds the items in the photo live');
+  const stage = await desktopStage(display, app, 'counter', { owner: true });
+  try {
+    const p = stage.page;
+    // Not recorded: the croissants Claude will find lose their photos (as the owner, through the app's own route), so the
+    // clip shows their rows fill in.
+    const menu = await doorItems(app);
+    for (const name of COUNTER_ITEMS) {
+      const item = menu.find((i) => i.name === name);
+      if (!item) throw new Error(`no ${name} on the demo shop`);
+      const res = await stage.context.request.delete(`${app.origin}/api/shops/${app.demoShopId}/items/${item.id}/photo`);
+      if (!res.ok()) throw new Error(`removing the ${name} photo answered ${res.status()} (owner cookie?)`);
+    }
+    await p.goto(`${app.origin}/shops/${app.demoShopId}`);
+    const menuTab = p.getByRole('tab', { name: 'Menu' });
+    await menuTab.waitFor();
+    await fontsReady(p);
+    await p.waitForLoadState('networkidle').catch(() => {});
+    await sleep(800);
+    const row = (name: string) => p.locator(`li[data-item="${name}"]`);
+    const imagesLoaded = (sel: string) =>
+      p.waitForFunction((s) => [...document.querySelectorAll(s)].every((i) => (i as HTMLImageElement).complete), sel, { timeout: 15_000 }).catch(() => {});
+
+    await clip(display, '03b-snap-counter', async () => {
+      await hold(1500);
+      await press(menuTab);
+      const snap = p.locator('label').filter({ has: p.locator('input[aria-label="Snap your counter"]') });
+      await snap.waitFor();
+      await imagesLoaded('li[data-item] img');
+      await hold(1200);
+      // The two croissant rows, with the designed no-photo tile.
+      await bring(row(COUNTER_ITEMS[0]), 'center', 1200);
+      await hold(1800);
+      await bring(snap, 'center', 900);
+      const chooser = p.waitForEvent('filechooser');
+      await press(snap, 700);
+      await (await chooser).setFiles(COUNTER_PHOTO);
+      const sheet = p.getByRole('dialog', { name: 'Snap your counter' });
+      await sheet.getByText('Finding your items…').waitFor({ timeout: 20_000 });
+      const found = sheet.getByRole('list', { name: 'Photos found' });
+      const failed = sheet.getByRole('alert');
+      await found.or(failed).first().waitFor({ timeout: 120_000 });
+      if (await failed.isVisible()) throw new Error(`snap your counter failed: ${await failed.innerText()}`);
+      await imagesLoaded('[data-proposal] img');
+      await hold(2500); // Claude's crops, one per item it found
+      // Use on each proposal for an item with no photo (one that has a photo says Replace, and is left as it is).
+      const use = sheet.getByRole('button', { name: /^Use: / });
+      for (let guard = 0; (await use.count()) > 0 && guard < 8; guard++) {
+        const b = use.first();
+        const name = ((await b.getAttribute('aria-label')) ?? '').replace(/^Use: /, '');
+        await press(b, 600);
+        await sheet.locator(`[data-proposal="${name}"]`).getByText('Added').waitFor({ timeout: 30_000 });
+        await hold(1000);
+      }
+      await hold(1500);
+      await press(sheet.getByRole('button', { name: 'Done' }), 500);
+      await sheet.waitFor({ state: 'hidden' });
+      // The rows' thumbnails, filled in.
+      await bring(row(COUNTER_ITEMS[0]), 'center', 1200);
+      await imagesLoaded('li[data-item] img');
+      await hold(4000);
+    });
+    const kept = [];
+    for (const n of COUNTER_ITEMS) if (await row(n).getByRole('img', { name: n }).count()) kept.push(n);
+    say(`  snap your counter: photos now on ${kept.join(', ') || 'neither croissant'}`);
   } finally {
     await stage.close();
   }
@@ -299,19 +377,32 @@ async function sceneDiscovery(display: Display, app: App): Promise<void> {
   ], ['PATH', 'HOME', 'ANTHROPIC_API_KEY'], 240_000);
 }
 
-/** The demo shop's almond croissant, from the door's own list_products (for the tamper curl's ids). */
-async function almondIds(app: App): Promise<{ item: string; option: string }> {
+interface DoorItem {
+  id: string;
+  name: string;
+  options: { id: string }[];
+}
+
+/** The demo shop's menu, from the door's own list_products (ids for the tamper curl and for 03b's photos). */
+async function doorItems(app: App, query?: string): Promise<DoorItem[]> {
   const res = await fetch(`${app.origin}/s/${DEMO_SLUG}/mcp`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
-    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'list_products', arguments: { query: 'almond' } } }),
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'list_products', arguments: query ? { query } : {} } }),
   });
   const text = await res.text();
   const json = text.trim().startsWith('{') ? JSON.parse(text) : JSON.parse(text.split('\n').find((l) => l.startsWith('data:'))!.slice(5));
   const data = json.result.structuredContent as { sections: { items: { id?: string; item_id?: string; name: string; options: { id?: string; option_id?: string }[] }[] }[] };
-  const item = data.sections.flatMap((s) => s.items).find((i) => /almond croissant/i.test(i.name));
+  return data.sections
+    .flatMap((s) => s.items)
+    .map((i) => ({ id: (i.item_id ?? i.id)!, name: i.name, options: i.options.map((o) => ({ id: (o.option_id ?? o.id)! })) }));
+}
+
+/** The demo shop's almond croissant (for the tamper curl's ids). */
+async function almondIds(app: App): Promise<{ item: string; option: string }> {
+  const item = (await doorItems(app, 'almond')).find((i) => /almond croissant/i.test(i.name));
   if (!item) throw new Error('no almond croissant on the demo shop');
-  return { item: (item.item_id ?? item.id)!, option: (item.options[0].option_id ?? item.options[0].id)! };
+  return { item: item.id, option: item.options[0].id };
 }
 
 async function sceneTamper(display: Display, app: App): Promise<void> {
@@ -514,10 +605,11 @@ async function sceneDashboard(display: Display, app: App): Promise<void> {
     await sleep(800);
     await clip(display, '08-dashboard-brief', async () => {
       await hold(2500);
-      const link = p.getByRole('link', { name: order.number, exact: true }).first();
-      await bring(link, 'start', 1200);
-      await p.evaluate(() => window.scrollBy({ top: -120, behavior: 'smooth' }));
-      await hold(5000); // the To prepare group, the slip and its AI brief
+      // The filters, To prepare with its paid subtotal, and the order's row: thumbnail, items, total and its AI brief.
+      const orderRow = p.locator(`li[data-order="${order.number}"]`);
+      await bring(orderRow, 'nearest', 1200);
+      await hold(5000);
+      const link = orderRow.getByRole('link', { name: order.number, exact: true });
       await press(link, 700);
       await p.waitForURL(/\/orders\//);
       await p.getByText('Paid to', { exact: true }).waitFor();
@@ -525,7 +617,7 @@ async function sceneDashboard(display: Display, app: App): Promise<void> {
       await hold(3500);
       await bring(p.getByText('Paid to', { exact: true }), 'center', 1200);
       await hold(3500); // Paid to, the PayPal order and transaction ids
-      const timeline = p.getByRole('heading', { name: /Timeline/i }).first();
+      const timeline = p.getByRole('heading', { name: 'What happened' }).first();
       if (await timeline.count()) {
         await bring(timeline, 'start', 1200);
         await hold(3500);
@@ -554,8 +646,7 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
     await sleep(800);
     await clip(display, '09-tracking', async () => {
       await hold(1500);
-      const card = p.locator('article, li').filter({ has: p.getByRole('link', { name: order.number, exact: true }) }).last();
-      const add = card.getByRole('link', { name: /Add tracking/ });
+      const add = p.locator(`li[data-order="${order.number}"]`).getByRole('link', { name: /Add tracking/ });
       await bring(add, 'center', 1000);
       await hold(1200);
       await press(add, 600);
@@ -622,6 +713,7 @@ async function sceneArchitecture(display: Display, app: App): Promise<void> {
 
 const SCENES: { ids: string[]; run: (d: Display, a: App) => Promise<void> }[] = [
   { ids: ['02-snap-reading', '03-review-publish'], run: sceneSetup },
+  { ids: ['03b-snap-counter'], run: sceneCounter },
   { ids: ['04-counter-card'], run: sceneCard },
   { ids: ['05-claude-code-discovery'], run: sceneDiscovery },
   { ids: ['06-console-order', '06b-paypal-complete'], run: sceneConsole },
