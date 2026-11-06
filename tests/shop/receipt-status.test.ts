@@ -131,7 +131,11 @@ describe('Receipt slip', () => {
     expect(render({ kind: 'seller', shopName: 'Marigold Bakehouse', maskedEmail: 'r•••@example.com' })).toContain(
       'Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)',
     );
-    expect(render({ kind: 'platform', shopName: 'Marigold Bakehouse' })).toContain('Paid to Shelfie’s demo PayPal account for Marigold Bakehouse');
+    expect(render({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true })).toContain('Paid to Shelfie’s demo PayPal account for Marigold Bakehouse');
+    // A shop's order from before it had a PayPal email (paid to the platform): not called the demo.
+    const legacy = render({ kind: 'platform', shopName: 'Rosa Bakes', demo: false });
+    expect(legacy).toContain('Paid to Shelfie’s PayPal account for Rosa Bakes');
+    expect(legacy).not.toContain('demo');
     expect(render(null)).not.toContain('Paid to');
   });
 });

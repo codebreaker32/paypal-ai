@@ -1,6 +1,7 @@
 // Measures the real seller path, photo to live shop, against a running app (never prints env values):
 //   POST /api/shops (multipart photo) -> POST /extract (real Claude) -> resolve flagged items via
-//   PATCH /items -> POST /publish (real PayPal sandbox catalog) -> shop live.
+//   PATCH /items -> PATCH the shop's PayPal email (PAYPAL_SANDBOX_SELLER_EMAIL or seller@example.com) ->
+//   POST /publish (real PayPal sandbox catalog) -> shop live.
 // Usage (app and script must share DATABASE_PATH; the script reads item ids from that SQLite file):
 //   DATABASE_PATH=data/measure/m.db UPLOADS_DIR=data/measure/up npx next dev --port 3109
 //   DATABASE_PATH=data/measure/m.db BASE_URL=http://localhost:3109 npx tsx scripts/measure-photo-to-live.ts [runs=2]
@@ -8,6 +9,13 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
+import { config } from 'dotenv';
+
+// Only the sandbox seller's email is read from .env (into a local object, never printed); DATABASE_PATH and BASE_URL
+// still come from the command line, as the usage above says.
+const dotenvValues: Record<string, string> = {};
+config({ quiet: true, processEnv: dotenvValues });
+const SELLER_EMAIL = process.env.PAYPAL_SANDBOX_SELLER_EMAIL || dotenvValues.PAYPAL_SANDBOX_SELLER_EMAIL || 'seller@example.com';
 
 const BASE = process.env.BASE_URL ?? 'http://localhost:3109';
 const DB_PATH = process.env.DATABASE_PATH;
@@ -89,6 +97,19 @@ async function measure(sample: string, run: number): Promise<Result> {
     );
     if (!res.ok) throw new Error(`resolve: ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
+
+  // Where buyers' money goes (spec §8a): publishing needs the seller's PayPal email. The sandbox seller when .env
+  // names one (never printed); setting it makes no PayPal call, so it stays outside the publish timing.
+  const payee = await call(
+    `/api/shops/${shopId}`,
+    {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ payeeEmail: SELLER_EMAIL }),
+    },
+    cookie,
+  );
+  if (!payee.ok) throw new Error(`payee: ${payee.status}`);
 
   const p0 = performance.now();
   const pub = await call(`/api/shops/${shopId}/publish`, { method: 'POST' }, cookie);

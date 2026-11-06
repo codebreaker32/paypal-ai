@@ -42,6 +42,15 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     expect(again.id).toBe(o.id);
   });
 
+  it("echoes the payee email exactly, even one no PayPal account uses (spec §8a: a typo'd email isn't a mismatch)", async () => {
+    // An address no PayPal account has: PayPal still creates the order, and later holds the payment (UNILATERAL).
+    const nobody = `nobody-shelfie-${Date.now()}@example.com`;
+    const o = await client.createOrder({ ...input, orderId: `ord_${randomUUID().slice(0, 8)}`, payeeEmail: nobody }, `test-${randomUUID()}`);
+    expect(o.status).toBe('PAYER_ACTION_REQUIRED');
+    const read = await client.getOrder(o.id);
+    expect(read.purchase_units[0].payee?.email_address).toBe(nobody);
+  });
+
   it('refuses to capture an unapproved order with ORDER_NOT_APPROVED', async () => {
     const err = await client.captureOrder(orderId, `cap-${orderId}`).catch((e) => e);
     expect(err).toBeInstanceOf(PayPalApiError);

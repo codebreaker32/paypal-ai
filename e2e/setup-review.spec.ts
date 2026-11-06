@@ -118,6 +118,7 @@ test('every kind of flagged card can be fixed with a tap or two, and edits autos
   // Where the money goes: Publish waits for a valid PayPal email, checked when the field loses focus.
   await expect(publish).toBeDisabled();
   const goToPayee = page.getByRole('button', { name: 'Add your PayPal email to publish.' });
+  expect((await goToPayee.boundingBox())!.height).toBeGreaterThanOrEqual(44); // a touch target, not just a line of text
   await goToPayee.click();
   const payee = page.getByLabel('Your PayPal email');
   await expect(payee).toBeFocused();

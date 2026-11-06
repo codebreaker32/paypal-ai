@@ -11,6 +11,7 @@ import { cx } from '@/components/ui/cx';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
+import { PAYEE_REQUIRED_MESSAGE } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
 import { IssueCard, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
@@ -34,7 +35,6 @@ export interface ReviewProps {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
-const PAYEE_REASON = 'Add your PayPal email to publish.';
 
 function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   if (state.status === 'error') {
@@ -215,7 +215,7 @@ export function ReviewStep(props: ReviewProps) {
       ? 'Fix an item above, or give one a price, to publish.'
       : 'Give at least one item a price to publish.'
     : !payeeReady
-      ? PAYEE_REASON
+      ? PAYEE_REQUIRED_MESSAGE
       : null;
   // The PayPal email sits at the end of the shop details: the reason takes the seller straight to it.
   const goToPayee = () => {
@@ -362,13 +362,13 @@ export function ReviewStep(props: ReviewProps) {
               <span id="publish-reason" className="text-sm text-ink-soft">
                 {publishError ? (
                   <FieldError>{publishError}</FieldError>
-                ) : disabledReason === PAYEE_REASON ? (
+                ) : disabledReason === PAYEE_REQUIRED_MESSAGE ? (
                   <button
                     type="button"
                     onClick={goToPayee}
-                    className="text-left font-medium text-ink underline decoration-accent decoration-2 underline-offset-4 hover:decoration-ink"
+                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-accent decoration-2 underline-offset-4 hover:decoration-ink"
                   >
-                    {PAYEE_REASON}
+                    {PAYEE_REQUIRED_MESSAGE}
                   </button>
                 ) : (
                   disabledReason

@@ -20,9 +20,10 @@ import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
+import { isDemoShop } from '@/lib/domain/payee';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { actionWords, agentLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -272,8 +273,8 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
   );
 }
 
-function PayPalCard({ order, className }: { order: Order; className?: string }) {
-  const sellerPaid = order.payeeEmail !== null;
+function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; className?: string }) {
+  const words = paypalCardWords(order, isDemoShop(shop));
   const row = (label: string, value: string | null, what: string, empty: string) => (
     <div className="flex flex-col gap-0.5">
       <dt className="type-meta text-ink-muted">{label}</dt>
@@ -299,17 +300,13 @@ function PayPalCard({ order, className }: { order: Order; className?: string }) 
         <div className="flex flex-col gap-0.5">
           <dt className="type-meta text-ink-muted">Paid to</dt>
           <dd className="flex min-h-tap items-center font-medium [overflow-wrap:anywhere]" data-testid="paid-to">
-            {sellerPaid ? order.payeeEmail : 'Shelfie’s demo PayPal account'}
+            {words.paidTo}
           </dd>
         </div>
         {row('Order ID', order.paypalOrderId, 'PayPal order ID', '')}
         {row('Transaction ID', order.captureId, 'PayPal transaction ID', 'Created when the payment is received')}
       </dl>
-      <p className="type-meta text-ink-muted">
-        {sellerPaid
-          ? 'Search these in that PayPal account to find the payment.'
-          : 'This demo shop is paid to Shelfie’s own sandbox account, so the payment is there, not in yours.'}
-      </p>
+      <p className="type-meta text-ink-muted">{words.note}</p>
     </Card>
   );
 }
@@ -376,7 +373,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
             className="order-2 lg:order-none"
           />
           <BuyerCard shop={shop} order={order} className="order-3 lg:order-none" />
-          <PayPalCard order={order} className="order-6 lg:order-none" />
+          <PayPalCard shop={shop} order={order} className="order-6 lg:order-none" />
         </div>
       </div>
     </div>

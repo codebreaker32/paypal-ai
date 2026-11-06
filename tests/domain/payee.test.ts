@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PAYEE_EMAIL_MESSAGE, RESERVED_SLUG, isDemoShop, maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
+import { PAYEE_EMAIL_MESSAGE, PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, isDemoShop, maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 
 describe('parsePayeeEmail', () => {
   it.each([
@@ -37,6 +37,10 @@ describe('parsePayeeEmail', () => {
 
   it('says what to type, with an example', () => {
     expect(PAYEE_EMAIL_MESSAGE).toBe('Enter the email you use to log in to PayPal, like rosa@example.com.');
+  });
+
+  it('has one wording for "publishing needs it", shared by the publish gate and the setup screen', () => {
+    expect(PAYEE_REQUIRED_MESSAGE).toBe('Add your PayPal email to publish.');
   });
 });
 

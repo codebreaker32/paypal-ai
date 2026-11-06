@@ -4,7 +4,7 @@ import type { Db } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
-import { maskEmail } from '@/lib/domain/payee';
+import { isDemoShop, maskEmail } from '@/lib/domain/payee';
 import type { OrderStatus } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from './declined';
 import { lastCaptureFailure } from './service';
@@ -41,7 +41,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     paidTo: PAID_OR_HELD.has(order.status)
       ? order.payeeEmail !== null
         ? { kind: 'seller', shopName: shop.name, maskedEmail: maskEmail(order.payeeEmail) }
-        : { kind: 'platform', shopName: shop.name }
+        : { kind: 'platform', shopName: shop.name, demo: isDemoShop(shop) }
       : null,
     lines: order.lines.map((l) => ({ name: l.name, label: l.label, qty: l.qty, unitCents: l.unitCents })),
   };

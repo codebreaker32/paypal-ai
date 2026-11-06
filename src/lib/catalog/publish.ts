@@ -5,7 +5,7 @@ import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import { slugify } from '@/lib/domain/ids';
-import { RESERVED_SLUG, isDemoShop } from '@/lib/domain/payee';
+import { PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, isDemoShop } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
@@ -85,8 +85,6 @@ function describeError(err: unknown): string {
   }
   return String(err);
 }
-
-export const PAYEE_REQUIRED_MESSAGE = 'Add your PayPal email to publish.';
 
 /**
  * Every shop is paid into its own PayPal account, so it needs the seller's PayPal email to publish. Only the demo shop

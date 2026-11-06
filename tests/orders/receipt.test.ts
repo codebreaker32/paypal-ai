@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
-import { receiptView } from '@/lib/orders/receipt';
+import * as ordersRepo from '@/lib/db/repos/orders';
+import { paidToText, receiptView } from '@/lib/orders/receipt';
 import { createOrderForShop, syncOrder, type OrderDeps } from '@/lib/orders/service';
 import { seedShop, type SeededShop } from '../helpers/shop';
 
@@ -47,7 +48,29 @@ describe('receiptView paidTo', () => {
     const o = await place(s);
     fake.approve(o.paypalOrderId);
     await syncOrder(deps, o.id, 'return_url');
-    expect(receiptView(db, o.id)!.paidTo).toEqual({ kind: 'platform', shopName: 'Marigold Bakehouse' });
+    const paidTo = receiptView(db, o.id)!.paidTo!;
+    expect(paidTo).toEqual({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true });
+    expect(paidToText(paidTo)).toBe('Paid to Shelfie’s demo PayPal account for Marigold Bakehouse');
+  });
+
+  it("an order a shop took before it had a PayPal email (paid to the platform) is Shelfie's account, not the demo's", async () => {
+    // A non-demo shop's order with no payee: created platform-paid before shops had PayPal emails.
+    const s = seedShop(db, { name: 'Rosa Bakes', payeeEmail: null });
+    const croissant = s.item['Almond croissant'];
+    const o = ordersRepo.insert(
+      db,
+      {
+        shopId: s.shop.id, fulfillment: 'pickup', buyerName: null, buyerNote: null, agentName: null, clientRequestId: null,
+        itemsCents: 475, shippingCents: 0, totalCents: 475, paypalOrderId: 'PP-LEGACY-1', approvalUrl: 'https://x',
+        expiresAt: new Date(Date.now() + 3600e3).toISOString(),
+      },
+      [{ itemId: croissant.id, variantId: croissant.variants[0].id, name: croissant.name, label: null, unitCents: 475, qty: 1, paypalProductId: croissant.paypalProductId }],
+    );
+    ordersRepo.casStatus(db, o.id, 'awaiting_approval', 'paid', { paidAt: new Date().toISOString(), captureId: 'CAP-LEGACY' });
+    const paidTo = receiptView(db, o.id)!.paidTo!;
+    expect(paidTo).toEqual({ kind: 'platform', shopName: 'Rosa Bakes', demo: false });
+    expect(paidToText(paidTo)).toBe('Paid to Shelfie’s PayPal account for Rosa Bakes');
+    expect(paidToText(paidTo)).not.toMatch(/demo/);
   });
 
   it('no paidTo for an order that was never paid', async () => {

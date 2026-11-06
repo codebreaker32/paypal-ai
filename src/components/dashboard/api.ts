@@ -41,7 +41,7 @@ export const setShopStatus = (shopId: string, status: 'live' | 'paused') =>
 export const setPayeeEmail = (shopId: string, payeeEmail: string | null) =>
   call<{ shop: Shop }>(`/api/shops/${shopId}`, { method: 'PATCH', body: JSON.stringify({ payeeEmail }) });
 
-export const setSoldOut =(shopId: string, itemId: string, soldOut: boolean) =>
+export const setSoldOut = (shopId: string, itemId: string, soldOut: boolean) =>
   call<{ items: ItemWithVariants[] }>(`/api/shops/${shopId}/items`, {
     method: 'PATCH',
     body: JSON.stringify({ updates: [{ itemId, soldOut }] }),

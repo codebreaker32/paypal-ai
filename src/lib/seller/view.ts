@@ -76,6 +76,21 @@ export function heldForUnknownEmail(order: Pick<Order, 'status'>, events: OrderE
   return (last?.detail as { pendingReason?: unknown } | null)?.pendingReason === UNILATERAL;
 }
 
+/**
+ * The order page's PayPal card: the account this order paid (the email it was created with; owner only) and where to
+ * find the payment. No payee: Shelfie's account, called the demo's only for the demo shop (`isDemo`); another shop's
+ * order without one dates from before it had a PayPal email.
+ */
+export function paypalCardWords(order: Pick<Order, 'payeeEmail'>, isDemo: boolean): { paidTo: string; note: string } {
+  if (order.payeeEmail !== null) return { paidTo: order.payeeEmail, note: 'Search these in that PayPal account to find the payment.' };
+  return isDemo
+    ? { paidTo: 'Shelfie’s demo PayPal account', note: 'This demo shop is paid to Shelfie’s own sandbox account, so the payment is there, not in yours.' }
+    : {
+        paidTo: 'Shelfie’s PayPal account',
+        note: 'This order was placed before your shop had a PayPal email, so the payment is in Shelfie’s account, not yours.',
+      };
+}
+
 /** Order events as plain words. Repeated (ignored) events, sync bookkeeping and unknown types are left out. */
 export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'fulfillment' | 'agentName' | 'payeeEmail'>): TimelineEntry[] {
   const out: TimelineEntry[] = [];

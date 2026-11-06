@@ -35,14 +35,21 @@ export interface ReceiptOrder {
   lines: ReceiptLine[];
 }
 
-/** The shop's own PayPal account (masked email), or, for the demo shop with no PayPal email, Shelfie's demo account. */
-export type PaidTo = { kind: 'seller'; shopName: string; maskedEmail: string } | { kind: 'platform'; shopName: string };
+/**
+ * The shop's own PayPal account (masked email), or Shelfie's account for an order with no payee: the demo shop's
+ * (`demo`), or another shop's order from before it had a PayPal email.
+ */
+export type PaidTo =
+  | { kind: 'seller'; shopName: string; maskedEmail: string }
+  | { kind: 'platform'; shopName: string; demo: boolean };
 
-/** "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s demo PayPal account for …". */
+/**
+ * "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s demo PayPal account for …"
+ * (the demo shop) / "Paid to Shelfie’s PayPal account for …" (another shop's order from before it had an email).
+ */
 export function paidToText(p: PaidTo): string {
-  return p.kind === 'seller'
-    ? `Paid to ${p.shopName}’s own PayPal account (${p.maskedEmail})`
-    : `Paid to Shelfie’s demo PayPal account for ${p.shopName}`;
+  if (p.kind === 'seller') return `Paid to ${p.shopName}’s own PayPal account (${p.maskedEmail})`;
+  return `Paid to Shelfie’s ${p.demo ? 'demo ' : ''}PayPal account for ${p.shopName}`;
 }
 
 /** Statuses the receipt keeps polling for. */

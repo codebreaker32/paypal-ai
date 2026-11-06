@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Order, OrderEventRow } from '@/lib/domain/types';
 import { orderStatusMeta } from '@/components/dashboard/status';
-import { actionWords, agentLabel, buyerLabel, cardDeclined, groupOrders, groupTotalCents, heldForUnknownEmail, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
+import { actionWords, agentLabel, buyerLabel, cardDeclined, groupOrders, groupTotalCents, heldForUnknownEmail, itemSummary, mergePolledOrders, paypalCardWords, timelineEntries, whereLabel } from '@/lib/seller/view';
 
 const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
@@ -148,6 +148,24 @@ describe('seller view helpers', () => {
         ['Stopped: PayPal would have paid a different PayPal account, so nothing was charged', 'danger'],
         ['Stopped: PayPal’s amount didn’t match this order', 'danger'],
       ]);
+    });
+
+    it("the order page's PayPal card names the account the order paid, and calls it the demo's only for the demo shop", () => {
+      expect(paypalCardWords(o({ payeeEmail: 'rosa@example.com' }), false)).toEqual({
+        paidTo: 'rosa@example.com',
+        note: 'Search these in that PayPal account to find the payment.',
+      });
+      expect(paypalCardWords(o({ payeeEmail: null }), true)).toEqual({
+        paidTo: 'Shelfie’s demo PayPal account',
+        note: 'This demo shop is paid to Shelfie’s own sandbox account, so the payment is there, not in yours.',
+      });
+      // A shop's order from before it had a PayPal email (paid to the platform).
+      const legacy = paypalCardWords(o({ payeeEmail: null }), false);
+      expect(legacy).toEqual({
+        paidTo: 'Shelfie’s PayPal account',
+        note: 'This order was placed before your shop had a PayPal email, so the payment is in Shelfie’s account, not yours.',
+      });
+      expect(JSON.stringify(legacy)).not.toMatch(/demo/);
     });
 
     it('tracking saved in Shelfie only reads as saved, not sent to PayPal', () => {
