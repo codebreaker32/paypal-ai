@@ -196,6 +196,20 @@ describe('seller-facing issue text', () => {
     expect(detail({ prices: [price(800, '$7 $8')], confidence: 'medium', note: '$7 is crossed out and replaced with $8; using $8.' }))
       .toBe('A price is crossed out. We set $8.00. Is that right?');
   });
+  it('says a price is crossed out only when the note is about a crossed-out or struck price', () => {
+    const at = (note: string) => detail({ prices: [price(800, '$8')], confidence: 'medium', note });
+    expect(at('Price struck through and rewritten as $8.')).toBe('A price is crossed out. We set $8.00. Is that right?');
+    expect(at('$7 crossed-out, $8 written above it.')).toBe('A price is crossed out. We set $8.00. Is that right?');
+    // A crossed-out name, or a smudge across the line, is a shaky reading: ask about the name and price.
+    expect(at('The old name Rye is crossed out; we used Spelt.')).toBe('Hard to read in the photo. Are the name and price right?');
+    expect(at('A smudge runs across the name; please check it.')).toBe('Hard to read in the photo. Are the name and price right?');
+  });
+  it('"across" or a hot cross bun is not a crossed-out reading', () => {
+    const item = (note: string, name = 'Thing') =>
+      catalog(raw({ name, prices: [price(800, '$8')], confidence: 'medium', note })).items[0];
+    expect(item('The name is written across two lines.').issues).toEqual([]);
+    expect(item('Hot cross bun, listed under Pastries.', 'Hot cross bun').issues).toEqual([]);
+  });
   it('printed in an unusual way', () => {
     expect(detail({ prices: [price(2000, 'from $20')] })).toBe('Printed as “from $20”. We set $20.00. Is that right?');
   });

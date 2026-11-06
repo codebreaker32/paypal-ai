@@ -16,8 +16,12 @@ const MAX_PRICE_CENTS = 100_000; // $1,000
 
 // Spec §9. Matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
+// Something on the menu was crossed out or struck through. Whole words only: "across" and a
+// "hot cross bun" are not.
+const CROSSED_RE = /\b(crossed|cross(es|ing)? out|struck|strike|striking|strikethrough)\b/i;
 // Notes that mean the reading itself is shaky, even when the model felt "medium" about it.
-const SHAKY_NOTE_RE = /cross|strik|blur|smudg|illegib|unclear|unsure|guess|hard to read|faded|obscur/i;
+const SHAKY_NOTE_RE = /blur|smudg|illegib|unclear|unsure|guess|hard to read|faded|obscur/i;
+const isShakyNote = (note: string) => CROSSED_RE.test(note) || SHAKY_NOTE_RE.test(note);
 
 const TIPS: Partial<Record<Problem, string>> = {
   blurry: 'Hold steady and tap to focus',
@@ -88,7 +92,10 @@ function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: Pr
 // one question. The model's free-text note never reaches the seller, so no reading can put cents,
 // field names or how rows were matched on a card; here it only tells a crossed-out price apart.
 
-const CROSSED_NOTE_RE = /cross|strik/i;
+/** "The $7 is crossed out; we used $8": a part of the note that is crossed out and names a price. */
+function crossedOutPrice(note: string): boolean {
+  return note.split(/[;!?]|\.(?=\s|$)|,\s/).some((part) => CROSSED_RE.test(part) && /\$|\d|\bprices?\b/i.test(part));
+}
 // "2 for $7", "3 for 10", "2x $5": a price per piece is worth saying "each".
 const MULTI_BUY_RE = /\b\d+\s*(for|x)\b/i;
 
@@ -159,7 +166,7 @@ function issueDetailFor({ it, variants, flags, unusual, shaky, note }: DetailInp
   if (variants.some((v) => v.priceCents === null)) return missingDetail(it, variants);
   if (unusual) return unusualDetail(variants);
   const set = pricesOf(variants);
-  if (note && CROSSED_NOTE_RE.test(note)) return `A price is crossed out. We set ${set}. Is that right?`;
+  if (note && crossedOutPrice(note)) return `A price is crossed out. We set ${set}. Is that right?`;
   if (flags.printedAs) return `Printed as ${quoted(flags.printedAs)}. We set ${set}. Is that right?`;
   if (shaky) return 'Hard to read in the photo. Are the name and price right?';
   return null;
@@ -208,7 +215,7 @@ function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
   }
 
   const unusual = variants.some((v) => v.priceCents !== null && isUnusual(v.priceCents));
-  const shaky = it.confidence === 'low' || (it.confidence === 'medium' && note !== null && SHAKY_NOTE_RE.test(note));
+  const shaky = it.confidence === 'low' || (it.confidence === 'medium' && note !== null && isShakyNote(note));
   if (unusual || it.price_kind === 'deal' || shaky || flags.printedAs) issues.add('CHECK');
 
   const ordered = (['MISSING_PRICE', 'MARKET_PRICE', 'CHECK'] as IssueCode[]).filter((c) => issues.has(c));
