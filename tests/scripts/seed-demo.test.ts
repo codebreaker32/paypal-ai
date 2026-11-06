@@ -204,7 +204,8 @@ describe('seedDemoShop', () => {
     const after = items.listWithVariants(fresh, shop.id);
     expect(after.find((i) => i.id === first.id)!.photoUrl).toBe(DEMO_PHOTOS[DEMO_SHOP.slug].items[first.name]);
     expect(after.find((i) => i.id === second.id)!.photoUrl).toBe('/i/abcdefghijklmnop.webp');
-    const strip = (list: typeof before) => list.map((i) => ({ ...i, photoUrl: null }));
+    // Only the photo (and so updatedAt) of the restored item may change.
+    const strip = (list: typeof before) => list.map((i) => ({ ...i, photoUrl: null, updatedAt: null }));
     expect(strip(after)).toEqual(strip(before));
 
     // Cleared cover: the next run puts the bundled one back.
