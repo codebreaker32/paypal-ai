@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
-import { canBePaid, parsePayeeEmail } from '@/lib/domain/payee';
+import { PAYEE_KEEP_MESSAGE, canBePaid, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { MAX_PRICE_CENTS, MAX_VARIANTS } from './rules';
 
@@ -65,7 +65,7 @@ export function applyShopPatch(db: Db, shop: Shop, patch: ShopPatchInput): Shop 
   }
   // A published shop's orders need somewhere to be paid; only the demo shop falls back to the platform account (spec §8a).
   if (patch.payeeEmail === null && shop.status !== 'draft' && !canBePaid({ slug: shop.slug, payeeEmail: null })) {
-    throw new EditError('PAYEE_REQUIRED', 409, 'Your shop is live, so it needs a PayPal email. Enter a different one instead.');
+    throw new EditError('PAYEE_REQUIRED', 409, PAYEE_KEEP_MESSAGE);
   }
   return shops.update(db, shop.id, patch);
 }

@@ -11,6 +11,8 @@ export const RESERVED_SLUG = 'marigold-bakehouse';
 export const PAYEE_EMAIL_MESSAGE = 'Enter the email you use to log in to PayPal, like rosa@example.com.';
 /** Publishing needs the email: the publish gate's 409 and the setup screen's disabled-Publish reason. */
 export const PAYEE_REQUIRED_MESSAGE = 'Add your PayPal email to publish.';
+/** A published shop (live or paused) can change its email but not clear it: the 409 for clearing it. */
+export const PAYEE_KEEP_MESSAGE = 'Your shop needs a PayPal email to take orders. To change it, enter the new one.';
 export const MAX_EMAIL_LENGTH = 254;
 
 export type PayeeEmailResult = { ok: true; email: string } | { ok: false; message: string };
