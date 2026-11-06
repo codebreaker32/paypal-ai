@@ -9,7 +9,7 @@ import * as extractions from '@/lib/db/repos/extractions';
 import { newId } from '@/lib/domain/ids';
 import type { DraftCatalog, ItemWithVariants, Shop, SkippedLine, UnreadableReason } from '@/lib/domain/types';
 import { MODEL_ID } from '@/lib/ai/anthropic';
-import type { MenuPhoto } from '@/lib/ai/extract';
+import { READING_DEADLINE_MS, type MenuPhoto } from '@/lib/ai/extract';
 import { normalizeExtraction } from '@/lib/ai/normalize';
 import { MenuExtractionSchema, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, SAMPLES, recordedReading, samplePhotoPath, type SampleId } from '@/lib/ai/samples';
@@ -19,10 +19,10 @@ import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from
 export const PLACEHOLDER_NAME = 'My shop';
 /**
  * A reading still "running" after this long died with its process: it counts as failed. A live
- * reading can take up to 90 s, plus one 90 s retry when Claude's first answer doesn't parse
- * (src/lib/ai/extract.ts), so this leaves a minute to spare.
+ * reading gives up after READING_DEADLINE_MS (src/lib/ai/extract.ts: SDK retries and the
+ * re-prompt included), so this leaves a minute to spare.
  */
-export const READING_STALE_MS = 4 * 60_000;
+export const READING_STALE_MS = READING_DEADLINE_MS + 60_000;
 export const RECORDED_PREFIX = 'recorded:';
 
 // ───────────── Creating the draft shop ─────────────

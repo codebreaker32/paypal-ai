@@ -22,7 +22,10 @@ vi.mock('next/headers', () => ({
   }),
 }));
 vi.mock('@/lib/db', async (orig) => ({ ...(await orig<typeof import('@/lib/db')>()), getDb: () => state.db }));
-vi.mock('@/lib/ai/extract', () => ({ extractMenu: (photos: unknown[]) => state.extract(photos) }));
+vi.mock('@/lib/ai/extract', async (orig) => ({
+  ...(await orig<typeof import('@/lib/ai/extract')>()),
+  extractMenu: (photos: unknown[]) => state.extract(photos),
+}));
 
 const { createTestDb } = await import('@/lib/db');
 const shops = await import('@/lib/db/repos/shops');
