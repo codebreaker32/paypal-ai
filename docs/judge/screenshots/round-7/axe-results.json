@@ -1,0 +1,350 @@
+{
+  "console-activity-raw-mcp-1440": {
+    "passes": 32,
+    "violations": []
+  },
+  "console-activity-raw-mcp-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "console-conversation-1440": {
+    "passes": 32,
+    "violations": []
+  },
+  "console-conversation-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "console-empty-1440": {
+    "passes": 31,
+    "violations": []
+  },
+  "console-empty-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "console-error-1440": {
+    "passes": 32,
+    "violations": []
+  },
+  "console-error-390": {
+    "passes": 23,
+    "violations": []
+  },
+  "console-rate-limited-1440": {
+    "passes": 32,
+    "violations": []
+  },
+  "console-rate-limited-390": {
+    "passes": 23,
+    "violations": []
+  },
+  "console-thinking-1440": {
+    "passes": 31,
+    "violations": []
+  },
+  "console-thinking-390": {
+    "passes": 19,
+    "violations": []
+  },
+  "counter-card-1440": {
+    "passes": 23,
+    "violations": []
+  },
+  "counter-card-390": {
+    "passes": 23,
+    "violations": []
+  },
+  "dashboard-empty-1440": {
+    "passes": 23,
+    "violations": []
+  },
+  "dashboard-empty-390": {
+    "passes": 23,
+    "violations": []
+  },
+  "dashboard-loading-1440": {
+    "passes": 18,
+    "violations": []
+  },
+  "dashboard-loading-390": {
+    "passes": 18,
+    "violations": []
+  },
+  "dashboard-menu-1440": {
+    "passes": 28,
+    "violations": []
+  },
+  "dashboard-menu-390": {
+    "passes": 28,
+    "violations": []
+  },
+  "dashboard-menu-counter-390": {
+    "passes": 20,
+    "violations": []
+  },
+  "dashboard-orders-1440": {
+    "passes": 27,
+    "violations": []
+  },
+  "dashboard-orders-390": {
+    "passes": 28,
+    "violations": []
+  },
+  "dashboard-paypal-unreachable-1440": {
+    "passes": 27,
+    "violations": []
+  },
+  "dashboard-paypal-unreachable-390": {
+    "passes": 28,
+    "violations": []
+  },
+  "dashboard-settings-1440": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-settings-390": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-settings-demo-1440": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-settings-demo-390": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-settings-invalid-1440": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-settings-invalid-390": {
+    "passes": 26,
+    "violations": []
+  },
+  "dashboard-share-1440": {
+    "passes": 23,
+    "violations": []
+  },
+  "dashboard-share-390": {
+    "passes": 23,
+    "violations": []
+  },
+  "order-brief-writing-1440": {
+    "passes": 29,
+    "violations": []
+  },
+  "order-brief-writing-390": {
+    "passes": 29,
+    "violations": []
+  },
+  "order-paid-with-brief-1440": {
+    "passes": 30,
+    "violations": []
+  },
+  "order-paid-with-brief-390": {
+    "passes": 30,
+    "violations": []
+  },
+  "order-payment-held-1440": {
+    "passes": 25,
+    "violations": []
+  },
+  "order-payment-held-390": {
+    "passes": 25,
+    "violations": []
+  },
+  "order-shipped-with-tracking-1440": {
+    "passes": 26,
+    "violations": []
+  },
+  "order-shipped-with-tracking-390": {
+    "passes": 26,
+    "violations": []
+  },
+  "order-tracking-error-1440": {
+    "passes": 30,
+    "violations": []
+  },
+  "order-tracking-error-390": {
+    "passes": 30,
+    "violations": []
+  },
+  "receipt-awaiting-approval-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-awaiting-approval-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-cancelled-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-cancelled-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-capture-refused-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-capture-refused-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-expired-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-expired-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-paid-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-paid-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-paid-to-seller-1440": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-paid-to-seller-390": {
+    "passes": 21,
+    "violations": []
+  },
+  "receipt-unknown-1440": {
+    "passes": 18,
+    "violations": []
+  },
+  "receipt-unknown-390": {
+    "passes": 18,
+    "violations": []
+  },
+  "review-paypal-email-1440": {
+    "passes": 30,
+    "violations": []
+  },
+  "review-paypal-email-390": {
+    "passes": 30,
+    "violations": []
+  },
+  "setup-failed-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-failed-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-live-1440": {
+    "passes": 22,
+    "violations": []
+  },
+  "setup-live-390": {
+    "passes": 22,
+    "violations": []
+  },
+  "setup-publish-retry-1440": {
+    "passes": 25,
+    "violations": []
+  },
+  "setup-publish-retry-390": {
+    "passes": 25,
+    "violations": []
+  },
+  "setup-publishing-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-publishing-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-reading-1440": {
+    "passes": 22,
+    "violations": []
+  },
+  "setup-reading-390": {
+    "passes": 22,
+    "violations": []
+  },
+  "setup-retake-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-retake-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "setup-review-1440": {
+    "passes": 30,
+    "violations": []
+  },
+  "setup-review-390": {
+    "passes": 30,
+    "violations": []
+  },
+  "shop-1440": {
+    "passes": 28,
+    "violations": []
+  },
+  "shop-390": {
+    "passes": 28,
+    "violations": []
+  },
+  "shop-first-screen-1440": {
+    "passes": 28,
+    "violations": []
+  },
+  "shop-first-screen-390": {
+    "passes": 28,
+    "violations": []
+  },
+  "shop-no-photos-1440": {
+    "passes": 29,
+    "violations": []
+  },
+  "shop-no-photos-390": {
+    "passes": 29,
+    "violations": []
+  },
+  "start-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-bad-file-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-bad-file-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-photos-ready-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-photos-ready-390": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-returning-owner-1440": {
+    "passes": 24,
+    "violations": []
+  },
+  "start-returning-owner-390": {
+    "passes": 24,
+    "violations": []
+  }
+}
