@@ -172,10 +172,13 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
   - make the GitHub repo **public** (it's private now, as the run brief requires);
   - record the under-3-minute demo video from `docs/DEMO.md` and post it publicly on YouTube;
   - submit on Devpost.
+- **GitHub About section** (it's empty today; GitHub already detects the MIT license). Suggested description: "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2." Suggested topics: `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
+- **Before recording the video:** run `npm run seed -- --cancel-unpaid` to clear rehearsal orders on the demo shop (one caller can hold 3 unpaid orders).
 - **Deploy (optional but valuable):**
   - apply `render.yaml` on Render (a paid instance for the persistent disk), paste the secrets, and run `npm run seed` in Render Shell;
   - create the PayPal webhook for `https://<service>.onrender.com/api/paypal/webhook` and set `PAYPAL_WEBHOOK_ID`; that verifies the webhook path;
   - put the URL at the top of the README.
+  - check the rate-limit key on Render (review 2, X1): two phones on different networks should not share the console's limit. The fix reads `CF-Connecting-IP` when `RENDER` is set; it is unit-tested but has never run on Render.
 - **To pay each seller directly (judge round 2, top fix 1):** a second **US sandbox Business** account, created in the PayPal Developer Dashboard. Its email would be set as `payee.email_address` on a shop's orders, and the payment and tracking verified against it. Not built in this run, because it can't be verified without that account.
 - (Resolved in session 3.) From 04:52 IST on 6 Nov, `git push` failed with `remote: fatal error in commit_refs`. The REST API still accepted writes, so `.scratch/api-push.py` (gitignored) rebuilt the 15 commits through the Git Data API with identical SHAs and moved `main`. Plain `git push` worked again from 05:05 IST. If it fails again, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main`.
 - Optional: a **US** sandbox personal (buyer) account, to show paying with a PayPal wallet login in the demo. The current buyer and the merchant are both India accounts, so wallet payments between them are blocked. Guest card checkout works without it.
