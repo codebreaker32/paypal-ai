@@ -41,7 +41,7 @@ AI assistants have started shopping for people, and PayPal is making merchants r
   - `messages.parse` with a Zod output schema for the menu reading;
   - the beta tool runner for the brief agent and the buyer console.
 - **MCP** via `@modelcontextprotocol/sdk`: a stateless Streamable HTTP server, with a fresh server per request, per shop.
-- **Tests:** 588 unit tests (Vitest), a Playwright e2e suite, and a **capture gate** that runs the whole money path against the real PayPal sandbox: photo read by Claude → Catalog publish → MCP order → PayPal guest card approval → capture COMPLETED → AI brief → USPS tracking at PayPal → `get_order_status`. Every screen is screenshotted at 390 and 1440 px with an axe (WCAG 2.1 AA) check; the last run had 0 violations.
+- **Tests:** 651 unit tests (Vitest), a Playwright e2e suite, and a **capture gate** that runs the whole money path against the real PayPal sandbox: photo read by Claude → Catalog publish → MCP order → PayPal guest card approval → capture COMPLETED → AI brief → USPS tracking at PayPal → `get_order_status`. Every screen is screenshotted at 390 and 1440 px with an axe (WCAG 2.1 AA) check; the last run had 0 violations. Two whole-codebase correctness reviews, with a skeptic trying to refute each finding, confirmed 27 bugs; all 27 are fixed, with a test each (`docs/reviews/`).
 
 ### Challenges we ran into
 - **Making AI output safe to publish.** The model reads; deterministic code decides. A normaliser turns the reading into cents, sizes and four review flags, and the seller sees fixed plain sentences rather than the model's own notes.
