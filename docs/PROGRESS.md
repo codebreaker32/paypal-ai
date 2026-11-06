@@ -23,7 +23,7 @@ _Last updated: 2026-11-06 07:42 IST (session 5 running)_
   - a **Path to scale** section, marked as not built.
 - **done:** five tests left a SQLite file in `/tmp` on every run; they now use `tests/helpers/temp-db.ts`, which deletes them.
 - **done:** `docs/judge/screenshots/round-3/` (66/66 passed on a production build, 0 axe violations) and `docs/judge/round-3-tests.txt` (586 unit tests, typecheck and lint clean).
-- **running:** judge round 3 (fresh subagent), and the full e2e suite including the real-sandbox capture gate (log `/tmp/r3-e2e.log`).
+- **running:** judge round 3 (fresh subagent), the full e2e suite has passed (see Verified).
 
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
 - **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
@@ -78,6 +78,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- **Full e2e suite on main after the session-5 merges (07:43 IST):** 56 passed and 1 skipped (the hidden "Other" carrier) in 6.5 min, with real Claude and the real sandbox. The capture gate passed in 1.4 min: order SHF-GW9P2M → PayPal order `72E098971B1748300` → capture `9AS032720T739521X` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Capture gate re-run on main after the direction-A merge (session 4, 07:02 IST), passed in 2.3 min, with screenshots refreshed in the current design (`docs/judge/screenshots/capture/`):** order SHF-28CLQE → PayPal order `8UL03058RN6568620` → capture `0PJ97777YU143884P` COMPLETED ($27.00). The Claude brief flagged the nut allergy. The USPS tracker `9400111179392836896326` was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Outside MCP client (session 4, re-run in session 5 on current main):** the Claude Code CLI (2.1.318, headless, `--mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config`), with only the shop's agent door loaded, called `get_shop_info` → `list_products` → `create_order`. The session-5 run produced order SHF-KTZ39C, PayPal order `17R81429KU459414P` (`PAYER_ACTION_REQUIRED`, $8.50) and a real approval link (session 4's run: SHF-A8PD7A, `3RG62077NC717421B`). The dashboard shows it "via Claude Code". It ran on localhost, not a deployed URL.
 - **Re-recorded samples (session 4):** all three sample readings were recorded again with real `claude-sonnet-5-5` and the owner-facing prompt. Item names and prices are identical, and Marigold still shows 10 items, 4 needing the seller.
