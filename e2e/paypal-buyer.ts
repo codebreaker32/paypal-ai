@@ -161,7 +161,7 @@ export async function payAsGuest(page: Page, approvalUrl: string, opts: PayAsGue
       if (returnedTo) break;
       // Shipping orders: PayPal suggests its own form of the address ("2211 North 1st Street"); keep going.
       const cont = page.locator('button:visible', { hasText: /^Continue$/ });
-      if (await cont.count().catch(() => 0)) await cont.first().click().catch(() => {});
+      if (!returnedTo && (await cont.count().catch(() => 0))) await cont.first().click({ timeout: 3_000 }).catch(() => {});
       const seen = await blocker(page);
       if (seen) throw new Error(seen);
     }
@@ -233,9 +233,10 @@ export async function payWithPayPalLogin(page: Page, approvalUrl: string, opts: 
     while (!returnedTo && Date.now() < deadline) {
       await page.waitForTimeout(1_000);
       if (returnedTo) break;
-      // A shipping order can ask to confirm the address, or show a second review step.
+      // A shipping order can ask to confirm the address, or show a second review step. The click is bounded: once
+      // PayPal is redirecting, a leftover button can stay in the DOM disabled, and an unbounded click waits forever.
       const more = page.locator('button:visible', { hasText: /^(Continue|Complete Purchase|Pay Now)$/ });
-      if (await more.count().catch(() => 0)) await more.first().click().catch(() => {});
+      if (!returnedTo && (await more.count().catch(() => 0))) await more.first().click({ timeout: 3_000 }).catch(() => {});
       const stop = await blocker(page);
       if (stop) throw new Error(stop);
     }

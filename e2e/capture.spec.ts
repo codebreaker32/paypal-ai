@@ -1,19 +1,26 @@
-// The capture gate (spec §12): the money path end to end against the real PayPal sandbox, no mocks.
+// The capture gate (spec §12): the money path end to end against the real PayPal sandbox, no mocks. Two gates:
 //
-//   1. A seller starts a shop from the sample menu, Shelfie reads it, she turns on shipping ($8 flat) and publishes:
-//      real products in the PayPal sandbox catalog.
+// Gate 1, seller payout (spec §8a). Needs PAYPAL_SANDBOX_SELLER_EMAIL and the sandbox buyer's login
+// (PAYPAL_SANDBOX_BUYER_EMAIL / _PASSWORD) in .env:
+//   1. A seller starts a shop from the sample menu, Shelfie reads it, she turns on shipping ($8 flat), gives her PayPal
+//      email (the sandbox seller) and publishes: real products in the PayPal sandbox catalog.
 //   2. An agent orders over the shop's real agent door (MCP over HTTP): get_shop_info → list_products →
 //      create_order (shipped, with a nut-allergy note) → PayPal approval link.
-//   3. A buyer approves on PayPal's sandbox page by guest card checkout (e2e/paypal-buyer.ts); PayPal returns the
-//      browser to Shelfie's return URL, which captures the payment.
-//   4. The receipt says Paid; the capture id is stored, and PayPal itself reports the order COMPLETED with that capture.
+//   3. The buyer logs in to PayPal (wallet checkout, e2e/paypal-buyer.ts) and pays; PayPal returns the browser to
+//      Shelfie's return URL, which captures the payment.
+//   4. The receipt says Paid and who was paid; PayPal's own record names the seller as payee, capture COMPLETED.
 //   5. The seller's dashboard shows the order paid, with the AI brief (written by Claude from PayPal's record).
-//   6. The seller adds USPS tracking on the order page → a real PayPal tracker (Agent Toolkit) → the order is shipped.
+//   6. The seller adds USPS tracking. PayPal refuses tracking from the platform on the seller's capture (spec §8a), so
+//      it is saved in Shelfie and the seller is told to add it in PayPal too.
 //   7. get_order_status over the agent door returns the tracking number.
 //
-// Runs whenever PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY are set (.env is loaded here and by the app); guest checkout
-// needs no buyer login. With ANTHROPIC_API_KEY the menu is read live and the brief must come from the Claude agent.
-// Each run makes a new shop, sandbox products, a ~$27 sandbox order and a tracker.
+// Gate 2, the platform-paid demo shop (spec §8a's one fallback). Needs only the app keys:
+//   the seeded demo shop with no seller email → the same door order → guest card checkout → Paid ("Shelfie's demo
+//   PayPal account") → capture COMPLETED at PayPal → tracking sent to PayPal through the Agent Toolkit (SHIPPED) →
+//   get_order_status. The seed here uses --reset, so run the gate against its own database.
+//
+// With ANTHROPIC_API_KEY the menu is read live and the brief must come from the Claude agent. Each run makes a new
+// shop, sandbox products, two sandbox orders (~$27 each) and trackers. Nothing from .env is ever logged.
 //
 //   E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
 // Refresh the committed screenshots (docs/judge/screenshots/capture/):
@@ -26,14 +33,24 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { expect, test, type APIRequestContext, type Page, type TestInfo } from '@playwright/test';
 import { config } from 'dotenv';
 import fs from 'node:fs';
+import { getConfig } from '@/lib/config';
+import { getDb } from '@/lib/db';
+import { getPayPal } from '@/lib/paypal';
+import { seedDemoShop } from '../scripts/seed-demo';
 import { DESKTOP, settle } from './helpers';
-import { payAsGuest } from './paypal-buyer';
+import { payAsGuest, payWithPayPalLogin } from './paypal-buyer';
 
 config({ quiet: true });
 
 const env = (name: string) => process.env[name]?.trim() || null;
 const HAS_PAYPAL = Boolean(env('PAYPAL_CLIENT_ID') && env('PAYPAL_SECRET_KEY'));
 const HAS_CLAUDE = Boolean(env('ANTHROPIC_API_KEY'));
+const SELLER = env('PAYPAL_SANDBOX_SELLER_EMAIL')?.toLowerCase() ?? null;
+const BUYER = env('PAYPAL_SANDBOX_BUYER_EMAIL') && env('PAYPAL_SANDBOX_BUYER_PASSWORD')
+  ? { email: env('PAYPAL_SANDBOX_BUYER_EMAIL')!, password: env('PAYPAL_SANDBOX_BUYER_PASSWORD')! }
+  : null;
+/** Same as OWNER_COOKIE_PREFIX in src/lib/auth/owner.ts (not imported: it pulls in next/headers). */
+const ownerCookieName = (shopId: string) => `shelfie_owner_${shopId}`;
 
 const OUT = 'docs/judge/screenshots/capture';
 /** Screenshots are committed, so only SHELFIE_SCREENSHOTS=1 rewrites them; every run attaches its own to the report. */
@@ -131,7 +148,7 @@ interface LiveShop {
   slug: string;
 }
 
-async function createLiveShop(api: APIRequestContext, origin: string): Promise<LiveShop> {
+async function createLiveShop(api: APIRequestContext, origin: string, payeeEmail: string): Promise<LiveShop> {
   const made = await api.post(`${origin}/api/shops`, { data: { sample: 'marigold-bakehouse' }, timeout: 120_000 });
   expect(made.status(), await made.text()).toBe(201);
   const { shopId } = (await made.json()) as { shopId: string };
@@ -142,12 +159,13 @@ async function createLiveShop(api: APIRequestContext, origin: string): Promise<L
   expect(read.status(), JSON.stringify(reading).slice(0, 300)).toBe(200);
   expect(reading.catalog?.items.length ?? 0).toBeGreaterThan(0);
 
-  // "Also ship orders" with a flat $8 fee.
+  // "Also ship orders" with a flat $8 fee, and "Your PayPal email" (where buyers' money goes; required to publish).
   const patched = await api.patch(`${origin}/api/shops/${shopId}`, {
-    data: { fulfillment: 'both', shippingFeeCents: SHIPPING_FEE_CENTS },
+    data: { fulfillment: 'both', shippingFeeCents: SHIPPING_FEE_CENTS, payeeEmail },
     timeout: 60_000,
   });
-  expect(patched.status(), await patched.text()).toBe(200);
+  // The response holds the email: report only the status on failure.
+  expect(patched.status()).toBe(200);
 
   // Publish: items the reading had no doubts about go to the PayPal catalog; flagged ones stay off the shop.
   const pub = await api.post(`${origin}/api/shops/${shopId}/publish`, { timeout: 240_000 });
@@ -167,176 +185,229 @@ async function createLiveShop(api: APIRequestContext, origin: string): Promise<L
   return { id: shopId, slug: done!.shop!.slug };
 }
 
-// ---- the gate ------------------------------------------------------------------------------------------------------
+// ---- the gate ----------------------------------------------------------------------------------------------------
 
-test.describe('capture gate (real PayPal sandbox)', () => {
-  test.skip(!HAS_PAYPAL, 'Needs PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY (sandbox) in .env.');
-  test.use({ viewport: DESKTOP, locale: 'en-US', timezoneId: 'America/Los_Angeles' });
+type Brief = { headline: string; buyer_requests: { kind: string; text: string }[]; flags: { severity: string; text: string }[] };
+interface StoredOrder {
+  id: string;
+  status: string;
+  captureId: string | null;
+  paypalOrderId: string;
+  paidAt: string | null;
+  brief: Brief | null;
+  briefSource: string | null;
+}
 
-  test('agent order → PayPal guest approval → Paid → AI brief → USPS tracking → get_order_status', async ({ page, baseURL }, info) => {
-    test.setTimeout(12 * 60_000);
-    const origin = baseURL!;
-    const api = page.context().request;
+async function storedOrder(api: APIRequestContext, origin: string, shopId: string, ref: string): Promise<StoredOrder> {
+  const res = await api.get(`${origin}/api/shops/${shopId}/orders`);
+  expect(res.status()).toBe(200);
+  return ((await res.json()) as { orders: StoredOrder[] }).orders.find((o) => o.id === ref)!;
+}
 
-    // PayPal's return URL is built from the server's APP_URL, so it has to be this server or PayPal sends the buyer
-    // elsewhere. The shop page shows the agent door at `${APP_URL}/s/<slug>/mcp`, which makes it visible.
-    let shop!: LiveShop;
-    await test.step('1. a live shop with shipping, published to the PayPal sandbox catalog', async () => {
-      shop = await createLiveShop(api, origin);
-      await page.goto(`/s/${shop.slug}`);
-      await expect(page.locator('#agent-door code').first()).toHaveText(`${origin}/s/${shop.slug}/mcp`);
-    });
+interface GateRun {
+  /** 'seller': paid into the shop's own PayPal account (wallet login). 'platform': the demo shop (guest card). */
+  mode: 'seller' | 'platform';
+  shop: LiveShop;
+  /** Screenshot name prefix ('' keeps the platform gate's historical names). */
+  prefix: string;
+}
 
-    // ---- 2. the agent orders over the real agent door ----
-    const door = await openDoor(origin, shop.slug);
-    let order!: CreatedOrder;
-    let shopName = '';
-    try {
-      await test.step('2. MCP: get_shop_info → list_products → create_order (shipped, nut-allergy note)', async () => {
-        const info_ = await callTool<ShopInfo>(door, 'get_shop_info');
-        shopName = info_.shop_name;
-        expect(info_.accepting_orders).toBe(true);
-        expect(info_.fulfillment.modes).toEqual(expect.arrayContaining(['pickup', 'shipping']));
-        expect(info_.fulfillment.shipping_fee).toBe(usd(SHIPPING_FEE_CENTS));
-
-        const list = await callTool<ProductList>(door, 'list_products');
-        const orderable = list.sections.flatMap((s) => s.items).filter((i) => i.orderable && i.options[0]?.price);
-        expect(orderable.length).toBeGreaterThan(0);
-        // Two almond croissants and a sourdough loaf (spec §3), or whatever this reading made orderable.
-        const almond = orderable.find((i) => /almond/i.test(i.name)) ?? orderable[0];
-        const bread = orderable.find((i) => i !== almond && /sourdough|loaf/i.test(i.name)) ?? orderable.find((i) => i !== almond);
-        const picks = [{ item: almond, quantity: 2 }, ...(bread ? [{ item: bread, quantity: 1 }] : [])];
-
-        order = await callTool<CreatedOrder>(door, 'create_order', {
-          items: picks.map(({ item, quantity }) => ({ item_id: item.item_id, option_id: item.options[0].option_id, quantity })),
-          fulfillment: 'shipping',
-          buyer_name: 'Dana',
-          buyer_note: BUYER_NOTE,
-          client_request_id: `capture-gate-${Date.now()}`,
-        });
-        const itemsCents = picks.reduce((t, { item, quantity }) => t + cents(item.options[0].price!) * quantity, 0);
-        expect(order.status).toBe('awaiting_approval');
-        expect(order.fulfillment).toBe('shipping');
-        expect(order.shipping).toBe(usd(SHIPPING_FEE_CENTS));
-        expect(order.total).toBe(usd(itemsCents + SHIPPING_FEE_CENTS));
-        expect(order.approval_url).toMatch(/^https:\/\/www\.sandbox\.paypal\.com\/checkoutnow\?token=[A-Z0-9]+$/);
-        log(`order ${order.order_number} (${order.order_ref}) $${order.total}: ${order.lines.map((l) => `${l.quantity} × ${l.name}`).join(', ')} + shipping`);
-      });
-    } finally {
-      await door.close();
+/**
+ * The seller's own pages show them their full PayPal email. In the seller gate that is the sandbox seller's login, so
+ * it is replaced on screen before a screenshot is taken (and the replacement says so).
+ */
+async function redactSellerEmail(page: Page): Promise<void> {
+  await page.evaluate((email) => {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (n.nodeValue && n.nodeValue.toLowerCase().includes(email)) n.nodeValue = n.nodeValue.replace(new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '[sandbox seller email, hidden in this screenshot]');
     }
-    const paypalOrderId = new URL(order.approval_url!).searchParams.get('token')!;
-    log(`PayPal order ${paypalOrderId}`);
+  }, SELLER!);
+}
 
-    // ---- 3. the buyer approves on PayPal (guest card checkout) ----
-    await test.step('3. PayPal sandbox: guest card checkout, back to Shelfie', async () => {
-      const returned = await payAsGuest(page, order.approval_url!, {
-        returnOrigin: origin,
-        testInfo: info,
-        shot: (p, name) => shoot(p, info, name),
-      });
-      expect(returned.startsWith(`${origin}/api/paypal/return?o=${order.order_ref}`), returned).toBe(true);
-      await page.waitForURL(`${origin}/o/${order.order_ref}`, { timeout: 90_000 });
-    });
+/** Steps 2–7, shared by both gates. */
+async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun): Promise<void> {
+  const api = page.context().request;
+  const { shop, mode, prefix } = run;
+  const shot = (p: Page, name: string, full = false) => shoot(p, info, `${prefix}${name}`, full);
 
-    // ---- 4. Paid on the receipt; the capture is stored and matches PayPal's record ----
-    let captureId = '';
-    await test.step('4. receipt shows Paid; capture id stored and COMPLETED at PayPal', async () => {
-      await expect(page.getByRole('heading', { level: 1, name: `Paid. ${shopName} has your order.` })).toBeVisible({ timeout: 60_000 });
-      await expect(page.getByText(`Order ${order.order_number}`)).toBeVisible();
-      await settle(page);
-      await shoot(page, info, 'receipt-paid', true);
-
-      const res = await api.get(`${origin}/api/shops/${shop.id}/orders`);
-      const stored = ((await res.json()) as { orders: { id: string; status: string; captureId: string | null; paypalOrderId: string; paidAt: string | null }[] }).orders.find(
-        (o) => o.id === order.order_ref,
-      )!;
-      expect(stored.status).toBe('paid');
-      expect(stored.paypalOrderId).toBe(paypalOrderId);
-      expect(stored.paidAt).not.toBeNull();
-      expect(stored.captureId).toMatch(/^[A-Z0-9]{10,}$/);
-      captureId = stored.captureId!;
-
-      const pp = await paypalGet<{
-        status: string;
-        purchase_units: { custom_id?: string; amount: { value: string }; payments?: { captures?: { id: string; status: string; amount: { value: string } }[] } }[];
-      }>(`/v2/checkout/orders/${paypalOrderId}`);
-      const cap = pp.purchase_units[0].payments?.captures?.[0];
-      expect(pp.status).toBe('COMPLETED');
-      expect(pp.purchase_units[0].custom_id).toBe(order.order_ref);
-      expect(cap?.id).toBe(captureId);
-      expect(cap?.status).toBe('COMPLETED');
-      expect(cap?.amount.value).toBe(order.total);
-      log(`capture ${captureId} COMPLETED at PayPal, $${cap?.amount.value}`);
-    });
-
-    // ---- 5. the seller sees it paid, with the AI brief ----
-    await test.step('5. dashboard: paid, with the AI brief', async () => {
-      type Brief = { headline: string; buyer_requests: { kind: string; text: string }[]; flags: { severity: string; text: string }[] };
-      let brief: { brief: Brief | null; briefSource: string | null } = { brief: null, briefSource: null };
-      await expect
-        .poll(
-          async () => {
-            const res = await api.get(`${origin}/api/shops/${shop.id}/orders`);
-            const o = ((await res.json()) as { orders: { id: string; brief: Brief | null; briefSource: string | null }[] }).orders.find((x) => x.id === order.order_ref)!;
-            brief = { brief: o.brief, briefSource: o.briefSource };
-            return o.brief !== null;
-          },
-          { timeout: 180_000, intervals: [3_000] },
-        )
-        .toBe(true);
-      const b = brief.brief!;
-      log(`brief (${brief.briefSource}): "${b.headline}"; requests ${JSON.stringify(b.buyer_requests)}; flags ${JSON.stringify(b.flags)}`);
-      info.annotations.push({ type: 'brief', description: `${brief.briefSource}: ${b.headline} | flags: ${b.flags.map((f) => `${f.severity}: ${f.text}`).join(' / ')}` });
-      if (HAS_CLAUDE) {
-        expect(brief.briefSource).toBe('agent');
-        expect(b.buyer_requests.map((r) => r.kind)).toContain('allergy');
+  // ---- 2. the agent orders over the real agent door ----
+  const door = await openDoor(origin, shop.slug);
+  let order!: CreatedOrder;
+  let shopName = '';
+  try {
+    await test.step('2. MCP: get_shop_info → list_products → create_order (shipped, nut-allergy note)', async () => {
+      const info_ = await callTool<ShopInfo & { payments?: string }>(door, 'get_shop_info');
+      shopName = info_.shop_name;
+      expect(info_.accepting_orders).toBe(true);
+      expect(info_.fulfillment.modes).toEqual(expect.arrayContaining(['pickup', 'shipping']));
+      expect(info_.fulfillment.shipping_fee).toBe(usd(SHIPPING_FEE_CENTS));
+      // The door tells the agent where the money goes, never with the full email.
+      if (mode === 'seller') {
+        expect(info_.payments).toMatch(/own PayPal account/);
+        expect(info_.payments!.includes(SELLER!)).toBe(false);
       } else {
-        expect(brief.briefSource).toBe('template');
+        expect(info_.payments).toMatch(/demo PayPal account/);
       }
 
-      await page.goto(`/shops/${shop.id}`);
-      const card = page.locator(`[data-order="${order.order_number}"]`);
-      await expect(card).toBeVisible();
-      await expect(card).toContainText('Paid');
-      await expect(card).toContainText('Test Buyer · via Shelfie Capture Gate');
-      await expect(card).toContainText('Ship to San Jose, CA');
-      await expect(card).toContainText(HAS_CLAUDE ? 'AI brief' : 'Summary');
-      await expect(card).toContainText(b.headline);
-      await settle(page);
-      await shoot(page, info, 'dashboard-paid-brief');
+      const list = await callTool<ProductList>(door, 'list_products');
+      const orderable = list.sections.flatMap((s) => s.items).filter((i) => i.orderable && i.options[0]?.price);
+      expect(orderable.length).toBeGreaterThan(0);
+      // Two almond croissants and a sourdough loaf (spec §3), or whatever this reading made orderable.
+      const almond = orderable.find((i) => /almond/i.test(i.name)) ?? orderable[0];
+      const bread = orderable.find((i) => i !== almond && /sourdough|loaf/i.test(i.name)) ?? orderable.find((i) => i !== almond);
+      const picks = [{ item: almond, quantity: 2 }, ...(bread ? [{ item: bread, quantity: 1 }] : [])];
 
-      await page.goto(`/shops/${shop.id}/orders/${order.order_ref}`);
-      await expect(page.getByTestId('brief-headline')).toHaveText(b.headline);
-      await expect(page.getByTestId('PayPal-transaction-ID')).toHaveText(captureId);
-      await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Payment received');
-      await settle(page);
-      await shoot(page, info, 'order-paid-brief', true);
+      order = await callTool<CreatedOrder>(door, 'create_order', {
+        items: picks.map(({ item, quantity }) => ({ item_id: item.item_id, option_id: item.options[0].option_id, quantity })),
+        fulfillment: 'shipping',
+        buyer_name: 'Dana',
+        buyer_note: BUYER_NOTE,
+        client_request_id: `capture-gate-${mode}-${Date.now()}`,
+      });
+      const itemsCents = picks.reduce((t, { item, quantity }) => t + cents(item.options[0].price!) * quantity, 0);
+      expect(order.status).toBe('awaiting_approval');
+      expect(order.fulfillment).toBe('shipping');
+      expect(order.shipping).toBe(usd(SHIPPING_FEE_CENTS));
+      expect(order.total).toBe(usd(itemsCents + SHIPPING_FEE_CENTS));
+      expect(order.approval_url).toMatch(/^https:\/\/www\.sandbox\.paypal\.com\/checkoutnow\?token=[A-Z0-9]+$/);
+      log(`[${mode}] order ${order.order_number} (${order.order_ref}) $${order.total}: ${order.lines.map((l) => `${l.quantity} × ${l.name}`).join(', ')} + shipping`);
     });
+  } finally {
+    await door.close();
+  }
+  const paypalOrderId = new URL(order.approval_url!).searchParams.get('token')!;
+  log(`[${mode}] PayPal order ${paypalOrderId}`);
 
-    // ---- 6. the seller adds tracking; it goes to PayPal through the Agent Toolkit ----
-    // A USPS-shaped number (22 digits, 9400 1118 prefix), unique per run.
-    const trackingNumber = `9400111${Date.now().toString().slice(-13)}${Math.floor(Math.random() * 90 + 10)}`;
-    await test.step('6. Add tracking (USPS) → PayPal tracker → shipped', async () => {
-      const form = page.getByRole('form', { name: 'Add tracking' });
-      await form.getByLabel('Carrier').selectOption('USPS');
-      await form.getByLabel('Tracking number').fill(trackingNumber);
-      await form.getByRole('button', { name: 'Send tracking to PayPal' }).click();
-      // "Sent to PayPal: USPS …" shows briefly; the form's router.refresh() then swaps the card for "Shipped".
-      const sent = page.getByRole('status').filter({ hasText: /Sent to PayPal: USPS/ });
-      const shipped = page.getByRole('heading', { name: 'Shipped', exact: true });
-      const refused = form.getByRole('alert');
-      await expect(sent.or(shipped).or(refused).first()).toBeVisible({ timeout: 120_000 });
-      if (await refused.isVisible()) throw new Error(`Add tracking failed: ${await refused.innerText()}`);
-      await expect(shipped).toBeVisible({ timeout: 30_000 });
+  // ---- 3. the buyer approves on PayPal ----
+  await test.step(mode === 'seller' ? '3. PayPal sandbox: buyer logs in and pays (wallet), back to Shelfie' : '3. PayPal sandbox: guest card checkout, back to Shelfie', async () => {
+    const returned =
+      mode === 'seller'
+        ? await payWithPayPalLogin(page, order.approval_url!, { returnOrigin: origin, testInfo: info, shot: (p, name) => shot(p, name), ...BUYER! })
+        : await payAsGuest(page, order.approval_url!, { returnOrigin: origin, testInfo: info, shot: (p, name) => shot(p, name) });
+    expect(returned.startsWith(`${origin}/api/paypal/return?o=${order.order_ref}`), returned).toBe(true);
+    await page.waitForURL(`${origin}/o/${order.order_ref}`, { timeout: 90_000 });
+  });
 
-      await page.reload();
-      await expect(shipped).toBeVisible();
-      await expect(page.getByRole('list', { name: 'Tracking' })).toContainText(trackingNumber);
-      await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText(`Tracking added: USPS ${trackingNumber}`);
+  // ---- 4. Paid on the receipt; the capture is stored and matches PayPal's record ----
+  let captureId = '';
+  await test.step('4. receipt shows Paid and who was paid; capture COMPLETED at PayPal, to the right account', async () => {
+    await expect(page.getByRole('heading', { level: 1, name: `Paid. ${shopName} has your order.` })).toBeVisible({ timeout: 60_000 });
+    await expect(page.getByText(`Order ${order.order_number}`)).toBeVisible();
+    await expect(
+      page.getByText(mode === 'seller' ? `Paid to ${shopName}’s own PayPal account (` : `Paid to Shelfie’s demo PayPal account for ${shopName}`),
+    ).toBeVisible();
+    if (mode === 'seller') expect((await page.locator('body').innerText()).includes(SELLER!)).toBe(false); // masked only
+    await settle(page);
+    await shot(page, 'receipt-paid', true);
+
+    const stored = await storedOrder(api, origin, shop.id, order.order_ref);
+    expect(stored.status).toBe('paid');
+    expect(stored.paypalOrderId).toBe(paypalOrderId);
+    expect(stored.paidAt).not.toBeNull();
+    expect(stored.captureId).toMatch(/^[A-Z0-9]{10,}$/);
+    captureId = stored.captureId!;
+
+    const pp = await paypalGet<{
+      status: string;
+      purchase_units: {
+        custom_id?: string;
+        payee?: { email_address?: string };
+        amount: { value: string };
+        payments?: { captures?: { id: string; status: string; amount: { value: string } }[] };
+      }[];
+    }>(`/v2/checkout/orders/${paypalOrderId}`);
+    const cap = pp.purchase_units[0].payments?.captures?.[0];
+    expect(pp.status).toBe('COMPLETED');
+    expect(pp.purchase_units[0].custom_id).toBe(order.order_ref);
+    expect(cap?.id).toBe(captureId);
+    expect(cap?.status).toBe('COMPLETED');
+    expect(cap?.amount.value).toBe(order.total);
+    if (mode === 'seller') {
+      // PayPal paid the seller's own account, not the platform's. Compared here so the email never reaches a log.
+      expect(pp.purchase_units[0].payee?.email_address?.toLowerCase() === SELLER, 'PayPal payee is the sandbox seller').toBe(true);
+      log(`[seller] capture ${captureId} COMPLETED at PayPal, $${cap?.amount.value}, payee = PAYPAL_SANDBOX_SELLER_EMAIL`);
+    } else {
+      log(`[platform] capture ${captureId} COMPLETED at PayPal, $${cap?.amount.value}, payee = the app's own account`);
+    }
+  });
+
+  // ---- 5. the seller sees it paid, with the AI brief ----
+  await test.step('5. dashboard: paid, with the AI brief', async () => {
+    let stored!: StoredOrder;
+    await expect
+      .poll(
+        async () => {
+          stored = await storedOrder(api, origin, shop.id, order.order_ref);
+          return stored.brief !== null;
+        },
+        { timeout: 180_000, intervals: [3_000] },
+      )
+      .toBe(true);
+    const b = stored.brief!;
+    log(`[${mode}] brief (${stored.briefSource}): "${b.headline}"; requests ${JSON.stringify(b.buyer_requests)}; flags ${JSON.stringify(b.flags)}`);
+    info.annotations.push({ type: `brief-${mode}`, description: `${stored.briefSource}: ${b.headline} | flags: ${b.flags.map((f) => `${f.severity}: ${f.text}`).join(' / ')}` });
+    if (HAS_CLAUDE) {
+      expect(stored.briefSource).toBe('agent');
+      expect(b.buyer_requests.map((r) => r.kind)).toContain('allergy');
+    } else {
+      expect(stored.briefSource).toBe('template');
+    }
+
+    await page.goto(`/shops/${shop.id}`);
+    const card = page.locator(`[data-order="${order.order_number}"]`);
+    await expect(card).toBeVisible();
+    await expect(card).toContainText('Paid');
+    await expect(card).toContainText('via Shelfie Capture Gate');
+    await expect(card).toContainText(mode === 'seller' ? 'Ship to ' : 'Ship to San Jose, CA');
+    await expect(card).toContainText(HAS_CLAUDE ? 'AI brief' : 'Summary');
+    await expect(card).toContainText(b.headline);
+    await settle(page);
+    if (mode === 'seller') await redactSellerEmail(page);
+    await shot(page, 'dashboard-paid-brief');
+
+    await page.goto(`/shops/${shop.id}/orders/${order.order_ref}`);
+    await expect(page.getByTestId('brief-headline')).toHaveText(b.headline);
+    await expect(page.getByTestId('PayPal-transaction-ID')).toHaveText(captureId);
+    const paidTo = (await page.getByTestId('paid-to').innerText()).trim();
+    expect(mode === 'seller' ? paidTo.toLowerCase() === SELLER : paidTo === 'Shelfie’s demo PayPal account', 'order page names who was paid').toBe(true);
+    await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Payment received');
+    await settle(page);
+    if (mode === 'seller') await redactSellerEmail(page);
+    await shot(page, 'order-paid-brief', true);
+  });
+
+  // ---- 6. the seller adds tracking ----
+  // A USPS-shaped number (22 digits, 9400 1118 prefix), unique per run.
+  const trackingNumber = `9400111${Date.now().toString().slice(-13)}${Math.floor(Math.random() * 90 + 10)}`;
+  await test.step(mode === 'seller' ? '6. Add tracking (USPS) → saved in Shelfie (PayPal refuses the platform on a seller capture)' : '6. Add tracking (USPS) → PayPal tracker → shipped', async () => {
+    const form = page.getByRole('form', { name: 'Add tracking' });
+    await form.getByLabel('Carrier').selectOption('USPS');
+    await form.getByLabel('Tracking number').fill(trackingNumber);
+    await form.getByRole('button', { name: mode === 'seller' ? 'Save tracking' : 'Send tracking to PayPal' }).click();
+    const done = page.getByRole('status').filter({ hasText: mode === 'seller' ? /PayPal only lets the account that was paid add tracking/ : /Sent to PayPal: USPS/ });
+    const shipped = page.getByRole('heading', { name: 'Shipped', exact: true });
+    const refused = form.getByRole('alert');
+    await expect(done.or(shipped).or(refused).first()).toBeVisible({ timeout: 120_000 });
+    if (await refused.isVisible()) throw new Error(`Add tracking failed: ${await refused.innerText()}`);
+    if (mode === 'seller') {
       await settle(page);
-      await shoot(page, info, 'order-shipped', true);
+      await redactSellerEmail(page);
+      await shot(page, 'tracking-saved', true);
+    }
 
+    await page.reload();
+    await expect(shipped).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByRole('list', { name: 'Tracking' })).toContainText(trackingNumber);
+    await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText(
+      `${mode === 'seller' ? 'Tracking saved' : 'Tracking added'}: USPS ${trackingNumber}`,
+    );
+    if (mode === 'seller') await expect(page.getByRole('list', { name: 'Tracking' })).toContainText('Saved in Shelfie');
+    await settle(page);
+    if (mode === 'seller') await redactSellerEmail(page);
+    await shot(page, 'order-shipped', true);
+
+    if (mode === 'platform') {
       const trackers = await paypalGet<{ trackers?: { transaction_id: string; tracking_number: string; status: string; carrier: string }[] }>(
         `/v1/shipping/trackers?transaction_id=${captureId}`,
       );
@@ -344,22 +415,61 @@ test.describe('capture gate (real PayPal sandbox)', () => {
       expect(t, JSON.stringify(trackers).slice(0, 400)).toBeTruthy();
       expect(t!.status).toBe('SHIPPED');
       expect(t!.carrier).toBe('USPS');
-      log(`PayPal tracker ${captureId}-${trackingNumber} ${t!.carrier} ${t!.status}`);
-    });
+      log(`[platform] PayPal tracker ${captureId}-${trackingNumber} ${t!.carrier} ${t!.status}`);
+    } else {
+      log(`[seller] tracking ${trackingNumber} saved in Shelfie (no PayPal call)`);
+    }
+  });
 
-    // ---- 7. the agent asks "where's my order?" ----
-    await test.step('7. MCP get_order_status returns the tracking number', async () => {
-      const again = await openDoor(origin, shop.slug);
-      try {
-        const status = await callTool<OrderStatusOut>(again, 'get_order_status', { order_ref: order.order_ref });
-        expect(status.status).toBe('fulfilled');
-        expect(status.paid_at).not.toBeNull();
-        expect(status.tracking).toEqual([{ carrier: 'USPS', tracking_number: trackingNumber, status: 'SHIPPED' }]);
-        expect(status.message).toContain(trackingNumber);
-        log(`get_order_status: ${status.status} · ${status.message}`);
-      } finally {
-        await again.close();
-      }
+  // ---- 7. the agent asks "where's my order?" ----
+  await test.step('7. MCP get_order_status returns the tracking number', async () => {
+    const again = await openDoor(origin, shop.slug);
+    try {
+      const status = await callTool<OrderStatusOut>(again, 'get_order_status', { order_ref: order.order_ref });
+      expect(status.status).toBe('fulfilled');
+      expect(status.paid_at).not.toBeNull();
+      expect(status.tracking).toEqual([{ carrier: 'USPS', tracking_number: trackingNumber, status: mode === 'seller' ? null : 'SHIPPED' }]);
+      expect(status.message).toContain(trackingNumber);
+      log(`[${mode}] get_order_status: ${status.status} · ${status.message}`);
+    } finally {
+      await again.close();
+    }
+  });
+}
+
+test.describe('capture gate (real PayPal sandbox)', () => {
+  test.skip(!HAS_PAYPAL, 'Needs PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY (sandbox) in .env.');
+  test.use({ viewport: DESKTOP, locale: 'en-US', timezoneId: 'America/Los_Angeles' });
+
+  test('seller payout: a new shop paid to its own PayPal email → wallet login → Paid → brief → tracking → get_order_status', async ({ page, baseURL }, info) => {
+    test.skip(!SELLER || !BUYER, 'Needs PAYPAL_SANDBOX_SELLER_EMAIL and PAYPAL_SANDBOX_BUYER_EMAIL / _PASSWORD in .env.');
+    test.setTimeout(12 * 60_000);
+    const origin = baseURL!;
+    let shop!: LiveShop;
+    await test.step('1. a live shop with shipping and the seller\'s PayPal email, published to the PayPal sandbox catalog', async () => {
+      shop = await createLiveShop(page.context().request, origin, SELLER!);
+      await page.goto(`/s/${shop.slug}`);
+      // PayPal's return URL is built from the server's APP_URL; the door shown on the page proves it is this server.
+      await expect(page.locator('#agent-door code').first()).toHaveText(`${origin}/s/${shop.slug}/mcp`);
     });
+    await runGate(page, info, origin, { mode: 'seller', shop, prefix: 'seller-' });
+  });
+
+  test('demo shop, paid to the platform: guest card → Paid → brief → tracking at PayPal → get_order_status', async ({ page, baseURL }, info) => {
+    test.setTimeout(12 * 60_000);
+    const origin = baseURL!;
+    let shop!: LiveShop;
+    await test.step('1. the seeded demo shop with no seller email (the platform fallback), live in the PayPal sandbox catalog', async () => {
+      // --reset gives a fresh owner token for the dashboard steps; payeeEmail null is the platform fallback.
+      const seeded = await seedDemoShop({ db: getDb(), paypal: getPayPal(), uploadsDir: getConfig().uploadsDir, reset: true, payeeEmail: null });
+      expect(seeded.payee).toEqual({ kind: 'platform' });
+      expect(seeded.ownerToken).toBeTruthy();
+      shop = { id: seeded.shop.id, slug: seeded.shop.slug };
+      await page.context().addCookies([{ name: ownerCookieName(shop.id), value: seeded.ownerToken!, url: origin, httpOnly: true, sameSite: 'Lax' }]);
+      log(`[platform] demo shop ${shop.id} live at /s/${shop.slug}: ${seeded.published} published now, paid to the platform`);
+      await page.goto(`/s/${shop.slug}`);
+      await expect(page.locator('#agent-door code').first()).toHaveText(`${origin}/s/${shop.slug}/mcp`);
+    });
+    await runGate(page, info, origin, { mode: 'platform', shop, prefix: '' });
   });
 });
