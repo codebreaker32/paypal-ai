@@ -113,11 +113,13 @@ export function OrdersPanel({
                   Waiting for payment <Count n={g.waiting.length} />
                   <Icon icon={ChevronDown} className="text-ink-muted transition-transform duration-(--duration-base) group-open:rotate-180" />
                 </h2>
-                <Subtotal orders={g.waiting} label="Not charged yet" as="span" />
+                {/* Not "not charged": a payment-pending order is approved and its capture is clearing at PayPal. */}
+                <Subtotal orders={g.waiting} label="Not paid yet" as="span" />
               </summary>
               <div className="mt-1 flex flex-col gap-3">
                 <p className="type-meta text-ink-muted">
-                  The buyer still has to approve on PayPal. Nothing is charged until they do, and unpaid orders expire after 60 minutes.
+                  Most are waiting for the buyer to approve on PayPal: nothing is charged until they do, and unapproved orders expire after
+                  60 minutes. “Payment pending” means PayPal is still clearing the payment.
                 </p>
                 <ul className="paper-drop grid gap-4 lg:grid-cols-2">{g.waiting.map(card)}</ul>
               </div>
