@@ -1,19 +1,25 @@
 # Progress
 
-_Last updated: 2026-11-06 19:00 IST (run 2, session 7)_
+_Last updated: 2026-11-06 19:25 IST (run 2, session 8)_
 
 ## Current phase
-**Run 2 is complete (6 Nov 2026, 19:05 IST).** Final summary, verified unless marked:
-- **Design reset (human decision):** the rubric is amended (13 banned patterns plus the real-product check); the photo-first Storefront direction won directions round 2 and is carried to every screen, with item photos and a designed fallback, a cover per shop, snap your counter (live Claude), the operations dashboard and a new mark. Judge rounds 7 and 8 found 0 Part C fails; round 8 found no screen with 2 banned patterns and only the order detail with 1.
+**Run 2 is complete (6 Nov 2026, 19:25 IST; re-proven in session 8 after the last judge fix).** Final summary, verified unless marked:
+- **Design reset (human decision):** the rubric is amended (13 banned patterns plus the real-product check); the photo-first Storefront direction won directions round 2 and is carried to every screen, with item photos and a designed fallback, a cover per shop, snap your counter (live Claude), the operations dashboard and a new mark. Judge rounds 7 and 8 found 0 Part C fails; round 8 found no screen with 2 banned patterns and only the order detail with 1, and session 8 cut that line (the AI brief's grey sentence; the heading now reads "AI brief by Claude").
 - **Item 1, a findable door:** counter card with QR, JSON-LD with an `OrderAction`, `<link rel="alternate">`, `/agents.txt`, `/llms.txt`; Claude Code found the door from the shop URL alone and ordered (`docs/judge/evidence/discovery-claude-code.md`).
 - **Item 2, paying each seller:** the payee email from setup or Settings is on PayPal's own order record; held (UNILATERAL) payments are explained; the demo shop alone may be platform-paid (spec §8a).
 - **Item 3, US sandbox accounts:** PayPal wallet-login checkout is verified end to end by the capture gate (latest: capture `03Y96254LM5176327` COMPLETED to the seller).
 - **Decision 4, PWA:** manifest and icons from the new mark; Chromium's `getInstallabilityErrors` returns none; no service worker.
 - **Item 4, judging:** round 6 raised the score to A 24 / B 24; rounds 7 and 8 held it there with "ship". The judge's reason: A5 and B4 wait on the public repo, the deploy and the video, all the human's.
 - **Item 5:** `docs/DEPLOY.md` (never run). **Item 6:** full-history secret scans clean (latest 19:01 IST: gitleaks, 483 commits, no leaks; every `.env` value: 0 hits); `docs/SUBMISSION.md` complete except the 3 links only the human can fill; the repo stays private. **Item 7:** `docs/DEMO.md` and 12 raw clips on the new UI in `video/clips/` (listed in `video/clips/README.md`).
-- **Tests on the final code:** 942 unit tests, typecheck and lint clean; full e2e 173 passed, 3 skipped, 1 failed on a PayPal sandbox error page, and the capture gate re-run passed 2/2; 96 screens at 0 axe violations.
+- **Tests on the final code (`e3e4598`):** 942 unit tests, typecheck and lint clean; **full e2e 174 passed, 3 skipped, 0 failed**, with both real captures COMPLETED; 96 screens on a production build at 0 axe violations.
 - **Unverified:** webhook delivery and the Render deploy (need a public URL); see "Unverified" below.
 - **What's left is the human checklist under "Needs from human"** (public repo, video, Devpost, optional deploy).
+
+**Run 2, session 8 (19:04–19:25 IST).** Session 7 had marked the run complete with one judge item left on purpose; this session did it and re-proved the commit.
+- **done: round-8 fix 3's last item.** The AI brief's always-on grey line ("Claude, from PayPal's record. Check before acting.") is cut; the heading now reads "AI brief by Claude" (`e3e4598`). The fallback summary's line stays: it only shows when Claude wasn't available. No screen viewed by the judge has a banned pattern now.
+- **Verified on `e3e4598`:** `npm test` 942 passed (76 files); typecheck and lint clean.
+- **Verified: the full e2e suite on `e3e4598` (19:06–19:16 IST): 174 passed, 3 skipped, 0 failed** (`docs/judge/round-8-tests.txt`), real Claude and the real sandbox. Seller payout SHF-4VXCEW → PayPal `8J01644913847025P` → capture `0MJ77163TH7536036` COMPLETED ($27.00, payee = the US sandbox seller, wallet login), brief flagged the allergy, tracking saved in Shelfie and read back; demo shop SHF-S4WQ5M → PayPal `7KR35244X9635210A` → capture `7CX95509094755108` COMPLETED, USPS tracker SHIPPED at PayPal. `docs/judge/screenshots/capture/` is from this run (viewed: the new heading, logins masked).
+- **Verified: `docs/judge/screenshots/round-8/` re-taken on a production build of `e3e4598`: 96 screens, 0 axe violations** (viewed: `order-paid-with-brief-390`).
 
 **Run 2, session 7 (from 17:35 IST).**
 - **done: judge round 7: ship, A 24 / B 24, 0 Part C fails** under the amended rubric (`docs/judge/round-7.md`). Held, not raised: A5 and B4 wait on the public repo, the deploy and the video (all the human's). The judge checked snap your counter live (4.3 s, correct crops), the PWA, payee routing and the door on its own production build.
