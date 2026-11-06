@@ -1,0 +1,17 @@
+# Round-3 test output (main af2fddc, 2026-11-06 07:36 IST)
+
+$ npm test
+ Test Files  49 passed (49)
+      Tests  586 passed (586)
+   Duration  21.26s (import 46%, tests 44%, setup 5%, transform 4%, worker 1%)
+
+$ npm run typecheck
+✓ Types generated successfully
+exit 0
+
+$ npm run lint
+exit 0
+
+$ npm run screenshots:prod -- docs/judge/screenshots/round-3   (production build, 66 screens, axe on each)
+66 passed (3.5m)
+axe: 0 violations on 66 screens (axe-results.json)
