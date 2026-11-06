@@ -217,7 +217,7 @@ Brand (`src/components/brand`): `Logo` (marigold tag with an ink edge plus the w
 - **Touch targets** are at least 44 by 44 px, with at least 8 px between them. Inputs use 16 px text.
 - **Copy** is plain and specific. Seller screens say "agent door", "payment received", "Add tracking"; never MCP, capture or webhook outside the developer details. Curly apostrophes and quotes (’ “ ”) in every visible string, including server messages; no em-dashes in UI copy, no lorem ipsum, no invented statistics.
 - **Images** have alt text that says what is in them; decorative images use `alt=""`.
-- **Prices** come from the shop's data and render with `formatUSD()` and `type-price` (mono). Orders and receipts are printed slips: mono lines, dashed rules, a perforated foot. On a phone an order slip's top row is the number on the left and the total on the right, with the buyer line and status stamp below it; the number never breaks. Dashboard groups carry a mono subtotal ("Paid $43.50", "Not charged yet $83.00").
+- **Prices** come from the shop's data and render with `formatUSD()` and `type-price` (mono). Orders and receipts are printed slips: mono lines, dashed rules, a perforated foot. On a phone an order slip's top row is the number on the left and the total on the right, with the buyer line and status stamp below it; the number never breaks. Dashboard groups carry a mono subtotal ("Paid $43.50", "Not paid yet $83.00").
 - **Status colour** always comes with an icon and a word.
 - **No raw values in components:** no hex, no ad-hoc shadows or radii. Ratios and layout fractions (`aspect-[4/3]`, `max-w-[85%]`) are fine.
 
