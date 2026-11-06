@@ -256,8 +256,9 @@ function dedupe(built: Built[]): DraftItem[] {
       const detail = duplicateDetail(group);
       for (const g of group) {
         g.item.issues = [...g.item.issues, 'DUPLICATE'];
-        // A priced item gets the "listed twice" card; one without a price keeps its own question.
-        if (g.item.variants.every((v) => v.priceCents !== null)) g.item.issueDetail = detail;
+        // An item with its own question (no price, a deal, an unusual price) keeps it: the twins'
+        // card shows every price anyway, and the question still stands once the twin is gone.
+        g.item.issueDetail ??= detail;
       }
     }
   }

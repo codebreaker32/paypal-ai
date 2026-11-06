@@ -247,6 +247,20 @@ describe('seller-facing issue text', () => {
       'Listed twice with different prices: $4.25 and $4.75.',
     ]);
   });
+  it('an item listed twice keeps its own deal or unusual-price question', () => {
+    const c = catalog(raw(
+      { name: 'Cardamom bun', price_kind: 'deal', deal_text: '3 for $10', prices: [price(333, '3 for $10')] },
+      { name: 'Cardamom bun', prices: [], price_kind: 'missing', page: 2 },
+      { name: 'Gift box', prices: [price(150000, '$1500')] },
+      { name: 'Gift box', prices: [price(4000, '$40')], page: 2 },
+    ));
+    expect(c.items.map((i) => [i.issues, i.issueDetail])).toEqual([
+      [['CHECK', 'DUPLICATE'], 'Printed as “3 for $10”. We set $3.33 each. Is that right?'],
+      [['MISSING_PRICE', 'DUPLICATE'], 'No price on the menu. Add one, or leave it off.'],
+      [['CHECK', 'DUPLICATE'], 'We set $1500.00, which looks unusual. Is that right?'],
+      [['DUPLICATE'], 'Listed twice with different prices: $1500.00 and $40.00.'],
+    ]);
+  });
   it('a plain item has no detail, even with a model note', () => {
     expect(detail({ confidence: 'medium', note: 'Price matched by row position.' })).toBeNull();
   });
