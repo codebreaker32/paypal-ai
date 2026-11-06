@@ -51,16 +51,21 @@ export interface Capture {
   stop(): Promise<{ frames: number; dup: number; drop: number }>;
 }
 
-/** Records the whole display to `file` (MP4, H.264, yuv420p, 30 fps) until stop(). */
+/**
+ * Records the whole display to `file` (MP4, H.264, yuv420p, constant 30 fps) until stop(). The live capture encodes with
+ * x264's fastest preset (so a busy machine doesn't make x11grab repeat frames) into a temporary MKV; stop() then
+ * re-encodes it at leisure into the final MP4.
+ */
 export function startCapture(display: Display, file: string): Capture {
   fs.mkdirSync(path.dirname(file), { recursive: true });
+  const raw = `${file}.raw.mkv`;
   const progress = `${file}.progress`;
   fs.rmSync(progress, { force: true });
   const ff: ChildProcess = spawn(
     'ffmpeg',
-    ['-y', '-loglevel', 'error', '-progress', progress, '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS), '-video_size', `${W}x${H}`,
-      '-i', `${display.name}.0`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS),
-      '-movflags', '+faststart', file],
+    ['-y', '-loglevel', 'error', '-progress', progress, '-thread_queue_size', '512', '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS),
+      '-video_size', `${W}x${H}`, '-i', `${display.name}.0`, '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '12', '-pix_fmt', 'yuv420p',
+      '-r', String(FPS), raw],
     { stdio: ['pipe', 'ignore', 'inherit'] },
   );
   return {
@@ -73,6 +78,12 @@ export function startCapture(display: Display, file: string): Capture {
       const text = fs.existsSync(progress) ? fs.readFileSync(progress, 'utf8') : '';
       fs.rmSync(progress, { force: true });
       const last = (key: string) => Number([...text.matchAll(new RegExp(`^${key}=(\\d+)$`, 'gm'))].at(-1)?.[1] ?? 0);
+      await new Promise<void>((resolve, reject) => {
+        const enc = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-i', raw, '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+          '-r', String(FPS), '-movflags', '+faststart', file], { stdio: ['ignore', 'ignore', 'inherit'] });
+        enc.once('exit', (code) => (code === 0 ? resolve() : reject(new Error(`ffmpeg could not encode ${path.basename(file)}`))));
+      });
+      fs.rmSync(raw, { force: true });
       return { frames: last('frame'), dup: last('dup_frames'), drop: last('drop_frames') };
     },
   };
