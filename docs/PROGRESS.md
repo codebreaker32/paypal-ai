@@ -39,8 +39,8 @@ _Last updated: 2026-11-06 07:58 IST (session 5 running)_
   588 unit tests pass; typecheck and lint are clean.
 - **Not done, needs the human:** fix 1 (pay each seller: a second sandbox Business account) and fix 3 (deploy, video, public repo). Fix 2 (QR counter card and machine-readable discovery) is a spec non-goal; see "Needs from human".
 - **done:** `docs/SUBMISSION.md`, a Devpost draft built from verified facts only (pitch, features, how it's built, AI tools, a test-card box), with TODOs for the video, the public repo URL and a hosted URL.
+- **done, merged:** the dashboard loading skeleton (`(dashboard)/loading.tsx`) is now a screenshot, `dashboard-loading` at 390 and 1440 px. The test holds the page's RSC navigation request in the browser, on a production build. The whole spec passed: 68/68 with 0 axe violations. The PNGs and the note are in `docs/judge/screenshots/` (the round-3 folder is unchanged). Every async state now has a screenshot.
 - **running:**
-  - a worker capturing the dashboard loading skeleton, the one async state with no screenshot;
   - a whole-codebase correctness review workflow: 4 area reviewers (orders and capture, the PayPal client, the agent door and console, setup and seller auth), each checked by a skeptic that tries to refute its findings.
 
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
@@ -120,7 +120,6 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Paying with a PayPal wallet login: the sandbox merchant and the `.env` buyer are both India accounts, and PayPal blocks IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
 - Webhooks (no public URL on the VM).
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
-- The dashboard loading skeleton has no screenshot.
 
 ## Next steps
 1. Re-shoot the outside-client dashboard evidence (`docs/judge/evidence/outside-client-*.png`) in the current design.
