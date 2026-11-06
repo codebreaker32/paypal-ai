@@ -1,8 +1,11 @@
 # Progress
 
-_Last updated: 2026-11-06 10:58 IST (end of session 7)_
+_Last updated: 2026-11-06 11:05 IST (session 8)_
 
 ## Current phase
+**Session 8 (10:58–11:08 IST, a 10-minute run).** Re-checked main (`a32dd4e`): unit tests, typecheck and lint (results below). Replaced the stale next step 2 (session 6 already did the fresh-clone walkthrough it asked for). Nothing was built: there was no time for a build, a review or a judge round, and every lever left on the rubric needs the human (see "Needs from human").
+- **Verified on main (`a32dd4e`, 10:59 IST):** 670 unit tests pass (55 files); typecheck and lint are clean. The e2e suite was not re-run: session 7 ran it on the same code (122 passed, capture COMPLETED), and only docs changed since.
+
 **Session 7 (10:39–11:08 IST, a short run).** Done:
 - **done, merged (`c32d337`):** session 6's noted follow-up. Orders the shop cancels (`npm run seed -- --cancel-unpaid`) no longer claim "the buyer cancelled on PayPal". `cancelOrder` records the cancel's source (`cancel_url` for PayPal's cancel link, `seller` from the seed). The seller's order page (action card and timeline), the buyer's receipt (`cancelledByShop` on `GET /api/orders/[ref]`) and `get_order_status` read it. TDD: 5 new tests. **670 unit tests pass; typecheck and lint are clean.**
 - **Verified on a running app** (dev server on port 3171, a throwaway seeded database, the real sandbox): an order through the door (SHF-CWXB7G, PayPal `2LN13155YE638222B`, $9.00) → `npm run seed -- --cancel-unpaid` cancelled it → the receipt API said `cancelledByShop: true`, the receipt page said "cancelled by the shop before payment", `get_order_status` said "The shop cancelled this order before payment", and the seller order page showed "The shop cancelled it before the buyer paid" with the timeline line "Cancelled by the shop before payment" (no "buyer cancelled" text). The throwaway database was deleted.
@@ -178,7 +181,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
    - make the repo public, record the video, and deploy;
    - a decision on amending the spec so the door findability work (counter card with QR, JSON-LD, `<link rel="alternate">`) is in scope;
    - a second sandbox Business account, plus a spec line, for paying each seller.
-2. Until then, the in-scope work is hardening and demo readiness. Two whole-codebase reviews and two diff reviews have now been run and fixed. The next highest-value check would be a fresh-clone README walkthrough after this session's `.env.example` change (`APP_URL` is now commented out; the app follows the bound port).
+2. Until then, the in-scope work is hardening and demo readiness. Two whole-codebase reviews and three diff reviews have been run and fixed, and the fresh-clone README walkthrough after the `APP_URL` change passed (session 6). Nothing in-scope is open. A longer run could do one more judge round to confirm round 5 still holds after session 7's cancel-wording change.
 3. If the human says yes to the spec amendment, judge round 5's top fix 2 has the plan: a print counter card from the Share tab, JSON-LD and a door `<link>` on the shop page, and a recorded Claude Code run given only the shop URL. About an hour; it touches no money path.
 
 ## Needs from human
