@@ -62,7 +62,7 @@ export function RetakeStep({
     <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-gutter pt-8 pb-section lg:pt-12">
       <StepHeader step={1} title={TITLES[reason] ?? TITLES.unreadable} lead="Your photos are saved. Try another one and we’ll read it again." />
 
-      <Card as="section" aria-labelledby="tip-title" className="flex max-w-measure items-start gap-3">
+      <Card as="section" aria-labelledby="tip-title" tone="flat" className="flex max-w-measure items-start gap-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-warn-soft text-warn">
           <Icon icon={Lightbulb} />
         </span>
@@ -105,7 +105,7 @@ export function RetakeStep({
         {(problem || error) && <FieldError>{problem ?? error}</FieldError>}
         <Link
           href="/"
-          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink"
+          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink"
         >
           Try a sample menu instead
         </Link>
@@ -126,7 +126,7 @@ export function FailedStep({ shopId, photoCount, message, onRetry }: { shopId: s
         </Button>
         <Link
           href="/"
-          className="inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink sm:self-auto"
+          className="inline-flex min-h-tap items-center self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink sm:self-auto"
         >
           Start over
         </Link>

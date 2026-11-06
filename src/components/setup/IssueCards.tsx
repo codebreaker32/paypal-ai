@@ -1,12 +1,10 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { Check, CircleDollarSign, Copy, Hand, Merge, MessageSquareText, Pencil, Trash2, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Field, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';
@@ -14,13 +12,6 @@ import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { ISSUE_LABEL, duplicateUpdates, priceSummary, type Card as CardModel } from './review-model';
 
 export type OnUpdate = (u: ItemUpdate, opts?: { resolved?: boolean }) => void;
-
-const ISSUE_ICON: Record<IssueCode, LucideIcon> = {
-  MISSING_PRICE: CircleDollarSign,
-  MARKET_PRICE: Hand,
-  CHECK: TriangleAlert,
-  DUPLICATE: Copy,
-};
 
 /** Price fields for each option of an item, validated on blur, turned into cents on save. */
 function usePriceFields(item: ItemWithVariants) {
@@ -69,9 +60,10 @@ function CardShell({
           </h3>
           {section && <p className="type-meta text-ink-muted">{section}</p>}
         </div>
-        <Badge tone="warn" icon={ISSUE_ICON[issue]}>
+        <span className="inline-flex min-h-6 items-center gap-2 text-sm font-semibold whitespace-nowrap text-warn">
+          <span aria-hidden="true" className="size-2 rounded-full bg-current" />
           {ISSUE_LABEL[issue]}
-        </Badge>
+        </span>
       </div>
       {children}
     </Card>
@@ -84,7 +76,7 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
     <div className="flex flex-col gap-2">
       <div className="rounded-md bg-surface-sunken px-3.5 py-2.5">
         <p className="type-meta text-ink-muted">We read</p>
-        <p className="font-display text-lg leading-7 italic [overflow-wrap:anywhere]">“{item.sourceText}”</p>
+        <p className="text-lg leading-7 font-medium [overflow-wrap:anywhere]">“{item.sourceText}”</p>
         {showPrice && (
           <p className="mt-1.5 flex items-baseline gap-2 rule-dashed pt-1.5">
             <span className="type-meta text-ink-muted">Price</span>
@@ -93,10 +85,7 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
         )}
       </div>
       {item.issueDetail && (
-        <p className="flex items-start gap-2 text-sm text-ink-soft">
-          <Icon icon={MessageSquareText} size="sm" className="mt-0.5 text-ink-muted" />
-          <span>{item.issueDetail}</span>
-        </p>
+        <p className="text-sm text-ink-soft">{item.issueDetail}</p>
       )}
     </div>
   );

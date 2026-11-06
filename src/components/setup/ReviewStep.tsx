@@ -371,7 +371,7 @@ export function ReviewStep(props: ReviewProps) {
                   <button
                     type="button"
                     onClick={goToPayee}
-                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-accent decoration-2 underline-offset-4 hover:decoration-ink"
+                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
                   >
                     {PAYEE_REQUIRED_MESSAGE}
                   </button>

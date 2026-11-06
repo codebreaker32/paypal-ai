@@ -152,7 +152,7 @@ export function ReadingStep({
 
       <Link
         href="/"
-        className="-my-2 inline-flex min-h-tap items-center self-start justify-self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink lg:col-span-6 lg:col-start-1 lg:row-start-2"
+        className="-my-2 inline-flex min-h-tap items-center self-start justify-self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink lg:col-span-6 lg:col-start-1 lg:row-start-2"
       >
         Cancel
       </Link>

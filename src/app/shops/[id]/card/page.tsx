@@ -34,7 +34,7 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
       <div className="flex w-full max-w-measure flex-col gap-5 lg:pt-4 print:hidden">
         <Link
           href={`/shops/${shop.id}?tab=share`}
-          className="inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline underline-offset-4 hover:decoration-ink"
+          className="inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink"
         >
           <Icon icon={ArrowLeft} size="sm" />
           Back to Share
