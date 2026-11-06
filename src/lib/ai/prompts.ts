@@ -10,7 +10,7 @@ Rules:
 - Otherwise price_kind is "fixed".
 - Add-ons ("+$1.5 add guac"), opening hours, address, phone, website, policies ("cash only") and headings are not items. List them in skipped_lines with the matching reason.
 - shop.pickup_notes: where and when a customer collects. Copy the printed line with the days, hours, address or order cut-off (a pickup, drop-off or opening-hours line) exactly as printed, without shortening it; null only if there is none. Still list that line in skipped_lines.
-- category: the picture that best fits the item, for its illustration when it has no photo (bread, pastry, cake, coffee, tea, taco, burrito, drink, dessert, bike_part, tool for a repair or service job, goods for anything else).
+- category: the picture that best fits the item, for its illustration when it has no photo (bread, pastry, cake, coffee, tea, taco, burrito, drink, dessert, meal for a general food dish when no other food picture fits, bike_part, tool for a repair or service job, goods for anything else).
 - kind: "food" for food and drink, "services" for a services price list, "goods" for physical products.
 - Label each photo "Page n"; set each item's page to that number.
 - If the photo is not a menu or price list, set is_menu false and add the not_a_menu problem. If it cannot be read, set image_quality "unreadable" and list the problems (blurry, glare, cropped, dark, handwriting_hard) with a short, friendly retake_tip.

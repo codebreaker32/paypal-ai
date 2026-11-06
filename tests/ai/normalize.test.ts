@@ -3,7 +3,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { normalizeExtraction, retakeTipFor } from '@/lib/ai/normalize';
 import { MAX_VARIANTS } from '@/lib/catalog/rules';
-import { parseStoredReading, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
+import { MenuExtractionSchema, parseStoredReading, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import type { DraftCatalog, DraftItem, UnreadableMenu } from '@/lib/domain/types';
 
@@ -566,6 +566,19 @@ describe('retakeTipFor', () => {
     expect(retakeTipFor(['blurry', 'dark'])).toBe('Hold steady and tap to focus. Move closer to a light');
     expect(retakeTipFor([])).toMatch(/another photo/i);
     expect(retakeTipFor(['non_usd'])).toMatch(/another photo/i);
+  });
+});
+
+describe('parseStoredReading (readings saved before items had a category)', () => {
+  it('a recorded reading with category deleted from every item parses, every category null', () => {
+    const raw = JSON.parse(fs.readFileSync(path.join(dir, 'marigold.json'), 'utf8')) as { items: Record<string, unknown>[] };
+    for (const item of raw.items) delete item.category;
+    const parsed = parseStoredReading(raw);
+    expect(parsed.success).toBe(true);
+    expect(parsed.data!.items.length).toBeGreaterThan(0);
+    expect(parsed.data!.items.every((i) => i.category === null)).toBe(true);
+    // The same reading through the strict schema is refused: that is what the fallback is for.
+    expect(MenuExtractionSchema.safeParse(raw).success).toBe(false);
   });
 });
 

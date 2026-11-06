@@ -230,6 +230,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
                 slug={shop.slug}
                 fresh={fresh}
                 photos={photos}
+                shopKind={kind}
                 paypalReachable={paypalReachable}
                 onOrderChange={onOrderChange}
                 onShowShare={() => selectTab('share')}

@@ -32,6 +32,14 @@ export function ShopAvatar({ shop, items, size = 'md', menuPhotoSrc, className }
   if (source.kind === 'illustration') {
     return <ItemIllustration category={source.category} tone={0} className={box} />;
   }
+  if (source.kind === 'cover') {
+    // The badge sits over the cover itself, so it shows a detail of it (the centre, about 1.8x), not a smaller copy.
+    return (
+      <span aria-hidden="true" data-avatar="cover" className={cx(box, 'bg-surface-sunken overflow-hidden')}>
+        <img src={source.src} alt="" className="block size-full scale-[1.8] object-cover object-center" />
+      </span>
+    );
+  }
   const src = source.kind === 'menu' && menuPhotoSrc ? menuPhotoSrc : source.src;
   return <img src={src} alt="" aria-hidden="true" data-avatar={source.kind} className={cx(box, 'bg-surface-sunken object-cover')} />;
 }

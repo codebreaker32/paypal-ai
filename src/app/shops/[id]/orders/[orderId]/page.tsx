@@ -1,5 +1,5 @@
 // Order detail (spec §4): one order end to end. Owner only, SQLite only; refreshes itself while payment or the brief is pending.
-import type { ItemPicture } from '@/lib/domain/category';
+import { kindDefault, linePicture, type ItemPicture } from '@/lib/domain/category';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -23,7 +23,7 @@ import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
 import { TRACK_IN_YOUR_PAYPAL, isDemoShop } from '@/lib/domain/payee';
-import type { Order, Shop, Tracker } from '@/lib/domain/types';
+import type { Order, Shop, Tracker, ShopKind } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
 import { actionWords, agentLabel, buyerLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
@@ -202,7 +202,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
   );
 }
 
-function ItemsCard({ order, photos, className }: { order: Order; photos: ReadonlyMap<string, ItemPicture>; className?: string }) {
+function ItemsCard({ order, photos, kind, className }: { order: Order; photos: ReadonlyMap<string, ItemPicture>; kind: ShopKind; className?: string }) {
   return (
     <section aria-labelledby="items-title" className={cx(SECTION, 'gap-4', className)}>
       <SectionTitle id="items-title">Items</SectionTitle>
@@ -210,7 +210,7 @@ function ItemsCard({ order, photos, className }: { order: Order; photos: Readonl
         {order.lines.map((l, i) => (
           <div key={i} className="flex items-center justify-between gap-4">
             <dt className="flex min-w-0 flex-1 items-center gap-3">
-              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId)?.photoUrl ?? null} category={photos.get(l.itemId)?.category ?? 'goods'} size="sm" decorative eager className="size-11 shrink-0 rounded-(--thumb-radius)" />
+              <ItemPhoto name={lineName(l)} {...linePicture(photos, l, kind)} decorative eager className="size-11 shrink-0 rounded-(--thumb-radius)" />
               <span className="flex min-w-0 flex-col">
                 <span>
                   <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
@@ -310,7 +310,7 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
 const SIDEBAR_ORDERS = 40;
 
 /** Desktop only: the shop's newest orders beside the open one (list + detail), the open one marked. */
-function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, ItemPicture> }) {
+function OrderList({ shopId, orders, current, photos, kind }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, ItemPicture>; kind: ShopKind }) {
   return (
     <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 lg:block">
       <ul className="flex flex-col gap-0.5">
@@ -324,7 +324,7 @@ function OrderList({ shopId, orders, current, photos }: { shopId: string; orders
                 aria-current={here ? 'page' : undefined}
                 className={cx('flex items-center gap-3 rounded-(--thumb-radius) px-3 py-2.5 no-underline hover:bg-surface-sunken', here && 'bg-surface-sunken')}
               >
-                <ItemPhoto name={first?.name ?? o.number} photoUrl={first ? (photos.get(first.itemId)?.photoUrl ?? null) : null} category={(first && photos.get(first.itemId)?.category) || 'goods'} size="sm" decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
+                <ItemPhoto name={first?.name ?? o.number} {...(first ? linePicture(photos, first, kind) : { photoUrl: null, category: kindDefault(kind) })} decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="flex items-baseline justify-between gap-2">
                     <span className="type-price text-sm font-bold">{o.number}</span>
@@ -363,7 +363,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   return (
     <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
       <AutoRefresh active={pending} />
-      <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} />
+      <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} kind={shop.kind} />
       <div className="flex min-w-0 flex-col gap-6">
       <Link
         href={`/shops/${shop.id}`}
@@ -397,7 +397,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-start lg:gap-6">
         <div className="contents lg:col-span-7 lg:flex lg:flex-col lg:gap-6">
           <BriefCard order={order} className="order-1 lg:order-none" />
-          <ItemsCard order={order} photos={photos} className="order-4 lg:order-none" />
+          <ItemsCard order={order} photos={photos} kind={shop.kind} className="order-4 lg:order-none" />
           <TimelineCard entries={entries} className="order-5 lg:order-none" />
         </div>
         <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">

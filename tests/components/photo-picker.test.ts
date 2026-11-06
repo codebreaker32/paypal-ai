@@ -50,7 +50,9 @@ describe('CoverPicker', () => {
     expect(none).toContain('aria-label="Add a cover photo"');
     const set = renderToStaticMarkup(createElement(CoverPicker, { shopId: 'shp_1', shopName: 'Marigold', coverUrl: '/i/c.webp', onChange: () => {} }));
     expect(set).toContain('alt="Marigold cover"');
-    expect(set).toContain('aria-label="Replace the cover photo"');
+    // WCAG 2.5.3: the accessible name contains the visible text.
+    expect(set).toContain('aria-label="Replace cover"');
+    expect(set).toContain('>Replace cover<');
     expect(set).toContain('Remove cover');
   });
 });
@@ -62,7 +64,8 @@ describe('LogoPicker', () => {
     expect(none).toContain('type="file"');
     const set = renderToStaticMarkup(createElement(LogoPicker, { shopId: 'shp_1', shopName: 'Marigold', logoUrl: '/i/l.webp', onChange: () => {} }));
     expect(set).toContain('alt="Marigold logo"');
-    expect(set).toContain('aria-label="Replace the logo"');
+    expect(set).toContain('aria-label="Replace logo"');
+    expect(set).toContain('>Replace logo<');
     expect(set).toContain('Remove logo');
   });
 });
