@@ -200,13 +200,15 @@ export async function runReading(deps: ReadingDeps, shopId: string): Promise<Rea
 
 export interface ReviewShop {
   id: string;
+  /** For the payee rule (`canBePaid`): the demo shop (`marigold-bakehouse`) may publish without a PayPal email. */
+  slug: string;
   name: string;
   about: string;
   pickupNotes: string;
   fulfillment: Shop['fulfillment'];
   shippingFeeCents: number;
   kind: Shop['kind'];
-  /** The seller's PayPal email (where buyers' money goes); publishing needs it (spec §8a). */
+  /** The seller's PayPal email (where buyers' money goes); publishing needs it, except for the demo shop (spec §8a). */
   payeeEmail: string | null;
 }
 
@@ -264,7 +266,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     ...base,
     step: 'review',
     shop: {
-      id: shop.id, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
+      id: shop.id, slug: shop.slug, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
       fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind, payeeEmail: shop.payeeEmail,
     },
     items: listed,

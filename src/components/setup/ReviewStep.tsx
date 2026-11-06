@@ -11,7 +11,7 @@ import { cx } from '@/components/ui/cx';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
-import { PAYEE_REQUIRED_MESSAGE } from '@/lib/domain/payee';
+import { PAYEE_REQUIRED_MESSAGE, canBePaid } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
 import { IssueCard, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
@@ -67,12 +67,13 @@ export function ReviewStep(props: ReviewProps) {
   // details, and remount the cards and lists (keyed by `synced`) so their fields show what was saved.
   const [server, setServer] = useState({ items: props.items, shop: props.shop });
   const [synced, setSynced] = useState(0);
-  // Whether the PayPal email field holds a valid email: publishing needs one (spec §8a).
-  const [payeeReady, setPayeeReady] = useState(props.shop.payeeEmail !== null);
+  // Whether the shop can be paid as the PayPal email field stands: publishing needs that, with the server's rule
+  // (`canBePaid`: a valid email, or the demo shop, which may leave it empty; spec §8a).
+  const [payeeReady, setPayeeReady] = useState(canBePaid(props.shop));
   if (server.items !== props.items || server.shop !== props.shop) {
     setServer({ items: props.items, shop: props.shop });
     setItems(props.items);
-    setPayeeReady(props.shop.payeeEmail !== null);
+    setPayeeReady(canBePaid(props.shop));
     setSynced((n) => n + 1);
   }
   const [skipped] = useState(props.skipped);

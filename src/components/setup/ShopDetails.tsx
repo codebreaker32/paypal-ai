@@ -9,7 +9,7 @@ import { cx } from '@/components/ui/cx';
 import type { ShopFulfillment } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { parseFeeInput, priceInputValue } from '@/lib/catalog/rules';
-import { parsePayeeEmail } from '@/lib/domain/payee';
+import { canBePaid, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ShopPatch } from './api';
 import { PriceInput } from './PriceInput';
 
@@ -24,7 +24,8 @@ export const PAYEE_FIELD_ID = 'payee-email';
 
 /**
  * Name, about, pickup notes, how orders reach people and where the money goes. Every valid change autosaves.
- * `onPayeeChange` hears whether the PayPal email field holds a valid email right now (publishing needs one).
+ * `onPayeeChange` hears whether the shop can be paid as the PayPal email field stands right now (publishing needs that):
+ * a valid email, or, for the demo shop only, an empty field (`canBePaid`, the server's rule).
  */
 export function ShopDetails({
   shop,
@@ -38,6 +39,9 @@ export function ShopDetails({
   const [payee, setPayee] = useState(shop.payeeEmail ?? '');
   const [payeeTouched, setPayeeTouched] = useState(false);
   const payeeParsed = parsePayeeEmail(payee);
+  // Only the demo shop may have no email (it is then paid to Shelfie's demo account), so only its field is optional.
+  const payeeOptional = canBePaid({ slug: shop.slug, payeeEmail: null });
+  const payeeBlank = payee.trim() === '';
   const [name, setName] = useState(shop.name);
   const [about, setAbout] = useState(shop.about);
   const [pickupNotes, setPickupNotes] = useState(shop.pickupNotes);
@@ -159,9 +163,13 @@ export function ShopDetails({
       <div id={PAYEE_FIELD_ID} className="rule-dashed flex scroll-mt-24 flex-col gap-3 pt-5">
         <Field
           label="Your PayPal email"
-          required
-          hint="Buyers pay straight into this PayPal account. Use the email you log in to PayPal with."
-          error={payeeTouched && !payeeParsed.ok ? payeeParsed.message : undefined}
+          required={!payeeOptional}
+          hint={
+            payeeOptional
+              ? 'Buyers pay straight into this PayPal account. Leave it empty and this demo shop is paid to Shelfie’s demo PayPal account.'
+              : 'Buyers pay straight into this PayPal account. Use the email you log in to PayPal with.'
+          }
+          error={payeeTouched && !payeeParsed.ok && !(payeeOptional && payeeBlank) ? payeeParsed.message : undefined}
         >
           {(c) => (
             <TextInput
@@ -178,8 +186,10 @@ export function ShopDetails({
                 const v = e.currentTarget.value;
                 setPayee(v);
                 const p = parsePayeeEmail(v);
-                onPayeeChange?.(p.ok);
+                const cleared = payeeOptional && v.trim() === '';
+                onPayeeChange?.(p.ok || cleared);
                 if (p.ok) onChange({ payeeEmail: p.email });
+                else if (cleared) onChange({ payeeEmail: null });
               }}
               onBlur={() => setPayeeTouched(true)}
             />
