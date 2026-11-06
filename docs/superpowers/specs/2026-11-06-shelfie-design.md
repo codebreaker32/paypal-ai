@@ -2,6 +2,8 @@
 
 _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`docs/judge/round-0.md`) picked approach 1 (seller-first, Part A 19 / Part B 21) over approach 2 (agent-first, 18 / 19). This spec is approach 1 plus the judge's three fixes and the items it said to take from approach 2 (shipped order with tracking, Inspector tamper, tool-contract polish, `scopeTool`, extraction `problems[]`, sandbox idempotency test). Decisions and reasons: `docs/DECISIONS.md`._
 
+_Amended 2026-11-06 (run 2) on the human's decisions of 6 Nov: the agent door is made findable (§10a: counter card with QR, JSON-LD, `<link rel="alternate">`, `/agents.txt` and `/llms.txt`), and each shop is paid into its own PayPal account (§8a: `payee.email_address`). §14 no longer lists these as non-goals._
+
 ## 1. What it is
 
 **One sentence:** snap a photo of your price list and Shelfie turns it into a PayPal-backed shop with an **agent door**, a link any AI assistant can use to browse your menu and order, with the buyer approving payment on PayPal.
@@ -28,8 +30,8 @@ _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`
 **Seller (Rosa, home baker, on her phone, about 3 minutes)**
 1. `/` → **Snap your price list** (camera or file, 1–4 photos), or **Try a sample menu** (3 originals ship in `public/samples/`).
 2. **Reading your menu…** (about 10 s): the photo with a scan animation and plain status lines ("Finding prices", "Checking sizes").
-3. **Review:** "10 items · 3 need you". Flagged cards sit on top, each with the line as read ("We read: *2 for $7*") and a one-thumb fix. Shop name, about text and pickup notes are prefilled from the photo; she ticks **Also ship orders** and sets a flat $8 shipping fee. Unresolved items stay off the shop; they never block publishing.
-4. **Publish 7 items to PayPal** → per-item progress → **Your shop is live** (share screen): shop link, agent door link with copy buttons, **Watch an AI order from you**, and the owner link (shown only to the owner, on the Live step).
+3. **Review:** "10 items · 3 need you". Flagged cards sit on top, each with the line as read ("We read: *2 for $7*") and a one-thumb fix. Shop name, about text and pickup notes are prefilled from the photo; she ticks **Also ship orders**, sets a flat $8 shipping fee, and types **Your PayPal email** (where buyers' money goes; required to publish). Unresolved items stay off the shop; they never block publishing.
+4. **Publish 7 items to PayPal** → per-item progress → **Your shop is live** (share screen): shop link, agent door link with copy buttons, **Print counter card** (QR code of the shop link), **Watch an AI order from you**, and the owner link (shown only to the owner, on the Live step).
 5. Later, the dashboard shows **Paid · $26.25 · #SHF-K7F2QX · Ship to Austin, TX** with an AI brief: "Ship 2 almond croissants + 1 sourdough · ⚠ buyer says nut allergy, but almond croissants contain nuts". She packs it, taps **Add tracking**, pastes the USPS number, and it goes to PayPal. Pickup orders get **Mark picked up** instead.
 
 **Buyer through an agent (Dana, uses Claude)**
@@ -48,9 +50,11 @@ _Status: approved by the coordinator on 2026-11-06 (session 1). Judge round 0 (`
 | Setup `/shops/[id]/setup` | Reading → Review → Publishing → Live, one route, step by step | Reading: none (Cancel). Review: **Publish N items**. Live: **Copy agent door link** | reading; slow > 20 s; not a menu / unreadable → retake tip for the specific problem (blurry, glare, cropped, not a menu), photos kept; failed → **Try again**; review: all clear / issues (unresolved items stay off, never block) / 0 sellable (disabled with reason) / autosaving; publishing per item; partial failure → **Retry N**; live |
 | Shop `/s/[slug]` | Public menu people can read + the agent door | **Order with an assistant** | live; paused banner; sold out; "Ask in person" items; draft/unknown → 404 |
 | Buyer console (panel on the shop page, `?assistant=1`) | Watch an AI assistant order through the real agent door | Send / **Approve $X on PayPal** | empty (3 starter prompts); thinking; tool-call entries in an Activity panel (name, arguments, result or error code, ms) that expand to raw MCP JSON; tool error → agent recovers; approval card; paid; no Anthropic key → explains; rate limited |
-| Receipt `/o/[ref]` | Tell the buyer what happened | **Back to shop** / **Try PayPal again** | confirming with PayPal; paid; pending; declined; cancelled; expired; unknown |
-| Dashboard `/shops/[id]` (tabs **Orders · Menu · Share**) | What to do next | per order card: one action, **Mark picked up** (pickup) or **Add tracking** (shipping) | loading skeleton; empty → **Watch an AI order from you**; groups To prepare → Waiting for payment (collapsed) → Done; new order slides in (dashboard re-reads its own API every 5 s); "Can't reach PayPal" banner; **Pause agent orders** toggle |
+| Receipt `/o/[ref]` | Tell the buyer what happened | **Back to shop** / **Try PayPal again** | confirming with PayPal; paid ("Paid to <shop>'s own PayPal account (r•••@…)", or Shelfie's demo account for the demo shop); pending; declined; cancelled; expired; unknown |
+| Dashboard `/shops/[id]` (tabs **Orders · Menu · Share · Settings**) | What to do next | per order card: one action, **Mark picked up** (pickup) or **Add tracking** (shipping) | loading skeleton; empty → **Watch an AI order from you**; groups To prepare → Waiting for payment (collapsed) → Done; new order slides in (dashboard re-reads its own API every 5 s); "Can't reach PayPal" banner; **Pause agent orders** toggle |
 | Menu tab | Keep the live menu honest | per item **Sold out today** toggle | sold out; live; in person only |
+| Settings tab | Where the money goes | **Save** (Your PayPal email) | saved; invalid email (inline); saving; demo shop paid to the platform account (explained) |
+| Counter card `/shops/[id]/card` (owner) | A card for the counter that sends regulars to the shop and its agent door | **Print card** | screen preview; print (toolbar hidden) |
 | Order detail `/shops/[id]/orders/[orderId]` | One order end to end | depends on state | brief generating / ready / fallback (labelled); line items; buyer + ship-to from PayPal; PayPal order and capture IDs; event timeline; tracking form (sending / sent / PayPal error) |
 
 **Review fixes (one thumb each):**
@@ -96,6 +100,7 @@ scripts/                     seed-demo.ts, sandbox-smoke.ts
 ```
 shops(id 'shp_'+16, slug UNIQUE, name, about, kind 'food'|'goods'|'services', fulfillment 'pickup'|'shipping'|'both',
       pickup_notes, shipping_fee_cents DEFAULT 0, status 'draft'|'live'|'paused', order_cap_cents DEFAULT 50000, owner_token_hash, menu_photo_paths JSON,
+      payee_email NULL (run 2; only the demo shop may leave it empty),
       created_at, published_at)
 extractions(id, shop_id, status 'running'|'done'|'failed', model, raw_json, image_quality, warnings_json,
       skipped_lines_json, error, duration_ms, created_at)
@@ -105,7 +110,7 @@ items(id 'itm_'+12, shop_id, section, name, description, source_text, confidence
 variants(id 'var_'+12, item_id, label NULL, price_cents NULL, sort)        -- ≥ 1 per item
 orders(id 'ord_'+16 (capability), number 'SHF-'+6, shop_id, status, fulfillment, buyer_name, buyer_note,
       agent_name, client_request_id, items_cents, shipping_cents, total_cents, paypal_order_id UNIQUE, approval_url, expires_at,
-      capture_claimed_at, capture_id, payer_name, payer_email, ship_to_json, brief_json, brief_source
+      capture_claimed_at, capture_id, payer_name, payer_email, payee_email (snapshot of the shop's at creation), ship_to_json, brief_json, brief_source
       'agent'|'template', paid_at, fulfilled_at, last_checked_at, created_at, updated_at,
       UNIQUE(shop_id, client_request_id))
 order_items(order_id, item_id, variant_id, name, label, unit_cents, qty, paypal_product_id)
@@ -159,6 +164,15 @@ Repeated events are logged and ignored. Expired or cancelled orders are never ca
 
 **Order body** (from DB only): intent `CAPTURE`; one purchase unit with `custom_id` = order id, `invoice_id` = `SHF-…` number, `description` = "<shop> order #<number>", `amount` with `breakdown.item_total` and, for shipping orders, `breakdown.shipping` = the shop's flat fee, `items[]` with `name` (+ variant label), `sku` = PayPal product ID, `unit_amount`, `quantity`, `category` `PHYSICAL_GOODS` for products (omitted for services); `payment_source.paypal.experience_context` with `brand_name` = shop name, `user_action: PAY_NOW`, `shipping_preference` `NO_SHIPPING` (pickup) or `GET_FROM_FILE` (shipping), `return_url`/`cancel_url` → Shelfie. Verified in the sandbox on 2026-11-06 (same request ID twice returns the same order).
 
+### 8a. Paying each seller (run 2)
+- Every shop has **Your PayPal email** (`shops.payee_email`), set during setup (required to publish) or in the Settings tab. It is validated (trimmed, lower-cased, ≤ 254 chars, one `@`, a dotted domain, no spaces) and copied onto each order when it is created (`orders.payee_email`), so a later change never redirects an order already sent to PayPal.
+- The order body adds `purchase_units[0].payee = { email_address }`. PayPal then pays that account; the platform app still creates and captures the order. Verified in the sandbox on 6 Nov: a US buyer's wallet payment to the US seller's email captured COMPLETED with that payee on PayPal's record.
+- Sync checks PayPal's payee against the order's snapshot as part of the amount/`custom_id` check: a different payee is a `mismatch` (→ `failed`, never captured).
+- An email with no PayPal account still takes the payment, but PayPal holds it (capture `PENDING`, reason `UNILATERAL`, verified). The order stays `payment_pending` and the seller's page says why and points to Settings.
+- PayPal refuses tracking from the platform for a capture that belongs to the seller (`NOT_AUTHORIZED`, verified). For seller-paid orders, **Add tracking** saves the number in Shelfie (the buyer's agent reads it through `get_order_status`) and tells the seller to add it to the payment in their own PayPal account too. Platform-paid orders still send tracking to PayPal through the Agent Toolkit.
+- **The one fallback:** the seeded demo shop (`marigold-bakehouse`) may have no payee and is then paid to the platform account. Reason: it is Shelfie's own sample, and a fresh clone with only the app keys must still run the whole demo, including guest card checkout (which the sandbox declines on a seller-routed order) and tracking at PayPal. With `PAYPAL_SANDBOX_SELLER_EMAIL` set, the seed routes the demo shop to that seller like any other shop. Any other shop without a payee can't publish, and the door refuses its orders.
+- Partner Referrals (onboarding sellers who have no PayPal account, platform fees, refunds on the seller's behalf) stays the path to scale.
+
 **Toolkit allowlist:** `{ orders: { get }, shipment: { create, get } }` only. **Quirks** (from reading 1.11.0): results are JSON strings (parsed by our wrapper into typed results/errors); the OAuth token is cached without expiry (wrapper rebuilds the instance every 30 min); list tools stay disabled because all shops share one sandbox merchant.
 
 **Tenant safety on the shared merchant:** every toolkit call is wrapped by `scopeTool()`, which rejects any order/product ID that SQLite doesn't record as belonging to the shop in context.
@@ -206,6 +220,12 @@ Every tool has an `outputSchema` and returns `structuredContent` with the same J
 
 **Errors:** `isError: true` with `{ error: { code, message, hint, retryable } }` as JSON text in `content` (not `structuredContent`: the MCP SDK client rejects error results that carry structured content). Codes: `INVALID_ARGUMENTS` (names the bad key, e.g. "`price` is not accepted; prices are set by the shop"), `SHOP_NOT_ACCEPTING_ORDERS`, `UNKNOWN_ITEM` (with `did_you_mean`), `OPTION_REQUIRED` (lists options), `FULFILLMENT_REQUIRED` (shop offers pickup and shipping; lists both), `ITEM_UNAVAILABLE`, `QUANTITY_LIMIT`, `ORDER_TOO_LARGE`, `TOO_MANY_OPEN_ORDERS` (> 10 unpaid per shop), `RATE_LIMITED` (> 30 `create_order` per IP per hour), `PAYPAL_UNAVAILABLE` (retryable), `ORDER_NOT_FOUND`.
 
+**10a. Finding the door (run 2).** A regular should reach the door without anyone pasting a link:
+- **Counter card** (Share tab → **Print counter card**, `/shops/[id]/card`): the shop name, "Order ahead with any AI assistant, pay with PayPal", a QR code of the shop link (made locally with `qrcode`), the shop link, and the door URL in small type. Print styles hide everything else.
+- **Machine-readable shop page:** schema.org JSON-LD (`FoodEstablishment` / `Store` / `LocalBusiness` with the menu as offers and `paymentAccepted: PayPal`), with an `OrderAction` whose `EntryPoint` is the door while the shop is live, and `<link rel="alternate" type="application/json" title="Agent door (MCP)" href=".../mcp">`.
+- **Discovery files:** `/agents.txt` and `/llms.txt` say what an agent door is and list live shops with their door URLs.
+- **Proof:** the Claude Code CLI, given only the shop page URL, finds the door and places an order (`docs/judge/evidence/`).
+
 **Connecting an agent:** the shop page's agent-door block has the URL with a copy button and short tabs for Claude Code (`claude mcp add --transport http <name> <url>`), Claude Desktop (`npx mcp-remote <url>`), and Claude/ChatGPT custom connectors (needs the deployed HTTPS URL). Every tool description says what to call next.
 
 **On localhost:** the buyer console reaches the door over real HTTP at `APP_URL`, exactly like an external agent. MCP Inspector and Claude Code also work against localhost. PayPal returns the buyer's browser to localhost, so the full flow needs no public URL.
@@ -233,7 +253,7 @@ Creating a shop sets an httpOnly `shelfie_owner` cookie holding a random owner t
 | 2:35 | Architecture card: Claude vision → Catalog Products → agent door (MCP) → Orders v2 → capture → Agent Toolkit brief + tracking. "For the sellers PayPal's Agent Ready can't reach." |
 
 ## 14. Out of scope
-Per-seller PayPal onboarding (Partner Referrals is the path to scale; one sandbox merchant receives all payments), non-USD, refunds and disputes UI, tax and per-address shipping rates (one flat fee only), menu edits after launch other than sold-out and pause, renaming products in PayPal, QR codes, discovery cards (agent.json, llms.txt, JSON-LD), stock counts (sold-out toggle only), pickup time slots (free-text note), checkout without an assistant, seller accounts and passwords, MCP OAuth, ACP/UCP adapters, email/SMS, a quote/cart step (the agent reads the order back instead), streaming extraction rows, a free-form seller copilot.
+Partner Referrals onboarding (each shop is paid by `payee.email_address`, §8a; onboarding sellers without a PayPal account, platform fees and refunds on their behalf are the path to scale), non-USD, refunds and disputes UI, tax and per-address shipping rates (one flat fee only), menu edits after launch other than sold-out and pause, renaming products in PayPal, stock counts (sold-out toggle only), pickup time slots (free-text note), checkout without an assistant, seller accounts and passwords, MCP OAuth, ACP/UCP adapters, email/SMS, a quote/cart step (the agent reads the order back instead), streaming extraction rows, a free-form seller copilot.
 
 ## 15. Risks
 | Risk | Mitigation |
@@ -244,5 +264,7 @@ Per-seller PayPal onboarding (Partner Referrals is the path to scale; one sandbo
 | Prompt injection from menus or notes | data-only placement, flags, brief agent read-only |
 | Agent spam / Anthropic spend | caps, open-order limit, per-IP rate limits, expiry, pause toggle; console limited per IP |
 | Data leaking between shops on the shared merchant | `scopeTool` ownership checks; list tools disabled |
+| A seller mistypes their PayPal email | format check at entry; PayPal holds the money for an unknown email (UNILATERAL) and the seller page says so; the order keeps the email it was created with |
+| PayPal refuses platform tracking on a seller's capture | tracking saved in Shelfie for the buyer's agent; the seller is told to add it in PayPal too |
 | "Isn't this Agent Ready?" | Agent Ready starts from a store; Shelfie starts from a photo |
 | SQLite on Render's ephemeral disk | persistent disk, or seed on boot |
