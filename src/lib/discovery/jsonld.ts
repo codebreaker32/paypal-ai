@@ -1,9 +1,9 @@
 // Schema.org JSON-LD for the public shop page (spec §10a): what search engines and AI agents read from the page itself.
 // The menu goes in as offers (prices from the shop's rows, as PayPal strings), PayPal as the way to pay, and, while
-// the shop is live, an OrderAction whose EntryPoint is the agent door.
+// the shop takes orders, an OrderAction whose EntryPoint is the agent door.
 import { toPayPalValue } from '@/lib/domain/money';
 import type { ItemWithVariants, Shop, ShopKind } from '@/lib/domain/types';
-import { isListed, pricedOptions } from '@/lib/orders/pricing';
+import { isListed, pricedOptions, takesOrders } from '@/lib/orders/pricing';
 
 type Json = Record<string, unknown>;
 
@@ -90,8 +90,8 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
     currenciesAccepted: 'USD',
     paymentAccepted: 'PayPal',
     ...catalog,
-    // Only a live shop takes orders: a paused one still shows its menu, with no way to order.
-    ...(shop.status === 'live'
+    // Only a shop that takes orders (live, and it knows where to be paid) advertises the door; others keep the menu.
+    ...(takesOrders(shop)
       ? {
           potentialAction: {
             '@type': 'OrderAction',

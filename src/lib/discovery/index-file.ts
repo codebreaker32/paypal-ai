@@ -1,7 +1,6 @@
 // /agents.txt and /llms.txt (spec §10a): one text for agents that land on Shelfie itself rather than on a shop page.
 // It says what an agent door is and how to order through one, then lists the live shops with their doors.
 // Seller text (shop names and about lines) is made single-line first, so it can't add fields, entries or headings.
-import type { Db } from '@/lib/db';
 import { sanitizeLabel } from '@/lib/text';
 
 /** The most shops either file lists (the newest ones). */
@@ -14,16 +13,6 @@ export interface IndexShop {
 }
 
 export type IndexFormat = 'agents' | 'llms';
-
-/** Live shops only (not paused, not draft), newest first, at most INDEX_LIMIT. */
-export function liveShopsForIndex(db: Db): IndexShop[] {
-  return db
-    .prepare(
-      `SELECT name, slug, about FROM shops WHERE status = 'live'
-       ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC LIMIT ?`,
-    )
-    .all(INDEX_LIMIT) as IndexShop[];
-}
 
 const TOOLS: [string, string][] = [
   ['get_shop_info', 'pickup and shipping options, the shipping fee, order limits, and whether the shop is taking orders.'],

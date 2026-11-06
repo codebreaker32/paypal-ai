@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
-import { INDEX_LIMIT, discoveryIndex, liveShopsForIndex } from '@/lib/discovery/index-file';
+import { INDEX_LIMIT, discoveryIndex } from '@/lib/discovery/index-file';
 import { seedShop } from '../helpers/shop';
 
 const APP = 'https://shelfie.example';
@@ -29,7 +29,7 @@ function entryFor(text: string, format: 'agents' | 'llms', slug: string): string
   return text.split('\n\n').find((b) => b.split('\n').includes(`Shop-URL: ${own}`))!;
 }
 
-describe('liveShopsForIndex', () => {
+describe('listOrderableForIndex', () => {
   it('lists live shops only (not paused or draft), newest first', () => {
     const db = createTestDb();
     seedShop(db, { name: 'Oldest Live' });
@@ -37,14 +37,22 @@ describe('liveShopsForIndex', () => {
     shops.create(db, { name: 'Draft Donuts' });
     seedShop(db, { name: 'Newest Live' });
 
-    expect(liveShopsForIndex(db).map((s) => s.name)).toEqual(['Newest Live', 'Oldest Live']);
-    expect(liveShopsForIndex(db)[0]).toEqual({ name: 'Newest Live', slug: 'newest-live', about: 'Weekend bakes from a home kitchen in Austin.' });
+    expect(shops.listOrderableForIndex(db, INDEX_LIMIT).map((s) => s.name)).toEqual(['Newest Live', 'Oldest Live']);
+    expect(shops.listOrderableForIndex(db, INDEX_LIMIT)[0]).toEqual({ name: 'Newest Live', slug: 'newest-live', about: 'Weekend bakes from a home kitchen in Austin.' });
+  });
+
+  it('leaves out a live shop that has no PayPal email, unless it is the demo shop', () => {
+    const db = createTestDb();
+    seedShop(db, { name: 'Has Email' });
+    seedShop(db, { name: 'No Email Co', payeeEmail: null });
+    seedShop(db, { name: 'Marigold Bakehouse' }); // the demo shop: no email, paid to the platform
+    expect(shops.listOrderableForIndex(db, INDEX_LIMIT).map((s) => s.name).sort()).toEqual(['Has Email', 'Marigold Bakehouse']);
   });
 
   it(`stops at the newest ${200}`, () => {
     const db = createTestDb();
-    for (let i = 0; i < 205; i++) shops.publish(db, shops.create(db, { name: `Shop ${i}` }).shop.id);
-    const listed = liveShopsForIndex(db);
+    for (let i = 0; i < 205; i++) shops.publish(db, shops.create(db, { name: `Shop ${i}`, payeeEmail: 'seller@example.com' }).shop.id);
+    const listed = shops.listOrderableForIndex(db, INDEX_LIMIT);
     expect(INDEX_LIMIT).toBe(200);
     expect(listed).toHaveLength(200);
     expect(listed[0].name).toBe('Shop 204');

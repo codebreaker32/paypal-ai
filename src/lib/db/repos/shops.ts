@@ -1,6 +1,7 @@
 import type { Db } from '@/lib/db';
 import { now } from '@/lib/db';
 import { hashToken, newId, ownerToken, slugify } from '@/lib/domain/ids';
+import { RESERVED_SLUG } from '@/lib/domain/payee';
 import type { Shop, ShopFulfillment, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { timingSafeEqual } from 'node:crypto';
 
@@ -108,4 +109,17 @@ export function setSlug(db: Db, id: string, name: string): Shop {
 export function publish(db: Db, id: string): Shop {
   db.prepare(`UPDATE shops SET status = 'live', published_at = COALESCE(published_at, ?) WHERE id = ?`).run(now(), id);
   return byId(db, id)!;
+}
+
+/**
+ * The shops /agents.txt and /llms.txt list: live and able to take orders (a PayPal email, or the demo shop, which is
+ * paid to the platform). Newest first, at most `limit`. Not paused, not draft.
+ */
+export function listOrderableForIndex(db: Db, limit: number): { name: string; slug: string; about: string }[] {
+  return db
+    .prepare(
+      `SELECT name, slug, about FROM shops WHERE status = 'live' AND (payee_email IS NOT NULL OR slug = ?)
+       ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC LIMIT ?`,
+    )
+    .all(RESERVED_SLUG, limit) as { name: string; slug: string; about: string }[];
 }
