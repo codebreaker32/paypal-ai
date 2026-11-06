@@ -28,7 +28,7 @@ The in-app **buyer console** ("Order with an assistant") is a Claude agent that 
 **Seller**
 - Photo to draft menu, with review flags (missing price, market price, check, duplicate) resolved in one tap
 - Publish to the PayPal catalog, with progress
-- A shop page and an agent door per shop
+- A shop page and an agent door per shop, findable by assistants: a printable counter card with a QR code, schema.org JSON-LD, `/agents.txt` and `/llms.txt` ([how](#how-assistants-find-a-shop))
 - Dashboard: orders, order detail, an AI brief per paid order (a labelled template if Claude is unavailable)
 - Add tracking to PayPal; mark items sold out for today; pause agent orders
 - A private owner link instead of an account
@@ -110,6 +110,19 @@ Tools:
 | `list_products` | Items with `item_id`, `option_id` and price; optional `query` and `section` filters; in-person-only items are marked not orderable |
 | `create_order` | Item ids, option ids and quantities only, plus fulfillment, buyer name and note, `client_request_id`; returns `order_ref` and the PayPal `approval_url` |
 | `get_order_status` | Status, total, paid time and shipping tracking for an `order_ref` |
+
+## How assistants find a shop
+
+Nobody should have to paste a link for a regular to reach the agent door. Each shop can be found three ways:
+
+- **Counter card.** Dashboard → Share → **Print counter card** (`/shops/<id>/card`, owner only) prints a 5 × 7 in card: the shop name, "Order ahead with any AI assistant, pay with PayPal", a QR code of the shop link, the link itself, and the agent door's address in small type. The QR code is made on our server with the `qrcode` package (no third-party service). Print styles show the card alone.
+- **The shop page itself.** `/s/<slug>` carries schema.org JSON-LD: a `FoodEstablishment`, `Store` or `LocalBusiness` with the menu as offers (prices from the shop's own data) and `paymentAccepted: PayPal`, plus, while the shop is live, an `OrderAction` whose `EntryPoint` is the agent door (`POST`, `application/json`). Its `<head>` has `<link rel="alternate" type="application/json" title="Agent door (MCP)" href="…/mcp">`, and the visible page shows the door's address with setup snippets. Seller text in the JSON-LD has every `<` escaped, so a name like `</script>` stays data.
+- **`/agents.txt` and `/llms.txt`.** Plain text (`/agents.txt` as fields, `/llms.txt` as Markdown in the [llmstxt.org](https://llmstxt.org) layout) saying what an agent door is, its four tools and that the buyer approves payment on PayPal, then every live shop (newest 200) with its shop link and door URL. Paused and unpublished shops are left out.
+
+```bash
+curl -s http://localhost:3000/llms.txt
+curl -s http://localhost:3000/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'
+```
 
 ## Deploy to Render
 

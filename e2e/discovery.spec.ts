@@ -131,7 +131,13 @@ test.describe('counter card', () => {
     await expect(page.locator('body > footer')).toBeHidden();
     await page.screenshot({ path: path.join(OUT, 'counter-card-print.png'), fullPage: true });
 
-    const pdf = await page.pdf({ path: path.join(OUT, 'counter-card.pdf'), format: 'Letter' });
+    // Chrome's print dialog defaults: letter, 0.4 in margins, background graphics off (the card prints its own colours).
+    const margin = '0.4in';
+    const pdf = await page.pdf({
+      path: path.join(OUT, 'counter-card.pdf'),
+      format: 'Letter',
+      margin: { top: margin, right: margin, bottom: margin, left: margin },
+    });
     const pages = pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) ?? [];
     expect(pages).toHaveLength(1);
   });
