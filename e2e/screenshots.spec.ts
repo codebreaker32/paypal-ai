@@ -9,8 +9,9 @@
 // (e2e/fixtures/console-turns.json). No Claude or PayPal calls happen here.
 //
 // The in-between states (publishing, a publish that partly failed, the console thinking, rate-limited or failing,
-// tracking PayPal refused) are MOCKED in the browser: Playwright answers those requests instead of the server
-// (page.route, or streamThenHold for a stream that stays open). Each one is listed in the screenshots README.
+// tracking PayPal refused, the dashboard loading) are MOCKED in the browser: Playwright answers those requests instead
+// of the server (page.route, streamThenHold for a stream that stays open, holdNavigation for a page request that never
+// answers). Each one is listed in the screenshots README (dashboard-loading: NOTES-dashboard-loading.md).
 //
 // Run: E2E_PORT=3111 npx playwright test e2e/screenshots.spec.ts   (or: npm run screenshots)
 // SCREENSHOTS_DIR=docs/judge/screenshots/round-4 writes a judged round's set (npm run screenshots:prod does this).
@@ -33,7 +34,7 @@ import type { Order, OrderBrief } from '@/lib/domain/types';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
-import { DESKTOP, PHONE, samplePhoto, settle, streamThenHold } from './helpers';
+import { DESKTOP, PHONE, holdNavigation, samplePhoto, settle, streamThenHold } from './helpers';
 import { E2E_DB, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
 const OUT = process.env.SCREENSHOTS_DIR
@@ -581,6 +582,43 @@ const SCREENS: Screen[] = [
       await signIn(context, empty.shop.id, empty.ownerToken);
       await page.goto(`/shops/${empty.shop.id}`);
       await expect(page.getByRole('heading', { name: 'No orders yet' })).toBeVisible();
+    },
+  },
+  {
+    // MOCKED: back from an order to the dashboard. The Orders link's prefetch (the layout and loading.tsx) comes from
+    // the server; the page request the click makes is held in the browser (holdNavigation), so the skeleton stays up.
+    // Production builds only: Next prefetches links in view only in production.
+    name: 'dashboard-loading',
+    run: async (page, { context }) => {
+      const dashboard = `/shops/${demo.shop.id}`;
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      const held = await holdNavigation(page, dashboard);
+      // The prefetch up to the loading boundary (not the /_tree one). Its stream can stay open after the skeleton
+      // has arrived, so wait for its answer, not its end.
+      const prefetched = page.waitForResponse((r) => {
+        const h = r.request().headers();
+        return new URL(r.url()).pathname === dashboard && h['next-router-prefetch'] === '1' && !h['next-router-segment-prefetch'];
+      });
+      await page.goto(`${dashboard}/orders/${orders.nut.id}`);
+      await expect(page.getByTestId('brief-headline')).toHaveText(NUT_BRIEF.headline);
+      // A dev server never prefetches; it shows its dev indicator (nextjs-portal) instead.
+      const dev = await Promise.race([
+        prefetched.then(() => false),
+        page.locator('nextjs-portal').first().waitFor({ state: 'attached' }).then(() => true),
+      ]);
+      test.skip(dev, 'Next prefetches links only in a production build (npm run screenshots:prod).');
+      // A click before the router has stored the prefetch goes straight to the (held) page request and stays on the
+      // order, so click again until the skeleton shows.
+      const back = page.getByRole('main').getByRole('link', { name: 'Orders', exact: true });
+      const skeleton = page.locator('[aria-busy="true"]').getByRole('status');
+      await expect(async () => {
+        if (await back.isVisible()) await back.click();
+        await expect(skeleton).toHaveText('Loading your orders', { timeout: 2_000 });
+      }).toPass({ timeout: 20_000 });
+      await expect(page).toHaveURL(dashboard);
+      await expect(page.getByRole('heading', { level: 1 })).toHaveCount(0);
+      expect(await held(), 'the dashboard page request is held').toBeGreaterThanOrEqual(1);
     },
   },
   {

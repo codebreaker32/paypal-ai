@@ -60,6 +60,30 @@ export async function streamThenHold(page: Page, pathname: string, events: unkno
   );
 }
 
+/**
+ * Holds the client router's navigation request for `pathname` unanswered inside the page, so the route's loading.tsx
+ * stays on screen for a screenshot. In production a <Link> in view prefetches its route up to the loading boundary
+ * (those requests carry Next-Router-Prefetch and pass through); clicking it shows that skeleton at once, then fetches
+ * the page itself (an RSC request, no prefetch header), which never answers here. In the page's fetch, not page.route,
+ * for the reason given at streamThenHold. Nothing reaches the server. Returns how many requests it has held.
+ */
+export async function holdNavigation(page: Page, pathname: string) {
+  await page.addInitScript((pathname) => {
+    const w = window as unknown as { __heldNavigations: number };
+    w.__heldNavigations = 0;
+    const original = window.fetch.bind(window);
+    window.fetch = (input: RequestInfo | URL, init?: RequestInit) => {
+      const req = input instanceof Request ? input : null;
+      const url = new URL(req ? req.url : String(input), window.location.href);
+      const headers = new Headers(init?.headers ?? req?.headers);
+      if (url.pathname !== pathname || headers.get('rsc') !== '1' || headers.has('next-router-prefetch')) return original(input, init);
+      w.__heldNavigations++;
+      return new Promise<Response>(() => {});
+    };
+  }, pathname);
+  return () => page.evaluate(() => (window as unknown as { __heldNavigations: number }).__heldNavigations);
+}
+
 /** Holds every POST /api/shops open until release() is called. */
 export async function holdShopsApi(page: Page) {
   let release: () => void = () => {};
