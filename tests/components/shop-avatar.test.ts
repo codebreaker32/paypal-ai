@@ -15,6 +15,14 @@ describe('ShopAvatar', () => {
     expect(html).not.toMatch(/>[A-Z][a-z]?</);
   });
 
+  it('from the cover: a tight crop of its centre (scaled about 1.8x), so the badge over the cover is a detail, not a copy', () => {
+    const html = renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, coverUrl: '/i/c.webp' }, items: [] }));
+    expect(html).toMatch(/data-avatar="cover"[^>]*overflow-hidden/);
+    expect(html).toMatch(/<img[^>]*src="\/i\/c\.webp"[^>]*class="[^"]*scale-\[1\.8\][^"]*object-center/);
+    // A logo is the seller's own square: shown whole.
+    expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: { ...bare, logoUrl: '/i/l.webp' }, items: [] }))).not.toContain('scale-[1.8]');
+  });
+
   it('a draft with nothing at all still gets a picture', () => {
     expect(renderToStaticMarkup(createElement(ShopAvatar, { shop: bare, items: [] }))).toContain('href="/illustrations.svg#meal"');
   });
