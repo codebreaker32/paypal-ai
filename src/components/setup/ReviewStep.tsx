@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, CircleAlert, CircleCheck, Hand, History, Loader2, RotateCcw, Send, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleAlert, CircleCheck, History, Loader2, RotateCcw, Send, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/Field';
@@ -13,7 +13,7 @@ import type { ReviewShop } from '@/lib/catalog/setup';
 import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
 import { PAYEE_REQUIRED_MESSAGE, canBePaid } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
-import { IssueCard, type OnUpdate } from './IssueCards';
+import { IssueCard, PhotoContext, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
 import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
@@ -135,6 +135,13 @@ export function ReviewStep(props: ReviewProps) {
     },
     [queueItem],
   );
+
+  // A photo is saved the moment it uploads (no autosave): only our copy of the item needs it.
+  const onPhoto = useCallback((itemId: string, photoUrl: string | null) => {
+    setItems((all) => all.map((it) => (it.id === itemId ? { ...it, photoUrl } : it)));
+  }, []);
+
+  const photoContext = useMemo(() => ({ shopId, onPhoto }), [shopId, onPhoto]);
 
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
@@ -276,13 +283,15 @@ export function ReviewStep(props: ReviewProps) {
                 </h2>
                 <p className="text-ink-soft">Fix these, or leave them: they stay off your shop until you do.</p>
               </div>
-              <ul className="flex flex-col gap-4">
-                {cards.map((c) => (
-                  <li key={cardId(c)}>
-                    <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
-                  </li>
-                ))}
-              </ul>
+              <PhotoContext value={photoContext}>
+                <ul className="flex flex-col gap-4">
+                  {cards.map((c) => (
+                    <li key={cardId(c)}>
+                      <IssueCard card={c} id={cardId(c)} onUpdate={onUpdate} />
+                    </li>
+                  ))}
+                </ul>
+              </PhotoContext>
             </section>
           ) : (
             <p className="flex items-center gap-2 rounded-md bg-ok-soft px-3.5 py-3 font-semibold text-ok">
@@ -296,10 +305,10 @@ export function ReviewStep(props: ReviewProps) {
               <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
                 Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>
-              <p className="text-ink-soft">Each one becomes a product in your PayPal catalog when you publish.</p>
+              <p className="text-ink-soft">Each becomes a product in your PayPal catalog. Tap a tile to add a photo.</p>
             </div>
             {ready.length ? (
-              <ReadyList items={ready} onUpdate={onUpdate} />
+              <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
             ) : (
               <p className="text-ink-muted">Nothing yet. Fix an item above and it moves here.</p>
             )}
@@ -308,12 +317,12 @@ export function ReviewStep(props: ReviewProps) {
           {inPerson.length > 0 && (
             <section aria-labelledby="inperson-title" className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
-                <h2 id="inperson-title" className="flex items-center gap-2 type-title">
-                  <Icon icon={Hand} className="text-ink-soft" /> Ask in person
+                <h2 id="inperson-title" className="type-title">
+                  Ask in person
                 </h2>
-                <p className="text-ink-soft">Listed on your shop without a price. People ask you, and assistants can’t order them.</p>
+                <p className="text-ink-soft">On your shop without a price. Assistants can’t order them.</p>
               </div>
-              <InPersonList items={inPerson} onUpdate={onUpdate} />
+              <InPersonList items={inPerson} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
             </section>
           )}
 
@@ -354,7 +363,7 @@ export function ReviewStep(props: ReviewProps) {
       </div>
 
       {/* Sticky publish bar: the one primary action, with the save status beside it. */}
-      <div data-publish-bar className="sticky bottom-0 z-(--z-header) mt-auto border-t border-line-strong bg-surface-raised pb-[env(safe-area-inset-bottom)]">
+      <div data-publish-bar className="sticky bottom-0 z-(--z-header) mt-auto bg-surface-raised pb-[env(safe-area-inset-bottom)] shadow-[0_-1px_0_var(--color-line),0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)]">
         <div className="mx-auto flex w-full max-w-page flex-col gap-2 px-gutter py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="flex flex-col gap-0.5 sm:order-1">
             <SaveStatus state={autosave.state} onRetry={() => void autosave.flush().catch(() => {})} />
@@ -366,7 +375,7 @@ export function ReviewStep(props: ReviewProps) {
                   <button
                     type="button"
                     onClick={goToPayee}
-                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-accent decoration-2 underline-offset-4 hover:decoration-ink"
+                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
                   >
                     {PAYEE_REQUIRED_MESSAGE}
                   </button>

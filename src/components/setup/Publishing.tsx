@@ -111,7 +111,7 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
         </div>
       </div>
       {total > 0 && (
-        <ul className="flex flex-col divide-y divide-line rounded-lg border border-line-strong bg-surface-raised px-4">
+        <ul className="flex flex-col divide-y divide-line border-y border-line">
           {rows.map((r) => (
             <li key={r.itemId} className="flex items-start gap-3 py-2.5">
               {r.state === 'pending' ? (

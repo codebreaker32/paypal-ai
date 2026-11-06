@@ -1,26 +1,19 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
-import { Check, CircleDollarSign, Copy, Hand, Merge, MessageSquareText, Pencil, Trash2, TriangleAlert, type LucideIcon } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
+import { createContext, useContext, useState, type ReactNode } from 'react';
+import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Field, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { ItemUpdate } from './api';
+import type { PhotoProps } from './ItemLists';
+import { ItemPhotoPicker, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { ISSUE_LABEL, duplicateUpdates, priceSummary, type Card as CardModel } from './review-model';
 
 export type OnUpdate = (u: ItemUpdate, opts?: { resolved?: boolean }) => void;
-
-const ISSUE_ICON: Record<IssueCode, LucideIcon> = {
-  MISSING_PRICE: CircleDollarSign,
-  MARKET_PRICE: Hand,
-  CHECK: TriangleAlert,
-  DUPLICATE: Copy,
-};
 
 /** Price fields for each option of an item, validated on blur, turned into cents on save. */
 function usePriceFields(item: ItemWithVariants) {
@@ -47,32 +40,60 @@ function usePriceFields(item: ItemWithVariants) {
   return { fields, valid, variants, showErrors };
 }
 
+/** Lets a flagged card show its item's photo control: the review screen provides it. */
+export const PhotoContext = createContext<PhotoProps | null>(null);
+
+function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (message: string | null) => void }) {
+  const photo = useContext(PhotoContext);
+  if (!photo) return null;
+  return (
+    <ItemPhotoPicker
+      shopId={photo.shopId}
+      itemId={item.id}
+      name={item.name}
+      photoUrl={item.photoUrl}
+      size="sm"
+      onChange={(url) => photo.onPhoto(item.id, url)}
+      onError={onError}
+    />
+  );
+}
+
 function CardShell({
   id,
   name,
   section,
   issue,
+  item,
   children,
 }: {
   id: string;
   name: string;
   section: string | null;
   issue: IssueCode;
+  /** The one item a single card is about, for its photo. */
+  item?: ItemWithVariants;
   children: ReactNode;
 }) {
+  const [photoError, setPhotoError] = useState<string | null>(null);
   return (
     <Card as="article" aria-labelledby={`${id}-name`} className="flex flex-col gap-4 animate-fade-in">
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
-        <div className="flex min-w-0 flex-col">
+      <div className="flex items-center gap-3 sm:gap-4">
+        {item && <CardPhoto item={item} onError={setPhotoError} />}
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <h3 id={`${id}-name`} tabIndex={-1} className="type-heading [overflow-wrap:anywhere] focus:outline-none focus-visible:outline-2">
             {name}
           </h3>
-          {section && <p className="type-meta text-ink-muted">{section}</p>}
+          <p className="flex flex-wrap items-center gap-x-3 text-sm">
+            <span className="inline-flex items-center gap-2 font-semibold whitespace-nowrap text-warn">
+              <span aria-hidden="true" className="size-2 rounded-full bg-current" />
+              {ISSUE_LABEL[issue]}
+            </span>
+            {section && <span className="text-ink-muted">{section}</span>}
+          </p>
         </div>
-        <Badge tone="warn" icon={ISSUE_ICON[issue]}>
-          {ISSUE_LABEL[issue]}
-        </Badge>
       </div>
+      <PhotoError error={photoError} />
       {children}
     </Card>
   );
@@ -84,7 +105,7 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
     <div className="flex flex-col gap-2">
       <div className="rounded-md bg-surface-sunken px-3.5 py-2.5">
         <p className="type-meta text-ink-muted">We read</p>
-        <p className="font-display text-lg leading-7 italic [overflow-wrap:anywhere]">“{item.sourceText}”</p>
+        <p className="text-lg leading-7 font-medium [overflow-wrap:anywhere]">“{item.sourceText}”</p>
         {showPrice && (
           <p className="mt-1.5 flex items-baseline gap-2 rule-dashed pt-1.5">
             <span className="type-meta text-ink-muted">Price</span>
@@ -93,10 +114,7 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
         )}
       </div>
       {item.issueDetail && (
-        <p className="flex items-start gap-2 text-sm text-ink-soft">
-          <Icon icon={MessageSquareText} size="sm" className="mt-0.5 text-ink-muted" />
-          <span>{item.issueDetail}</span>
-        </p>
+        <p className="text-sm text-ink-soft">{item.issueDetail}</p>
       )}
     </div>
   );
@@ -122,7 +140,7 @@ function PriceCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants;
     onUpdate({ itemId: item.id, status: 'draft', variants: price.variants, resolveIssues: true }, { resolved: true });
   };
   return (
-    <CardShell id={id} name={item.name} section={item.section} issue="MISSING_PRICE">
+    <CardShell id={id} name={item.name} section={item.section} issue="MISSING_PRICE" item={item}>
       <AsRead item={item} />
       <form
         className="flex flex-col gap-4"
@@ -148,7 +166,7 @@ function MarketCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants
   const [setting, setSetting] = useState(false);
   const price = usePriceFields(item);
   return (
-    <CardShell id={id} name={item.name} section={item.section} issue="MARKET_PRICE">
+    <CardShell id={id} name={item.name} section={item.section} issue="MARKET_PRICE" item={item}>
       <AsRead item={item} />
       <p className="text-sm text-ink-soft">The price changes, so it’s listed on your shop and people ask you in person. Or set today’s price so assistants can order it.</p>
       {setting ? (
@@ -195,7 +213,7 @@ function CheckCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants;
   const price = usePriceFields(item);
   const nameError = name.trim() === '' ? 'Give it a name' : null;
   return (
-    <CardShell id={id} name={item.name} section={item.section} issue="CHECK">
+    <CardShell id={id} name={item.name} section={item.section} issue="CHECK" item={item}>
       <AsRead item={item} showPrice />
       {fixing ? (
         <form

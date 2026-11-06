@@ -210,6 +210,8 @@ export interface ReviewShop {
   kind: Shop['kind'];
   /** The seller's PayPal email (where buyers' money goes); publishing needs it, except for the demo shop (spec §8a). */
   payeeEmail: string | null;
+  /** The shop's cover photo (site-relative), set from the review screen's shop details; absent counts as none. */
+  coverUrl?: string | null;
 }
 
 interface Base {
@@ -268,6 +270,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     shop: {
       id: shop.id, slug: shop.slug, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
       fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind, payeeEmail: shop.payeeEmail,
+      coverUrl: shop.coverUrl,
     },
     items: listed,
     skipped: last.skipped,

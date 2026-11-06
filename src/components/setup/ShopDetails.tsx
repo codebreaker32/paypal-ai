@@ -1,22 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Package, Store, Truck, type LucideIcon } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 import { Field, TextArea, TextInput } from '@/components/ui/Field';
-import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import type { ShopFulfillment } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { parseFeeInput, priceInputValue } from '@/lib/catalog/rules';
 import { isDemoShop, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ShopPatch } from './api';
+import { CoverPicker } from './PhotoPicker';
 import { PriceInput } from './PriceInput';
 
-const OPTIONS: { value: ShopFulfillment; label: string; hint: string; icon: LucideIcon }[] = [
-  { value: 'pickup', label: 'Pickup', hint: 'They collect it', icon: Store },
-  { value: 'shipping', label: 'Shipping', hint: 'You post it', icon: Truck },
-  { value: 'both', label: 'Both', hint: 'They choose', icon: Package },
+const OPTIONS: { value: ShopFulfillment; label: string }[] = [
+  { value: 'pickup', label: 'Pickup' },
+  { value: 'shipping', label: 'Shipping' },
+  { value: 'both', label: 'Both' },
 ];
 
 /** The wrapper of the PayPal email field: the publish bar's "Add your PayPal email" focuses the field inside it. */
@@ -47,6 +45,7 @@ export function ShopDetails({
   const [pickupNotes, setPickupNotes] = useState(shop.pickupNotes);
   const [fulfillment, setFulfillment] = useState<ShopFulfillment>(shop.fulfillment);
   const [fee, setFee] = useState(priceInputValue(shop.shippingFeeCents || null));
+  const [cover, setCover] = useState(shop.coverUrl ?? null);
   const [feeTouched, setFeeTouched] = useState(false);
 
   const feeCents = parseFeeInput(fee);
@@ -54,13 +53,15 @@ export function ShopDetails({
   const services = shop.kind === 'services';
 
   return (
-    <Card as="section" aria-labelledby="shop-details-title" className="flex flex-col gap-5" padding="lg">
+    <section aria-labelledby="shop-details-title" className="flex flex-col gap-6 border-t border-line pt-10">
       <div className="flex flex-col gap-1">
         <h2 id="shop-details-title" className="type-title">
           Your shop
         </h2>
         <p className="text-ink-soft">Filled in from your photo. People and their assistants see this first.</p>
       </div>
+
+      <CoverPicker shopId={shop.id} shopName={name.trim() || shop.name} coverUrl={cover} onChange={setCover} />
 
       <Field label="Shop name" required error={name.trim() === '' ? 'Give your shop a name' : undefined}>
         {(c) => (
@@ -78,12 +79,13 @@ export function ShopDetails({
         )}
       </Field>
 
-      <Field label="About" hint="A line or two, like what you make and when.">
+      <Field label="About">
         {(c) => (
           <TextArea
             {...c}
             rows={2}
             maxLength={500}
+            placeholder="What you make, and when"
             value={about}
             onChange={(e) => {
               setAbout(e.currentTarget.value);
@@ -93,12 +95,13 @@ export function ShopDetails({
         )}
       </Field>
 
-      <Field label={services ? 'Drop-off notes' : 'Pickup notes'} hint={services ? 'Where and when people bring things in.' : 'Where and when people collect their order.'}>
+      <Field label={services ? 'Drop-off notes' : 'Pickup notes'}>
         {(c) => (
           <TextArea
             {...c}
             rows={2}
             maxLength={500}
+            placeholder={services ? 'Where and when people bring things in' : 'Where and when people collect their order'}
             value={pickupNotes}
             onChange={(e) => {
               setPickupNotes(e.currentTarget.value);
@@ -108,17 +111,17 @@ export function ShopDetails({
         )}
       </Field>
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="type-label mb-3">How do people get their order?</legend>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <fieldset className="flex flex-col">
+        <legend className="type-label mb-2">How do people get their order?</legend>
+        <div className="grid grid-cols-3 gap-1 rounded-full bg-surface-sunken p-1">
           {OPTIONS.map((o) => {
             const checked = fulfillment === o.value;
             return (
               <label
                 key={o.value}
                 className={cx(
-                  'flex min-h-tap cursor-pointer items-center gap-3 rounded-md border px-3.5 py-3 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
-                  checked ? 'border-ink bg-surface-sunken' : 'border-control hover:border-ink-soft',
+                  'relative flex min-h-tap cursor-pointer items-center justify-center rounded-full px-3 font-semibold transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
+                  checked ? 'bg-ink text-surface' : 'text-ink-soft hover:bg-line hover:text-ink',
                 )}
               >
                 <input
@@ -130,13 +133,9 @@ export function ShopDetails({
                     setFulfillment(o.value);
                     onChange({ fulfillment: o.value });
                   }}
-                  className="size-4 accent-ink focus-visible:outline-none"
+                  className="absolute inset-0 m-0 cursor-pointer appearance-none rounded-full opacity-0"
                 />
-                <Icon icon={o.icon} className="text-ink-soft" />
-                <span className="flex flex-col">
-                  <span className="font-semibold">{o.label}</span>
-                  <span className="type-meta text-ink-muted">{o.hint}</span>
-                </span>
+                {o.label}
               </label>
             );
           })}
@@ -160,7 +159,7 @@ export function ShopDetails({
       )}
 
       {/* Where the money goes (spec §8a): each shop is paid into its seller's own PayPal account. */}
-      <div id={PAYEE_FIELD_ID} className="rule-dashed flex scroll-mt-24 flex-col gap-3 pt-5">
+      <div id={PAYEE_FIELD_ID} className="flex scroll-mt-24 flex-col gap-3">
         <Field
           label="Your PayPal email"
           required={!payeeOptional}
@@ -196,6 +195,6 @@ export function ShopDetails({
           )}
         </Field>
       </div>
-    </Card>
+    </section>
   );
 }
