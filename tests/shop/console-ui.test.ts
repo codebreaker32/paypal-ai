@@ -1,13 +1,16 @@
 // Pure pieces of the buyer console UI: the event reducer, starter prompts and Activity summaries.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import type { ItemWithVariants } from '@/lib/domain/types';
 import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/components/shop/activity-format';
 import {
   approvalCard,
+  CONFIRM_POLL_MS,
+  confirmingWithPayPal,
   consoleReducer,
   consoleToSave,
   initialConsoleState,
+  pollEvery,
   refsToCheck,
   restoreConsoleState,
   turnStartIndex,
@@ -231,6 +234,38 @@ describe('approval cards', () => {
     s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'paid' });
     s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_2', status: 'approved', captureRefused: true });
     expect(refsToCheck(s)).toEqual([]);
+  });
+});
+
+describe('cards confirming with PayPal', () => {
+  afterEach(() => vi.useRealTimers());
+
+  it('are spotted only while some card says "Confirming with PayPal"', () => {
+    let s = placed();
+    expect(confirmingWithPayPal(s)).toBe(false);
+    s = consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'approved' });
+    expect(confirmingWithPayPal(s)).toBe(true);
+    expect(confirmingWithPayPal(consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'payment_pending' }))).toBe(true);
+    expect(confirmingWithPayPal(consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'approved', captureRefused: true }))).toBe(false);
+    expect(confirmingWithPayPal(consoleReducer(s, { type: 'order_status', orderRef: 'ord_1', status: 'paid' }))).toBe(false);
+  });
+
+  it('are re-read every 3 s, each wait starting after the last check, until stopped', async () => {
+    vi.useFakeTimers();
+    expect(CONFIRM_POLL_MS).toBe(3000);
+    let checks = 0;
+    const stop = pollEvery(CONFIRM_POLL_MS, async () => {
+      checks++;
+    });
+    await vi.advanceTimersByTimeAsync(2999);
+    expect(checks).toBe(0);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(checks).toBe(1);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(checks).toBe(2);
+    stop();
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(checks).toBe(2);
   });
 });
 
