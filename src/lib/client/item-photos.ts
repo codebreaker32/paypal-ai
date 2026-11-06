@@ -34,3 +34,29 @@ export async function uploadCover(shopId: string, file: Blob): Promise<string> {
 export async function removeCover(shopId: string): Promise<void> {
   await call(`/api/shops/${enc(shopId)}/cover`, { method: 'DELETE' });
 }
+
+/** One proposed item photo from "Snap your counter" (POST /api/shops/[id]/counter). */
+export interface CounterProposal {
+  itemId: string;
+  name: string;
+  confidence: 'high' | 'medium';
+  /** A 4:3 WebP data URL; keep it with uploadItemPhoto(shopId, itemId, dataUrlToBlob(image)). */
+  image: string;
+}
+
+/** Sends a photo of the display case; Claude proposes a photo for each menu item it can see. Nothing is saved. */
+export async function proposeFromCounter(shopId: string, file: Blob): Promise<CounterProposal[]> {
+  const { body } = await call<{ proposals: CounterProposal[] }>(`/api/shops/${enc(shopId)}/counter`, {
+    method: 'POST',
+    body: photoForm(file, 'counter.jpg'),
+  });
+  return body.proposals;
+}
+
+/** A base64 data URL as a Blob of its own type. */
+export function dataUrlToBlob(dataUrl: string): Blob {
+  const [head, data = ''] = dataUrl.split(',', 2);
+  const type = /^data:([^;,]+)/.exec(head)?.[1] ?? 'application/octet-stream';
+  const bytes = Uint8Array.from(atob(data), (c) => c.charCodeAt(0));
+  return new Blob([bytes], { type });
+}
