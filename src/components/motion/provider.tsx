@@ -2,10 +2,13 @@
 
 import type { ReactNode } from 'react';
 import { LazyMotion, MotionConfig } from 'motion/react';
+import { loadWithRetry, showHiddenEntrances } from './load-features';
 
 // domAnimation (animations, variants, exit, gestures, in-view) is fetched after the page's first JavaScript, so it stays
 // out of the critical path. Until it arrives, `m` elements render their initial state; server HTML is never hidden.
-const loadFeatures = () => import('./features').then((mod) => mod.default);
+// A failed fetch is retried once; if that fails too, the page shows whatever an entrance was holding hidden.
+const loadFeatures = () =>
+  loadWithRetry(() => import('./features').then((mod) => mod.default), showHiddenEntrances);
 
 /**
  * Mount once (the root layout does). Loads Motion's DOM animation features lazily and in strict mode, so components

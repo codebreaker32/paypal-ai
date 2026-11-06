@@ -548,6 +548,15 @@
   }
 }
 
+/* Motion's features failed to load twice (components/motion/load-features.ts): no entrance will play, so show
+   everything the motion primitives were holding hidden. */
+html[data-motion-off] [data-slot="reveal"],
+html[data-motion-off] [data-slot="stagger-item"],
+html[data-motion-off] [data-slot="status-swap"] > * {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
