@@ -283,6 +283,19 @@ test.describe('console states', () => {
     await expect(consoleRegion(page, true)).toBeVisible();
   });
 
+  test('an agent door link opens the folded door, even when the address already ends in #agent-door', async ({ page }) => {
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const door = page.locator('#agent-door details');
+    const link = page.getByRole('link', { name: 'agent door', exact: true });
+    await link.click();
+    await expect(door).toHaveAttribute('open', '');
+    await page.locator('#agent-door summary').click();
+    await expect(door).not.toHaveAttribute('open', '');
+    await link.click();
+    await expect(door).toHaveAttribute('open', '');
+  });
+
   test('rate limited: a plain message', async ({ page }) => {
     await page.route(`**/api/assistant/${SLUG}`, (route) =>
       route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You’ve sent a lot of messages in the last hour. Try again later." } } }),
