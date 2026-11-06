@@ -132,6 +132,8 @@ curl -s http://localhost:3000/s/marigold-bakehouse | grep -o '<link rel="alterna
 
 **Not yet run.** `render.yaml` validates against Render's published Blueprint schema, and the app's Render fallback is unit-tested, but nobody has deployed it yet.
 
+[`docs/DEPLOY.md`](docs/DEPLOY.md) has the same steps in more detail, with a post-deploy smoke test (health, discovery, the agent door by `curl`, one paid order, the webhook delivery).
+
 `render.yaml` is a Render Blueprint for one Node web service, `shelfie`, with a 1 GB persistent disk mounted at `/var/data`. The SQLite database and uploaded menu photos live on that disk.
 
 - **A persistent disk needs a paid instance type.** The Blueprint uses Starter (`0.5c-512mb`). The free type has no disk, so the database would be wiped on every deploy and restart.
