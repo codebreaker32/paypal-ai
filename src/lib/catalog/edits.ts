@@ -5,7 +5,7 @@ import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
-import { MAX_PRICE_CENTS } from './rules';
+import { MAX_PRICE_CENTS, MAX_VARIANTS } from './rules';
 
 export class EditError extends Error {
   constructor(
@@ -69,7 +69,7 @@ const ItemUpdateSchema = z
     soldOut: z.boolean().optional(),
     resolveIssues: z.boolean().optional(),
     resolveDuplicate: z.boolean().optional(),
-    variants: z.array(VariantSchema).min(1).max(10).optional(),
+    variants: z.array(VariantSchema).min(1).max(MAX_VARIANTS).optional(),
   })
   .strict();
 

@@ -4,6 +4,8 @@ import type { IssueCode, ItemWithVariants, Variant } from '@/lib/domain/types';
 
 /** $500: a new shop's online order cap (shops.order_cap_cents), so one of anything can be ordered. */
 export const MAX_PRICE_CENTS = 50_000;
+/** The most sizes or options one item can have (a reading keeps the first ones; edits accept no more). */
+export const MAX_VARIANTS = 10;
 
 type ItemLike = Pick<ItemWithVariants, 'status' | 'issues' | 'paypalProductId'> & {
   variants: Pick<Variant, 'priceCents'>[];
