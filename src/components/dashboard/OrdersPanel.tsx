@@ -148,6 +148,7 @@ export function OrdersPanel({
               <ul className={cx(ROWS, 'mt-3')}>{g.waiting.map(row)}</ul>
             </details>
           )}
+          {filter === 'waiting' && g.waiting.length === 0 && <p className="text-ink-muted">Nothing waiting for payment.</p>}
 
           {show('done') && g.done.length > 0 && (
             <section aria-labelledby="group-done" className="flex flex-col gap-3">
@@ -157,6 +158,7 @@ export function OrdersPanel({
               <ul className={ROWS}>{g.done.map(row)}</ul>
             </section>
           )}
+          {filter === 'done' && g.done.length === 0 && <p className="text-ink-muted">Nothing done yet.</p>}
         </>
       )}
     </div>

@@ -114,6 +114,18 @@ test.describe('dashboard', () => {
     await expect(page.getByText(`Payment received · ${arrived.number}`)).toBeVisible();
   });
 
+  test('an empty filter says so in one line', async ({ page, context }) => {
+    const one = createFixtureShop('Filter Test Bakery');
+    addFixtureOrder(one, { status: 'paid', fulfillment: 'pickup', minutesAgo: 1, buyerName: 'Ana', lines: [['Butter croissant', 1]] });
+    await signInAsOwner(context, one, BASE);
+    await page.goto(dashboard(one));
+    const filters = page.getByRole('group', { name: 'Show orders' });
+    await filters.getByRole('button', { name: /^Waiting for payment/ }).click();
+    await expect(page.getByText('Nothing waiting for payment.')).toBeVisible();
+    await filters.getByRole('button', { name: /^Done/ }).click();
+    await expect(page.getByText('Nothing done yet.')).toBeVisible();
+  });
+
   test('Mark picked up moves a pickup order to Done', async ({ page, context }) => {
     await signInAsOwner(context, scratch, BASE);
     const o = addFixtureOrder(scratch, {
