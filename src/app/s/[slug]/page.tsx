@@ -85,6 +85,15 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
   const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
   return (
     <div className="flex flex-col gap-5">
+      {/* With a cover, the shop's mark sits over its bottom edge, so a shop with photos keeps its identity too. */}
+      {hasCover && (
+        <span
+          aria-hidden="true"
+          className="relative -mt-16 -mb-1 flex size-20 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-3xl font-extrabold text-on-accent ring-4 ring-surface sm:-mt-20 sm:size-24 sm:text-4xl"
+        >
+          {monogram(shop.name)}
+        </span>
+      )}
       <div className="flex items-start gap-4">
         {!hasCover && (
           <span aria-hidden="true" className="flex size-16 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-2xl font-extrabold text-on-accent sm:size-20 sm:text-3xl">

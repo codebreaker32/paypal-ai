@@ -28,6 +28,8 @@ export interface ItemPhotoProps {
   size?: 'sm' | 'md' | 'lg';
   dim?: boolean;
   className?: string;
+  /** Load at once rather than lazily: the few thumbnails of one order, which a phone may only reach by scrolling. */
+  eager?: boolean;
   /** Decorative copies (the start page mock-up, list thumbnails next to the name) pass an empty alt. */
   decorative?: boolean;
 }
@@ -38,13 +40,13 @@ const LETTER = { sm: 'text-base', md: 'text-[2.5rem]', lg: 'text-[3.5rem]' } as 
  * An item's photo, or its designed fallback: the item's monogram set large on its section's tint, with a soft shelf
  * line under it, so a menu with no photos still reads as a deliberate, colour-coded grid rather than grey boxes.
  */
-export function ItemPhoto({ name, photoUrl, tone = 0, size = 'md', dim, className, decorative }: ItemPhotoProps) {
+export function ItemPhoto({ name, photoUrl, tone = 0, size = 'md', dim, className, decorative, eager }: ItemPhotoProps) {
   if (photoUrl) {
     return (
       <img
         src={photoUrl}
         alt={decorative ? '' : name}
-        loading="lazy"
+        loading={eager ? 'eager' : 'lazy'}
         decoding="async"
         className={cx('block object-cover', dim && 'opacity-50 grayscale', className)}
       />
@@ -55,7 +57,7 @@ export function ItemPhoto({ name, photoUrl, tone = 0, size = 'md', dim, classNam
       role={decorative ? undefined : 'img'}
       aria-label={decorative ? undefined : name}
       aria-hidden={decorative ? true : undefined}
-      className={cx('relative flex items-center justify-center overflow-hidden select-none', tileTone(tone), dim && 'opacity-60', className)}
+      className={cx('relative flex items-center justify-center overflow-hidden select-none', dim ? 'bg-surface-sunken text-ink-muted' : tileTone(tone), className)}
     >
       <span className={cx('leading-none font-extrabold tracking-display', LETTER[size])}>{monogram(name)}</span>
       {size !== 'sm' && <span aria-hidden="true" className="absolute inset-x-[18%] bottom-[16%] h-[3px] rounded-full bg-current opacity-25" />}

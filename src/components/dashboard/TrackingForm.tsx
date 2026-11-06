@@ -130,7 +130,7 @@ export function TrackingForm({ shopId, orderId, atPayPal = true }: { shopId: str
           )}
         </Field>
       )}
-      <Field label="Tracking number" hint="Paste it from the label. Spaces are fine." error={fieldErrors.number}>
+      <Field label="Tracking number" error={fieldErrors.number}>
         {(p) => (
           <TextInput
             {...p}

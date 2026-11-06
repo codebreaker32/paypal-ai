@@ -1,238 +1,147 @@
-# Shelfie design system
+# Shelfie design system: "Storefront"
 
-The single reference for how Shelfie looks and behaves. Tokens live in `src/app/globals.css` and nowhere else; components in `src/components/ui` use tokens only. If a screen needs something this file doesn't cover, add the token or component here first.
+The tokens live in `src/app/globals.css`, the components in `src/components/ui`. Storefront won directions round 2 (`docs/judge/directions-2.md`). This file replaces the retired "Menu board" system (cream paper, serif display, mustard buttons, receipt slips).
 
-## Direction A: "Menu board"
+## Rationale
 
-**The seller's own world, printed.** Newsprint paper, blackboard-green ink, the till receipt and the handwritten menu that started it all, set with a confident editorial voice and one marigold accent.
+A small seller's shop should look like their store on Toast or Square: a white page, their own photos, near-black type and one quiet accent. Food photos supply the colour, so the interface stays neutral and gets out of their way:
+- **White page, near-black ink.** No cream, no paper texture.
+- **One pomegranate accent**, used only for the logo, the active tab and filter, counts and the odd price emphasis. It never fills a button.
+- **Black pill primary buttons** (like Toast's Pickup toggle). PayPal's own blue is used only on "Approve $X on PayPal".
+- **Status is a dot and a word** ("● Paid") in lists, not a boxed chip.
+- **Sections are separated by space and rules**, not outlined boxes. A raised card (soft shadow) is kept for things that really are cards: menu items and the order list's grouped rows.
+- **One sans family, Figtree**, for everything, including prices (tabular figures, never monospace).
 
-Rationale in five lines:
+Banned (rubric Part C): cream or beige backgrounds, serif display headlines, mustard or orange primaries, a hairline box around everything, dotted leaders, monospace prices, highlighter stripes, zig-zag receipt edges, a grey explanatory sentence under every element, an icon on every label, boxed status chips everywhere, walls of identical cards, and the stock tag logo.
 
-1. Shelfie's sellers are neighbourhood shops whose catalogue is a sheet of paper; the product should feel like their counter, not like a fintech dashboard.
-2. A high-contrast menu serif (Playfair Display, roman for titles, italic for menu sections) gives real typographic hierarchy; a newspaper grotesk (Schibsted Grotesk) carries everything read carefully.
-3. Money is printed like a till receipt: IBM Plex Mono for every price, total and order number, dashed rules between sections, a perforated foot on every order slip.
-4. One decisive accent, marigold (also the demo shop's name), always a fill under ink text, never text itself; PayPal blue appears only on PayPal's own approve button.
-5. The menu photo is the hero object: taped to the shop page, framed like a print on setup, so the paper the seller started from stays in view.
+## Tokens
 
-Why these choices, given the anti-slop rules:
+The tokens come in three layers, and components only use the second and third:
+1. **Primitives** (`:root`): raw hex values.
+2. **Semantic** (`@theme`): Tailwind utilities such as `bg-surface`, `text-ink-muted` and `bg-accent`. The palette is closed (`--color-*: initial`), so Tailwind's default colours don't exist.
+3. **Component** (`:root`): per-component tokens such as `--button-primary-bg`, `--card-shadow` and `--thumb-radius`.
 
-- **Not Fraunces, not cream and clay.** The baseline used the two most common AI "artisan" defaults; this direction replaces both. The paper is a cooler newsprint (`#F1EEE6`) with receipt-white slips (`#FFFEFA`), the ink is green-black rather than espresso, and the accent is a bright marigold fill rather than brick or brass.
-- **The serif is earned:** the subject is literally a printed menu. Playfair's italic is the voice of menu sections ("Breads", "Pastries"); it is never used for body copy.
-- **Monospace is data, not costume:** it marks money and order references only, the same things a till prints.
-- No gradients (except the skeleton shimmer and the highlighter swipe), no glass, no glow, no emoji as icons, no eyebrow labels above headings, no coloured left-border callouts.
-- Light theme only (a counter or a stall in daylight). The semantic layer is where a dark theme would go.
+### Colour
 
-## Token layers
+| Semantic | Primitive | Hex | Use |
+|---|---|---|---|
+| `surface`, `surface-raised` | white | `#ffffff` | Page and cards |
+| `surface-subtle` | grey-25 | `#fafafb` | Row hover |
+| `surface-sunken` | grey-50 | `#f4f5f7` | Wells: the AI brief, the receipt summary, the console's activity and approval panels, starter prompts, secondary buttons |
+| `line` | grey-100 | `#eceef1` | Rules and dividers |
+| `line-strong` | grey-300 | `#d4d6dc` | Scrollbars, strong dividers |
+| `control` | grey-500 | `#8a8f98` | Input borders (3.25:1, a non-text UI contrast) |
+| `ink` | ink-900 | `#111214` | Text, primary button fill, focus ring |
+| `ink-soft` | ink-700 | `#3d4148` | Body copy on a white page |
+| `ink-muted` | ink-600 | `#5e636c` | Meta text |
+| `ink-faint` | ink-400 | `#a3a7ae` | Decoration only (2.41:1, never text) |
+| `accent`, `accent-ink` | pom-600 | `#c21a4b` | Logo, active tab, tab counts, selected filter count |
+| `accent-hover` / `accent-active` | pom-700 / pom-800 | `#a3153f` / `#861235` | |
+| `accent-soft`, `selection` | pom-50 / pom-100 | `#fdeaf0` / `#f9d3df` | Text selection |
+| `ok` / `ok-soft` | green-700 / green-50 | `#1e7a45` / `#e4f3ea` | Paid, live |
+| `warn` / `warn-soft` | amber-800 / amber-50 | `#9a4a00` / `#fff0de` | Waiting, a brief's warning, the "Can't reach PayPal" banner |
+| `danger` / `danger-soft` | red-700 / red-50 | `#b42318` / `#fde8e6` | Refused, failed |
+| `info` / `info-soft` | blue-700 / blue-50 | `#2457a6` / `#e7eefa` | Shipped, picked up |
+| `paypal` (hover, active) | paypal-500 (700, 900) | `#0070ba` (`#005ea6`, `#003087`) | The PayPal approve button only |
+| `tile-rose`, `-sage`, `-sky`, `-lilac` | | `#fce7ee`/`#8e1a43`, `#e3f1e8`/`#1f5a37`, `#e5eefa`/`#1e4c8a`, `#eee9fb`/`#4b3091` | The photo fallback, one tint per menu section |
 
-```
-1. Primitives  :root          --paper-50, --ink-900, --marigold-400 ...   raw values, never used in components
-2. Semantic    @theme         bg-surface, text-ink, bg-accent, text-ok     Tailwind utilities
-3. Component   :root          --button-primary-bg, --card-radius ...      used inside src/components/ui only
-```
+**Contrast** (WCAG 2.1, computed from the hex values):
 
-Tailwind's default palette, type scale, radii and shadows are removed (`--color-*: initial` and so on), so `bg-zinc-100` or `text-red-500` don't exist. Re-skinning a direction means changing primitives or remapping the semantic layer.
+| Pair | Ratio |
+|---|---|
+| ink on white | 18.74:1 |
+| ink-soft on white | 10.25:1 |
+| ink-muted on white | 6.04:1 |
+| ink-muted on surface-sunken | 5.54:1 |
+| pom-600 on white, white on pom-600 | 5.93:1 |
+| white on PayPal blue | 5.22:1 |
+| ok on white | 5.35:1 |
+| ok on ok-soft | 4.66:1 |
+| warn on white | 6.26:1 |
+| warn on warn-soft | 5.60:1 |
+| danger on white | 6.57:1 |
+| danger on danger-soft | 5.59:1 |
+| info on white | 7.03:1 |
+| the tile inks on their tints | 6.99 to 8.30:1 |
 
-### Colour: semantic tokens
-
-| Utility (`bg-*`, `text-*`, `border-*`) | Primitive | Use |
-|---|---|---|
-| `surface` | `--paper-50` #F1EEE6 | Page background (newsprint) |
-| `surface-raised` | `--paper-0` #FFFEFA | Cards, receipt slips, inputs |
-| `surface-sunken` | `--paper-100` #E7E2D6 | Wells, skeleton base, neutral badge |
-| `line` | `--paper-200` #DAD3C3 | Hairline dividers |
-| `line-strong` | `--paper-300` #C4BBA7 | Card edges, dashed till rules, leader dots (decorative) |
-| `control` | `--paper-500` #7E7563 | Input and dashed-control borders (meets 3:1) |
-| `ink` | `--ink-900` #1A1F1B | Body text, headings, button edges, header and section rules, focus ring |
-| `ink-soft` | `--ink-700` #3B443E | Secondary text, lead paragraphs |
-| `ink-muted` | `--ink-600` #545D57 | Hints, captions, meta |
-| `ink-faint` | `--ink-400` #959B92 | Decorative only; **never text** (2.45:1) |
-| `accent` | `--marigold-400` #F0A23A | Primary button fill, the logo tag, the highlighter, the tape |
-| `accent-hover` / `accent-active` | `--marigold-500` #E38D1F / `--marigold-600` #CF7A12 | Pressed and hover fills; link underlines |
-| `accent-soft` | `--marigold-50` #FBEBCF | The AI brief note on order cards, accent badge |
-| `accent-ink` | `--ink-900` | Links and accent-toned text: ink, with a marigold underline |
-| `on-accent` | `--ink-900` | Text on marigold fills |
-| `ok` / `ok-soft` | leaf #2E6A3D / #E2EEDF | Paid, published, done, the paid stamp |
-| `warn` / `warn-soft` | rust #9C3F0B / #FBE3D2 | Needs you, waiting, allergens |
-| `danger` / `danger-soft` | brick #9B1E1B / #F7DEDA | Errors, declined, failed |
-| `info` / `info-soft` | slate #33506B / #E2E8EE | Shipped, picked up, neutral notices |
-| `paypal` / `paypal-hover` / `paypal-active` | #0070BA / #005EA6 / #003087 | **PayPal buttons only** |
-| `on-paypal` | #FFFFFF | Text on PayPal buttons |
-| `focus` | `--ink-900` | Focus ring (2 px solid, 2 px offset) |
-| `selection` | `--marigold-100` #F7DDB0 | `::selection` |
-| `scrim` | ink at 50% | Dialog backdrop |
-
-### Contrast (WCAG 2.1, computed from the hex values)
-
-Text needs 4.5:1 (AA, normal text); UI boundaries and icons that carry meaning need 3:1. Every text pairing used by a component passes AA. Computed with the WCAG 2.1 relative-luminance formula.
-
-| Foreground / background | Ratio | Use |
-|---|---|---|
-| ink / surface | 14.42 | Body text |
-| ink / surface-raised | 16.57 | Text on cards and receipts |
-| ink / surface-sunken | 12.94 | Text in wells |
-| ink / accent-soft | 14.24 | AI brief note, accent badge |
-| ink-soft / surface | 8.70 | Lead and secondary text |
-| ink-soft / surface-raised | 9.99 | Secondary text on cards |
-| ink-soft / surface-sunken | 7.80 | Neutral badge |
-| ink-soft / accent-soft | 8.59 | Brief note label |
-| ink-muted / surface | 5.88 | Hints, captions |
-| ink-muted / surface-raised | 6.76 | Meta on cards |
-| ink-muted / surface-sunken | 5.27 | Meta in wells |
-| ink / accent | 7.91 | Primary button (ink on marigold) |
-| ink / accent-hover | 6.45 | Primary button, hover |
-| ink / accent-active | 5.13 | Primary button, pressed |
-| ink / selection | 12.68 | Selected text |
-| ok / surface | 5.58 | Success text |
-| ok / surface-raised | 6.41 | Success text on cards, the paid stamp |
-| ok / ok-soft | 5.40 | Success badge |
-| warn / surface | 5.79 | Warning text |
-| warn / surface-raised | 6.65 | Warning text on cards |
-| warn / warn-soft | 5.44 | Warning badge and callout |
-| warn / accent-soft | 5.72 | Allergy line inside the brief note |
-| danger / surface | 6.98 | Inline errors |
-| danger / surface-raised | 8.02 | Errors on cards |
-| danger / danger-soft | 6.33 | Error badge |
-| info / surface | 7.24 | Info text |
-| info / surface-raised | 8.32 | Info on cards |
-| info / info-soft | 6.80 | Info badge |
-| on-paypal / paypal | 5.22 | PayPal button |
-| on-paypal / paypal-hover | 6.66 | PayPal button, hover |
-| on-paypal / paypal-active | 11.85 | PayPal button, pressed |
-| surface / ink | 14.42 | Toasts, buyer chat bubbles, skip link |
-| control / surface-raised | 4.51 | Input borders (non-text, 3:1) |
-| control / surface | 3.93 | Dashed "Add page" control (non-text, 3:1) |
-| ink / surface | 14.42 | Focus ring, button edges, header and section rules |
-| accent / surface | 1.82 | Marigold fill against the page: decorative; every marigold button also has a 1.5 px ink edge (14.42:1) |
-| ink-faint / surface | 2.45 | Decorative only |
-| line-strong / surface | 1.64 | Perforation, dashed rules, leader dots (decorative) |
-
-Disabled controls drop to 50% opacity (WCAG exempts inactive controls). A **loading** button keeps full colour: it is busy, not unavailable.
+A dimmed fallback tile (a cancelled or expired order) switches to ink-muted on surface-sunken (5.54:1) instead of fading with opacity.
 
 ### Type
 
-Fonts load through `next/font/google` in `src/app/layout.tsx`:
+**Figtree** (variable, 400 to 800) comes from `next/font` in `layout.tsx` and is used for both display and UI. The scale is a major third from 16 px: 13, 14, 16, 18, 20, 24, 30, 40, 52 and 68 px.
 
-- `font-display`: **Playfair Display** (variable 400 to 900, roman and italic). Titles, the wordmark (800 italic), menu sections (500 italic), receipt headings. Set with lining figures.
-- `font-sans`: **Schibsted Grotesk** (variable). A newspaper grotesk for everything else. The default on `<html>`.
-- `font-mono`: **IBM Plex Mono** (400, 500, 600). Prices, totals, order numbers, receipt lines, agent-door addresses. Never decorative.
-
-Scale: a major third from 16 px for text, with wider display steps. The smallest size is 13 px.
-
-| Utility | Size / line height | Use |
+| Role utility | Size and weight | Use |
 |---|---|---|
-| `text-xs` | 13 / 18 | Meta, badges, captions |
-| `text-sm` | 14 / 20 | Secondary UI text, chat bubbles |
-| `text-base` | 16 / 24 | Body (and every input, so iOS doesn't zoom) |
-| `text-lg` | 18 / 28 | Lead paragraphs, large buttons, menu item names |
-| `text-xl` | 20 / 28 | Card titles, receipt totals |
-| `text-2xl` | 24 / 32 | Section titles (phone), menu sections |
-| `text-3xl` | 30 / 36 | Section titles (desktop) |
-| `text-4xl` | 40 / 44 | Page title (phone) |
-| `text-5xl` | 52 / 56 | Page title (desktop) |
-| `text-6xl` | 68 / 72 | Hero title (desktop) |
+| `type-hero` | 40 / 68 px, 800, −0.03em | Start headline, shop name |
+| `type-display` | 30 / 40 px, 800, −0.03em | Page titles (Order SHF-…, receipt state) |
+| `type-title` | 20 / 24 px, 800 | Empty-state titles |
+| `type-heading` | 18 px, 700 | Section headings |
+| `type-kicker` | 20 px, 800 | Menu section names |
+| `type-lead`, `type-body` | 18 px, 16 px | Copy |
+| `type-label` | 14 px, 600 | Field and group labels |
+| `type-meta` | 13 px | Times and meta |
+| `type-price`, `type-figures`, `type-receipt` | Tabular, lining figures | Money and order numbers |
 
-Type roles (use these rather than assembling size, weight and family by hand):
+`html` sets `text-rendering: geometricPrecision`. Linux and Windows Chrome hint Figtree's advances to whole pixels at 1×, which opens gaps after f, t and T ("shelf ie", "bef ore", "nut s"). Geometric precision turns hinting off.
 
-| Role | What it sets |
-|---|---|
-| `type-hero` | Playfair 800, 40 px (68 px from 1024 px), line height 1.02 to 1.06, tracking -0.025em. The start page and shop page `h1`. |
-| `type-display` | Playfair 800, 40 px (52 px from 1024 px). Every other page `h1`. |
-| `type-title` | Playfair 700, 24 px (30 px from 1024 px). Section headings. |
-| `type-heading` | Playfair 700, 20 px. Card and sheet titles. |
-| `type-kicker` | Playfair 500 italic, 20 px. Menu sections ("Breads"). Not an eyebrow: it is the section's own heading. |
-| `type-lead` | 18 / 28. The paragraph under a page title. |
-| `type-body` | 16 / 24. |
-| `type-label` | 14 / 20, weight 600. Field labels, group headings. |
-| `type-meta` | 13 / 18. Hints, captions, timestamps. |
-| `type-price` | IBM Plex Mono, tabular lining figures. Every price, total and order number. |
-| `type-receipt` | IBM Plex Mono 14 / 22, tabular. Whole receipt blocks (line items, totals). |
-| `type-figures` | Tabular lining figures in the surrounding face, for counts inside prose and headings. |
+The mono stack (system mono, no webfont) is only for code: the agent door address, setup snippets and PayPal IDs. It is never used for prices.
 
-Line length: running text sits in `max-w-measure` (36 rem, about 65 characters at 16 px). Headings use `text-wrap: balance`, paragraphs `text-wrap: pretty`.
+### Space, radius, elevation, motion
 
-### Paper utilities
-
-| Utility | What it does | Where |
-|---|---|---|
-| `perforated` | Masks half-circle bites (5 px radius, every 14 px) along the bottom edge and pads the foot to clear them. | Dashboard order cards, the receipt slip, the order page's Items, the buyer console's approval slip, the start page's "Payment received" stub |
-| `paper-drop` | Drop shadow that follows a masked shape (put it on the parent of a `perforated` element; box shadows are clipped by the mask). | Wrappers and lists of perforated slips |
-| `rule-dashed` | 1.5 px dashed `line-strong` top rule: the till's divider. | Between receipt sections |
-| `mark-highlight` | Marigold highlighter swipe behind one phrase (ink text stays 7.91:1). | Once per page at most: "AI shoppers." on the start page |
-
-The menu-board leader dots on the shop page and on the review step's "Ready for PayPal" list are a 2 px dotted `line-strong` bottom border between the item name and its price, shown only when the item has a price. The seller checks their catalog in the same shape buyers will see it.
-
-### Spacing, layout, radius, elevation
-
-- **Spacing:** Tailwind's 4 px base (`p-1` = 4 px). Use 1, 1.5, 2, 3, 4, 5, 6, 8, 10, 12. Named rhythm tokens: `tap` (44 px, minimum touch target: `min-h-tap`, `size-tap`), `gutter` (page side padding, 20 px to 48 px fluid: `px-gutter`), `section` (48 px to 96 px fluid: `pb-section`).
-- **Containers:** `max-w-page` (76 rem) for page content, `max-w-narrow` (64 rem) for the receipt, `max-w-measure` (36 rem) for prose, `max-w-card` (5 in) for the printed counter card.
-- **Breakpoints:** Tailwind defaults. Design at 390 px first, then `sm` 640, `lg` 1024 and check 1440.
-- **Radius (shape lock: square paper corners):** `xs` 2 (badges, stamps, notes), `sm` 3, `md` 4 (buttons, inputs), `lg` 4 (cards, slips), `xl` 12 (the top of the bottom sheet only), `full` (round icon chips, the switch, step dots).
-- **Rules:** the site header and footer carry a 2 px ink rule; page mastheads (dashboard tabs, order header, the menu title) use 1 to 2 px ink rules. Everything inside a slip uses dashed `line-strong` rules.
-- **Elevation:** paper lying on a counter. Ink-tinted shadows with an offset and a soft blur: `shadow-xs` (buttons), `shadow-sm` (cards), `shadow-md` (floating cards, toasts), `shadow-lg` (sheets, photos). Perforated slips use `paper-drop`. No zero-offset glows, no hard offset shadows.
-- **Layers:** `--z-header` 20, `--z-sheet` 50, `--z-toast` 60 (`z-(--z-toast)`).
-
-### Motion
-
-| Token | Value | Use |
-|---|---|---|
-| `--duration-instant` | 90 ms | Press feedback |
-| `--duration-fast` | 140 ms | Colour and border changes (the default transition) |
-| `--duration-base` | 220 ms | Fades, small moves, the taped photo straightening on hover |
-| `--duration-slow` | 360 ms | Entrances (`animate-rise-in`) |
-| `ease-out` | cubic-bezier(0.22, 1, 0.36, 1) | Arrivals (the default) |
-| `ease-in` | cubic-bezier(0.55, 0, 1, 0.45) | Departures |
-| `ease-in-out` | cubic-bezier(0.65, 0, 0.35, 1) | Loops (skeleton shimmer) |
-
-Animations: `animate-rise-in` (entrance: fade plus 24 px rise), `animate-fade-in`, `animate-shimmer` (skeletons), `animate-spin` (spinners). One authored moment per screen; on the Start page it is the example conversation rising in, then the "Payment received" stub. Only `transform` and `opacity` animate. `prefers-reduced-motion: reduce` collapses every animation and transition to an instant change, and skeletons become a flat fill.
-
-### Browser surfaces
-
-Themed in the base layer: `::selection` (marigold-100), the text caret (marigold), scrollbars (`line-strong`), focus rings (ink, 2 px, 2 px offset on every focusable element), link underlines (2 px, marigold-500, 0.24em offset), lining figures by default, `color-scheme: light`, and the dialog backdrop (scrim). Page scroll locks while a dialog is open.
-
-**Print:** a page that marks one element `data-print-alone` prints that element only (the site header, footer and toast region drop out; the page hides its own toolbar with `print:hidden`). The counter card (`/shops/[id]/card`) is the one such page: a 5 × 7 in slip with a 2 px ink edge and a hairline frame inside it, sized by container queries (`@md:`) so the on-screen preview at 5 in matches the print, and `print-color-adjust: exact` so it prints the same with background graphics off. It stays ink on paper (it must survive a black-and-white printer); the marigold appears only in the Shelfie tag and, on screen, the tape holding the card to the page.
+- **Space:** a 4 px base; `tap` is 44 px; `gutter` is `clamp(20px, 4vw, 48px)`; `section` is `clamp(48px, 8vw, 96px)`.
+- **Containers:** `page` is 76rem (the start page, shop, receipt, setup). `wide` is 88rem (the dashboard and order detail). The header and footer follow the page below them (`brand/Frame.tsx`), so the logo lines up with the content. `measure` is 36rem, for prose.
+- **Radius:** xs 6, sm 8, md 10 (thumbnails, fields), lg 14 (cards, photos), xl 20 (cover, starter prompts), 2xl 28 (sheet), full (buttons, filters).
+- **Elevation:** shadows are ink-tinted, each an offset plus a soft blur. `shadow-sm` (cards) has a 5 % ink ring, so it reads as a lift, not an outline. Use it only on true cards, never on page sections.
+- **Motion:** 90, 140, 220 and 360 ms with ease-out. Rows and toasts rise in. All of it stops under `prefers-reduced-motion`.
 
 ## Components (`src/components/ui`)
 
-| Component | Props | Notes |
-|---|---|---|
-| `Button` | `variant: 'primary' \| 'secondary' \| 'ghost' \| 'paypal'`, `size: 'md' \| 'lg'`, `loading?`, `loadingLabel?`, `icon?`, `iconEnd?`, `fullWidth?` + button attributes | A printed label: `primary` is ink text on marigold with a 1.5 px ink edge, `secondary` an ink outline on transparent paper. Heights 44 px (`md`) and 56 px (`lg`). `loading` shows a spinner, sets `aria-busy` and blocks clicks. One `primary` per screen; `paypal` only for "Approve $X on PayPal". |
-| `ButtonLink` | Same styling options + `next/link` props | Navigation that looks like a button ("Open your dashboard"). Defaults to `secondary`. |
-| `buttonClasses()` | `{ variant, size, fullWidth, loading, className }` | For anything else that must look like a button. |
-| `Card` | `as?`, `tone: 'raised' \| 'sunken' \| 'flat'`, `padding: 'none' \| 'md' \| 'lg'` | A slip of receipt paper with square corners. Add `perforated` (and `paper-drop` on the parent) for anything that is an order or a receipt. Don't nest cards. |
-| `Field` | `label`, `hint?`, `error?`, `required?`, `hideLabel?`, `children: (controlProps) => ReactNode` | Wires `id`, `aria-describedby` and `aria-invalid` into the control. Server-safe. |
-| `TextInput`, `TextArea` | Native attributes | 48 px tall, 16 px text. Pass the props `Field` hands you. |
-| `FieldError` | `children`, `id?` | Inline error with an icon and `role="alert"`. Name the problem and the fix. |
-| `Badge` | `tone: 'neutral' \| 'accent' \| 'ok' \| 'warn' \| 'danger' \| 'info'`, `icon?` | A rubber stamp: square corners, a 1 px edge in the tone's colour. Status words. Pair status tones with an icon so meaning never rests on colour. |
-| `Sheet` | `open`, `onClose`, `title`, `description?`, `footer?` | Native modal `<dialog>`: bottom sheet under 640 px, centred dialog above. The page behind is inert, Esc and a backdrop tap close it, focus returns to the opener. |
-| `Tabs` | `label`, `items: { id, label, count?, content }[]`, `value?`, `defaultValue?`, `onValueChange?` | An ink rule under the list, a 3 px ink bar under the active tab, counts in mono. 14 px labels under 640 px, 16 px above; the list wraps rather than scrolls, so no label is ever clipped. WAI-ARIA tabs with roving tabindex, arrow keys, Home and End. |
-| `ToastProvider`, `useToast()` | `toast({ title, description?, tone: 'neutral' \| 'ok' \| 'danger', durationMs? })` | Mounted in the root layout. Polite live region; never takes focus; auto-dismisses after 5 s; 44 px dismiss button. Errors that need action belong inline, not in a toast. |
-| `Skeleton`, `SkeletonText` | `className` (size), `rounded?`, `lines?` | Shaped like the content it replaces. Wrap the region in `aria-busy="true"` with a visually hidden status. |
-| `Icon` | `icon: LucideIcon`, `size: 'sm' \| 'md' \| 'lg'`, `label?` | The only way to draw icons (lucide-react). 16, 20 and 24 px, stroke 1.75. Decorative unless `label` is given. Icon-only buttons put their name on the button (`aria-label`). |
+| Component | Notes |
+|---|---|
+| `Button`, `ButtonLink`, `buttonClasses()` | Pills. `primary` is a near-black fill with white text; `secondary` is a grey fill; `ghost` has no fill; `paypal` is PayPal blue, only for "Approve $X on PayPal". 44 px (`md`) and 52 px (`lg`). One primary per screen. `loading` shows a spinner and sets `aria-busy`. |
+| `Card` | `raised`: white with `shadow-sm`, no border. `sunken`/`flat`: a grey well. Use it for menu items, grouped order rows and wells. Page sections are not cards: separate them with `border-t border-line` and space. Don't nest cards. |
+| `Badge` | A soft pill with no outline. Use it sparingly, for one-off facts ("Sent to PayPal", "Allergy"). Never use it for order status in lists. |
+| `Tabs` | WAI-ARIA tabs with an ink underline under the active tab and a pomegranate count pill. |
+| `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline and name the fix. |
+| `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
+| `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. |
+| `Skeleton` | Shaped like the content it replaces, with a shimmer. |
+| `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
 
-Brand (`src/components/brand`): `Logo` (marigold tag with an ink edge plus the wordmark in Playfair 800 italic), `SiteHeader` (logo linking home; in the root layout), `SiteFooter` (the sandbox notice; in the root layout). The root layout also provides the skip link and `<main id="main">`, so pages render their content only.
+Order status (`dashboard/status.tsx`): `OrderStatusText` is a coloured dot and the word, and it is the default everywhere. `OrderStatusBadge` remains for compatibility.
 
-## Rules for every screen
+## The photo and its fallback (`shop/ItemPhoto.tsx`)
 
-- **One primary action** per screen, in `accent`. Secondary actions use `secondary` or `ghost`; tertiary actions are text links in `accent-ink` (ink) with a marigold underline.
-- **Marigold is a fill, never text.** It fails as text on paper (1.82:1); anything marigold carries ink on top or an ink edge beside it.
-- **Every async action** has idle, loading, success and error states. Errors appear next to the thing that failed, say what happened and what to do ("We couldn’t open that photo. Try a JPG or PNG."), and keep the user's work.
-- **Touch targets** are at least 44 by 44 px, with at least 8 px between them. Inputs use 16 px text.
-- **Copy** is plain and specific. Seller screens say "agent door", "payment received", "Add tracking"; never MCP, capture or webhook outside the developer details. Curly apostrophes and quotes (’ “ ”) in every visible string, including server messages; no em-dashes in UI copy, no lorem ipsum, no invented statistics.
-- **Images** have alt text that says what is in them; decorative images use `alt=""`.
-- **Prices** come from the shop's data and render with `formatUSD()` and `type-price` (mono). Orders and receipts are printed slips: mono lines, dashed rules, a perforated foot. On a phone an order slip's top row is the number on the left and the total on the right, with the buyer line and status stamp below it; the number never breaks. Dashboard groups carry a mono subtotal ("Paid $43.50", "Not paid yet $83.00").
-- **Status colour** always comes with an icon and a word.
-- **No raw values in components:** no hex, no ad-hoc shadows or radii. Ratios and layout fractions (`aspect-[4/3]`, `max-w-[85%]`) are fine.
+Item photos are 4:3 crops with the `photo` radius. Thumbnails use `thumb` (10 px).
 
-## Re-skinning
+An item without a photo shows its **monogram** ("Country sourdough loaf" becomes "Cs") set heavy on its section's tint. The tints cycle rose, sage, sky and lilac by menu section. A thin "shelf" rule sits under the letters at md/lg sizes. A menu with no photos therefore reads as a deliberate, colour-coded grid rather than grey boxes.
 
-A second visual direction should only touch `src/app/globals.css`:
+The shop cover is the seller's own photo, or a strip of up to four item photos. With a cover, the shop's monogram tile sits over the cover's bottom edge with a white ring. Without one, it sits beside the name.
 
-1. Change the primitives (paper, ink, accent hue), or point the semantic tokens at different primitives.
-2. Swap the fonts in `layout.tsx` (the variables `--font-playfair`, `--font-schibsted` and `--font-plex-mono` feed `--font-display`, `--font-sans` and `--font-mono`).
-3. Adjust component tokens (`--button-radius`, `--card-radius`, shadows) for shape and depth.
-4. Recompute the contrast table above for every changed colour with a WCAG 2.1 contrast calculator and update it here.
+## Screens
 
-## Verifying
+- **Shop page:** a rounded cover with the avatar, the name in `type-hero`, a meta line ("Food · Pickup or shipping · **Paid with PayPal**") and underline section tabs.
+  - On desktop, items are 2-column horizontal cards with the photo on the right and a sticky assistant panel. On phones, items are thumbnail rows with a sticky black bar: "Order with an assistant · PayPal".
+  - The agent door sits behind one "Connect your own assistant" disclosure at the foot (`#agent-door` opens it).
+- **Buyer console:**
+  - The empty state is a one-sentence greeting and starter prompts as tinted pills.
+  - The Activity panel and the approval card are grey wells, not outlined boxes.
+- **Dashboard shell:**
+  - The shop's monogram, its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.
+  - Then the tabs: Orders · Menu · Share · Settings.
+  - Orders has a segmented filter (44 px) and groups (To prepare, Waiting for payment, collapsible, and Done), each with its subtotal.
+- **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid. On phones the buyer's name gives way last.
+- **Order detail:**
+  - On desktop, a master list on the left: rows on white with a rule on their right, and the open order on grey.
+  - The header shows the number, the status dot and word, who placed it and the big total.
+  - Left column: the AI brief as the one grey well, then Items and What happened. Right column: the action (hand over, add tracking, the explanation), Buyer and PayPal.
+  - Sections are divided by rules on the white page. Copy is trimmed to one line where a seller would otherwise be stuck.
+- **Receipt `/o/[ref]`:** the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), beside a grey summary panel. The panel shows the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
 
-- `npx playwright test e2e/start.spec.ts`: axe (WCAG 2.1 A and AA) at 390 and 1440 px, no horizontal scroll, every control at least 44 px tall, keyboard focus ring, upload and sample flows.
-- `SCREENSHOTS_DIR=docs/judge/screenshots/direction-a E2E_PORT=3141 npm run screenshots`: every in-scope screen at 390 and 1440 px with axe results (`axe-results.json`).
+## Rules
+
+- One primary (black) action per screen; PayPal blue only to approve a payment.
+- Status always pairs colour with a word, never colour alone.
+- At most one line of help, and only where a seller would otherwise be stuck.
+- 44 px targets; inputs use 16 px text; no horizontal page scroll at 390 px; alt text on every meaningful photo, `alt=""` on decorative copies.
+- No raw values in components. Add a token here and in `globals.css` first.

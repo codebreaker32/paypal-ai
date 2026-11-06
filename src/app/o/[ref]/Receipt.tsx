@@ -21,6 +21,26 @@ const TONE: Record<Tone, string> = {
   neutral: 'bg-surface-sunken text-ink-soft',
 };
 
+const DOT: Record<Tone, string> = {
+  ok: 'text-ok',
+  warn: 'text-warn',
+  danger: 'text-danger',
+  info: 'text-info',
+  neutral: 'text-ink-muted',
+};
+
+/** The status word on the summary panel (the page heading says it in full, so this copy is hidden from screen readers). */
+const SHORT: Record<ReceiptOrder['status'], string> = {
+  awaiting_approval: 'Not paid yet',
+  approved: 'Confirming',
+  payment_pending: 'Pending',
+  paid: 'Paid',
+  fulfilled: 'Paid',
+  failed: 'Not paid',
+  cancelled: 'Cancelled',
+  expired: 'Expired',
+};
+
 export interface ReceiptProps {
   orderRef: string;
   initial: ReceiptOrder;
@@ -63,7 +83,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-16">
       <div className="flex flex-col gap-8">
         <div aria-live="polite" className="flex flex-col items-start gap-4">
-          <span className={cx('inline-flex size-14 items-center justify-center rounded-full border-2 border-current', TONE[view.tone])}>
+          <span className={cx('inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
             <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
           </span>
           <h1 className="type-display">{view.title}</h1>
@@ -90,64 +110,53 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
         </div>
       </div>
 
-      {/* The printed slip: a till receipt with a torn, perforated foot */}
-      <div className="paper-drop relative lg:mt-2">
-        <Card
-          as="section"
-          aria-labelledby="receipt-title"
-          tone="flat"
-          padding="none"
-          className="perforated relative flex flex-col gap-4 border-0 px-5 pt-6 sm:px-7 sm:pt-7"
-        >
-          <div className="flex flex-col items-center gap-1 text-center">
-            <h2 id="receipt-title" className="type-title [overflow-wrap:anywhere]">
-              {order.shopName}
-            </h2>
-            <span className="type-receipt text-ink-muted">Order {order.number}</span>
-            {(order.status === 'paid' || order.status === 'fulfilled') && (
-              // A rubber stamp on the slip; the page heading already says it in words.
-              <span
-                aria-hidden="true"
-                className="mt-2 -rotate-6 rounded-xs border-[3px] border-ok px-3 font-display text-2xl leading-9 font-extrabold tracking-wide text-ok uppercase"
-              >
-                Paid
-              </span>
-            )}
-          </div>
-          <dl className="type-receipt rule-dashed flex flex-col gap-1.5 pt-4">
-            {order.lines.map((l, i) => (
-              <div key={i} className="flex justify-between gap-4">
-                <dt className="min-w-0 [overflow-wrap:anywhere]">
-                  {l.qty} × {l.name}
-                  {l.label ? ` (${l.label})` : ''}
-                </dt>
-                <dd className="shrink-0">{formatUSD(l.unitCents * l.qty)}</dd>
-              </div>
-            ))}
-            {order.shippingCents > 0 && (
-              <div className="flex justify-between gap-4 text-ink-soft">
-                <dt>Shipping</dt>
-                <dd>{formatUSD(order.shippingCents)}</dd>
-              </div>
-            )}
-            <div className="rule-dashed mt-3 flex items-baseline justify-between gap-4 pt-3 text-lg font-semibold">
-              <dt>Total</dt>
-              <dd>{formatUSD(order.totalCents)}</dd>
+      {/* The order summary: a plain panel, like a store's order confirmation. Status as a dot and a word. */}
+      <Card as="section" aria-labelledby="receipt-title" tone="sunken" padding="lg" className="flex flex-col gap-5 lg:mt-2">
+        <div className="flex flex-col gap-1">
+          <h2 id="receipt-title" className="type-heading [overflow-wrap:anywhere]">
+            {order.shopName}
+          </h2>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-muted">
+            <span className="type-figures">Order {order.number}</span>
+            <span aria-hidden="true" className={cx('inline-flex items-center gap-1.5 font-semibold', DOT[view.tone])}>
+              <span className="size-2 rounded-full bg-current" />
+              {view.tone === 'danger' ? 'Not paid' : SHORT[order.status]}
+            </span>
+          </p>
+        </div>
+        <dl className="type-receipt flex flex-col gap-2 border-t border-line pt-4 text-base">
+          {order.lines.map((l, i) => (
+            <div key={i} className="flex justify-between gap-4">
+              <dt className="min-w-0 [overflow-wrap:anywhere]">
+                <span className="font-semibold">{l.qty} ×</span> {l.name}
+                {l.label ? ` (${l.label})` : ''}
+              </dt>
+              <dd className="shrink-0">{formatUSD(l.unitCents * l.qty)}</dd>
             </div>
-          </dl>
-          <div className="rule-dashed flex flex-col gap-1.5 pt-3 text-center type-meta text-ink-muted">
-            {/* Whose PayPal account was paid (spec §8a): the shop's own, with its email masked, or Shelfie's demo account.
-                While PayPal still holds the payment, where it is going instead (it isn't paid yet). */}
-            {order.paidTo && <p className="font-medium text-ink-soft [overflow-wrap:anywhere]">{paidToText(order.paidTo)}</p>}
-            {order.goingTo && <p className="font-medium text-ink-soft [overflow-wrap:anywhere]">{goingToText(order.goingTo)}</p>}
-            <p>
-              {order.fulfillment === 'shipping'
-                ? 'Shipping to the address you gave PayPal.'
-                : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
-            </p>
+          ))}
+          {order.shippingCents > 0 && (
+            <div className="flex justify-between gap-4 text-ink-soft">
+              <dt>Shipping</dt>
+              <dd>{formatUSD(order.shippingCents)}</dd>
+            </div>
+          )}
+          <div className="mt-2 flex items-baseline justify-between gap-4 border-t border-line pt-3 text-lg font-bold">
+            <dt>Total</dt>
+            <dd>{formatUSD(order.totalCents)}</dd>
           </div>
-        </Card>
-      </div>
+        </dl>
+        <div className="flex flex-col gap-1 border-t border-line pt-4 text-sm text-ink-soft">
+          {/* Whose PayPal account was paid (spec §8a): the shop's own, with its email masked, or Shelfie's demo account.
+              While PayPal still holds the payment, where it is going instead (it isn't paid yet). */}
+          {order.paidTo && <p className="font-semibold text-ink [overflow-wrap:anywhere]">{paidToText(order.paidTo)}</p>}
+          {order.goingTo && <p className="font-semibold text-ink [overflow-wrap:anywhere]">{goingToText(order.goingTo)}</p>}
+          <p>
+            {order.fulfillment === 'shipping'
+              ? 'Shipping to the address you gave PayPal.'
+              : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
+          </p>
+        </div>
+      </Card>
     </div>
   );
 }

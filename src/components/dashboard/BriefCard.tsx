@@ -19,7 +19,7 @@ function BuyerNote({ note }: { note: string }) {
         <Icon icon={MessageSquareQuote} size="sm" />
         Buyer’s note, as written
       </h3>
-      <blockquote className="rounded-md bg-surface-sunken px-3 py-2.5 text-sm whitespace-pre-line [overflow-wrap:anywhere]">{note}</blockquote>
+      <blockquote className="rounded-md bg-surface px-3 py-2.5 text-sm whitespace-pre-line [overflow-wrap:anywhere]">{note}</blockquote>
     </div>
   );
 }
@@ -30,7 +30,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
   const brief = order.brief;
 
   return (
-    <Card as="section" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
+    <Card as="section" tone="sunken" aria-labelledby="brief-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="brief-title" className="flex items-center gap-2 type-label text-ink-muted">
           <Icon icon={brief && order.briefSource === 'template' ? Info : Sparkles} size="sm" />
@@ -45,7 +45,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             <Icon icon={Loader2} className="animate-spin text-ink-muted" />
             Writing the brief…
           </p>
-          <p className="text-sm text-ink-muted">Claude is reading PayPal’s record of this order. This takes about 10 seconds.</p>
+          <p className="text-sm text-ink-muted">Claude is reading PayPal’s record. About 10 seconds.</p>
         </div>
       )}
 
@@ -59,9 +59,9 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             {brief.headline}
           </p>
           {order.briefSource === 'template' ? (
-            <p className="type-meta -mt-2 text-ink-muted">The AI brief wasn’t available, so this is a plain summary of the order.</p>
+            <p className="type-meta -mt-2 text-ink-muted">The AI brief wasn’t available, so this is a plain summary.</p>
           ) : (
-            <p className="type-meta -mt-2 text-ink-muted">Written by Claude from PayPal’s record of this order. Check it before you act on it.</p>
+            <p className="type-meta -mt-2 text-ink-muted">Claude, from PayPal’s record. Check before acting.</p>
           )}
 
           {brief.flags.length > 0 && (

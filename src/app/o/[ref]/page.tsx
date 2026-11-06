@@ -23,7 +23,7 @@ export default async function ReceiptPage({ params }: PageProps<'/o/[ref]'>) {
   const tracking = ordersRepo.trackers(db, ref).at(-1) ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-narrow px-gutter pt-8 pb-section lg:pt-16">
+    <div className="mx-auto w-full max-w-page px-gutter pt-8 pb-section lg:pt-16">
       <Receipt
         orderRef={ref}
         initial={order}
