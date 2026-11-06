@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 14:35 IST (run 2, session 3)_
+_Last updated: 2026-11-06 14:14 IST (run 2, session 3)_
 
 ## Current phase
 **Run 2, session 3 (from 13:38 IST).** Items 1–3 of the run brief are built and verified (session 1). Review 3 (`docs/reviews/2026-11-06-review-3.md`) is done: the milestone review's 10 items and the 6 fixable items from a review of those fixes are merged, plus one the fixer found (a shop that doesn't take orders now offers **Ask the assistant**). **868 unit tests pass on `9851adb`; typecheck and lint are clean.** Running now: the round-6 screenshots on a production build, the capture gate alone, and the shop and discovery specs; the clip recorder (item 7) is being built in a worktree. Next: judge round 6.
