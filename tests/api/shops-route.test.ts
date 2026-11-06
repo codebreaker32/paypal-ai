@@ -105,6 +105,21 @@ describe('POST /api/shops', () => {
     expect((await POST(from('198.51.100.2'))).status).toBe(201);
   });
 
+  it('refuses a chunked JSON body over 64 KB with 413, without buffering it (R13)', async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>(
+        { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },
+        { highWaterMark: 0 },
+      );
+    const req = new Request('http://localhost/api/shops', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body, duplex: 'half',
+    } as RequestInit);
+    const res = await POST(req);
+    expect(res.status).toBe(413);
+    expect(await errorCode(res)).toBe('BODY_TOO_LARGE');
+    expect(pulled).toBeLessThanOrEqual(6);
+  });
+
   it('creates a draft shop from photos, sets the owner cookie and answers 201', async () => {
     const res = await POST(await multipart([{ blob: await jpeg(), name: 'a.jpg' }, { blob: await jpeg(), name: 'b.jpg' }]));
     expect(res.status).toBe(201);

@@ -92,6 +92,18 @@ describe('POST /api/paypal/webhook', () => {
     warn.mockRestore();
   });
 
+  it('refuses a chunked body over 64 KB with 413, without buffering it (R2/R5)', async () => {
+    let pulled = 0;
+    const body = new ReadableStream<Uint8Array>(
+        { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },
+        { highWaterMark: 0 },
+      );
+    const req = new Request('http://localhost:3000/api/paypal/webhook', { method: 'POST', headers: SIG_HEADERS, body, duplex: 'half' } as RequestInit);
+    const res = await route.POST(req);
+    expect(res.status).toBe(413);
+    expect(pulled).toBeLessThanOrEqual(6);
+  });
+
   it('runs in the Node runtime', () => {
     expect(route.runtime).toBe('nodejs');
   });
