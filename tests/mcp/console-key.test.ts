@@ -3,8 +3,6 @@
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
-import os from 'node:os';
-import path from 'node:path';
 import { connectAgentDoor } from '@/lib/agent/buyer-console';
 import { BUYER_IP_HEADER, CONSOLE_HEADER, consoleHeaders } from '@/lib/agent/console-key';
 import { getDb } from '@/lib/db';
@@ -13,6 +11,7 @@ import { resetRateLimits } from '@/lib/rate-limit';
 import { setPayPalForServices } from '@/lib/services';
 import { POST } from '@/app/s/[slug]/mcp/route';
 import { seedShop, type SeededShop } from '../helpers/shop';
+import { tempDbPath } from '../helpers/temp-db';
 
 const SERVER_IP = '10.9.8.7';
 const ctx = (slug: string) => ({ params: Promise.resolve({ slug }) });
@@ -20,7 +19,7 @@ const bad = { items: [{ item_id: 'itm_nope', quantity: 1 }], fulfillment: 'picku
 
 let s: SeededShop;
 beforeAll(() => {
-  process.env.DATABASE_PATH = path.join(os.tmpdir(), `shelfie-console-key-${process.pid}-${Date.now()}.db`);
+  process.env.DATABASE_PATH = tempDbPath('console-key');
   setPayPalForServices(createFakePayPal());
   s = seedShop(getDb(), { name: `Console Key Bakery ${Date.now()}` });
 });

@@ -1,8 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
-import os from 'node:os';
-import path from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
@@ -14,6 +12,7 @@ import { setPayPalForServices } from '@/lib/services';
 import { handleMcpRequest } from '@/lib/mcp/server';
 import { DELETE, GET, POST, runtime } from '@/app/s/[slug]/mcp/route';
 import { seedShop, type SeededShop } from '../helpers/shop';
+import { tempDbPath } from '../helpers/temp-db';
 
 const PROTOCOL = '2025-06-18';
 const ctx = (slug: string) => ({ params: Promise.resolve({ slug }) });
@@ -36,7 +35,7 @@ describe('agent door route POST /s/[slug]/mcp', () => {
   const fake = createFakePayPal();
 
   beforeAll(() => {
-    process.env.DATABASE_PATH = path.join(os.tmpdir(), `shelfie-route-${process.pid}-${Date.now()}.db`);
+    process.env.DATABASE_PATH = tempDbPath('route');
     setPayPalForServices(fake);
     s = seedShop(getDb(), { name: `Route Bakery ${Date.now()}` });
   });

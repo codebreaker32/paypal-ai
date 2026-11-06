@@ -1,7 +1,6 @@
 // POST /api/paypal/webhook: verify, dedupe, map the resource to our order, re-sync from PayPal (payload never trusted).
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { getDb } from '@/lib/db';
 import * as orders from '@/lib/db/repos/orders';
@@ -11,6 +10,7 @@ import { setPayPalForServices, getOrderDeps } from '@/lib/services';
 import { createOrderForShop, syncOrder } from '@/lib/orders/service';
 import type { Order } from '@/lib/domain/types';
 import { seedShop, type SeededShop } from '../helpers/shop';
+import { tempDbPath } from '../helpers/temp-db';
 
 const h = vi.hoisted(() => ({ verify: vi.fn<(headers: Headers, raw: string, webhookId: string) => Promise<boolean>>(async () => true) }));
 
@@ -73,7 +73,7 @@ describe('POST /api/paypal/webhook', () => {
     });
 
   beforeAll(async () => {
-    process.env.DATABASE_PATH = path.join(os.tmpdir(), `shelfie-webhook-${process.pid}-${Date.now()}.db`);
+    process.env.DATABASE_PATH = tempDbPath('webhook');
     setPayPalForServices(fake);
     s = seedShop(getDb(), { name: `Webhook Bakery ${Date.now()}` });
     route = await import('@/app/api/paypal/webhook/route');

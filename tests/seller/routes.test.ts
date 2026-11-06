@@ -1,7 +1,5 @@
 // Owner routes: GET orders, POST fulfil, POST tracking (stub toolkit behind the real scoped wrapper).
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import os from 'node:os';
-import path from 'node:path';
 import { z } from 'zod';
 import { getDb } from '@/lib/db';
 import * as orders from '@/lib/db/repos/orders';
@@ -12,6 +10,7 @@ import { createFakePayPal } from '@/lib/paypal/fake';
 import { setPayPalForServices } from '@/lib/services';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
 import { seedShop, type SeededShop } from '../helpers/shop';
+import { tempDbPath } from '../helpers/temp-db';
 
 const h = vi.hoisted(() => ({
   owned: new Set<string>(),
@@ -87,7 +86,7 @@ describe('owner order routes', () => {
   let trackingRoute: typeof import('@/app/api/shops/[id]/orders/[orderId]/tracking/route');
 
   beforeAll(async () => {
-    process.env.DATABASE_PATH = path.join(os.tmpdir(), `shelfie-seller-routes-${process.pid}-${Date.now()}.db`);
+    process.env.DATABASE_PATH = tempDbPath('seller-routes');
     setPayPalForServices(createFakePayPal());
     s = seedShop(getDb(), { name: `Route Owner Bakery ${Date.now()}` });
     stranger = seedShop(getDb(), { name: `Not Yours ${Date.now()}` }).shop;

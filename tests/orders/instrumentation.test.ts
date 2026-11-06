@@ -1,15 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
-import os from 'node:os';
-import path from 'node:path';
 import { register } from '@/instrumentation';
 import { isPollerRunning, stopPoller } from '@/lib/orders/poller';
 import { setPayPalForServices } from '@/lib/services';
 import { createFakePayPal } from '@/lib/paypal/fake';
+import { tempDbPath } from '../helpers/temp-db';
 
 describe('instrumentation register()', () => {
   const saved = { runtime: process.env.NEXT_RUNTIME, test: process.env.SHELFIE_TEST, db: process.env.DATABASE_PATH };
   beforeEach(() => {
-    process.env.DATABASE_PATH = path.join(os.tmpdir(), `shelfie-instr-${process.pid}-${Date.now()}.db`);
+    process.env.DATABASE_PATH = tempDbPath('instr');
   });
   afterEach(() => {
     stopPoller();
