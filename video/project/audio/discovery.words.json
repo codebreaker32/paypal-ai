@@ -1,9 +1,9 @@
 {
-  "text": "This is Claude Code, given nothing but the shop's web address. The page tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
+  "text": "This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "89d72878f79a75c3",
+  "cacheKey": "e2deae693f59790f",
   "timestamps": [
     {
       "text": "This",
@@ -58,122 +58,122 @@
     {
       "text": "address.",
       "startSec": 3.212,
-      "endSec": 4.25
+      "endSec": 4.237
     },
     {
       "text": "The",
-      "startSec": 4.25,
-      "endSec": 4.35
+      "startSec": 4.237,
+      "endSec": 4.388
     },
     {
-      "text": "page",
-      "startSec": 4.35,
-      "endSec": 4.7
+      "text": "shop",
+      "startSec": 4.388,
+      "endSec": 4.675
     },
     {
       "text": "tells",
-      "startSec": 4.7,
-      "endSec": 5.025
+      "startSec": 4.675,
+      "endSec": 5.0
     },
     {
       "text": "it",
-      "startSec": 5.025,
-      "endSec": 5.138
+      "startSec": 5.0,
+      "endSec": 5.112
     },
     {
       "text": "where",
-      "startSec": 5.138,
-      "endSec": 5.263
+      "startSec": 5.112,
+      "endSec": 5.237
     },
     {
       "text": "the",
-      "startSec": 5.263,
-      "endSec": 5.388
+      "startSec": 5.237,
+      "endSec": 5.362
     },
     {
       "text": "agent",
-      "startSec": 5.388,
-      "endSec": 5.725
+      "startSec": 5.362,
+      "endSec": 5.7
     },
     {
       "text": "door",
-      "startSec": 5.725,
-      "endSec": 6.013
+      "startSec": 5.7,
+      "endSec": 5.987
     },
     {
       "text": "is.",
-      "startSec": 6.013,
-      "endSec": 6.675
+      "startSec": 5.987,
+      "endSec": 6.65
     },
     {
       "text": "It",
-      "startSec": 6.675,
-      "endSec": 6.862
+      "startSec": 6.65,
+      "endSec": 6.838
     },
     {
       "text": "reads",
-      "startSec": 6.862,
-      "endSec": 7.225
+      "startSec": 6.838,
+      "endSec": 7.2
     },
     {
       "text": "the",
-      "startSec": 7.225,
-      "endSec": 7.325
+      "startSec": 7.2,
+      "endSec": 7.3
     },
     {
       "text": "menu,",
-      "startSec": 7.325,
-      "endSec": 7.9
+      "startSec": 7.3,
+      "endSec": 7.875
     },
     {
       "text": "places",
-      "startSec": 7.9,
-      "endSec": 8.338
+      "startSec": 7.875,
+      "endSec": 8.312
     },
     {
       "text": "the",
-      "startSec": 8.338,
-      "endSec": 8.45
+      "startSec": 8.312,
+      "endSec": 8.425
     },
     {
       "text": "order,",
-      "startSec": 8.45,
-      "endSec": 9.0
+      "startSec": 8.425,
+      "endSec": 8.975
     },
     {
       "text": "and",
-      "startSec": 9.0,
-      "endSec": 9.125
+      "startSec": 8.975,
+      "endSec": 9.1
     },
     {
       "text": "hands",
-      "startSec": 9.125,
-      "endSec": 9.45
+      "startSec": 9.1,
+      "endSec": 9.425
     },
     {
       "text": "back",
-      "startSec": 9.45,
-      "endSec": 9.713
+      "startSec": 9.425,
+      "endSec": 9.688
     },
     {
       "text": "a",
-      "startSec": 9.713,
-      "endSec": 9.787
+      "startSec": 9.688,
+      "endSec": 9.762
     },
     {
       "text": "PayPal",
-      "startSec": 9.787,
-      "endSec": 10.375
+      "startSec": 9.762,
+      "endSec": 10.35
     },
     {
       "text": "approval",
-      "startSec": 10.375,
-      "endSec": 10.825
+      "startSec": 10.35,
+      "endSec": 10.8
     },
     {
       "text": "link.",
-      "startSec": 10.825,
-      "endSec": 11.525
+      "startSec": 10.8,
+      "endSec": 11.5
     }
   ]
 }

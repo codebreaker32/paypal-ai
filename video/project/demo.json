@@ -113,7 +113,7 @@
         {
           "atSec": 6.0,
           "shot": "screen",
-          "videoStartSec": 16.0
+          "videoStartSec": 24.4
         }
       ]
     },
@@ -134,28 +134,28 @@
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 0.5
+          "videoStartSec": 0.3
         },
         {
           "atSec": 2.5,
           "shot": "screen",
-          "videoStartSec": 5.3
+          "videoStartSec": 4.8
         },
         {
           "atSec": 5.6,
           "shot": "screen",
-          "videoStartSec": 21.0
+          "videoStartSec": 21.1
         },
         {
           "atSec": 9.6,
           "shot": "screen",
-          "videoStartSec": 25.0,
+          "videoStartSec": 25.2,
           "playbackRate": 1.5
         },
         {
           "atSec": 13.3,
           "shot": "screen",
-          "videoStartSec": 31.1
+          "videoStartSec": 30.5
         }
       ]
     },
@@ -163,34 +163,39 @@
       "id": "counter",
       "kind": "demo",
       "beat": 2,
-      "screen": "Clip 03b: laptop, Menu tab, Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in.",
+      "screen": "Clip 03b: laptop, Menu tab: the croissant rows with their example photos and \"Example photo, replace with yours\", then Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in with her own.",
       "video": "clips/03b-snap-counter.mp4",
-      "narration": "One more photo, of her display case. Claude finds each item in it, and crops its photo.",
+      "narration": "Items she hasn't photographed show an example photo, labelled as one. Then one more photo, of her display case: Claude finds each item in it, and crops her own.",
       "holdSec": 1,
       "audio": "audio/counter.mp3",
       "words": "audio/counter.words.json",
-      "narrationSec": 5.878,
-      "durationSec": 7.328,
+      "narrationSec": 10.423,
+      "durationSec": 11.873,
       "beats": [
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 8.3
+          "videoStartSec": 4.0
         },
         {
-          "atSec": 2.6,
+          "atSec": 4.7,
           "shot": "screen",
-          "videoStartSec": 12.5
+          "videoStartSec": 8.6
         },
         {
-          "atSec": 4.4,
+          "atSec": 7.4,
           "shot": "screen",
-          "videoStartSec": 17.5
+          "videoStartSec": 13.0
         },
         {
-          "atSec": 5.9,
+          "atSec": 9.0,
           "shot": "screen",
-          "videoStartSec": 21.8
+          "videoStartSec": 16.8
+        },
+        {
+          "atSec": 10.0,
+          "shot": "screen",
+          "videoStartSec": 22.1
         }
       ]
     },
@@ -210,12 +215,12 @@
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 2.9
+          "videoStartSec": 3.0
         },
         {
           "atSec": 2.2,
           "shot": "screen",
-          "videoStartSec": 6.2
+          "videoStartSec": 5.9
         }
       ]
     },
@@ -223,14 +228,14 @@
       "id": "discovery",
       "kind": "demo",
       "beat": 3,
-      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
+      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, follows it to the shop's llms.txt, finds the agent door, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
       "video": "clips/05-claude-code-discovery.mp4",
-      "narration": "This is Claude Code, given nothing but the shop's web address. The page tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
+      "narration": "This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
       "holdSec": 4,
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
-      "narrationSec": 11.677,
-      "durationSec": 16.127,
+      "narrationSec": 11.651,
+      "durationSec": 16.101,
       "captionPlacement": "top",
       "beats": [
         {
@@ -242,28 +247,28 @@
         {
           "atSec": 3.8,
           "shot": "screen",
-          "videoStartSec": 14.6
+          "videoStartSec": 17.5
         },
         {
           "atSec": 5.2,
           "shot": "screen",
-          "videoStartSec": 46.6
+          "videoStartSec": 25.5
         },
         {
           "atSec": 6.7,
           "shot": "screen",
-          "videoStartSec": 48.1,
+          "videoStartSec": 29.5,
           "playbackRate": 2.5
         },
         {
           "atSec": 8.5,
           "shot": "screen",
-          "videoStartSec": 52.6
+          "videoStartSec": 42.5
         },
         {
           "atSec": 9.9,
           "shot": "screen",
-          "videoStartSec": 56.5
+          "videoStartSec": 48.0
         }
       ]
     },
@@ -289,24 +294,24 @@
         {
           "atSec": 3.6,
           "shot": "screen",
-          "videoStartSec": 4.4,
+          "videoStartSec": 4.3,
           "playbackRate": 2.0
         },
         {
           "atSec": 6.2,
           "shot": "screen",
-          "videoStartSec": 11.4
+          "videoStartSec": 12.5
         },
         {
           "atSec": 10.4,
           "shot": "screen",
-          "videoStartSec": 22.7,
+          "videoStartSec": 22.3,
           "playbackRate": 2.0
         },
         {
           "atSec": 12.0,
           "shot": "screen",
-          "videoStartSec": 29.3
+          "videoStartSec": 28.9
         }
       ]
     },
@@ -332,12 +337,12 @@
         {
           "atSec": 2.6,
           "shot": "screen",
-          "videoStartSec": 10.6
+          "videoStartSec": 10.8
         },
         {
           "atSec": 9.6,
           "shot": "screen",
-          "videoStartSec": 20.3
+          "videoStartSec": 21.3
         }
       ]
     },
@@ -363,7 +368,7 @@
         {
           "atSec": 2.6,
           "shot": "screen",
-          "videoStartSec": 12.6
+          "videoStartSec": 12.1
         }
       ]
     },
@@ -404,7 +409,7 @@
         {
           "atSec": 1.6,
           "shot": "screen",
-          "videoStartSec": 18.6,
+          "videoStartSec": 18.7,
           "playbackRate": 2.0
         }
       ]
