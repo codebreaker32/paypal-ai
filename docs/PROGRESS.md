@@ -38,7 +38,10 @@ _Last updated: 2026-11-06 07:58 IST (session 5 running)_
 
   588 unit tests pass; typecheck and lint are clean.
 - **Not done, needs the human:** fix 1 (pay each seller: a second sandbox Business account) and fix 3 (deploy, video, public repo). Fix 2 (QR counter card and machine-readable discovery) is a spec non-goal; see "Needs from human".
-- **running:** a worker capturing the dashboard loading skeleton, the one async state with no screenshot.
+- **done:** `docs/SUBMISSION.md`, a Devpost draft built from verified facts only (pitch, features, how it's built, AI tools, a test-card box), with TODOs for the video, the public repo URL and a hosted URL.
+- **running:**
+  - a worker capturing the dashboard loading skeleton, the one async state with no screenshot;
+  - a whole-codebase correctness review workflow: 4 area reviewers (orders and capture, the PayPal client, the agent door and console, setup and seller auth), each checked by a skeptic that tries to refute its findings.
 
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
 - **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
