@@ -287,7 +287,7 @@ const SCREENS: Screen[] = [
     run: async (page) => {
       await page.goto('/');
       await page.getByTestId('photo-input').setInputFiles([{ name: 'menu.heic', mimeType: 'image/heic', buffer: Buffer.from('not a jpg') }]);
-      await expect(page.locator('section[aria-labelledby="start-title"]').getByRole('alert')).toHaveText("We couldn't open that photo. Try a JPG or PNG.");
+      await expect(page.locator('section[aria-labelledby="start-title"]').getByRole('alert')).toHaveText("We couldn’t open that photo. Try a JPG or PNG.");
     },
   },
   {
@@ -321,7 +321,7 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, setups.retake.shopId, setups.retake.ownerToken);
       await page.goto(`/shops/${setups.retake.shopId}/setup`);
-      await expect(page.getByRole('heading', { level: 1, name: "This doesn't look like a price list" })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'This doesn’t look like a price list' })).toBeVisible();
     },
   },
   {
@@ -391,12 +391,12 @@ const SCREENS: Screen[] = [
   receipt('nut', 'Paid. Marigold Bakehouse has your order.'),
   receipt('cancelled', 'Order cancelled'),
   receipt('expired', 'This order expired'),
-  receipt('refused', "PayPal didn't complete the payment"),
+  receipt('refused', 'PayPal didn’t complete the payment'),
   {
     name: 'receipt-unknown',
     run: async (page) => {
       await page.goto('/o/ord_doesnotexist000');
-      await expect(page.getByRole('heading', { level: 1, name: "We couldn't find that order" })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: 'We couldn’t find that order' })).toBeVisible();
     },
   },
   // Dashboard
@@ -406,7 +406,7 @@ const SCREENS: Screen[] = [
       await signIn(context, demo.shop.id, demo.ownerToken);
       pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}`);
-      await expect(page.getByText("We can't reach PayPal right now")).toHaveCount(0);
+      await expect(page.getByText('We can’t reach PayPal right now')).toHaveCount(0);
       await expect(page.locator(`[data-order="${orders.nut.number}"]`)).toContainText('almond croissants contain nuts');
       await page.locator('details[data-group="waiting"] summary').click();
       await expect(page.locator('details[data-group="waiting"]')).toHaveAttribute('open', '');
@@ -462,6 +462,9 @@ const SCREENS: Screen[] = [
 
 for (const [label, size] of [['390', PHONE], ['1440', DESKTOP]] as const) {
   test.describe(`round-1 screens at ${label} px`, () => {
+    // On a busy machine a cold dev-server compile can hold a screen's first load short of 'networkidle' for over a
+    // minute; a longer timeout and a retry capture the same screen again, so one run still yields the whole set.
+    test.describe.configure({ retries: 2, timeout: 120_000 });
     test.use({ viewport: size });
     for (const screen of SCREENS) {
       test(screen.name, async ({ page, context }) => {

@@ -19,7 +19,7 @@ export interface LiveProps {
   status: 'live' | 'paused' | 'draft';
   shopUrl: string;
   agentDoorUrl: string;
-  /** Null when this browser was given the shop without its owner cookie value (shouldn't happen). */
+  /** Null when this browser was given the shop without its owner cookie value (shouldn’t happen). */
   ownerLink: string | null;
   liveCount: number;
   inPersonCount: number;
@@ -49,7 +49,7 @@ function CopyRow({
   label: string;
   copyLabel?: string;
   mono?: boolean;
-  /** The screen's one primary action. */
+  /** The screen’s one primary action. */
   primary?: boolean;
 }) {
   const toast = useToast();
@@ -79,7 +79,7 @@ function CopyRow({
         onClick={async () => {
           const ok = await copyText(value);
           setCopied(ok);
-          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn't copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
+          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
         }}
       >
         {copied ? 'Copied' : copyLabel}

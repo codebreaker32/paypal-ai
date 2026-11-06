@@ -57,7 +57,7 @@ export function PayPalBanner() {
     <div role="status" className="flex items-start gap-3 rounded-md bg-warn-soft px-4 py-3 text-warn">
       <Icon icon={CloudOff} className="mt-0.5" />
       <p>
-        <span className="font-semibold">We can&apos;t reach PayPal right now.</span>{' '}
+        <span className="font-semibold">We can’t reach PayPal right now.</span>{' '}
         Payments buyers make on PayPal will show up here as soon as it answers. Nothing is lost.
       </p>
     </div>

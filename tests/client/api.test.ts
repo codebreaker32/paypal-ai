@@ -83,7 +83,7 @@ describe('startFromSample', () => {
 
 describe('startErrorMessage', () => {
   it('uses the plain-language copy from the spec', () => {
-    expect(startErrorMessage('bad_file')).toBe("We couldn't open that photo. Try a JPG or PNG.");
+    expect(startErrorMessage('bad_file')).toBe("We couldn’t open that photo. Try a JPG or PNG.");
     expect(startErrorMessage('too_many')).toMatch(/up to 4 photos/i);
     expect(startErrorMessage('too_large')).toMatch(/15 MB/);
     expect(startErrorMessage('network')).toMatch(/connection/i);

@@ -200,12 +200,13 @@ Ledger patterns (dashboard and receipts):
 ## Rules for every screen
 
 - **One primary action** per screen, in `accent`. Secondary actions use `secondary` or `ghost`; tertiary actions are text links in `accent-ink`.
-- **Every async action** has idle, loading, success and error states. Errors appear next to the thing that failed, say what happened and what to do ("We couldn't open that photo. Try a JPG or PNG."), and keep the user's work.
+- **Every async action** has idle, loading, success and error states. Errors appear next to the thing that failed, say what happened and what to do ("We couldn’t open that photo. Try a JPG or PNG."), and keep the user’s work.
 - **Touch targets** are at least 44 by 44 px, with at least 8 px between them. Inputs use 16 px text.
-- **Copy** is plain and specific. Seller screens say "agent door", "payment received", "Add tracking"; never MCP, capture or webhook outside the developer details. No em-dashes in UI copy, no lorem ipsum, no invented statistics.
+- **Copy** is plain and specific. Seller screens say "agent door", "payment received", "Add tracking"; never MCP, capture or webhook outside the developer details. No em-dashes in UI copy, no lorem ipsum, no invented statistics. Apostrophes are typographic (’) in every visible string, headings included.
 - **Images** have alt text that says what is in them; decorative images use `alt=""`.
 - **Prices** come from the shop's data and render with `formatUSD()` and `type-price` (or `type-amount` for row amounts and totals). Order numbers and PayPal ids use `type-ref`.
 - **Status colour** always comes with an icon and a word.
+- **Nothing clips without a cue:** tab strips wrap onto a second line at 390 px rather than scroll; order numbers never break (`whitespace-nowrap`), and on phones the status stamp sits on its own line under the order header.
 - **No raw values in components:** no hex, no ad-hoc shadows or radii. Ratios and layout fractions (`aspect-[4/3]`, `max-w-[85%]`, ledger column widths) are fine.
 
 ## Re-skinning

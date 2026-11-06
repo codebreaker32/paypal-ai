@@ -33,8 +33,8 @@ import {
 } from './console-state';
 import { RichText } from './RichText';
 
-const SHOP_DIDNT_ANSWER = "The shop didn't answer. Try again.";
-const RATE_LIMITED = "You've sent a lot of messages in the last hour. Try again later.";
+const SHOP_DIDNT_ANSWER = "The shop didn’t answer. Try again.";
+const RATE_LIMITED = "You’ve sent a lot of messages in the last hour. Try again later.";
 export const PAYMENT_CHECK_PROMPT = 'Did my payment go through?';
 
 export interface BuyerConsoleApi {
@@ -102,7 +102,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
     if (loaded.current && openOrders) void checkOrders();
   }, [openOrders, checkOrders]);
 
-  // Back from PayPal with the browser's Back button (bfcache), or back to this tab.
+  // Back from PayPal with the browser’s Back button (bfcache), or back to this tab.
   useEffect(() => {
     const again = () => {
       if (document.visibilityState === 'visible') void checkOrders();
@@ -231,7 +231,7 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
               Approve {total} on PayPal
             </a>
           ) : (
-            <FieldError>This approval link doesn&apos;t go to PayPal, so it isn&apos;t shown.</FieldError>
+            <FieldError>This approval link doesn’t go to PayPal, so it isn’t shown.</FieldError>
           )}
           <p className="type-meta text-ink-muted">Nothing is charged until you approve on PayPal.</p>
         </>
@@ -306,7 +306,7 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
     return (
       <div className="flex flex-col gap-4">
         <p className="text-sm leading-6 text-ink-soft">
-          Ask in your own words. This assistant is Claude, and it orders from {shopName} through the shop&apos;s agent door,
+          Ask in your own words. This assistant is Claude, and it orders from {shopName} through the shop’s agent door,
           the same one any AI assistant can use. Every step it takes shows up here, and you approve payment on PayPal.
         </p>
         <Starters prompts={starters} onPick={send} />

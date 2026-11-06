@@ -339,7 +339,7 @@ describe('runBuyerConsoleTurn', () => {
     );
     expect(warn.mock.calls.map((c) => String(c[0]))).toEqual(['[shelfie] buyer console could not reach the agent door: ECONNREFUSED']);
     expect(events.map((e) => e.type)).toEqual(['session', 'error']);
-    expect((events[1] as Extract<ConsoleEvent, { type: 'error' }>).message).toBe("The shop didn't answer. Try again.");
+    expect((events[1] as Extract<ConsoleEvent, { type: 'error' }>).message).toBe("The shop didn’t answer. Try again.");
     expect(requests).toHaveLength(0);
   });
 

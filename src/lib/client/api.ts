@@ -4,7 +4,7 @@
 //   - multipart/form-data, one or more "photos" file fields (1 to 4 images)  → 201 { shopId }
 //   - application/json { sample: SampleId }                                   → 201 { shopId }
 //   - errors: JSON { error: { code, message } }. Codes the Start page understands:
-//       BAD_IMAGE (or HTTP 415)              → "We couldn't open that photo. Try a JPG or PNG."
+//       BAD_IMAGE (or HTTP 415)              → "We couldn’t open that photo. Try a JPG or PNG."
 //       TOO_MANY_PHOTOS                      → up to 4 photos
 //       PHOTO_TOO_LARGE (or HTTP 413)        → over 15 MB
 //     Anything else is shown as a generic "try again".
@@ -27,10 +27,10 @@ export class StartError extends Error {
 const MAX_MB = Math.round(MAX_PHOTO_BYTES / (1024 * 1024));
 
 const MESSAGES: Record<StartErrorKind, string> = {
-  bad_file: "We couldn't open that photo. Try a JPG or PNG.",
+  bad_file: "We couldn’t open that photo. Try a JPG or PNG.",
   too_many: `Shelfie reads up to ${MAX_PHOTOS} photos at a time. Pick the clearest pages.`,
   too_large: `That photo is over ${MAX_MB} MB. Take it again or pick a smaller copy.`,
-  network: "We couldn't reach Shelfie. Check your connection and try again.",
+  network: "We couldn’t reach Shelfie. Check your connection and try again.",
   server: 'Something went wrong on our side. Try again in a moment.',
 };
 

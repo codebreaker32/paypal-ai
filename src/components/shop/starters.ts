@@ -1,4 +1,4 @@
-// Starter prompts for an empty buyer console, made from the shop's real menu.
+// Starter prompts for an empty buyer console, made from the shop’s real menu.
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 
 const priced = (i: ItemWithVariants) => i.variants.filter((v) => v.priceCents !== null && v.priceCents > 0);
@@ -32,7 +32,7 @@ export function starterPrompts(shop: Pick<Shop, 'kind' | 'fulfillment'>, items: 
   const single = live.filter((i) => priced(i).length === 1);
   const pool = single.filter(simple).length ? single.filter(simple) : single;
 
-  // The busiest section's first item, then one from another section.
+  // The busiest section’s first item, then one from another section.
   const sections = [...new Set(live.map((i) => i.section ?? ''))];
   const busiest = sections.reduce<string | null>((best, s) => {
     const count = (x: string | null) => (x === null ? -1 : live.filter((i) => (i.section ?? '') === x).length);
@@ -53,7 +53,7 @@ export function starterPrompts(shop: Pick<Shop, 'kind' | 'fulfillment'>, items: 
   }
 
   const word = sectionWord((a ?? items.find((i) => i.status === 'live' || i.status === 'in_person'))?.section);
-  prompts.push(word ? `What ${word} do you have?` : "What's on the menu today?");
+  prompts.push(word ? `What ${word} do you have?` : "What’s on the menu today?");
 
   const sized = live.find((i) => priced(i).length > 1);
   if (sized) prompts.push(`What sizes does the ${lower(sized.name)} come in?`);

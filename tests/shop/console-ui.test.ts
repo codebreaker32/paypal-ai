@@ -249,7 +249,7 @@ describe('starterPrompts', () => {
 
   it('still offers questions for a shop with nothing orderable', () => {
     const prompts = starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item('Market fish', null, [null], { status: 'in_person' })]);
-    expect(prompts).toEqual(["What's on the menu today?", 'How much is shipping?']);
+    expect(prompts).toEqual(["What’s on the menu today?", 'How much is shipping?']);
   });
 });
 

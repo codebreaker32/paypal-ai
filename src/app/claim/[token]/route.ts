@@ -10,7 +10,7 @@ export async function GET(_req: Request, ctx: RouteContext<'/claim/[token]'>): P
   const { token } = await ctx.params;
   const shop = token.length >= 20 && token.length <= 100 ? shops.byOwnerToken(getDb(), token) : null;
   if (!shop) {
-    return new Response("This owner link doesn't match any shop. Check that you copied all of it.", {
+    return new Response("This owner link doesn’t match any shop. Check that you copied all of it.", {
       status: 404,
       headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },
     });

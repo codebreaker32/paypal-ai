@@ -91,10 +91,10 @@ function ActionCard({ shop, order, trackers, className }: { shop: Shop; order: O
       );
     }
     const words: Record<Exclude<Order['status'], 'paid' | 'fulfilled'>, [string, string]> = {
-      awaiting_approval: ['Waiting for the buyer', "They haven't approved the payment on PayPal yet. Nothing to prepare until they do."],
+      awaiting_approval: ['Waiting for the buyer', "They haven’t approved the payment on PayPal yet. Nothing to prepare until they do."],
       approved: ['Taking the payment', 'The buyer approved on PayPal. The payment should land in a few seconds.'],
-      payment_pending: ['Payment pending', "PayPal is still clearing this payment. Don't hand over or ship until it shows Paid."],
-      failed: ['Payment failed', "Nothing was charged. Don't hand over or ship this order."],
+      payment_pending: ['Payment pending', "PayPal is still clearing this payment. Don’t hand over or ship until it shows Paid."],
+      failed: ['Payment failed', "Nothing was charged. Don’t hand over or ship this order."],
       cancelled: ['Cancelled', 'The buyer cancelled on PayPal. Nothing was charged.'],
       expired: ['Expired', 'The buyer didn\'t approve within 60 minutes, so the order expired. Nothing was charged.'],
     };
@@ -136,7 +136,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
           <p className="type-meta text-ink-muted">From PayPal</p>
         </div>
       ) : (
-        <p className="text-ink-soft">PayPal shares the buyer&apos;s name{order.fulfillment === 'shipping' ? ' and address' : ''} once they approve.</p>
+        <p className="text-ink-soft">PayPal shares the buyer’s name{order.fulfillment === 'shipping' ? ' and address' : ''} once they approve.</p>
       )}
       {order.buyerName && order.buyerName !== order.payerName && (
         <p className="type-meta text-ink-muted">
@@ -173,7 +173,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
             ) : paid ? (
               <p className="flex items-start gap-2 font-medium text-warn">
                 <Icon icon={TriangleAlert} className="mt-0.5" />
-                PayPal didn&apos;t share an address. Contact the buyer before shipping.
+                PayPal didn’t share an address. Contact the buyer before shipping.
               </p>
             ) : (
               <p className="text-ink-soft">The buyer picks the address on PayPal when they approve.</p>

@@ -51,7 +51,7 @@ export const SKIP_REASON: Record<SkipReason, string> = {
   hours: 'Opening hours',
   policy: 'Shop policy',
   addon: 'Add-on',
-  illegible: "Couldn't read it",
+  illegible: "Couldn’t read it",
   instruction: 'Looked like an instruction, not a menu item',
   other: 'Not something to buy',
 };
@@ -96,7 +96,7 @@ export function bySection(items: ItemWithVariants[]): { section: string | null; 
   return groups;
 }
 
-/** Skipped lines the seller hasn't already turned into items. */
+/** Skipped lines the seller hasn’t already turned into items. */
 export function openSkipped(skipped: SkippedLine[], items: ItemWithVariants[]): SkippedLine[] {
   const used = new Set(items.map((i) => i.sourceText));
   return skipped.filter((s) => !used.has(s.text));

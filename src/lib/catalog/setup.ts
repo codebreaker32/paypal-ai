@@ -1,4 +1,4 @@
-// The seller's setup journey on the server: create a draft shop from photos or a sample, read the
+// The seller’s setup journey on the server: create a draft shop from photos or a sample, read the
 // menu with Claude (or a recorded reading for samples without a key), and work out which step the
 // setup page should show. Route handlers and the page stay thin; this module holds the rules.
 import fs from 'node:fs/promises';
@@ -19,7 +19,7 @@ import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from
 export const PLACEHOLDER_NAME = 'My shop';
 /**
  * A reading still "running" after this long died with its process: it counts as failed. A live
- * reading can take up to 90 s, plus one 90 s retry when Claude's first answer doesn't parse
+ * reading can take up to 90 s, plus one 90 s retry when Claude’s first answer doesn’t parse
  * (src/lib/ai/extract.ts), so this leaves a minute to spare.
  */
 export const READING_STALE_MS = 4 * 60_000;
@@ -44,7 +44,7 @@ async function createDraftShop(
   return { shop: shops.update(db, shop.id, { name, menuPhotoPaths }), ownerToken };
 }
 
-/** `photos` are raw uploads; each is normalised (and rejected if it isn't a photo) before the shop exists. */
+/** `photos` are raw uploads; each is normalised (and rejected if it isn’t a photo) before the shop exists. */
 export async function createShopFromPhotos(db: Db, photos: Buffer[]): Promise<CreatedShop> {
   const jpegs = await Promise.all(photos.map(normalizePhoto));
   return createDraftShop(db, PLACEHOLDER_NAME, (id) =>
@@ -52,14 +52,14 @@ export async function createShopFromPhotos(db: Db, photos: Buffer[]): Promise<Cr
   );
 }
 
-/** The sample's photo is copied into the shop's folder; its file name remembers which sample it was. */
+/** The sample’s photo is copied into the shop’s folder; its file name remembers which sample it was. */
 export async function createShopFromSample(db: Db, sample: SampleId): Promise<CreatedShop> {
   const jpeg = await normalizePhoto(await fs.readFile(samplePhotoPath(sample)));
   return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)]);
 }
 
 /**
- * New photos for a draft shop whose menu couldn't be read: "replace" swaps them all (a retake),
+ * New photos for a draft shop whose menu couldn’t be read: "replace" swaps them all (a retake),
  * "add" appends pages (a cropped menu). Every photo is checked before anything is saved.
  */
 export async function setShopPhotos(db: Db, shop: Shop, photos: Buffer[], mode: 'replace' | 'add'): Promise<Shop> {
@@ -105,7 +105,7 @@ const FRIENDLY: Record<FailCode | 'STALE', string> = {
   NO_AI_KEY:
     'Reading your own photo needs an Anthropic API key. Add ANTHROPIC_API_KEY to .env and restart, or try a sample menu.',
   TIMEOUT: 'Reading took too long. Long menus sometimes do. Try again.',
-  AI_ERROR: "We couldn't finish reading your menu. Your photos are saved, so you can try again.",
+  AI_ERROR: "We couldn’t finish reading your menu. Your photos are saved, so you can try again.",
   NO_PHOTOS: 'This shop has no photos to read. Start again with a photo of your price list.',
   STALE: "Reading stopped before it finished. Your photos are saved, so you can try again.",
 };
@@ -122,7 +122,7 @@ function failCodeFor(err: unknown): FailCode {
 
 const isStale = (createdAt: string, now: number) => now - Date.parse(createdAt) > READING_STALE_MS;
 
-/** Fills only the shop fields the seller hasn't written themselves. */
+/** Fills only the shop fields the seller hasn’t written themselves. */
 function applyShopDraft(db: Db, shop: Shop, c: DraftCatalog): void {
   shops.update(db, shop.id, {
     name: shop.name === PLACEHOLDER_NAME && c.shop.name ? c.shop.name : undefined,
@@ -133,7 +133,7 @@ function applyShopDraft(db: Db, shop: Shop, c: DraftCatalog): void {
 }
 
 /**
- * Reads the shop's photos once. Safe to call again: a run already going returns "running", and a
+ * Reads the shop’s photos once. Safe to call again: a run already going returns "running", and a
  * run that has been going for over four minutes (READING_STALE_MS) is treated as dead and replaced.
  */
 export async function runReading(deps: ReadingDeps, shopId: string): Promise<ReadingOutcome> {

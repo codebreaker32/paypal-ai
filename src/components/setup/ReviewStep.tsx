@@ -39,7 +39,7 @@ function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void 
     return (
       <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
         <Icon icon={CircleAlert} size="sm" />
-        {state.retryable ? "Couldn't save your last change." : state.message}
+        {state.retryable ? "Couldn’t save your last change." : state.message}
         {state.retryable && (
           <Button variant="ghost" icon={RotateCcw} onClick={onRetry} className="-my-1">
             Retry
@@ -62,7 +62,7 @@ export function ReviewStep(props: ReviewProps) {
   const { shopId, photoCount } = props;
   const router = useRouter();
   const [items, setItems] = useState(props.items);
-  // A save the server refused reloads the page's data (router.refresh()). Adopt the server's menu and
+  // A save the server refused reloads the page’s data (router.refresh()). Adopt the server’s menu and
   // details, and remount the cards and lists (keyed by `synced`) so their fields show what was saved.
   const [server, setServer] = useState({ items: props.items, shop: props.shop });
   const [synced, setSynced] = useState(0);
@@ -145,7 +145,7 @@ export function ReviewStep(props: ReviewProps) {
     try {
       await autosave.flush();
     } catch {
-      setPublishError("Some changes didn't save, so we didn't publish. Check your connection and try again.");
+      setPublishError("Some changes didn’t save, so we didn’t publish. Check your connection and try again.");
       return;
     }
     window.scrollTo({ top: 0 });

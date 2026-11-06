@@ -4,7 +4,7 @@ import type { Order, OrderEventRow, OrderLine } from '@/lib/domain/types';
 export interface OrderGroups {
   /** Paid: the seller has something to do. */
   toPrepare: Order[];
-  /** The buyer hasn't finished paying yet. */
+  /** The buyer hasn’t finished paying yet. */
   waiting: Order[];
   /** Handed over, or never paid. */
   done: Order[];
@@ -83,10 +83,10 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry('Payment denied by PayPal', 'danger');
         break;
       case 'capture_error':
-        entry("Couldn't reach PayPal to take the payment; trying again", 'warn');
+        entry("Couldn’t reach PayPal to take the payment; trying again", 'warn');
         break;
       case 'mismatch':
-        entry("Stopped: PayPal's amount didn't match this order", 'danger');
+        entry("Stopped: PayPal’s amount didn’t match this order", 'danger');
         break;
       case 'cancelled':
         entry('Cancelled on PayPal by the buyer');

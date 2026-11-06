@@ -31,6 +31,6 @@ describe('call', () => {
     expect(SetupApiError).toBe(ApiError);
     expect(DashboardApiError).toBe(ApiError);
     vi.stubGlobal('fetch', async () => new Response('', { status: 404 }));
-    await expect(fetchOrders('shp_1')).rejects.toMatchObject({ status: 404, code: 'HTTP_404', message: "We couldn't find that. Reload the page." });
+    await expect(fetchOrders('shp_1')).rejects.toMatchObject({ status: 404, code: 'HTTP_404', message: "We couldn’t find that. Reload the page." });
   });
 });

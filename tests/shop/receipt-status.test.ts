@@ -43,7 +43,7 @@ describe('statusView', () => {
 
   it('approved but PayPal refused the capture: says nothing was charged, no PayPal button', () => {
     const v = statusView(order({ status: 'approved', approvalUrl: null, captureRefused: true }), PICKUP, null);
-    expect(v).toMatchObject({ tone: 'danger', title: "PayPal didn't complete the payment" });
+    expect(v).toMatchObject({ tone: 'danger', title: "PayPal didn’t complete the payment" });
     expect(v.body).toMatch(/nothing was charged/i);
     expect(v.body).toContain('Marigold Bakehouse');
     expect(v.approve).toBeUndefined();
@@ -63,7 +63,7 @@ describe('statusView', () => {
     const pickup = statusView(order({ status: 'paid', approvalUrl: null, fulfillment: 'pickup' }), PICKUP, null);
     expect(pickup.body).toBe(`Pick it up: ${PICKUP}`);
     const noNotes = statusView(order({ status: 'paid', approvalUrl: null, fulfillment: 'pickup' }), '', null);
-    expect(noNotes.body).toMatch(/will let you know when it's ready/);
+    expect(noNotes.body).toMatch(/will let you know when it’s ready/);
   });
 
   it('fulfilled: shipped with the tracking number, or picked up', () => {
@@ -76,7 +76,7 @@ describe('statusView', () => {
     for (const [status, title] of [
       ['cancelled', 'Order cancelled'],
       ['expired', 'This order expired'],
-      ['failed', "The payment didn't go through"],
+      ['failed', "The payment didn’t go through"],
     ] as const) {
       const v = statusView(order({ status, approvalUrl: null }), PICKUP, null);
       expect(v.title).toBe(title);

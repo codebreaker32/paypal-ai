@@ -32,30 +32,30 @@ function AgentStep({ icon, children }: { icon: typeof DoorOpen; children: string
   );
 }
 
-/** The seller's side: the order as it lands on the dashboard. */
+/** The seller’s side: the order as it lands on the dashboard. */
 function PaymentReceived({ className }: { className?: string }) {
   return (
     <Card
       padding="none"
       className={cx(
-        'relative items-center gap-3 border-l-4 border-l-accent p-3 pr-4 shadow-md animate-rise-in [animation-delay:600ms]',
+        'relative items-center gap-3 p-3 pr-4 shadow-md animate-rise-in [animation-delay:600ms]',
         className,
       )}
     >
-      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-ok-soft text-ok">
+      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-ok-soft text-ok">
         <Icon icon={CircleCheck} />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="font-semibold whitespace-nowrap">Payment received</span>
+        <span className="text-sm font-semibold whitespace-nowrap">Payment received</span>
         <span className="type-meta text-ink-muted">Pickup Saturday</span>
       </span>
-      <span className="type-amount text-xl text-ok">{formatUSD(TOTAL_CENTS)}</span>
+      <span className="type-amount shrink-0 text-lg text-ok">{formatUSD(TOTAL_CENTS)}</span>
     </Card>
   );
 }
 
 /**
- * Static, realistic example of what Shelfie produces: Marigold's photographed price list, a buyer's
+ * Static, realistic example of what Shelfie produces: Marigold’s photographed price list, a buyer’s
  * assistant ordering from it, and the payment landing with the seller. Built from the same UI
  * components the buyer console and dashboard use, not a screenshot.
  */
@@ -63,21 +63,21 @@ export function OrderPreview() {
   return (
     <figure aria-labelledby="order-preview-caption" className="flex flex-col gap-4">
       <div className="grid grid-cols-1 lg:grid-cols-12">
-        {/* The photo, with the seller's view of the paid order pinned to it */}
+        {/* The photo, with the seller’s view of the paid order pinned to it */}
         <div className="relative flex flex-col lg:col-span-7 lg:col-start-1 lg:row-start-1">
           <Image
             src="/samples/marigold-bakehouse.jpg"
-            alt="Photo of Marigold Bakehouse's handwritten price list: breads, pastries, cakes and coffee, priced in pen."
+            alt="Photo of Marigold Bakehouse’s handwritten price list: breads, pastries, cakes and coffee, priced in pen."
             width={1200}
             height={1500}
             loading="eager"
             sizes="(min-width: 1024px) 34vw, 100vw"
             className="aspect-[4/3] w-full rounded-lg object-cover object-[50%_38%] shadow-lg lg:aspect-[4/5] lg:object-center"
           />
-          <PaymentReceived className="z-20 hidden lg:-mt-12 lg:ml-5 lg:mr-18 lg:flex" />
+          <PaymentReceived className="z-20 hidden lg:-mt-12 lg:ml-4 lg:mr-14 lg:flex" />
         </div>
 
-        {/* The buyer's assistant ordering through the shop's agent door */}
+        {/* The buyer’s assistant ordering through the shop’s agent door */}
         <Card
           padding="none"
           className="relative z-10 mx-3 -mt-16 overflow-hidden shadow-md lg:col-span-6 lg:col-start-7 lg:row-start-1 lg:mx-0 lg:mt-14 lg:self-start animate-rise-in [animation-delay:150ms]"

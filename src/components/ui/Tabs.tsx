@@ -50,7 +50,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
 
   return (
     <div className={className}>
-      <div role="tablist" aria-label={label} className="flex gap-1 overflow-x-auto border-b border-line">
+      <div role="tablist" aria-label={label} className="flex flex-wrap gap-x-1 border-b border-line">
         {items.map((item, i) => {
           const selected = item.id === active;
           return (

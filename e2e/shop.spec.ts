@@ -283,12 +283,12 @@ test.describe('console states', () => {
 
   test('rate limited: a plain message', async ({ page }) => {
     await page.route(`**/api/assistant/${SLUG}`, (route) =>
-      route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You've sent a lot of messages in the last hour. Try again later." } } }),
+      route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You’ve sent a lot of messages in the last hour. Try again later." } } }),
     );
     await page.goto(`/s/${SLUG}?assistant=1`);
     const region = consoleRegion(page, false);
     await region.getByRole('button', { name: /shipped to me$/ }).click();
-    await expect(region.getByRole('alert')).toHaveText("You've sent a lot of messages in the last hour. Try again later.");
+    await expect(region.getByRole('alert')).toHaveText("You’ve sent a lot of messages in the last hour. Try again later.");
   });
 
   test("network failure: “The shop didn't answer. Try again.”", async ({ page }) => {
@@ -296,7 +296,7 @@ test.describe('console states', () => {
     await page.goto(`/s/${SLUG}?assistant=1`);
     const region = consoleRegion(page, false);
     await region.getByRole('button', { name: /shipped to me$/ }).click();
-    await expect(region.getByRole('alert')).toHaveText("The shop didn't answer. Try again.");
+    await expect(region.getByRole('alert')).toHaveText('The shop didn’t answer. Try again.');
     await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
   });
 
@@ -389,7 +389,7 @@ test.describe('receipt behaviour', () => {
   test('an unknown order says so with a 404', async ({ page }) => {
     const res = await page.goto('/o/ord_doesnotexist000');
     expect(res?.status()).toBe(404);
-    await expect(page.getByRole('heading', { level: 1, name: "We couldn't find that order" })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'We couldn’t find that order' })).toBeVisible();
     await settle(page);
   });
 
@@ -405,7 +405,7 @@ test.describe('receipt behaviour', () => {
     page.on('request', (r) => r.url().includes('/api/orders/') && reads.push(r.url()));
     await page.goto(`/o/${fx.refused.id}`);
     await settle(page);
-    await expect(page.getByRole('heading', { level: 1, name: "PayPal didn't complete the payment" })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'PayPal didn’t complete the payment' })).toBeVisible();
     await expect(page.getByText(/so nothing was charged\. Contact Marigold Bakehouse/)).toBeVisible();
     await expect(page.getByRole('link', { name: /PayPal/ })).toHaveCount(0);
     await expect(page.getByText('This page updates by itself.')).toHaveCount(0);

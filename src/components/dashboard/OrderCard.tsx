@@ -90,7 +90,7 @@ export function OrderCard({
       {/* Order column: reference and who placed it. */}
       <div className="[grid-area:ref]">
         <div className="flex min-w-0 flex-col gap-1">
-          <h3 className="type-ref text-base">
+          <h3 className="type-ref text-base whitespace-nowrap">
             <Link
               href={href}
               data-stretched-link
@@ -123,7 +123,7 @@ export function OrderCard({
 
         {order.status === 'awaiting_approval' && (
           <p className="type-meta text-ink-muted">
-            The buyer hasn&apos;t approved on PayPal yet. The link expires at <LocalTime iso={order.expiresAt} />.
+            The buyer hasn’t approved on PayPal yet. The link expires at <LocalTime iso={order.expiresAt} />.
           </p>
         )}
 

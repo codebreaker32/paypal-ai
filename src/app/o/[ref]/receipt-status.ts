@@ -60,7 +60,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
         ? {
             tone: 'danger',
             icon: CircleAlert,
-            title: "PayPal didn't complete the payment",
+            title: "PayPal didn’t complete the payment",
             body: `You approved it, but PayPal refused to complete the payment, so nothing was charged. Contact ${o.shopName}, or place the order again later.`,
           }
         : {
@@ -68,7 +68,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
             icon: Loader2,
             spin: true,
             title: 'Confirming with PayPal…',
-            body: "You approved the payment. We're confirming it with PayPal, and this page updates by itself.",
+            body: "You approved the payment. We’re confirming it with PayPal, and this page updates by itself.",
           };
     case 'payment_pending':
       return {
@@ -85,7 +85,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
         body: pickup
           ? pickupNotes
             ? `Pick it up: ${pickupNotes}`
-            : `${o.shopName} will let you know when it's ready to pick up.`
+            : `${o.shopName} will let you know when it’s ready to pick up.`
           : `${o.shopName} will ship it to the address on your PayPal account.`,
       };
     case 'fulfilled':
@@ -102,13 +102,13 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
         tone: 'neutral',
         icon: TimerOff,
         title: 'This order expired',
-        body: "It wasn't approved on PayPal within 60 minutes, so nothing was charged. You can place it again.",
+        body: "It wasn’t approved on PayPal within 60 minutes, so nothing was charged. You can place it again.",
       };
     case 'failed':
       return {
         tone: 'danger',
         icon: CircleAlert,
-        title: "The payment didn't go through",
+        title: "The payment didn’t go through",
         body: 'Nothing was charged. If you still want these items, place the order again.',
       };
   }

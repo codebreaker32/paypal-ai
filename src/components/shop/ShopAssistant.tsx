@@ -90,7 +90,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, 
             <div className="flex items-start gap-3 border-b border-line px-5 pt-4 pb-3">
               <div className="flex-1 pt-1.5">
                 <h2 className="type-heading">Order with an assistant</h2>
-                <p className="type-meta text-ink-muted">Claude, through {shopName}&apos;s agent door</p>
+                <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
               </div>
               <button
                 type="button"
