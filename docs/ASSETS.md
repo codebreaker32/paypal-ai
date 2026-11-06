@@ -36,6 +36,13 @@ Used as the display-case photo for "Snap your counter" in the demo clip and the 
 
 - Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
+## Demo video
+
+- **Voice-over:** synthesised locally on the CPU with [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) (`hexgrad/Kokoro-82M`, open weights under the **Apache License 2.0**), through the `kokoro` Python package 0.9.4 (Apache-2.0) and its `misaki` grapheme-to-phoneme library. Voice **`af_heart`** (American English, female; graded A, the highest grade, in the model's `VOICES.md`). No cloud text-to-speech service, no voice cloning, no real person's voice. Script: `video/voice/kokoro_tts.py`; output: `video/project/audio/`.
+- **Video font:** Figtree (SIL Open Font License 1.1), the latin subset, weights 400 to 800, from `@fontsource/figtree` 5.3.0, embedded in the Remotion bundle as base64 (`video/remotion/src/fonts/figtree-woff2.js`, licence beside it in `OFL.txt`).
+- **Compositor:** the Remotion template comes from the demoday plugin, restyled; Remotion 4.0.499 (its own licence: free for individuals and small teams).
+- **No music** and no sound effects.
+
 ## Ravi's Bike Repair (ravi-bike-repair)
 
 <!-- ravi credits -->
