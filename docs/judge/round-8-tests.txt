@@ -28,3 +28,32 @@ Running 176 tests using 1 worker
 npm test (no network): Test Files 76 passed (76), Tests 942 passed (942)
 npx vitest run (adds tests/sandbox and tests/ai-live): Test Files 80 passed (80), Tests 957 passed (957)
 ```
+
+## Final full e2e on main 4c23fa5 (round 8's fix 3: the frozen app code), 18:43-18:53 IST
+SHELFIE_SCREENSHOTS=1 E2E_PORT=3172 npm run e2e: **173 passed, 3 skipped, 1 failed** (9.7 min). The failure was the seller-payout capture gate: after the US buyer's wallet login PayPal's sandbox answered with its own error page ("Things don't appear to be working at the moment.", `checkoutweb/genericError`), before any capture (SHF-7NZ8YQ, PayPal order 0FC880231R7172104 left unpaid). The new pre-hydration test (`menu-tab.spec.ts:126`) passed in this run.
+```
+  ✘    1 [chromium] › e2e/capture.spec.ts:455:7 › capture gate (real PayPal sandbox) › seller payout: a new shop paid to its own PayPal email → wallet login → Paid → brief → tracking → get_order_status (34.7s)
+  1 failed
+  3 skipped
+  173 passed (9.7m)
+```
+
+## Capture gate re-run alone on the same code, 18:55-18:58 IST
+SHELFIE_SCREENSHOTS=1 E2E_PORT=3172 npx playwright test e2e/capture.spec.ts --retries 0: **2 passed** (2.3 min); `docs/judge/screenshots/capture/` is from this run.
+```
+[capture-gate] shop shp_672rs2f65pg7ok2h live at /s/marigold-bakehouse-6: 6 PayPal sandbox products (PROD-9SG3278095735294N, PROD-5L184140SN7532638, PROD-74028950LB4895156…)
+[capture-gate] [seller] order SHF-BPB6JQ (ord_ptn2omdyy7j3iste) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [seller] PayPal order 6K9085220A517984J
+[capture-gate] [seller] capture 03Y96254LM5176327 COMPLETED at PayPal, $27.00, payee = PAYPAL_SANDBOX_SELLER_EMAIL
+[capture-gate] [seller] brief (agent): "Ship · 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Would like it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy, but the almond croissant is noted as containing nuts. Ask the buyer if they still 
+[capture-gate] [seller] tracking 9400111179397181484930 saved in Shelfie (no PayPal call)
+[capture-gate] [seller] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179397181484930.
+[capture-gate] [platform] demo shop shp_rlbhjbpcxtlbhj64 live at /s/marigold-bakehouse: 9 published now, paid to the platform
+[capture-gate] [platform] order SHF-8X8VBM (ord_qdsgk742knxfutir) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [platform] PayPal order 7WW5373661990891R
+[capture-gate] [platform] capture 28519371UC903443H COMPLETED at PayPal, $27.00, payee = the app's own account
+[capture-gate] [platform] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Wants it by Friday"}]; flags [{"severity":"warn","text":"Buyer has a nut allergy, but the almond croissant is noted as containing nuts. Check with the buyer before sendin
+[capture-gate] [platform] PayPal tracker 28519371UC903443H-9400111179397185733110 USPS SHIPPED
+[capture-gate] [platform] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179397185733110.
+  2 passed (2.3m)
+```

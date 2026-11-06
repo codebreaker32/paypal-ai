@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 18:38 IST (run 2, session 7)_
+_Last updated: 2026-11-06 19:00 IST (run 2, session 7)_
 
 ## Current phase
 **Run 2, session 7 (from 17:35 IST).**
@@ -12,7 +12,8 @@ _Last updated: 2026-11-06 18:38 IST (run 2, session 7)_
 - **Verified: the full e2e suite on main `3120886` (17:58–18:09 IST): 173 passed, 3 skipped, 0 failed** (`docs/judge/round-8-tests.txt`), with `SHELFIE_SCREENSHOTS=1`, so `docs/judge/screenshots/capture/` is re-shot in the Storefront design (round-7 fix 2). Seller payout: SHF-PXUQHF → PayPal `5BS40454W45644825` → capture `9RX261380T155022Y` COMPLETED ($27.00), payee = the US sandbox seller, PayPal wallet login; brief flagged the allergy; tracking saved in Shelfie and read back. Demo shop: SHF-S6EX9E → PayPal `1KY14200PH607015N` → capture `1TK16972JJ957364J` COMPLETED, guest card, USPS tracker SHIPPED at PayPal.
 - **done: `docs/judge/screenshots/round-8/`**: 96 screens on a production build, **0 axe violations**, including Snap your counter's reading, none-found, error and live (real Claude) states.
 - **done, verified (TDD): a photo picked before the page hydrates is no longer lost** (item, cover, Snap your counter). Found by the round-8 screenshot run; `e2e/menu-tab.spec.ts` 6/6 and `e2e/setup-review.spec.ts` 8/8 on `306dab8`.
-- **Running: judge round 8** on the round-8 screenshots, the capture re-shoot and the clips.
+- **done: judge round 8: ship, A 24 / B 24, 0 Part C fails** (`docs/judge/round-8.md`). Held for the same reason as rounds 2–7: no public repo, deploy or cut video. It viewed 31 clip frames (no login, token or key) and checked payee routing, price tamper and discovery live. Its fix 3 is done: the README points at `round-8/`, `setup-live` draws the e2e owner link masked (re-taken: 96 screens, axe 0), clip 05's step lines shorten home folders to `~`, and the full e2e ran on the final commit (below). Its fixes 1 and 2 (cut and post the video, make the repo public, deploy) are the human checklist below.
+- **Verified: the full e2e suite on the frozen app code (`4c23fa5`, 18:43–18:53 IST): 173 passed, 3 skipped, 1 failed.** The failure was PayPal's sandbox: after the US buyer's wallet login it showed its own error page ("Things don't appear to be working at the moment.") before any capture. **The capture gate re-run alone on the same code passed 2/2** (18:55–18:58): seller payout SHF-BPB6JQ → PayPal `6K9085220A517984J` → capture `03Y96254LM5176327` COMPLETED ($27.00, payee = the US sandbox seller, wallet login), tracking saved in Shelfie and read back; demo shop SHF-8X8VBM → PayPal `7WW5373661990891R` → capture `28519371UC903443H` COMPLETED, USPS tracker SHIPPED at PayPal. `docs/judge/screenshots/capture/` is from the re-run. Both logs: `docs/judge/round-8-tests.txt`.
 - **Unit test count:** `npm test` runs **942** tests in 76 files (no network); `npx vitest run` adds the 15 sandbox and live-Claude tests (**957**). Both pass on `c7a7593`.
 - **done:** secret scan of the entire git history (17:45 IST): gitleaks `gitleaks git . --log-opts=--all`, 393 commits, **no leaks found**; every `.env` value (9): 0 hits in `git log --all -p` (5.9 MB) and in 1,144 tracked files.
 
@@ -236,16 +237,13 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. Judge round 7 (running), then its in-scope top fixes.
-2. Merge the clips worker (recorder on the new UI, `03b-snap-counter`), with every clip's frames viewed.
-3. One full e2e run (capture gate included) on the final main, on an idle machine.
-4. Final PROGRESS summary and the completion check (`.run-complete`).
+None for an agent: every item of the run brief is done and verified or waits on the human (below). If a later run reopens work, start from judge round 8's fixes (`docs/judge/round-8.md`).
 
 ## Needs from human
 **One checklist, about 20 minutes, before 12 Nov 2026 12:00 PT.** Judge rounds 2–7 held A5 and B4 at 4 for these steps alone, and without steps 1 and 4 the entry fails Stage One. No worker can do them: they need your GitHub, Render, YouTube and Devpost accounts.
 1. **Make the repo public** (about 3 min). `gh auth login`, then `gh repo edit codebreaker32/paypal-ai --visibility public --accept-visibility-change-consequences`. Check with `gh repo view codebreaker32/paypal-ai --json visibility,licenseInfo` (expect `PUBLIC` and `mit`). The full-history secret scan was clean on 6 Nov (gitleaks: 393 commits, no leaks; every `.env` value: 0 hits in history and in tracked files).
 2. **Deploy to Render** (about 10 min, optional but it moves B4). Follow `docs/DEPLOY.md`: New → Blueprint from `render.yaml`, enter the env vars (include `PAYPAL_SANDBOX_SELLER_EMAIL`), run `npm run seed` in the service shell, create the PayPal webhook for the service URL and set `PAYPAL_WEBHOOK_ID`, then run the smoke test there. From any machine: `curl -s https://<service>/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'` and `curl -s https://<service>/llms.txt` should show the https door.
-3. **Cut and post the video** (the longest step). The raw clips are in `video/clips/` (`video/clips/README.md` maps each to a `docs/DEMO.md` shot); before re-recording anything, run `npm run seed -- --cancel-unpaid`. Cut to ≤ 2:50, no third-party music, and post it **public** on YouTube.
+3. **Cut and post the video** (the longest step). The raw clips are in `video/clips/` (`video/clips/README.md` maps each to a `docs/DEMO.md` shot); before re-recording anything, run `npm run seed -- --cancel-unpaid`. Cut the ~320 s of raw clips to ≤ 2:50 (judge round 8's list: add the voice-over from `docs/DEMO.md`, the opening quote card, zoom the phone clips, and trim clip 05's refused tool calls; speed 05 up 2×), no third-party music, and post it **public** on YouTube.
 4. **Fill in the 3 TODOs** in `docs/SUBMISSION.md` (`## Links`: video, repo, hosted demo) and replace README "Deploy to Render" → "**Not yet run.**" with the URL and the date you checked it. Then submit on Devpost with `docs/SUBMISSION.md`.
 5. **GitHub About section** (1 min): description "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2."; topics `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
 
