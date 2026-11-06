@@ -133,8 +133,8 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 
 ## Next steps
 1. (Done at 08:53 IST: the full e2e run passed after the review fixes; see Verified.)
-2. `npm run screenshots:prod -- docs/judge/screenshots/round-4`, then write `docs/judge/round-4-tests.txt` and a `README.md` in that folder (copy round-3's and add the dashboard-loading line).
-3. **Judge round 4** (fresh subagent, the round-3 prompt pattern): give it `docs/judge/round-3.md` for the fix accounting, plus `docs/reviews/2026-11-06-whole-codebase.md` as an artifact.
+2. (Done at 08:58 IST: `docs/judge/screenshots/round-4/` has 68/68 with 0 axe violations, and `docs/judge/round-4-tests.txt` is written.)
+3. **Judge round 4** (fresh subagent, the round-3 prompt pattern; session 5 started it at ~09:00 IST. If `docs/judge/round-4.md` isn't on main, run it again): give it `docs/judge/round-3.md` for the fix accounting, plus `docs/reviews/2026-11-06-whole-codebase.md` as an artifact.
 4. Then the next-highest in-scope gain from the judge. The QR and discovery work needs the human's go-ahead (see below).
 
 ## Needs from human
