@@ -61,6 +61,8 @@ Each item passes or fails, with evidence (screenshots at 390 px and 1440 px wide
 - walls of identical cards;
 - the stock tag-icon logo.
 
+**Images, not stand-ins** (amendment approved by the human on 6 Nov 2026, run 3). No initials, emoji or text tiles standing in for images: a shop avatar, an item without a photo or any other picture slot shows a real image (the seller's photo, logo, cover or menu photo) or a drawn illustration, never letters such as "Mb" or "Fr". A screen with one is a fail.
+
 **Real-product check** (same amendment). Put each judged screen side by side with the reference screenshots of real storefronts and operations apps (Toast, DoorDash, Uber Eats, Instagram shops, Square). Would a designer take this for a real product? A "no" on any judged screen is a fail, with the reason.
 
 **Frontend design**
