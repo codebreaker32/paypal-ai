@@ -18,7 +18,7 @@
 </g></symbol>
 <symbol id="bread-baguette" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
 <path d="M14 60h68"/>
-<g transform="rotate(-12 48 46)">
+<g transform="translate(0 -3.5) rotate(-12 48 46)">
 <path style="fill:var(--ill-wheat)" d="M21 55c-6 0-10-3-10-7.5S15 40 21 40h54c6 0 10 3 10 7.5S81 55 75 55z"/>
 <path style="stroke:var(--ill-dough)" d="M17 51c3 1.2 6.5 1.5 10 1.5"/>
 <path style="stroke:var(--ill-pom)" d="M22 44.5l9 3M36 44l9 3M50 44l9 3M64 44l9 3"/>
