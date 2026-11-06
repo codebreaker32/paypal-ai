@@ -123,11 +123,14 @@ test.describe('counter card', () => {
     await expect(page.getByRole('link', { name: 'Back to Share' })).toHaveAttribute('href', `/shops/${live.shop.id}?tab=share`);
   });
 
-  test('a draft shop’s card says to publish first', async ({ page, context }) => {
+  test('a draft shop has no card yet (its address changes at first publish): no QR, no links, no Print', async ({ page, context }) => {
     await signIn(context, draft.shop.id, draft.ownerToken);
     await page.goto(`/shops/${draft.shop.id}/card`);
-    await expect(page.getByText('Your shop isn’t published yet.')).toBeVisible();
+    await expect(page.getByText('Your counter card is ready once your shop is live.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
+    await expect(page.getByTestId('card-qr')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Print card' })).toHaveCount(0);
+    expect(await page.content()).not.toContain(draft.shop.slug);
   });
 
   test('prints the card alone, on one page', async ({ page, context }) => {
