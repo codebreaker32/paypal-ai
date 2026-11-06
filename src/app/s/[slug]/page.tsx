@@ -102,11 +102,12 @@ function Intro({ shop, photoCount }: { shop: Shop; photoCount: number }) {
           </a>
         )}
       </div>
-      {shop.status === 'paused' && (
+      {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
+      {!takesOrders(shop) && (
         <p role="status" className="flex items-start gap-2.5 rounded-md bg-warn-soft px-4 py-3 font-semibold text-warn">
           <Icon icon={PauseCircle} className="mt-0.5" />
           <span>
-            Not taking orders right now.{' '}
+            {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
             <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
           </span>
         </p>

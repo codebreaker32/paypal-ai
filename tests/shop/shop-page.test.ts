@@ -1,7 +1,8 @@
-// The public shop page /s/[slug] (spec §10a): what it tells agents in <head>. The agent door is advertised only by a
-// shop that takes orders (`takesOrders`: live, and it can be paid), the same rule as the JSON-LD OrderAction and
-// /agents.txt and /llms.txt.
+// The public shop page /s/[slug] (spec §10a): what it tells agents in <head>, and whether it says it is taking orders.
+// Both follow one rule, `takesOrders` (live, and it can be paid), the same as the JSON-LD OrderAction, /agents.txt and
+// /llms.txt and the agent door's create_order.
 import { isValidElement, type ReactElement, type ReactNode } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 
@@ -53,5 +54,38 @@ describe('shop page <link rel="alternate"> to the agent door', () => {
     const { nodes } = await pageFor(seed);
     expect(alternateLinks(nodes)).toEqual([]);
     expect(jsonLd(nodes)).toHaveLength(1);
+  });
+});
+
+describe('shop page "not taking orders" note', () => {
+  /** The page's intro (name, about, the note, how to get it) as HTML. */
+  const introHtml = async (seed: Seed) => {
+    const { nodes } = await pageFor(seed);
+    const layout = nodes.find((n) => (n.props as { intro?: ReactNode }).intro !== undefined)!;
+    return renderToStaticMarkup((layout.props as { intro: ReactElement }).intro);
+  };
+  const STILL_ASK = 'You can still read the menu and ask the assistant about it.';
+
+  it('a paused shop says it isn’t taking orders right now', async () => {
+    const html = await introHtml({ name: 'Rosa Bakes', status: 'paused' });
+    expect(html).toMatch(/role="status"/);
+    expect(html).toContain('Not taking orders right now.');
+    expect(html).toContain(STILL_ASK);
+  });
+
+  it('a live shop with no PayPal email (it refuses every order) says it isn’t taking orders online yet', async () => {
+    const html = await introHtml({ name: 'Rosa Bakes', payeeEmail: null });
+    expect(html).toMatch(/role="status"/);
+    expect(html).toContain('Not taking orders online yet.');
+    expect(html).toContain(STILL_ASK);
+  });
+
+  it.each([
+    ['a live shop with its PayPal email', { name: 'Rosa Bakes' }],
+    ['the live demo shop, paid to the platform', { name: 'Marigold Bakehouse' }],
+  ] as [string, Seed][])('is not there for %s', async (_label, seed) => {
+    const html = await introHtml(seed);
+    expect(html).not.toMatch(/role="status"/);
+    expect(html).not.toContain('Not taking orders');
   });
 });
