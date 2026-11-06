@@ -180,6 +180,33 @@ export function refsToCheck(state: ConsoleState): string[] {
   return [...new Set(refs)];
 }
 
+/** How often the console re-reads its orders while a card says "Confirming with PayPal" (the receipt's pace). */
+export const CONFIRM_POLL_MS = 3000;
+
+/** True while some approval card says "Confirming with PayPal": the poller or webhook may finish it any moment. */
+export function confirmingWithPayPal(state: ConsoleState): boolean {
+  return state.entries.some((e) => {
+    if (e.kind !== 'approval') return false;
+    const view = approvalCard(e);
+    return !view.approve && view.label === 'Confirming with PayPal';
+  });
+}
+
+/** Runs `check` every `ms`, each wait starting once the previous check is done. Returns a function that stops it. */
+export function pollEvery(ms: number, check: () => Promise<void>): () => void {
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const tick = async () => {
+    await check();
+    if (!stopped) timer = setTimeout(tick, ms);
+  };
+  timer = setTimeout(tick, ms);
+  return () => {
+    stopped = true;
+    clearTimeout(timer);
+  };
+}
+
 /**
  * Where the latest turn starts on screen: the first reply entry after the buyer's latest message (its Activity card),
  * or the message itself while no reply has arrived. -1 when there is nothing to show.

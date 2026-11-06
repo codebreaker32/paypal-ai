@@ -137,7 +137,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
           </dl>
           <p className="rule-dashed pt-3 text-center type-meta text-ink-muted">
             {order.fulfillment === 'shipping'
-              ? 'Shipping to the address on your PayPal account.'
+              ? 'Shipping to the address you gave PayPal.'
               : `Pickup${pickupNotes ? `: ${pickupNotes}` : ''}`}
           </p>
         </Card>

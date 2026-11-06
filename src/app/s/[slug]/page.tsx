@@ -57,7 +57,7 @@ function HowToGetIt({ shop }: { shop: Shop }) {
             </dt>
             <dd className="pl-8 text-ink-soft">
               <span className="type-figures font-semibold text-ink">{shop.shippingFeeCents > 0 ? `${formatUSD(shop.shippingFeeCents)} flat` : 'Free'}</span>{' '}
-              per order, to the address on your PayPal account.
+              per order, to the address you give PayPal.
             </dd>
           </div>
         )}

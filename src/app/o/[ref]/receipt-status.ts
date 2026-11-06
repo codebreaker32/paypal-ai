@@ -86,7 +86,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
           ? pickupNotes
             ? `Pick it up: ${pickupNotes}`
             : `${o.shopName} will let you know when it’s ready to pick up.`
-          : `${o.shopName} will ship it to the address on your PayPal account.`,
+          : `${o.shopName} will ship it to the address you gave PayPal.`,
       };
     case 'fulfilled':
       return {
