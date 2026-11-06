@@ -11,7 +11,7 @@ import type { DraftCatalog, ItemWithVariants, Shop, SkippedLine, UnreadableReaso
 import { MODEL_ID } from '@/lib/ai/anthropic';
 import { READING_DEADLINE_MS, type MenuPhoto } from '@/lib/ai/extract';
 import { normalizeExtraction } from '@/lib/ai/normalize';
-import { MenuExtractionSchema, type MenuExtraction } from '@/lib/ai/schemas';
+import { parseStoredReading, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, SAMPLES, recordedReading, samplePhotoPath, type SampleId } from '@/lib/ai/samples';
 import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from '@/lib/uploads';
 
@@ -248,7 +248,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
   }
   if (last.status === 'failed') return { ...base, step: 'failed', message: friendlyError(last.error) };
 
-  const parsed = MenuExtractionSchema.safeParse(last.raw);
+  const parsed = parseStoredReading(last.raw);
   const result = parsed.success ? normalizeExtraction(parsed.data) : null;
   if (!result) return { ...base, step: 'failed', message: FRIENDLY.AI_ERROR };
   if ('unreadable' in result) return { ...base, step: 'unreadable', reason: result.reason, tip: result.tip };

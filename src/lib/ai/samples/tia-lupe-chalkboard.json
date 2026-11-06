@@ -28,7 +28,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "taco"
     },
     {
       "section": "TACOS (3 PER ORDER)",
@@ -47,7 +48,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "taco"
     },
     {
       "section": "TACOS (3 PER ORDER)",
@@ -66,7 +68,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "taco"
     },
     {
       "section": "TACOS (3 PER ORDER)",
@@ -85,7 +88,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "taco"
     },
     {
       "section": "EXTRAS",
@@ -104,7 +108,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "goods"
     },
     {
       "section": "EXTRAS",
@@ -123,7 +128,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "goods"
     },
     {
       "section": "BURRITOS",
@@ -142,7 +148,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "burrito"
     },
     {
       "section": "BURRITOS",
@@ -161,7 +168,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "burrito"
     },
     {
       "section": "DRINKS",
@@ -185,7 +193,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "drink"
     },
     {
       "section": "DRINKS",
@@ -204,7 +213,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "drink"
     },
     {
       "section": "DRINKS",
@@ -223,7 +233,8 @@
       "deal_text": null,
       "confidence": "medium",
       "note": "The price is shown as \"?\"; please add it.",
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "drink"
     }
   ],
   "skipped_lines": [

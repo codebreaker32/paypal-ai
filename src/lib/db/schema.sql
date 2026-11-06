@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS shops (
   name TEXT NOT NULL,
   about TEXT NOT NULL DEFAULT '',
   cover_url TEXT,               -- shop cover photo, site-relative like items.photo_url; null = designed fallback
+  logo_url TEXT,                -- shop logo, a square WebP at /i/<file>; null = the avatar uses the cover, a menu photo or a drawing
   kind TEXT NOT NULL DEFAULT 'food' CHECK (kind IN ('food','goods','services')),
   fulfillment TEXT NOT NULL DEFAULT 'pickup' CHECK (fulfillment IN ('pickup','shipping','both')),
   pickup_notes TEXT NOT NULL DEFAULT '',
@@ -49,6 +50,7 @@ CREATE TABLE IF NOT EXISTS items (
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','live','in_person','removed')),
   sold_out INTEGER NOT NULL DEFAULT 0,
   photo_url TEXT,               -- site-relative: /demo/... (bundled) or /i/<file> (uploaded); null = designed fallback
+  category TEXT,                -- the drawing shown without a photo (src/lib/domain/category.ts); null = keyword guess
   sort INTEGER NOT NULL DEFAULT 0,
   paypal_product_id TEXT UNIQUE,
   published_at TEXT,

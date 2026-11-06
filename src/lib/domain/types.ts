@@ -83,8 +83,8 @@ export interface DraftItem {
   issues: IssueCode[];
   issueDetail: string | null;
   status: 'draft' | 'in_person' | 'removed';
-  /** Claude's picture for the item; null when the reading has none (older recordings). */
-  category: ItemCategory | null;
+  /** Claude's picture for the item; null or absent when the reading has none (older recordings, hand-added items). */
+  category?: ItemCategory | null;
   variants: DraftVariant[];
 }
 

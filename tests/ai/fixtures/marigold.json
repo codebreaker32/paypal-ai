@@ -33,7 +33,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "bread"
     },
     {
       "section": "Breads",
@@ -52,7 +53,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "bread"
     },
     {
       "section": "Breads",
@@ -71,7 +73,8 @@
       "deal_text": null,
       "confidence": "medium",
       "note": "The $7 is crossed out; we used $8.",
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "bread"
     },
     {
       "section": "Pastries",
@@ -90,7 +93,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "pastry"
     },
     {
       "section": "Pastries",
@@ -109,7 +113,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "pastry"
     },
     {
       "section": "Pastries",
@@ -128,7 +133,8 @@
       "deal_text": "2 for $7",
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "pastry"
     },
     {
       "section": "Pastries",
@@ -147,7 +153,8 @@
       "deal_text": null,
       "confidence": "low",
       "note": "This line is blurred; please check the name and the $4.75 price.",
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "pastry"
     },
     {
       "section": "Cakes (24h notice)",
@@ -166,7 +173,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "cake"
     },
     {
       "section": "Cakes (24h notice)",
@@ -185,7 +193,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "pastry"
     },
     {
       "section": "Coffee",
@@ -209,7 +218,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "coffee"
     }
   ],
   "skipped_lines": [

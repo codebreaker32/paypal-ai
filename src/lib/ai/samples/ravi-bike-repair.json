@@ -28,7 +28,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "bike_part"
     },
     {
       "section": null,
@@ -47,7 +48,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "tool"
     },
     {
       "section": null,
@@ -66,7 +68,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "tool"
     },
     {
       "section": null,
@@ -85,7 +88,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "tool"
     },
     {
       "section": null,
@@ -104,7 +108,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": "Price is $18 plus the cost of parts.",
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "bike_part"
     },
     {
       "section": null,
@@ -123,7 +128,8 @@
       "deal_text": null,
       "confidence": "high",
       "note": null,
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "tool"
     },
     {
       "section": null,
@@ -142,7 +148,8 @@
       "deal_text": "FREE w/ tune-up, else $10",
       "confidence": "high",
       "note": "Free with a tune-up; otherwise $10.",
-      "looks_like_instruction": false
+      "looks_like_instruction": false,
+      "category": "tool"
     }
   ],
   "skipped_lines": [

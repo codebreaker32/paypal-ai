@@ -1,3 +1,4 @@
+import { isItemCategory } from '@/lib/domain/category';
 import { MAX_PRICE_CENTS, MAX_VARIANTS } from '@/lib/catalog/rules';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type {
@@ -275,6 +276,7 @@ function buildItem(it: ExtractedItem, kind: DraftItem['kind']): Built | null {
     issues: ordered,
     issueDetail: ordered.length ? issueDetailFor({ it, variants, flags, unusual, shaky, note }) : null,
     status: it.price_kind === 'market' ? 'in_person' : 'draft',
+    category: isItemCategory(it.category) ? it.category : null,
     variants,
   };
   return {

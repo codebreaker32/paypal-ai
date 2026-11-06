@@ -4,7 +4,7 @@
 // like any photo.
 import path from 'node:path';
 import type { SampleId } from '@/lib/client/api';
-import { MenuExtractionSchema, type MenuExtraction } from '@/lib/ai/schemas';
+import { parseStoredReading, type MenuExtraction } from '@/lib/ai/schemas';
 import marigold from './marigold-bakehouse.json';
 import tiaLupe from './tia-lupe-chalkboard.json';
 import ravi from './ravi-bike-repair.json';
@@ -35,5 +35,7 @@ export function samplePhotoPath(id: SampleId): string {
 
 /** The recorded model output for a sample, validated against the live schema. */
 export function recordedReading(id: SampleId): MenuExtraction {
-  return MenuExtractionSchema.parse(SAMPLES[id].recorded);
+  const parsed = parseStoredReading(SAMPLES[id].recorded);
+  if (!parsed.success) throw parsed.error;
+  return parsed.data;
 }
