@@ -1,16 +1,19 @@
 # Progress
 
-_Last updated: 2026-11-06 20:20 IST (run 3, session 1)_
+_Last updated: 2026-11-06 21:05 IST (run 3, session 1)_
 
 ## Current phase
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
 
 **Run 3, session 1 (from 20:02 IST).**
-- **done:** the human's decisions recorded; `docs/JUDGING.md` Part C amended ("no initials, emoji or text tiles standing in for images"); the Part A plan `docs/superpowers/plans/2026-11-06-run3-part-a.md` (5 tasks, two waves of workers in worktrees).
+- **done:** the human's decisions recorded; `docs/JUDGING.md` Part C amended ("no initials, emoji or text tiles standing in for images"); plans for Part A (`docs/superpowers/plans/2026-11-06-run3-part-a.md`) and Part B (`…-run3-part-b.md`).
 - **done:** Skiper UI checked: its free tier names no licence and its terms forbid redistribution, so no Skiper code is used, only ideas (DECISIONS).
-- **running:** wave 1, worker F (shadcn base under the existing primitives, motion primitives, colour roles) and worker I (Claude picks an item category, 12 drawn illustrations, the shop avatar chain logo → cover → menu photo → illustration, logo upload).
-- **running:** a local Kokoro-82M install in `video/.venv` (gitignored) for Part B's voice-over: there is no `ELEVENLABS_API_KEY`, and demoday's default voice needs a fal.ai account (a sign-up).
-- **Next:** merge wave 1 → wave 2 (buyer surfaces, seller surfaces) → screenshots, recordings, code review, full e2e with the capture gate → judge round 9 → Part B.
+- **done, merged (`e5bfe39`): Task 1, the foundation.** shadcn base (cva, `cn`, lowercase primitives with the same APIs; shadcn's init overwrote our tokens, so only its pattern is kept), the `motion` library behind `MotionProvider` (LazyMotion, features loaded after first paint, `reducedMotion="user"`) and `Reveal`, `Stagger`, `Pressable`, `CountUp`, `StatusSwap`; colour roles (an `error` vermilion clear of the pomegranate hue, calm `note` tokens for the AI brief and allergy notes; the accent is off every error and negative state). Worker's run: 951 unit tests, e2e 172 passed / 3 skipped, 94 screens axe 0. Its task review is running.
+- **done, merged (`ebd7162`): Task 2, images.** Claude picks one of 12 categories per item when it reads the menu (a keyword guess covers older rows); 12 drawn illustrations in one SVG sheet (`public/illustrations.svg`, contact sheet `docs/judge/evidence/illustrations.png`) replace every monogram; the shop avatar is the logo, else the cover, else the menu photo, else a drawing; `POST/DELETE /api/shops/[id]/logo`; agents never get a drawing as a product image. Task review: approved; a fix round is running (a stored-reading test, a 13th `meal` drawing for food without a better picture, a cover-detail crop for the avatar).
+- **Verified on main `ebd7162`:** typecheck and lint clean; `npm test` 991 passed (80 files).
+- **done, merged (`b97654f`): Part B Task 6, the video tooling.** Kokoro-82M (`af_heart`) voice adapter writing demoday-format audio and word timings, a Remotion app in the brand with burned-in captions and an SRT writer, and the six-beat narration (2:42.3 measured), reviewed and fixed once (repo-relative paths, the Census line as sourced, the home baker's stakes).
+- **running:** wave 2, worker B (start page story and clipping, phone shop rows and sticky-bar fix, shop/console/receipt motion, Lighthouse) and worker S (new-paid-order toast and highlighted row, status and total motion, AI brief as a note, warn/error split, setup and menu motion).
+- **Next:** merge wave 2 → screenshots, motion recordings (`e2e/recordings.spec.ts`), code review, the full e2e with the capture gate → judge round 9 → Part B clips and render.
 
 **Run 2 (complete, 6 Nov 19:25 IST), summary below.**
 
