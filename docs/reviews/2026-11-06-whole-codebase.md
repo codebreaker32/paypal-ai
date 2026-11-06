@@ -68,7 +68,7 @@ Limits on impact: no money is moved twice. PayPal cannot capture one order twice
 
 **Verifier's fix:** Throttle /api/paypal/return per order: skip the PayPal sync when lastCheckedAt is under about 5 s old, as get_order_status does, and/or add a per-IP allow() bucket. For the webhook, bypass the post-decline/post-refusal guard only for a CHECKOUT.ORDER.APPROVED event whose create_time is later than the last capture_declined/capture_failed event row. Pass the event time into syncOrder, or record the decline time and compare it there. Otherwise treat the webhook like the poller.
 
-**Status:** open
+**Status:** fixed (`5fd5523`): return-URL syncs are throttled to one per 5 s per order; a webhook approval no newer than the last declined or failed capture doesn't capture again.
 
 ## R5. [orders, low] The webhook buffers an unbounded request body before its cheap unsigned-request check
 
@@ -100,7 +100,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** In createOrderForShop, store a fingerprint with the key: a sha256 of the normalized lines (sorted item_id/option_id/quantity) plus the resolved fulfillment, in a new orders.request_hash column. On a key hit whose fingerprint differs, throw OrderError('INVALID_ARGUMENTS', 'client_request_id was already used for a different order', ...) and do not return the stored order. Do the same check for an in-flight promise hit by keeping the fingerprint next to the promise. Also scope outside agents' keys to the caller before the lookup, e.g. key = hash(rateIdentity + '\n' + client_request_id), as the console does with its session. The cancel URL also lets anyone who knows a ref cancel that order. Consider requiring PayPal's token query param to match order.paypalOrderId there.
 
-**Status:** open
+**Status:** fixed (`aba4602`): a matched `client_request_id` returns the stored order only when items, options, quantities and fulfillment match; otherwise `IDEMPOTENCY_CONFLICT`. True retries stay idempotent.
 
 ## R7. [door, medium] One anonymous caller can fill the shop-wide 10-unpaid-order cap and block every other buyer for an hour; the cap is not atomic either
 
@@ -114,7 +114,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Add a per-caller cap before the shop-wide one, e.g. at most 3 awaiting_approval orders per (shop, rate identity). This needs the rate identity on the order: either a hashed caller column on orders (passed from ShopServerDeps.clientIp through CreateOrderInput), or an in-memory map like the rate limiter. Reserve the slot synchronously before the PayPal await. The app is one process with an in-memory rate limiter, so a per-shop in-process counter works: increment it with the countOpen check, decrement it in finally after the insert. Alternatively insert the row first as a pending reservation. Lowering CREATE_ORDER_RATE (e.g. to 10/hour) also helps.
 
-**Status:** open
+**Status:** fixed (`2181b6c`, `381eb32`): a per-caller cap of 3 unpaid orders per shop (keyed on the door's rate identity, stored hashed in `orders.client_key`, added to existing databases), the shop-wide cap of 10 kept, both checked inside the insert's transaction.
 
 ## R8. [door, low] The 5-second get_order_status sync throttle can be bypassed with concurrent calls, so one order_ref can drive unlimited PayPal GETs on the shared credentials
 
@@ -128,7 +128,7 @@ The codebase caps body size elsewhere on purpose: src/lib/mcp/server.ts:14,43 se
 
 **Verifier's fix:** Claim the sync window atomically in the tool before awaiting: `UPDATE orders SET last_checked_at = @now WHERE id = @id AND (last_checked_at IS NULL OR last_checked_at <= @cutoff)`. Call syncOrder only when changes === 1, and otherwise return the stored row. Alternatively keep an in-process Map<orderId, Promise<Order>> around syncOrder so concurrent callers share one PayPal GET. Also give get_order_status a per-IP rateLimit (e.g. 120/hour) in its ToolSpec.
 
-**Status:** open
+**Status:** fixed (`dc2181a`): concurrent `get_order_status` calls for one order share one PayPal sync (20 concurrent calls → 1 read).
 
 ## R9. [door, low] The buyer console API reads an unbounded JSON body before its rate limit runs
 

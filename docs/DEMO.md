@@ -39,6 +39,7 @@ PayPal's agent checkout reaches merchants who already have a website store. Rosa
 - Don't claim webhooks, wallet-login payments, a deployed URL, or paying each seller directly. None of these is verified (see `docs/PROGRESS.md`).
 
 ## If something breaks on the day
+- One caller can hold 3 unpaid orders per shop (the shop as a whole 10), and unpaid orders expire after 60 minutes. Pay or cancel rehearsal orders before recording, or the assistant will say "You already have 3 orders waiting for payment".
 - If PayPal's sandbox page is slow, cut from **Approve on PayPal** straight to the receipt of an order paid earlier.
 - If Claude is slow on reading, cut on the result, or restart with `SHELFIE_RECORDED_SAMPLES=1` and use **Try a sample menu** (Claude's saved reading, instant, labelled **Recorded reading** on screen; say it was recorded).
 - If the Claude Code run is slow, show the recorded run in `docs/judge/evidence/outside-client-claude-code.md` (15.9 s of agent time, real approval link) and say it was recorded.
