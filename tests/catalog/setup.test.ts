@@ -243,6 +243,22 @@ describe('shop setup', () => {
       ]);
     });
 
+    it('shows plain card text for open issues, even for items stored before the text was plain', async () => {
+      const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
+      await runReading(deps(), shop.id);
+      const stored = items.listWithVariants(db, shop.id);
+      const bun = stored.find((i) => i.name === 'Cardamom bun')!;
+      const focaccia = stored.find((i) => /focaccia/i.test(i.name))!;
+      const old = 'Deal "2 for $7": $3.50 each?. Multi-buy deal; unit price is 350 cents. Matched by row position.';
+      items.update(db, bun.id, { issueDetail: old });
+      // A card the seller already answered keeps what it said (it isn't shown any more).
+      items.update(db, focaccia.id, { issues: [], issueDetail: old });
+      const view = loadSetupView(db, shops.byId(db, shop.id)!, t);
+      if (view.step !== 'review') throw new Error(`expected review, got ${view.step}`);
+      expect(view.items.find((i) => i.id === bun.id)!.issueDetail).toBe('Printed as “2 for $7”. We set $3.50 each. Is that right?');
+      expect(view.items.find((i) => i.id === focaccia.id)!.issueDetail).toBe(old);
+    });
+
     it('shows the live step once the shop is published', async () => {
       const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
       await runReading(deps(), shop.id);

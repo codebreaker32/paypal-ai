@@ -196,6 +196,20 @@ describe('seller-facing issue text', () => {
     expect(detail({ prices: [price(800, '$7 $8')], confidence: 'medium', note: '$7 is crossed out and replaced with $8; using $8.' }))
       .toBe('A price is crossed out. We set $8.00. Is that right?');
   });
+  it('says a price is crossed out only when the note is about a crossed-out or struck price', () => {
+    const at = (note: string) => detail({ prices: [price(800, '$8')], confidence: 'medium', note });
+    expect(at('Price struck through and rewritten as $8.')).toBe('A price is crossed out. We set $8.00. Is that right?');
+    expect(at('$7 crossed-out, $8 written above it.')).toBe('A price is crossed out. We set $8.00. Is that right?');
+    // A crossed-out name, or a smudge across the line, is a shaky reading: ask about the name and price.
+    expect(at('The old name Rye is crossed out; we used Spelt.')).toBe('Hard to read in the photo. Are the name and price right?');
+    expect(at('A smudge runs across the name; please check it.')).toBe('Hard to read in the photo. Are the name and price right?');
+  });
+  it('"across" or a hot cross bun is not a crossed-out reading', () => {
+    const item = (note: string, name = 'Thing') =>
+      catalog(raw({ name, prices: [price(800, '$8')], confidence: 'medium', note })).items[0];
+    expect(item('The name is written across two lines.').issues).toEqual([]);
+    expect(item('Hot cross bun, listed under Pastries.', 'Hot cross bun').issues).toEqual([]);
+  });
   it('printed in an unusual way', () => {
     expect(detail({ prices: [price(2000, 'from $20')] })).toBe('Printed as “from $20”. We set $20.00. Is that right?');
   });
@@ -233,6 +247,20 @@ describe('seller-facing issue text', () => {
       'Listed twice with different prices: $4.25 and $4.75.',
     ]);
   });
+  it('an item listed twice keeps its own deal or unusual-price question', () => {
+    const c = catalog(raw(
+      { name: 'Cardamom bun', price_kind: 'deal', deal_text: '3 for $10', prices: [price(333, '3 for $10')] },
+      { name: 'Cardamom bun', prices: [], price_kind: 'missing', page: 2 },
+      { name: 'Gift box', prices: [price(150000, '$1500')] },
+      { name: 'Gift box', prices: [price(4000, '$40')], page: 2 },
+    ));
+    expect(c.items.map((i) => [i.issues, i.issueDetail])).toEqual([
+      [['CHECK', 'DUPLICATE'], 'Printed as “3 for $10”. We set $3.33 each. Is that right?'],
+      [['MISSING_PRICE', 'DUPLICATE'], 'No price on the menu. Add one, or leave it off.'],
+      [['CHECK', 'DUPLICATE'], 'We set $1500.00, which looks unusual. Is that right?'],
+      [['DUPLICATE'], 'Listed twice with different prices: $1500.00 and $40.00.'],
+    ]);
+  });
   it('a plain item has no detail, even with a model note', () => {
     expect(detail({ confidence: 'medium', note: 'Price matched by row position.' })).toBeNull();
   });
@@ -266,6 +294,11 @@ describe('notes from the reading (shop-level warnings)', () => {
       'Best reading of a blurred line.',
     ])).toEqual([CHECK_PHOTO]);
   });
+  it('keeps a plain note that says "match"', () => {
+    const note = 'The two croissant prices on the left don’t match the board on the right; please check.';
+    expect(warningsOf([note])).toEqual([note]);
+    expect(warningsOf(['Prices were matched to items by position.'])).toEqual([CHECK_PHOTO]);
+  });
   it('keeps plain notes beside the fixed sentence, which comes last', () => {
     expect(warningsOf(['Price matched by row.', 'Glare on the right side of the page.'])).toEqual([
       'Glare on the right side of the page.',
@@ -294,6 +327,17 @@ describe('recorded sample readings (what a keyless visitor sees)', () => {
       for (const t of [...r.items.map((i) => i.note ?? ''), ...r.warnings]) expect(t).not.toMatch(ENGINEER_TALK);
     });
   }
+  it('Marigold: 10 items · 4 need you, with the demo’s card texts', () => {
+    const c = catalog(recordedReading('marigold-bakehouse'));
+    expect(c.items).toHaveLength(10);
+    expect(c.needsAttention).toBe(4);
+    expect(c.items.filter((i) => i.issues.length > 0).map((i) => [i.name, i.issues, i.issueDetail])).toEqual([
+      ['Focaccia – rosemary & sea salt', ['CHECK'], 'A price is crossed out. We set $8.00. Is that right?'],
+      ['Cardamom bun', ['CHECK'], 'Printed as “2 for $7”. We set $3.50 each. Is that right?'],
+      ['Pain au chocolat', ['CHECK'], 'Hard to read in the photo. Are the name and price right?'],
+      ['Seasonal fruit galette', ['MARKET_PRICE'], 'Your menu says “market price” instead of a price.'],
+    ]);
+  });
   it('Marigold keeps the demo flags: the deal, the crossed-out price and the market price', () => {
     const c = catalog(recordedReading('marigold-bakehouse'));
     const deal = c.items.find((i) => /2 for \$7/.test(i.sourceText));

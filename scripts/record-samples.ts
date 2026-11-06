@@ -1,9 +1,11 @@
-// npx tsx scripts/record-samples.ts [--out <dir>] [sample ids…]
+// npx tsx scripts/record-samples.ts [--out <dir> | --write-samples] [sample ids…]
 // Reads each sample photo in public/samples with the real menu reader (claude-sonnet-5-5 and the current prompt) and
-// writes the raw model output to <dir>/<id>.json (default src/lib/ai/samples). These recordings are what a visitor
-// without ANTHROPIC_API_KEY sees when they try a sample (src/lib/ai/samples/index.ts). Needs ANTHROPIC_API_KEY in .env.
-// Record into a scratch --out first, check the flagged cards (npx vitest run tests/ai/normalize.test.ts after
-// copying), then copy over. Never edit prices in a recording by hand.
+// writes the raw model output to <dir>/<id>.json. By default <dir> is a fresh scratch folder under data/recordings;
+// --write-samples overwrites the committed recordings in src/lib/ai/samples, which are what a visitor without
+// ANTHROPIC_API_KEY sees when they try a sample (src/lib/ai/samples/index.ts), what `npm run seed` publishes and what
+// the e2e counts expect. Needs ANTHROPIC_API_KEY in .env.
+// Record into scratch first, check the flagged cards it prints (and npx vitest run tests/ai/normalize.test.ts after
+// copying), then copy over or rerun with --write-samples. Never edit prices in a recording by hand.
 import { config } from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,24 +13,33 @@ import { extractMenu } from '@/lib/ai/extract';
 import { normalizeExtraction } from '@/lib/ai/normalize';
 import { SAMPLE_IDS, isSampleId, samplePhotoPath } from '@/lib/ai/samples';
 
-config({ quiet: true });
+export const SAMPLES_DIR = 'src/lib/ai/samples';
 
-function args(argv: string[]): { out: string; ids: string[] } {
-  let out = 'src/lib/ai/samples';
+export function parseArgs(argv: string[], now = new Date()): { out: string; ids: string[] } {
+  let out: string | null = null;
+  let writeSamples = false;
   const ids: string[] = [];
   for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === '--out') out = argv[++i];
-    else ids.push(argv[i]);
+    if (argv[i] === '--write-samples') writeSamples = true;
+    else if (argv[i] === '--out') {
+      const dir = argv[++i];
+      if (!dir || dir.startsWith('--')) throw new Error('--out needs a folder: --out <dir>');
+      out = dir;
+    } else ids.push(argv[i]);
   }
-  return { out, ids: ids.length ? ids : SAMPLE_IDS };
+  if (out && writeSamples) throw new Error('Use --out <dir> or --write-samples, not both');
+  const scratch = path.join('data', 'recordings', now.toISOString().replace(/[:.]/g, '-'));
+  return { out: writeSamples ? SAMPLES_DIR : (out ?? scratch), ids: ids.length ? ids : SAMPLE_IDS };
 }
 
 async function main() {
+  config({ quiet: true });
   if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY is not set (.env)');
-  const { out, ids } = args(process.argv.slice(2));
+  const { out, ids } = parseArgs(process.argv.slice(2));
+  const unknown = ids.find((id) => !isSampleId(id));
+  if (unknown) throw new Error(`Unknown sample: ${unknown} (one of ${SAMPLE_IDS.join(', ')})`);
   fs.mkdirSync(out, { recursive: true });
-  for (const id of ids) {
-    if (!isSampleId(id)) throw new Error(`Unknown sample: ${id} (one of ${SAMPLE_IDS.join(', ')})`);
+  for (const id of ids.filter(isSampleId)) {
     const started = Date.now();
     const raw = await extractMenu([{ data: fs.readFileSync(samplePhotoPath(id)), mediaType: 'image/jpeg' }]);
     const file = path.join(out, `${id}.json`);
@@ -45,7 +56,10 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err instanceof Error ? err.message : err);
-  process.exit(1);
-});
+// Only when run as a script, so tests can import parseArgs without reading anything.
+if (process.argv[1] && /record-samples\.ts$/.test(process.argv[1])) {
+  main().catch((err) => {
+    console.error(err instanceof Error ? err.message : err);
+    process.exit(1);
+  });
+}

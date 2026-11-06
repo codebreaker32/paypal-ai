@@ -241,6 +241,15 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
   if (!result) return { ...base, step: 'failed', message: FRIENDLY.AI_ERROR };
   if ('unreadable' in result) return { ...base, step: 'unreadable', reason: result.reason, tip: result.tip };
 
+  // Card text and notes are worked out again from the raw reading, so a shop read before they
+  // were plain shows plain text too. Only open cards change: every card action clears the item's
+  // issues, so an item with open issues is still exactly as it was read.
+  const key = (i: { sourceText: string; name: string }) => `${i.sourceText}\n${i.name}`;
+  const details = new Map(result.items.map((i) => [key(i), i.issueDetail]));
+  const listed = items.listWithVariants(db, shop.id).map((i) =>
+    i.issues.length > 0 && details.has(key(i)) ? { ...i, issueDetail: details.get(key(i))! } : i,
+  );
+
   return {
     ...base,
     step: 'review',
@@ -248,9 +257,9 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
       id: shop.id, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
       fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind,
     },
-    items: items.listWithVariants(db, shop.id),
+    items: listed,
     skipped: last.skipped,
-    warnings: result.warnings, // normalised again from the raw reading, so older stored notes are plain too
+    warnings: result.warnings,
     nonUsd: result.nonUsd,
     recorded,
   };
