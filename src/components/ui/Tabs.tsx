@@ -50,7 +50,8 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
 
   return (
     <div className={className}>
-      <div role="tablist" aria-label={label} className="flex gap-1 overflow-x-auto border-b border-ink">
+      {/* Tabs wrap instead of scrolling, so no label is ever clipped on a phone. */}
+      <div role="tablist" aria-label={label} className="flex flex-wrap gap-x-1 border-b border-ink">
         {items.map((item, i) => {
           const selected = item.id === active;
           return (
@@ -68,7 +69,7 @@ export function Tabs({ label, items, value, defaultValue, onValueChange, classNa
               onClick={() => select(item.id)}
               onKeyDown={(e) => onKeyDown(e, i)}
               className={cx(
-                'relative inline-flex min-h-(--tabs-h) items-center gap-2 px-3 font-semibold whitespace-nowrap',
+                'relative inline-flex min-h-(--tabs-h) items-center gap-2 px-2.5 text-sm font-semibold whitespace-nowrap sm:px-3 sm:text-base',
                 'after:absolute after:inset-x-2 after:-bottom-px after:h-[3px] after:transition-colors',
                 selected ? 'text-ink after:bg-(--tabs-indicator)' : 'text-ink-muted hover:text-ink after:bg-transparent',
               )}

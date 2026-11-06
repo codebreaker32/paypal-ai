@@ -27,11 +27,11 @@ const STATUS: Record<UploadErrorCode, number> = {
   LENGTH_REQUIRED: 411,
 };
 const MESSAGES: Record<UploadErrorCode, string> = {
-  BAD_IMAGE: "We couldn't open that photo. Try a JPG or PNG.",
+  BAD_IMAGE: "We couldn’t open that photo. Try a JPG or PNG.",
   PHOTO_TOO_LARGE: 'That photo is over 15 MB. Take it again or pick a smaller copy.',
   TOO_MANY_PHOTOS: `Shelfie reads up to ${MAX_PHOTOS} photos at a time.`,
   NO_PHOTOS: 'Add at least one photo of your price list.',
-  LENGTH_REQUIRED: "We couldn't tell how big that upload is. Try again from your browser.",
+  LENGTH_REQUIRED: "We couldn’t tell how big that upload is. Try again from your browser.",
 };
 
 export class UploadError extends Error {

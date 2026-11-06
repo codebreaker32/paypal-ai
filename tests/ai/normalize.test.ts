@@ -209,7 +209,7 @@ describe('unreadable routing', () => {
   it('is_menu:false → not_a_menu with a tip', () => {
     const r = unreadable(fixture('not-a-menu'));
     expect(r).toMatchObject({ unreadable: true, reason: 'not_a_menu' });
-    expect(r.tip).toBe("This doesn't look like a menu or price list");
+    expect(r.tip).toBe("This doesn’t look like a menu or price list");
   });
   it('zero items → no_items', () => {
     expect(unreadable({ ...base }).reason).toBe('no_items');
@@ -242,10 +242,10 @@ describe('kind, shop and flags', () => {
 describe('retakeTipFor', () => {
   it('maps each problem to its tip', () => {
     expect(retakeTipFor(['blurry'])).toBe('Hold steady and tap to focus');
-    expect(retakeTipFor(['glare'])).toBe("Tilt the phone so the light doesn't bounce off");
+    expect(retakeTipFor(['glare'])).toBe("Tilt the phone so the light doesn’t bounce off");
     expect(retakeTipFor(['cropped'])).toBe('Fit the whole menu in the frame, or add another photo');
     expect(retakeTipFor(['dark'])).toBe('Move closer to a light');
-    expect(retakeTipFor(['not_a_menu'])).toBe("This doesn't look like a menu or price list");
+    expect(retakeTipFor(['not_a_menu'])).toBe("This doesn’t look like a menu or price list");
   });
   it('combines multiple and falls back when none apply', () => {
     expect(retakeTipFor(['blurry', 'dark'])).toBe('Hold steady and tap to focus. Move closer to a light');

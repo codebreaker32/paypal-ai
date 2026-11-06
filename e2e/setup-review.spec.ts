@@ -138,7 +138,7 @@ test('a photo that is not a menu shows the retake screen with its tip', async ({
   const notAMenu = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../tests/ai/fixtures/not-a-menu.json'), 'utf8'));
   const shopId = await shopWithReading(page, notAMenu);
   await page.goto(`/shops/${shopId}/setup`);
-  await expect(page.getByRole('heading', { level: 1, name: "This doesn't look like a price list" })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: "This doesn’t look like a price list" })).toBeVisible();
   await expect(page.getByText(/Point the camera at your price list/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Retake photo' })).toBeVisible();
   await settle(page);

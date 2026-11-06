@@ -113,17 +113,17 @@ describe('publishShop', () => {
     const ok = events.find((e) => e.ok)!;
     const bad = events.find((e) => !e.ok)!;
     expect(ok).toMatchObject({ type: 'item', ok: true, paypalProductId: expect.stringMatching(/^PROD-/) });
-    expect(bad).toMatchObject({ type: 'item', ok: false, message: "PayPal didn't add this item. Retry in a moment." });
+    expect(bad).toMatchObject({ type: 'item', ok: false, message: "PayPal didn’t add this item. Retry in a moment." });
   });
 
   describe('what the seller reads when PayPal turns an item down', () => {
     const cases: [string, Error, RegExp][] = [
-      ['a malformed request', new PayPalApiError(400, 'INVALID_REQUEST', 'INVALID_PARAMETER_SYNTAX', 'dbg-1', 'Request is not well-formed, syntactically incorrect, or violates schema.'), /^PayPal didn't accept this item's name or description\.$/],
-      ['a rejected value', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'INVALID_STRING_LENGTH', 'dbg-2', 'The requested action could not be performed.'), /^PayPal didn't accept this item's name or description\.$/],
+      ['a malformed request', new PayPalApiError(400, 'INVALID_REQUEST', 'INVALID_PARAMETER_SYNTAX', 'dbg-1', 'Request is not well-formed, syntactically incorrect, or violates schema.'), /^PayPal didn’t accept this item’s name or description\.$/],
+      ['a rejected value', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'INVALID_STRING_LENGTH', 'dbg-2', 'The requested action could not be performed.'), /^PayPal didn’t accept this item’s name or description\.$/],
       ['wrong sandbox keys', new PayPalApiError(401, 'invalid_client', null, null, 'Client Authentication failed'), /sandbox keys.*PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY/],
       ['too many requests', new PayPalApiError(429, 'RATE_LIMIT_REACHED', null, 'dbg-3', 'Too many requests. Blocked due to rate limiting.'), /^PayPal is busy right now/],
       ['a PayPal outage', new PayPalApiError(503, 'SERVICE_UNAVAILABLE', null, 'dbg-4', 'Service Unavailable.'), /^PayPal had a problem on its side/],
-      ['no network', Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('getaddrinfo ENOTFOUND api-m.sandbox.paypal.com'), { code: 'ENOTFOUND' }) }), /^We couldn't reach PayPal/],
+      ['no network', Object.assign(new TypeError('fetch failed'), { cause: Object.assign(new Error('getaddrinfo ENOTFOUND api-m.sandbox.paypal.com'), { code: 'ENOTFOUND' }) }), /^We couldn’t reach PayPal/],
     ];
 
     for (const [what, err, expected] of cases) {

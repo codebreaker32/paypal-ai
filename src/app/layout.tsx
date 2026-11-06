@@ -30,7 +30,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Shelfie — your price list, open to AI shoppers',
+  title: 'Shelfie: your price list, open to AI shoppers',
   description:
     'Snap a photo of your paper price list. Shelfie reads it, lists it with PayPal, and opens an agent door any AI assistant can order and pay through.',
 };

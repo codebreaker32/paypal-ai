@@ -61,7 +61,7 @@ export function MenuPanel({
       toast({ title: next ? `${item.name}: sold out today` : `${item.name} is back on`, tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setItem(item.id, !next);
-      setErrors((all) => ({ ...all, [item.id]: e instanceof Error ? e.message : "Couldn't save. Try again." }));
+      setErrors((all) => ({ ...all, [item.id]: e instanceof Error ? e.message : "Couldn’t save. Try again." }));
     } finally {
       setBusy((b) => {
         const n = new Set(b);
@@ -93,7 +93,7 @@ export function MenuPanel({
         <Link href={`/s/${slug}`} className="font-semibold text-accent-ink underline">
           your shop
         </Link>
-        , but assistants can&apos;t order it until you switch it back.
+        , but assistants can’t order it until you switch it back.
       </p>
       {bySection(listed).map(([section, sectionItems]) => (
         <section key={section} aria-label={section} className="flex flex-col">

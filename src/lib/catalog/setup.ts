@@ -105,7 +105,7 @@ const FRIENDLY: Record<FailCode | 'STALE', string> = {
   NO_AI_KEY:
     'Reading your own photo needs an Anthropic API key. Add ANTHROPIC_API_KEY to .env and restart, or try a sample menu.',
   TIMEOUT: 'Reading took too long. Long menus sometimes do. Try again.',
-  AI_ERROR: "We couldn't finish reading your menu. Your photos are saved, so you can try again.",
+  AI_ERROR: "We couldn’t finish reading your menu. Your photos are saved, so you can try again.",
   NO_PHOTOS: 'This shop has no photos to read. Start again with a photo of your price list.',
   STALE: "Reading stopped before it finished. Your photos are saved, so you can try again.",
 };

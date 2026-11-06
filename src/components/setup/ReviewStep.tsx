@@ -39,7 +39,7 @@ function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void 
     return (
       <span className="flex flex-wrap items-center gap-x-2 text-sm font-medium text-danger" role="alert">
         <Icon icon={CircleAlert} size="sm" />
-        {state.retryable ? "Couldn't save your last change." : state.message}
+        {state.retryable ? "Couldn’t save your last change." : state.message}
         {state.retryable && (
           <Button variant="ghost" icon={RotateCcw} onClick={onRetry} className="-my-1">
             Retry
@@ -145,7 +145,7 @@ export function ReviewStep(props: ReviewProps) {
     try {
       await autosave.flush();
     } catch {
-      setPublishError("Some changes didn't save, so we didn't publish. Check your connection and try again.");
+      setPublishError("Some changes didn’t save, so we didn’t publish. Check your connection and try again.");
       return;
     }
     window.scrollTo({ top: 0 });

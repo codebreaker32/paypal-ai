@@ -21,11 +21,11 @@ const SHAKY_NOTE_RE = /cross|strik|blur|smudg|illegib|unclear|unsure|guess|hard 
 
 const TIPS: Partial<Record<Problem, string>> = {
   blurry: 'Hold steady and tap to focus',
-  glare: "Tilt the phone so the light doesn't bounce off",
+  glare: "Tilt the phone so the light doesn’t bounce off",
   cropped: 'Fit the whole menu in the frame, or add another photo',
   dark: 'Move closer to a light',
   handwriting_hard: 'Move closer so the writing is easy to read',
-  not_a_menu: "This doesn't look like a menu or price list",
+  not_a_menu: "This doesn’t look like a menu or price list",
 };
 const TIP_ORDER: Problem[] = ['blurry', 'glare', 'cropped', 'dark', 'handwriting_hard', 'not_a_menu'];
 const FALLBACK_TIP = 'Try another photo in good light';
@@ -68,7 +68,7 @@ function buildVariants(it: ExtractedItem, details: string[]): { variants: DraftV
     if (cents == null && /^[\s$]*\d[\d.,]*\s*$/.test(p.raw)) cents = parseAmountToCents(p.raw);
     if (cents != null && (!Number.isInteger(cents) || cents < 0)) {
       invalid = true;
-      details.push(`Couldn't read "${clean(p.raw)}" as a price`);
+      details.push(`Couldn’t read "${clean(p.raw)}" as a price`);
       return { label, priceCents: null };
     }
     if (cents != null && it.price_kind !== 'deal') {
@@ -189,7 +189,7 @@ export function normalizeExtraction(raw: MenuExtraction): DraftCatalog | Unreada
 
   const items = dedupe(built);
   if (items.length === 0) {
-    const tip = "We couldn't find any items. Make sure the prices are in the frame, or add another photo.";
+    const tip = "We couldn’t find any items. Make sure the prices are in the frame, or add another photo.";
     return { unreadable: true, reason: 'no_items', tip };
   }
 

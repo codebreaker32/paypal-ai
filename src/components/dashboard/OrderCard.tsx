@@ -21,8 +21,8 @@ function BriefPreview({ order }: { order: Order }) {
   if (order.status !== 'paid') return null;
   if (!order.brief) {
     return (
-      <div className="flex flex-col gap-2 border-l-[3px] border-accent pl-3">
-        <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-muted">
+      <div className="flex flex-col gap-2 rounded-xs bg-accent-soft px-3 py-2.5">
+        <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-soft">
           <Icon icon={Loader2} size="sm" className="animate-spin" />
           Writing the brief…
         </p>
@@ -32,8 +32,8 @@ function BriefPreview({ order }: { order: Order }) {
   }
   const warns = order.brief.flags.filter((f) => f.severity === 'warn');
   return (
-    <div className="flex flex-col gap-1.5 border-l-[3px] border-accent pl-3">
-      <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-muted">
+    <div className="flex flex-col gap-1.5 rounded-xs bg-accent-soft px-3 py-2.5">
+      <p className="flex items-center gap-1.5 type-meta font-semibold text-ink-soft">
         <Icon icon={order.briefSource === 'agent' ? Sparkles : Info} size="sm" />
         {order.briefSource === 'agent' ? 'AI brief' : 'Summary'}
       </p>
@@ -43,7 +43,7 @@ function BriefPreview({ order }: { order: Order }) {
           <Icon icon={TriangleAlert} size="sm" className="mt-0.5" />
           <span>
             {warns[0].text}
-            {warns.length > 1 && <span className="text-ink-muted"> (+{warns.length - 1} more)</span>}
+            {warns.length > 1 && <span className="text-ink-soft"> (+{warns.length - 1} more)</span>}
           </span>
         </p>
       )}
@@ -78,7 +78,8 @@ export function OrderCard({
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
-      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+      {/* Phone: number and meta on their own lines, the badge below them. Wider: badge to the right. */}
+      <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3">
         <div className="flex min-w-0 flex-col gap-0.5">
           <h3 className="type-receipt text-base font-semibold whitespace-nowrap">
             <Link
@@ -97,7 +98,7 @@ export function OrderCard({
             {buyerLabel(order)} · via {agentLabel(order.agentName)} · <LocalTime iso={order.paidAt ?? order.createdAt} />
           </p>
         </div>
-        <OrderStatusBadge order={order} className="shrink-0" />
+        <OrderStatusBadge order={order} className="shrink-0 sm:mt-0.5" />
       </div>
 
       <p className={cx('rule-dashed pt-3 text-sm', muted ? 'text-ink-muted' : 'text-ink')}>{itemSummary(order.lines)}</p>
@@ -110,7 +111,7 @@ export function OrderCard({
 
       {order.status === 'awaiting_approval' && (
         <p className="type-meta text-ink-muted">
-          The buyer hasn&apos;t approved on PayPal yet. The link expires at <LocalTime iso={order.expiresAt} />.
+          The buyer hasn’t approved on PayPal yet. The link expires at <LocalTime iso={order.expiresAt} />.
         </p>
       )}
 

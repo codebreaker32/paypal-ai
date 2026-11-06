@@ -79,7 +79,7 @@ function CopyRow({
         onClick={async () => {
           const ok = await copyText(value);
           setCopied(ok);
-          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn't copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
+          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
         }}
       >
         {copied ? 'Copied' : copyLabel}

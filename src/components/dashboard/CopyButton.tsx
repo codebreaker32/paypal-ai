@@ -32,7 +32,7 @@ export function CopyButton({ text, what, iconOnly, className }: { text: string; 
       setCopied(true);
       toast({ title: `${what} copied`, tone: 'ok', durationMs: 2500 });
     } else {
-      toast({ title: "Couldn't copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
+      toast({ title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
     }
   };
 

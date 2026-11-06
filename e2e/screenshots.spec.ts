@@ -287,7 +287,7 @@ const SCREENS: Screen[] = [
     run: async (page) => {
       await page.goto('/');
       await page.getByTestId('photo-input').setInputFiles([{ name: 'menu.heic', mimeType: 'image/heic', buffer: Buffer.from('not a jpg') }]);
-      await expect(page.locator('section[aria-labelledby="start-title"]').getByRole('alert')).toHaveText("We couldn't open that photo. Try a JPG or PNG.");
+      await expect(page.locator('section[aria-labelledby="start-title"]').getByRole('alert')).toHaveText("We couldn’t open that photo. Try a JPG or PNG.");
     },
   },
   {
@@ -321,7 +321,7 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, setups.retake.shopId, setups.retake.ownerToken);
       await page.goto(`/shops/${setups.retake.shopId}/setup`);
-      await expect(page.getByRole('heading', { level: 1, name: "This doesn't look like a price list" })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: "This doesn’t look like a price list" })).toBeVisible();
     },
   },
   {
@@ -391,12 +391,12 @@ const SCREENS: Screen[] = [
   receipt('nut', 'Paid. Marigold Bakehouse has your order.'),
   receipt('cancelled', 'Order cancelled'),
   receipt('expired', 'This order expired'),
-  receipt('refused', "PayPal didn't complete the payment"),
+  receipt('refused', "PayPal didn’t complete the payment"),
   {
     name: 'receipt-unknown',
     run: async (page) => {
       await page.goto('/o/ord_doesnotexist000');
-      await expect(page.getByRole('heading', { level: 1, name: "We couldn't find that order" })).toBeVisible();
+      await expect(page.getByRole('heading', { level: 1, name: "We couldn’t find that order" })).toBeVisible();
     },
   },
   // Dashboard

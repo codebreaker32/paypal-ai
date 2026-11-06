@@ -124,7 +124,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
       toast({ title: paused ? 'Agent orders paused' : 'Taking agent orders again', tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setStatus(before);
-      setPauseError(e instanceof Error ? e.message : "Couldn't save. Try again.");
+      setPauseError(e instanceof Error ? e.message : "Couldn’t save. Try again.");
     } finally {
       setPausing(false);
     }
@@ -163,7 +163,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
               label="Pause agent orders"
               description={
                 paused
-                  ? "Assistants can still read your menu but can't order. Paid orders aren't affected."
+                  ? "Assistants can still read your menu but can’t order. Paid orders aren’t affected."
                   : 'Stops new orders from AI assistants, for example when you are sold out for the day.'
               }
               checked={paused}
@@ -177,7 +177,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
 
       {pollFailures >= 2 && (
         <p role="status" className="type-meta text-ink-muted">
-          Can&apos;t reach Shelfie to refresh orders. Retrying every few seconds.
+          Can’t reach Shelfie to refresh orders. Retrying every few seconds.
         </p>
       )}
 

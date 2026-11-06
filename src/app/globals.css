@@ -302,6 +302,7 @@
 }
 @utility type-hero {
   font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-4xl);
   line-height: 1.06;
   font-weight: 800;
@@ -313,6 +314,7 @@
 }
 @utility type-display {
   font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-4xl);
   line-height: var(--text-4xl--line-height);
   font-weight: 800;
@@ -324,6 +326,7 @@
 }
 @utility type-title {
   font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-2xl);
   line-height: var(--text-2xl--line-height);
   font-weight: 700;
@@ -335,6 +338,7 @@
 }
 @utility type-heading {
   font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
   font-weight: 700;
@@ -342,6 +346,7 @@
 /* Menu-section voice: the italic of the display face. "Breads", "Pastries", "Paid". */
 @utility type-kicker {
   font-family: var(--font-display);
+  font-variant-numeric: lining-nums;
   font-style: italic;
   font-weight: 500;
   font-size: var(--text-xl);
@@ -412,6 +417,7 @@
     background-color: var(--color-surface);
     color: var(--color-ink);
     font-family: var(--font-sans);
+    font-variant-numeric: lining-nums;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     scrollbar-color: var(--color-line-strong) transparent;

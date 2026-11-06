@@ -64,7 +64,7 @@ export function OrderPreview() {
         <div className="relative flex flex-col lg:col-span-7 lg:col-start-1 lg:row-start-1">
           <Image
             src="/samples/marigold-bakehouse.jpg"
-            alt="Photo of Marigold Bakehouse's handwritten price list: breads, pastries, cakes and coffee, priced in pen."
+            alt="Photo of Marigold Bakehouse’s handwritten price list: breads, pastries, cakes and coffee, priced in pen."
             width={1200}
             height={1500}
             loading="eager"

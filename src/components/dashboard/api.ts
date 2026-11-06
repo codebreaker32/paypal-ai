@@ -9,7 +9,7 @@ export { ApiError };
 export const POLL_MS = 5000;
 
 const FALLBACK: Record<number, string> = {
-  404: "We couldn't find that. Reload the page.",
+  404: "We couldn’t find that. Reload the page.",
   409: 'This order changed in the meantime. Reload the page.',
 };
 

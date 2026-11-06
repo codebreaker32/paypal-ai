@@ -17,7 +17,7 @@ function BuyerNote({ note }: { note: string }) {
     <div className="flex flex-col gap-1.5">
       <h3 className="flex items-center gap-1.5 type-label text-ink-muted">
         <Icon icon={MessageSquareQuote} size="sm" />
-        Buyer&apos;s note, as written
+        Buyer’s note, as written
       </h3>
       <blockquote className="rounded-md bg-surface-sunken px-3 py-2.5 text-sm whitespace-pre-line [overflow-wrap:anywhere]">{note}</blockquote>
     </div>
@@ -45,7 +45,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             <Icon icon={Loader2} className="animate-spin text-ink-muted" />
             Writing the brief…
           </p>
-          <p className="text-sm text-ink-muted">Claude is reading PayPal&apos;s record of this order. This takes about 10 seconds.</p>
+          <p className="text-sm text-ink-muted">Claude is reading PayPal’s record of this order. This takes about 10 seconds.</p>
         </div>
       )}
 
@@ -59,9 +59,9 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
             {brief.headline}
           </p>
           {order.briefSource === 'template' ? (
-            <p className="type-meta -mt-2 text-ink-muted">The AI brief wasn&apos;t available, so this is a plain summary of the order.</p>
+            <p className="type-meta -mt-2 text-ink-muted">The AI brief wasn’t available, so this is a plain summary of the order.</p>
           ) : (
-            <p className="type-meta -mt-2 text-ink-muted">Written by Claude from PayPal&apos;s record of this order. Check it before you act on it.</p>
+            <p className="type-meta -mt-2 text-ink-muted">Written by Claude from PayPal’s record of this order. Check it before you act on it.</p>
           )}
 
           {brief.flags.length > 0 && (

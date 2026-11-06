@@ -70,7 +70,7 @@ describe('createSaveQueue', () => {
   it('a retryable failure keeps the edits for Retry and does not reload the screen', async () => {
     let n = 0;
     const { q, save, last, onRejected } = setup(async () => {
-      if (++n === 1) throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
+      if (++n === 1) throw new ApiError(0, 'NETWORK', "We couldn’t reach Shelfie.");
     });
     q.queueItem({ itemId: 'a', name: 'Rye' });
     await expect(q.flush()).rejects.toBeInstanceOf(ApiError);
@@ -107,7 +107,7 @@ describe('createSaveQueue', () => {
   it('a retryable item failure keeps the edits for Retry while the shop patch is still sent', async () => {
     const saveShop = vi.fn(async () => {});
     const saveItems = vi.fn(async (): Promise<void> => {
-      throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
+      throw new ApiError(0, 'NETWORK', "We couldn’t reach Shelfie.");
     });
     const q = createSaveQueue({ saveItems, saveShop, onState: () => {} });
     q.queueItem({ itemId: 'a', name: 'Rye' });
@@ -129,7 +129,7 @@ describe('createSaveQueue', () => {
         throw refused();
       },
       saveShop: async () => {
-        if (shopDown) throw new ApiError(0, 'NETWORK', "We couldn't reach Shelfie.");
+        if (shopDown) throw new ApiError(0, 'NETWORK', "We couldn’t reach Shelfie.");
       },
       onState: (st) => states.push(st),
     });
@@ -143,7 +143,7 @@ describe('createSaveQueue', () => {
     const last = states.at(-1) as Extract<SaveState, { status: 'error' }>;
     expect(last).toMatchObject({ status: 'error', retryable: false });
     expect(last.message).toContain(refused().message);
-    expect(last.message).not.toContain("couldn't reach");
+    expect(last.message).not.toContain("couldn’t reach");
   });
 
   it('a new edit after a refusal clears the message', async () => {

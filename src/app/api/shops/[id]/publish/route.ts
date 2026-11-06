@@ -63,7 +63,7 @@ export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/pub
         send({ type: 'done', ...result, shop: { status: shop.status, slug: shop.slug } });
       } catch (err) {
         console.error('publish:', err instanceof Error ? err.message : err);
-        send({ type: 'error', message: "We couldn't finish publishing. Try again in a moment." });
+        send({ type: 'error', message: "We couldn’t finish publishing. Try again in a moment." });
       } finally {
         running.delete(id);
         if (!closed) {

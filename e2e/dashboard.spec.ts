@@ -140,10 +140,10 @@ test.describe('dashboard', () => {
 
     await page.unroute(`**/api/shops/${full.shop.id}`);
     await page.route(`**/api/shops/${full.shop.id}`, (route) =>
-      route.fulfill({ status: 500, json: { error: { code: 'INTERNAL', message: "Couldn't save. Try again." } } }),
+      route.fulfill({ status: 500, json: { error: { code: 'INTERNAL', message: "Couldn’t save. Try again." } } }),
     );
     await toggle.click();
-    await expect(page.getByRole('main').getByRole('alert')).toContainText("Couldn't save");
+    await expect(page.getByRole('main').getByRole('alert')).toContainText("Couldn’t save");
     await expect(toggle).toHaveAttribute('aria-checked', 'true');
   });
 
