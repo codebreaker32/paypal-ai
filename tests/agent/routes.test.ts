@@ -172,6 +172,7 @@ describe('GET /api/orders/[ref]', () => {
         declined: false,
         captureRefused: false,
         cancelledByShop: false,
+        paidTo: null,
         lines: [
           { name: 'Almond croissant', label: null, qty: 2, unitCents: 475 },
           { name: 'Sourdough loaf', label: null, qty: 1, unitCents: 900 },
@@ -189,6 +190,9 @@ describe('GET /api/orders/[ref]', () => {
     expect(body.order.status).toBe('paid');
     expect(body.order.approvalUrl).toBeNull();
     expect(body.order.paidAt).toEqual(expect.any(String));
+    // Paid into the shop's own PayPal account; the public receipt only ever has the masked email.
+    expect(body.order.paidTo).toEqual({ kind: 'seller', shopName: s.shop.name, maskedEmail: 's•••@example.com' });
+    expect(JSON.stringify(body)).not.toContain('seller@example.com');
   });
 
   it('marks an order whose payment method was declined', async () => {

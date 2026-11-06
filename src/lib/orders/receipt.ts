@@ -4,11 +4,16 @@ import type { Db } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { maskEmail } from '@/lib/domain/payee';
+import type { OrderStatus } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from './declined';
 import { lastCaptureFailure } from './service';
 import { ORDER_REF, type ReceiptOrder } from './receipt-types';
 
-export { OPEN_RECEIPT_STATUSES, ORDER_REF, type ReceiptLine, type ReceiptOrder } from './receipt-types';
+export { OPEN_RECEIPT_STATUSES, ORDER_REF, paidToText, type PaidTo, type ReceiptLine, type ReceiptOrder } from './receipt-types';
+
+/** Statuses where the money has left the buyer (or PayPal holds it): the receipt says whose account it went to. */
+const PAID_OR_HELD: ReadonlySet<OrderStatus> = new Set(['paid', 'fulfilled', 'payment_pending']);
 
 export function receiptView(db: Db, ref: string): ReceiptOrder | null {
   if (!ORDER_REF.test(ref)) return null;
@@ -33,6 +38,11 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     declined,
     cancelledByShop: cancelledByShop(order, events),
     captureRefused: lastCaptureFailure(db, order) !== null,
+    paidTo: PAID_OR_HELD.has(order.status)
+      ? order.payeeEmail !== null
+        ? { kind: 'seller', shopName: shop.name, maskedEmail: maskEmail(order.payeeEmail) }
+        : { kind: 'platform', shopName: shop.name }
+      : null,
     lines: order.lines.map((l) => ({ name: l.name, label: l.label, qty: l.qty, unitCents: l.unitCents })),
   };
 }

@@ -30,7 +30,19 @@ export interface ReceiptOrder {
    * charged; automatic retries have stopped (only the buyer coming back from PayPal, or a webhook, tries again).
    */
   captureRefused: boolean;
+  /** Who the payment went to, once paid or held by PayPal (spec §8a). The email is only ever masked here. */
+  paidTo: PaidTo | null;
   lines: ReceiptLine[];
+}
+
+/** The shop's own PayPal account (masked email), or, for the demo shop with no PayPal email, Shelfie's demo account. */
+export type PaidTo = { kind: 'seller'; shopName: string; maskedEmail: string } | { kind: 'platform'; shopName: string };
+
+/** "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s demo PayPal account for …". */
+export function paidToText(p: PaidTo): string {
+  return p.kind === 'seller'
+    ? `Paid to ${p.shopName}’s own PayPal account (${p.maskedEmail})`
+    : `Paid to Shelfie’s demo PayPal account for ${p.shopName}`;
 }
 
 /** Statuses the receipt keeps polling for. */

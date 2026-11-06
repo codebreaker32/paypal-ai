@@ -126,7 +126,29 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
       currency: 'USD',
       limits: { max_qty_per_line: 20, max_lines: 15, max_order: '500.00' },
       how_ordering_works: expect.stringContaining('approval_url'),
+      // The demo shop with no PayPal email (spec §8a).
+      payments: "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.",
     });
+  });
+
+  it("get_shop_info says a seller's shop is paid into its own PayPal account, with the email masked", async () => {
+    const rosa = seedShop(db, { name: 'Rosa Bakes', payeeEmail: 'rosa@example.com' });
+    const res = await call(await connect(rosa.shop.id), 'get_shop_info');
+    const info = ok<{ payments: string; accepting_orders: boolean }>('get_shop_info', res);
+    expect(info.accepting_orders).toBe(true);
+    expect(info.payments).toBe("Paid straight to the shop's own PayPal account (r•••@example.com).");
+    expect(JSON.stringify(res)).not.toContain('rosa@example.com');
+  });
+
+  it('a live shop with no PayPal email (not the demo shop) is not accepting orders, and create_order says why', async () => {
+    const old = seedShop(db, { name: 'Before Payees', payeeEmail: null });
+    const client = await connect(old.shop.id);
+    const info = ok<{ payments: string; accepting_orders: boolean }>('get_shop_info', await call(client, 'get_shop_info'));
+    expect(info).toMatchObject({ accepting_orders: false, payments: "This shop hasn't set up where to be paid yet, so it can't take online orders." });
+    const e = fail(await call(client, 'create_order', { items: [{ item_id: old.item['Almond croissant'].id, quantity: 1 }], fulfillment: 'pickup' }));
+    expect(e.code).toBe('SHOP_NOT_ACCEPTING_ORDERS');
+    expect(e.message).toMatch(/hasn't set up where to be paid yet/);
+    expect(fake.calls.filter((c) => c.method === 'createOrder')).toHaveLength(0);
   });
 
   it('list_products hides removed and draft items and marks in-person and sold-out items not orderable', async () => {
