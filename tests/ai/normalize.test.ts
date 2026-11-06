@@ -349,6 +349,42 @@ describe('recorded sample readings (what a keyless visitor sees)', () => {
   });
 });
 
+describe('size words in names (sizes are options, so they appear once)', () => {
+  const sized = (name: string, labels: (string | null)[]) =>
+    catalog(raw({ name, prices: labels.map((l, i) => price(300 + i * 150, '$3', l)) })).items[0];
+
+  it('strips the size labels from the end of the name: "Horchata sm / lg" → "Horchata"', () => {
+    const h = sized('Horchata sm / lg', ['sm', 'lg']);
+    expect(h.name).toBe('Horchata');
+    expect(h.variants.map((v) => v.label)).toEqual(['sm', 'lg']);
+  });
+  it('handles commas, bars, plain spaces, any case and a bracketed group', () => {
+    expect(sized('Drip coffee S, L', ['S', 'L']).name).toBe('Drip coffee');
+    expect(sized('Latte small|large', ['Small', 'Large']).name).toBe('Latte');
+    expect(sized('Iced tea S M L', ['S', 'M', 'L']).name).toBe('Iced tea');
+    expect(sized('Lemonade (sm/lg)', ['sm', 'lg']).name).toBe('Lemonade');
+    expect(sized('Pizza – 10" / 14"', ['10"', '14"']).name).toBe('Pizza');
+  });
+  it('never leaves the name empty', () => {
+    expect(sized('sm / lg', ['sm', 'lg']).name).toBe('sm / lg');
+  });
+  it('leaves names alone without labelled sizes, with one size, or without the labels at the end', () => {
+    expect(sized('Horchata sm / lg', [null, null]).name).toBe('Horchata sm / lg');
+    expect(sized('Horchata sm / lg', ['sm']).name).toBe('Horchata sm / lg');
+    expect(sized('Horchata sm / lg', ['sm', null]).name).toBe('Horchata sm / lg');
+    expect(sized('Small batch cold brew', ['small', 'large']).name).toBe('Small batch cold brew');
+    expect(sized('Tea for two', ['one', 'two']).name).toBe('Tea for two');
+    expect(sized('Horchata', ['sm', 'lg']).name).toBe('Horchata');
+  });
+  it('an item listed once with sizes in the name and once without counts as the same item', () => {
+    const c = catalog(raw(
+      { name: 'Horchata sm / lg', prices: [price(300, '3', 'sm'), price(450, '4.5', 'lg')] },
+      { name: 'Horchata', prices: [price(300, '3', 'sm'), price(450, '4.5', 'lg')] },
+    ));
+    expect(c.items.map((i) => i.name)).toEqual(['Horchata']);
+  });
+});
+
 describe('text rules', () => {
   it('truncates 200-char names to 127 and long descriptions to 256', () => {
     const c = catalog(raw({ name: 'x'.repeat(200), description: 'd'.repeat(300) }));
