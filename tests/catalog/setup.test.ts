@@ -198,6 +198,18 @@ describe('shop setup', () => {
       expect(view.step === 'review' && view.recorded).toBe(true);
     });
 
+    it('a reading stored before items had a category (runs 1–2) still opens the review, not the failed step', async () => {
+      const { shop } = await createShopFromSample(db, 'marigold-bakehouse');
+      await runReading(deps({ hasAiKey: false }), shop.id);
+      const ext = extractions.latest(db, shop.id)!;
+      const raw = JSON.parse(JSON.stringify(ext.raw)) as { items: Record<string, unknown>[] };
+      for (const item of raw.items) delete item.category;
+      db.prepare('UPDATE extractions SET raw_json = ? WHERE id = ?').run(JSON.stringify(raw), ext.id);
+      expect(JSON.stringify(extractions.latest(db, shop.id)!.raw)).not.toContain('"category"');
+      const view = loadSetupView(db, shops.byId(db, shop.id)!, t);
+      expect(view.step).toBe('review');
+    });
+
     it('reads a sample live when there is a key', async () => {
       const { shop } = await createShopFromSample(db, 'ravi-bike-repair');
       await runReading(deps(), shop.id);
