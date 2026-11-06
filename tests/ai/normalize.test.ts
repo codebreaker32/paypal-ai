@@ -294,6 +294,11 @@ describe('notes from the reading (shop-level warnings)', () => {
       'Best reading of a blurred line.',
     ])).toEqual([CHECK_PHOTO]);
   });
+  it('keeps a plain note that says "match"', () => {
+    const note = 'The two croissant prices on the left don’t match the board on the right; please check.';
+    expect(warningsOf([note])).toEqual([note]);
+    expect(warningsOf(['Prices were matched to items by position.'])).toEqual([CHECK_PHOTO]);
+  });
   it('keeps plain notes beside the fixed sentence, which comes last', () => {
     expect(warningsOf(['Price matched by row.', 'Glare on the right side of the page.'])).toEqual([
       'Glare on the right side of the page.',
