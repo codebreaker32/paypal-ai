@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 06:56 IST (session 4)_
+_Last updated: 2026-11-06 07:08 IST (end of session 4)_
 
 ## Current phase
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
@@ -23,9 +23,11 @@ _Last updated: 2026-11-06 06:56 IST (session 4)_
 
 **Judge round 2: ship.** Part A 22 (up from 21; A2 4 → 5), Part B 21, 0 Part C fails (`docs/judge/round-2.md`, 66 screens with 0 axe violations from one production-build run).
 
-**Running:**
-- the round-3 workers (r3a: copy, Share tab, retake photo, size words; r3b: the dev reload loop);
-- the capture gate re-run on the real sandbox, for new-look `capture/` screenshots.
+**Also merged after round 2:**
+- **round-3 fixes A:** size words left out of item names when sizes are options; the start sub-line leads with the seller's outcome; one filled primary on the Share tab; "Retry 2 items"; an original non-menu photo for the retake fixture;
+- **the capture gate re-run on main** (real sandbox, passed), with `capture/` screenshots in the current design.
+
+**Still running at the end of session 4:** r3b, the dev-server reload loop (worktree `.claude/worktrees/agent-a0e41c1dfe981aa6b`, notes in `.superpowers/sdd/2026-11-06-shelfie/s4-r3b-report.md`). It hasn't reproduced the loop in 5 fresh first starts. It did find that `@tailwindcss/turbopack` watches every non-gitignored folder, so a write in `docs/` triggers a CSS rebuild.
 
 **Done in docs:** `docs/DEMO.md` now opens on the Store Sync contrast and adds the Claude Code beat; `npm run screenshots:prod` runs the screenshots against a production build.
 
@@ -78,10 +80,8 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The dashboard loading skeleton has no screenshot.
 
 ## Next steps
-1. Merge the round-3 workers once they're reviewed. Their reports are `.superpowers/sdd/2026-11-06-shelfie/s4-r3a-report.md` and `s4-r3b-report.md`.
-   - **r3a:** size words left out of item names when the sizes are options, a start sub-line that leads with the seller's outcome, one filled primary on the Share tab, "Retry 2 items", and a non-menu photo for the retake fixture.
-   - **r3b:** the dev-server reload loop the round-2 judge saw once.
-2. Re-run the capture gate with `SHELFIE_SCREENSHOTS=1` (real sandbox) so `docs/judge/screenshots/capture/` shows the current design. Re-shoot the outside-client dashboard evidence too.
+1. Finish r3b and merge it if it has a verified fix (see its report and branch `worktree-agent-a0e41c1dfe981aa6b`).
+2. Re-shoot the outside-client dashboard evidence (`docs/judge/evidence/outside-client-*.png`) in the current design.
 3. A final whole-branch code review. Then judge round 3 with `npm run screenshots:prod -- docs/judge/screenshots/round-3`.
 4. Each round after that takes the next-highest gain from the judge's top 3, limited to what can be done in code and docs in this run.
 
