@@ -105,6 +105,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- **Full e2e suite on main after all 13 review fixes were merged (08:53 IST):** 56 passed and 1 skipped (the hidden "Other" carrier) in 5.6 min, with real Claude and the real sandbox. The capture gate passed: order SHF-7SUNB6 → PayPal order `1L435977R28460711` → capture `01164370A4783870X` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker `9400111179393520752942` was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Full e2e suite on main after the session-5 merges (07:43 IST):** 56 passed and 1 skipped (the hidden "Other" carrier) in 6.5 min, with real Claude and the real sandbox. The capture gate passed in 1.4 min: order SHF-GW9P2M → PayPal order `72E098971B1748300` → capture `9AS032720T739521X` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Capture gate re-run on main after the direction-A merge (session 4, 07:02 IST), passed in 2.3 min, with screenshots refreshed in the current design (`docs/judge/screenshots/capture/`):** order SHF-28CLQE → PayPal order `8UL03058RN6568620` → capture `0PJ97777YU143884P` COMPLETED ($27.00). The Claude brief flagged the nut allergy. The USPS tracker `9400111179392836896326` was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Outside MCP client (session 4, re-run in session 5 on current main):** the Claude Code CLI (2.1.318, headless, `--mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config`), with only the shop's agent door loaded, called `get_shop_info` → `list_products` → `create_order`. The session-5 run produced order SHF-KTZ39C, PayPal order `17R81429KU459414P` (`PAYER_ACTION_REQUIRED`, $8.50) and a real approval link (session 4's run: SHF-A8PD7A, `3RG62077NC717421B`). The dashboard shows it "via Claude Code". It ran on localhost, not a deployed URL.
@@ -131,7 +132,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. **Check the full e2e run started at 08:50 IST on main** (log `/tmp/r4-e2e.log`, if it survived). If it didn't finish or isn't recorded under Verified, re-run it: `npx playwright test` on every spec except `screenshots.spec.ts`, which includes the real-sandbox capture gate.
+1. (Done at 08:53 IST: the full e2e run passed after the review fixes; see Verified.)
 2. `npm run screenshots:prod -- docs/judge/screenshots/round-4`, then write `docs/judge/round-4-tests.txt` and a `README.md` in that folder (copy round-3's and add the dashboard-loading line).
 3. **Judge round 4** (fresh subagent, the round-3 prompt pattern): give it `docs/judge/round-3.md` for the fix accounting, plus `docs/reviews/2026-11-06-whole-codebase.md` as an artifact.
 4. Then the next-highest in-scope gain from the judge. The QR and discovery work needs the human's go-ahead (see below).
