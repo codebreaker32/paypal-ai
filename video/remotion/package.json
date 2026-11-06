@@ -5,8 +5,9 @@
   "type": "module",
   "description": "Remotion compositor for Shelfie's demo video (from demoday's template, restyled in the Shelfie brand). Reads ../project/demo.json.",
   "scripts": {
-    "voice": "HF_HOME=${HF_HOME:-../models} ${KOKORO_PYTHON:-../.venv/bin/python} -I ../voice/kokoro_tts.py ../project/demo.json",
+    "voice": "HF_HOME=${HF_HOME:-../models} ${KOKORO_PYTHON:-../.venv/bin/python} -I ../voice/kokoro_tts.py ../project/demo.json && node scripts/script-md.mjs && node scripts/srt.mjs",
     "voice:pick": "HF_HOME=${HF_HOME:-../models} ${KOKORO_PYTHON:-../.venv/bin/python} -I ../voice/pick_voice.py",
+    "script": "node scripts/script-md.mjs",
     "props": "node scripts/build-props.mjs",
     "srt": "node scripts/srt.mjs",
     "render": "node scripts/render.mjs",

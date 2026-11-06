@@ -1,0 +1,299 @@
+{
+  "text": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website. She has this sheet of paper. In a US Census survey, 47 percent of food and lodging businesses had no website. An assistant can't order from a sheet of paper.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "25a2bee962335e6d",
+  "timestamps": [
+    {
+      "text": "AI",
+      "startSec": 0.325,
+      "endSec": 0.75
+    },
+    {
+      "text": "assistants",
+      "startSec": 0.75,
+      "endSec": 1.262
+    },
+    {
+      "text": "have",
+      "startSec": 1.262,
+      "endSec": 1.4
+    },
+    {
+      "text": "started",
+      "startSec": 1.4,
+      "endSec": 1.812
+    },
+    {
+      "text": "shopping",
+      "startSec": 1.812,
+      "endSec": 2.25
+    },
+    {
+      "text": "for",
+      "startSec": 2.25,
+      "endSec": 2.375
+    },
+    {
+      "text": "people.",
+      "startSec": 2.375,
+      "endSec": 3.225
+    },
+    {
+      "text": "But",
+      "startSec": 3.225,
+      "endSec": 3.375
+    },
+    {
+      "text": "PayPal's",
+      "startSec": 3.375,
+      "endSec": 3.962
+    },
+    {
+      "text": "agent",
+      "startSec": 3.962,
+      "endSec": 4.338
+    },
+    {
+      "text": "checkout",
+      "startSec": 4.338,
+      "endSec": 4.862
+    },
+    {
+      "text": "is",
+      "startSec": 4.862,
+      "endSec": 5.025
+    },
+    {
+      "text": "built",
+      "startSec": 5.025,
+      "endSec": 5.3
+    },
+    {
+      "text": "for",
+      "startSec": 5.3,
+      "endSec": 5.425
+    },
+    {
+      "text": "merchants",
+      "startSec": 5.425,
+      "endSec": 5.95
+    },
+    {
+      "text": "with",
+      "startSec": 5.95,
+      "endSec": 6.088
+    },
+    {
+      "text": "a",
+      "startSec": 6.088,
+      "endSec": 6.175
+    },
+    {
+      "text": "website",
+      "startSec": 6.175,
+      "endSec": 6.625
+    },
+    {
+      "text": "store.",
+      "startSec": 6.625,
+      "endSec": 7.45
+    },
+    {
+      "text": "Rosa",
+      "startSec": 7.45,
+      "endSec": 7.888
+    },
+    {
+      "text": "bakes",
+      "startSec": 7.888,
+      "endSec": 8.225
+    },
+    {
+      "text": "from",
+      "startSec": 8.225,
+      "endSec": 8.363
+    },
+    {
+      "text": "her",
+      "startSec": 8.363,
+      "endSec": 8.475
+    },
+    {
+      "text": "kitchen.",
+      "startSec": 8.475,
+      "endSec": 9.287
+    },
+    {
+      "text": "She",
+      "startSec": 9.287,
+      "endSec": 9.425
+    },
+    {
+      "text": "has",
+      "startSec": 9.425,
+      "endSec": 9.625
+    },
+    {
+      "text": "no",
+      "startSec": 9.625,
+      "endSec": 9.8
+    },
+    {
+      "text": "website.",
+      "startSec": 9.8,
+      "endSec": 10.688
+    },
+    {
+      "text": "She",
+      "startSec": 10.688,
+      "endSec": 10.825
+    },
+    {
+      "text": "has",
+      "startSec": 10.825,
+      "endSec": 11.025
+    },
+    {
+      "text": "this",
+      "startSec": 11.025,
+      "endSec": 11.25
+    },
+    {
+      "text": "sheet",
+      "startSec": 11.25,
+      "endSec": 11.488
+    },
+    {
+      "text": "of",
+      "startSec": 11.488,
+      "endSec": 11.575
+    },
+    {
+      "text": "paper.",
+      "startSec": 11.575,
+      "endSec": 12.562
+    },
+    {
+      "text": "In",
+      "startSec": 12.562,
+      "endSec": 12.7
+    },
+    {
+      "text": "a",
+      "startSec": 12.7,
+      "endSec": 12.812
+    },
+    {
+      "text": "US",
+      "startSec": 12.812,
+      "endSec": 13.2
+    },
+    {
+      "text": "Census",
+      "startSec": 13.2,
+      "endSec": 13.575
+    },
+    {
+      "text": "survey,",
+      "startSec": 13.575,
+      "endSec": 14.312
+    },
+    {
+      "text": "47",
+      "startSec": 14.312,
+      "endSec": 15.05
+    },
+    {
+      "text": "percent",
+      "startSec": 15.05,
+      "endSec": 15.387
+    },
+    {
+      "text": "of",
+      "startSec": 15.387,
+      "endSec": 15.512
+    },
+    {
+      "text": "food",
+      "startSec": 15.512,
+      "endSec": 15.887
+    },
+    {
+      "text": "and",
+      "startSec": 15.887,
+      "endSec": 16.0
+    },
+    {
+      "text": "lodging",
+      "startSec": 16.0,
+      "endSec": 16.325
+    },
+    {
+      "text": "businesses",
+      "startSec": 16.325,
+      "endSec": 16.925
+    },
+    {
+      "text": "had",
+      "startSec": 16.925,
+      "endSec": 17.125
+    },
+    {
+      "text": "no",
+      "startSec": 17.125,
+      "endSec": 17.3
+    },
+    {
+      "text": "website.",
+      "startSec": 17.3,
+      "endSec": 18.312
+    },
+    {
+      "text": "An",
+      "startSec": 18.312,
+      "endSec": 18.45
+    },
+    {
+      "text": "assistant",
+      "startSec": 18.45,
+      "endSec": 19.075
+    },
+    {
+      "text": "can't",
+      "startSec": 19.075,
+      "endSec": 19.438
+    },
+    {
+      "text": "order",
+      "startSec": 19.438,
+      "endSec": 19.8
+    },
+    {
+      "text": "from",
+      "startSec": 19.8,
+      "endSec": 19.938
+    },
+    {
+      "text": "a",
+      "startSec": 19.938,
+      "endSec": 20.05
+    },
+    {
+      "text": "sheet",
+      "startSec": 20.05,
+      "endSec": 20.288
+    },
+    {
+      "text": "of",
+      "startSec": 20.288,
+      "endSec": 20.375
+    },
+    {
+      "text": "paper.",
+      "startSec": 20.375,
+      "endSec": 21.25
+    }
+  ]
+}

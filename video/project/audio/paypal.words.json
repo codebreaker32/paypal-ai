@@ -1,0 +1,124 @@
+{
+  "text": "The buyer logs in to PayPal and approves. Shelfie captures the payment, and the money lands in Rosa's own PayPal account, not ours.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "7dd515d8d2b31e8c",
+  "timestamps": [
+    {
+      "text": "The",
+      "startSec": 0.275,
+      "endSec": 0.35
+    },
+    {
+      "text": "buyer",
+      "startSec": 0.35,
+      "endSec": 0.738
+    },
+    {
+      "text": "logs",
+      "startSec": 0.738,
+      "endSec": 1.087
+    },
+    {
+      "text": "in",
+      "startSec": 1.087,
+      "endSec": 1.225
+    },
+    {
+      "text": "to",
+      "startSec": 1.225,
+      "endSec": 1.325
+    },
+    {
+      "text": "PayPal",
+      "startSec": 1.325,
+      "endSec": 1.875
+    },
+    {
+      "text": "and",
+      "startSec": 1.875,
+      "endSec": 1.988
+    },
+    {
+      "text": "approves.",
+      "startSec": 1.988,
+      "endSec": 3.125
+    },
+    {
+      "text": "Shelfie",
+      "startSec": 3.125,
+      "endSec": 3.575
+    },
+    {
+      "text": "captures",
+      "startSec": 3.575,
+      "endSec": 4.062
+    },
+    {
+      "text": "the",
+      "startSec": 4.062,
+      "endSec": 4.15
+    },
+    {
+      "text": "payment,",
+      "startSec": 4.15,
+      "endSec": 4.9
+    },
+    {
+      "text": "and",
+      "startSec": 4.9,
+      "endSec": 5.013
+    },
+    {
+      "text": "the",
+      "startSec": 5.013,
+      "endSec": 5.1
+    },
+    {
+      "text": "money",
+      "startSec": 5.1,
+      "endSec": 5.438
+    },
+    {
+      "text": "lands",
+      "startSec": 5.438,
+      "endSec": 5.8
+    },
+    {
+      "text": "in",
+      "startSec": 5.8,
+      "endSec": 5.95
+    },
+    {
+      "text": "Rosa's",
+      "startSec": 5.95,
+      "endSec": 6.45
+    },
+    {
+      "text": "own",
+      "startSec": 6.45,
+      "endSec": 6.65
+    },
+    {
+      "text": "PayPal",
+      "startSec": 6.65,
+      "endSec": 7.15
+    },
+    {
+      "text": "account,",
+      "startSec": 7.15,
+      "endSec": 7.85
+    },
+    {
+      "text": "not",
+      "startSec": 7.85,
+      "endSec": 8.075
+    },
+    {
+      "text": "ours.",
+      "startSec": 8.075,
+      "endSec": 8.95
+    }
+  ]
+}

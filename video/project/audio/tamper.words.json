@@ -1,0 +1,69 @@
+{
+  "text": "And agents can't set prices. The server checks that, not the model.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "78fe855607a76858",
+  "timestamps": [
+    {
+      "text": "And",
+      "startSec": 0.275,
+      "endSec": 0.463
+    },
+    {
+      "text": "agents",
+      "startSec": 0.463,
+      "endSec": 0.925
+    },
+    {
+      "text": "can't",
+      "startSec": 0.925,
+      "endSec": 1.2
+    },
+    {
+      "text": "set",
+      "startSec": 1.2,
+      "endSec": 1.4
+    },
+    {
+      "text": "prices.",
+      "startSec": 1.4,
+      "endSec": 2.325
+    },
+    {
+      "text": "The",
+      "startSec": 2.325,
+      "endSec": 2.462
+    },
+    {
+      "text": "server",
+      "startSec": 2.462,
+      "endSec": 2.862
+    },
+    {
+      "text": "checks",
+      "startSec": 2.862,
+      "endSec": 3.2
+    },
+    {
+      "text": "that,",
+      "startSec": 3.2,
+      "endSec": 3.45
+    },
+    {
+      "text": "not",
+      "startSec": 3.45,
+      "endSec": 3.638
+    },
+    {
+      "text": "the",
+      "startSec": 3.638,
+      "endSec": 3.725
+    },
+    {
+      "text": "model.",
+      "startSec": 3.725,
+      "endSec": 4.525
+    }
+  ]
+}

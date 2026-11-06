@@ -1,0 +1,94 @@
+{
+  "text": "One more photo, of her display case. Claude finds each item in it, and crops its photo.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "2eea555b6b041fbf",
+  "timestamps": [
+    {
+      "text": "One",
+      "startSec": 0.275,
+      "endSec": 0.438
+    },
+    {
+      "text": "more",
+      "startSec": 0.438,
+      "endSec": 0.662
+    },
+    {
+      "text": "photo,",
+      "startSec": 0.662,
+      "endSec": 1.3
+    },
+    {
+      "text": "of",
+      "startSec": 1.3,
+      "endSec": 1.387
+    },
+    {
+      "text": "her",
+      "startSec": 1.387,
+      "endSec": 1.5
+    },
+    {
+      "text": "display",
+      "startSec": 1.5,
+      "endSec": 1.9
+    },
+    {
+      "text": "case.",
+      "startSec": 1.9,
+      "endSec": 2.788
+    },
+    {
+      "text": "Claude",
+      "startSec": 2.788,
+      "endSec": 3.1
+    },
+    {
+      "text": "finds",
+      "startSec": 3.1,
+      "endSec": 3.438
+    },
+    {
+      "text": "each",
+      "startSec": 3.438,
+      "endSec": 3.675
+    },
+    {
+      "text": "item",
+      "startSec": 3.675,
+      "endSec": 3.975
+    },
+    {
+      "text": "in",
+      "startSec": 3.975,
+      "endSec": 4.075
+    },
+    {
+      "text": "it,",
+      "startSec": 4.075,
+      "endSec": 4.3
+    },
+    {
+      "text": "and",
+      "startSec": 4.3,
+      "endSec": 4.425
+    },
+    {
+      "text": "crops",
+      "startSec": 4.425,
+      "endSec": 4.713
+    },
+    {
+      "text": "its",
+      "startSec": 4.713,
+      "endSec": 4.9
+    },
+    {
+      "text": "photo.",
+      "startSec": 4.9,
+      "endSec": 5.75
+    }
+  ]
+}

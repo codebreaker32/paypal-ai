@@ -1,0 +1,219 @@
+1
+00:00:00,245 --> 00:00:03,145
+AI assistants have started shopping for people.
+
+2
+00:00:03,145 --> 00:00:05,220
+But PayPal's agent checkout is built
+
+3
+00:00:05,220 --> 00:00:07,370
+for merchants with a website store.
+
+4
+00:00:07,370 --> 00:00:09,207
+Rosa bakes from her kitchen.
+
+5
+00:00:09,207 --> 00:00:10,608
+She has no website.
+
+6
+00:00:10,608 --> 00:00:12,482
+She has this sheet of paper.
+
+7
+00:00:12,482 --> 00:00:15,807
+In a US Census survey, 47 percent of food
+
+8
+00:00:15,807 --> 00:00:18,232
+and lodging businesses had no website.
+
+9
+00:00:18,232 --> 00:00:21,750
+An assistant can't order from a sheet of paper.
+
+10
+00:00:22,678 --> 00:00:24,715
+Shelfie starts with one photo.
+
+11
+00:00:24,715 --> 00:00:28,133
+Rosa snaps her price list, and Claude reads it.
+
+12
+00:00:29,945 --> 00:00:32,470
+Shelfie only asks about what it isn't sure of,
+
+13
+00:00:32,470 --> 00:00:35,520
+like a price written as two for seven dollars.
+
+14
+00:00:35,520 --> 00:00:37,520
+Rosa adds her PayPal email,
+
+15
+00:00:37,520 --> 00:00:39,632
+so buyers pay her directly.
+
+16
+00:00:39,632 --> 00:00:42,958
+Every item becomes a product in PayPal's catalog.
+
+17
+00:00:42,958 --> 00:00:45,333
+In our tests, photo to live shop took
+
+18
+00:00:45,333 --> 00:00:48,300
+8 to 14 seconds of machine time.
+
+19
+00:00:49,562 --> 00:00:52,075
+One more photo, of her display case.
+
+20
+00:00:52,075 --> 00:00:55,617
+Claude finds each item in it, and crops its photo.
+
+21
+00:00:56,870 --> 00:00:58,595
+The shop gets an agent door,
+
+22
+00:00:58,595 --> 00:01:00,395
+and a card for the counter.
+
+23
+00:01:00,395 --> 00:01:01,720
+Regulars scan it,
+
+24
+00:01:01,720 --> 00:01:04,850
+or give the shop's link to their own assistant.
+
+25
+00:01:05,128 --> 00:01:06,528
+This is Claude Code,
+
+26
+00:01:06,528 --> 00:01:09,103
+given nothing but the shop's web address.
+
+27
+00:01:09,103 --> 00:01:11,528
+The page tells it where the agent door is.
+
+28
+00:01:11,528 --> 00:01:13,853
+It reads the menu, places the order,
+
+29
+00:01:13,853 --> 00:01:16,958
+and hands back a PayPal approval link.
+
+30
+00:01:21,287 --> 00:01:22,912
+Buyers without an assistant get
+
+31
+00:01:22,912 --> 00:01:24,775
+one right on the shop page.
+
+32
+00:01:24,775 --> 00:01:26,962
+This buyer wants almond croissants,
+
+33
+00:01:26,962 --> 00:01:29,024
+and mentions a nut allergy.
+
+34
+00:01:29,024 --> 00:01:31,812
+The assistant warns that they contain nuts.
+
+35
+00:01:31,812 --> 00:01:35,342
+The buyer confirms, and it places the order.
+
+36
+00:01:38,128 --> 00:01:40,978
+The buyer logs in to PayPal and approves.
+
+37
+00:01:40,978 --> 00:01:43,291
+Shelfie captures the payment, and the money
+
+38
+00:01:43,291 --> 00:01:47,383
+lands in Rosa's own PayPal account, not ours.
+
+39
+00:01:49,662 --> 00:01:51,712
+And agents can't set prices.
+
+40
+00:01:51,712 --> 00:01:54,492
+The server checks that, not the model.
+
+41
+00:01:55,845 --> 00:01:58,908
+Rosa's dashboard shows the order as paid.
+
+42
+00:01:58,908 --> 00:02:01,332
+A Claude agent reads PayPal's record
+
+43
+00:02:01,332 --> 00:02:03,895
+of the order through the PayPal Agent Toolkit,
+
+44
+00:02:03,895 --> 00:02:05,420
+and writes her a brief.
+
+45
+00:02:05,420 --> 00:02:07,220
+It catches the nut allergy,
+
+46
+00:02:07,220 --> 00:02:10,325
+so she can check with the buyer before shipping.
+
+47
+00:02:11,653 --> 00:02:12,903
+She adds tracking,
+
+48
+00:02:12,903 --> 00:02:15,708
+and the buyer's assistant reads it back.
+
+49
+00:02:18,045 --> 00:02:20,045
+Shelfie turns a paper price list into
+
+50
+00:02:20,045 --> 00:02:22,820
+a shop that any AI assistant can find,
+
+51
+00:02:22,820 --> 00:02:25,507
+order from, and pay with PayPal.
+
+52
+00:02:25,507 --> 00:02:27,607
+The money goes straight to the seller.
+
+53
+00:02:27,607 --> 00:02:28,908
+Agent shopping shouldn't be
+
+54
+00:02:28,908 --> 00:02:30,958
+only for shops with a website.
+
+55
+00:02:30,958 --> 00:02:34,225
+For Rosa, a sheet of paper is enough.
