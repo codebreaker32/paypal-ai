@@ -13,7 +13,7 @@ import type { ItemKind, ItemWithVariants, ShopKind } from '@/lib/domain/types';
 
 const item = (name: string, over: Partial<ItemWithVariants> = {}): ItemWithVariants => ({
   id: `itm_${name.replace(/\W/g, '').toLowerCase()}`, shopId: 'shp_1', section: null, name, description: null, sourceText: name,
-  confidence: 'high', issues: [], issueDetail: null, kind: 'PHYSICAL', status: 'live', soldOut: false, photoUrl: null, category: null,
+  confidence: 'high', issues: [], issueDetail: null, kind: 'PHYSICAL', status: 'live', soldOut: false, photoUrl: null, category: null, examplePhoto: null,
   sort: 0, paypalProductId: null, publishedAt: null, updatedAt: '2026-11-06T00:00:00Z',
   variants: [{ id: 'var_1', itemId: 'itm_1', label: null, priceCents: 900, sort: 0 }],
   ...over,

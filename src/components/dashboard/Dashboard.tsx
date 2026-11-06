@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { LogoPicker } from '@/components/setup/PhotoPicker';
-import { itemCategory } from '@/lib/domain/category';
+import { itemPictures } from '@/lib/library/picture';
 import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
@@ -193,7 +193,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   };
 
   const toPrepare = orders.filter((o) => o.status === 'paid').length;
-  const photos = new Map(items.map((i) => [i.id, { photoUrl: i.photoUrl, category: itemCategory(i, kind) }]));
+  const photos = itemPictures(items, kind);
   const paused = status === 'paused';
 
   return (

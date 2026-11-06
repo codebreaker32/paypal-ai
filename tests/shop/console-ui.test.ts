@@ -317,7 +317,7 @@ describe('cards confirming with PayPal', () => {
 let n = 0;
 const item = (name: string, section: string | null, prices: (number | null)[], extra: Partial<ItemWithVariants> = {}): ItemWithVariants => ({
   id: `itm_${++n}`, shopId: 'shp_1', section, name, description: null, sourceText: name, confidence: 'high', issues: [], issueDetail: null,
-  kind: 'PHYSICAL', status: 'live', soldOut: false, photoUrl: null, category: null, sort: n, paypalProductId: `PROD-${n}`, publishedAt: null, updatedAt: '',
+  kind: 'PHYSICAL', status: 'live', soldOut: false, photoUrl: null, category: null, examplePhoto: null, sort: n, paypalProductId: `PROD-${n}`, publishedAt: null, updatedAt: '',
   variants: prices.map((p, i) => ({ id: `var_${n}_${i}`, itemId: `itm_${n}`, label: prices.length > 1 ? ['S', 'L'][i] : null, priceCents: p, sort: i })),
   ...extra,
 });

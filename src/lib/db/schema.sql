@@ -51,12 +51,23 @@ CREATE TABLE IF NOT EXISTS items (
   sold_out INTEGER NOT NULL DEFAULT 0,
   photo_url TEXT,               -- site-relative: /demo/... (bundled) or /i/<file> (uploaded); null = designed fallback
   category TEXT,                -- the drawing shown without a photo (src/lib/domain/category.ts); null = keyword guess
+  example_photo TEXT,           -- a library photo id (src/lib/library) or pexels:<id>, shown as an example without a photo; null = matched by words
   sort INTEGER NOT NULL DEFAULT 0,
   paypal_product_id TEXT UNIQUE,
   published_at TEXT,
   updated_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS items_shop ON items(shop_id, sort);
+
+-- Live Pexels matches for items the bundled library has no photo for (src/lib/library/pexels.ts), one row per search.
+CREATE TABLE IF NOT EXISTS library_cache (
+  query TEXT PRIMARY KEY,       -- the folded search words
+  pexels_id TEXT,               -- null = Pexels had nothing (cached too, so we do not search again)
+  file TEXT,                    -- file name under UPLOADS_DIR/library/
+  photographer TEXT,
+  page_url TEXT,
+  created_at TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS variants (
   id TEXT PRIMARY KEY,

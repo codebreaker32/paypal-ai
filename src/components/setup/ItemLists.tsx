@@ -1,6 +1,7 @@
 'use client';
 
-import { itemCategory } from '@/lib/domain/category';
+import type { ItemPicture } from '@/lib/domain/category';
+import { pictureOf, pictureSource } from '@/lib/library/picture';
 import { useId, useState, type ReactNode } from 'react';
 import { Check, ChevronDown, CircleDollarSign, Pencil, Plus, RotateCcw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, ShopKind, SkippedLine } from '@/lib/domain/types';
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import type { OnUpdate } from './IssueCards';
-import { ItemPhotoPicker, PhotoError } from './PhotoPicker';
+import { ExampleCaption, ItemPhotoPicker, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { SKIP_REASON, bySection } from './review-model';
 
@@ -21,6 +22,13 @@ export interface PhotoProps {
   /** Decides an item's drawing while it has no photo, as on the public menu (`itemCategory(item, shopKind)`). */
   shopKind: ShopKind;
   onPhoto: (itemId: string, photoUrl: string | null) => void;
+  /** Each item's picture over the whole menu (`itemPictures`: own photo, else a library example, else the drawing). */
+  pictures?: ReadonlyMap<string, ItemPicture>;
+}
+
+/** The item's picture as the review screen shows it: its own photo as edited here, else the whole-menu example, else the drawing. */
+export function reviewPicture(item: ItemWithVariants, shopKind: ShopKind, pictures?: ReadonlyMap<string, ItemPicture>): ItemPicture {
+  return pictureOf(item, shopKind, pictures?.get(item.id)?.exampleUrl);
 }
 
 /** A dot and a word, the way the dashboard shows status. */
@@ -34,7 +42,8 @@ function StatusText({ tone, children }: { tone: 'ok' | 'warn'; children: ReactNo
 }
 
 /** One ready item: its photo (tap to add one), name and price; Edit opens name, prices and Remove in place. */
-function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto }: { item: ItemWithVariants; tone: number; onUpdate: OnUpdate } & PhotoProps) {
+function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto, pictures }: { item: ItemWithVariants; tone: number; onUpdate: OnUpdate } & PhotoProps) {
+  const picture = reviewPicture(item, shopKind, pictures);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(item.name);
   const [texts, setTexts] = useState(() => item.variants.map((v) => priceInputValue(v.priceCents)));
@@ -64,8 +73,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto }: { item: I
           shopId={shopId}
           itemId={item.id}
           name={item.name}
-          photoUrl={item.photoUrl}
-          category={itemCategory(item, shopKind)}
+          {...picture}
           tone={tone}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
@@ -85,6 +93,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto }: { item: I
           ) : (
             <StatusText tone="warn">Needs a price</StatusText>
           )}
+          <ExampleCaption show={pictureSource(picture) === 'example'} />
         </div>
         {inPayPal ? (
           <StatusText tone="ok">In PayPal</StatusText>
@@ -134,7 +143,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto }: { item: I
   );
 }
 
-export function ReadyList({ items, onUpdate, shopId, shopKind, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
+export function ReadyList({ items, onUpdate, shopId, shopKind, onPhoto, pictures }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
     <div className="flex flex-col gap-8">
       {bySection(items).map((g, n) => (
@@ -142,7 +151,7 @@ export function ReadyList({ items, onUpdate, shopId, shopKind, onPhoto }: { item
           {g.section && <h3 className="type-heading">{g.section}</h3>}
           <ul className="flex flex-col divide-y divide-line">
             {g.items.map((it) => (
-              <ReadyRow key={it.id} item={it} tone={n} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
+              <ReadyRow key={it.id} item={it} tone={n} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} pictures={pictures} />
             ))}
           </ul>
         </section>
@@ -152,7 +161,8 @@ export function ReadyList({ items, onUpdate, shopId, shopKind, onPhoto }: { item
 }
 
 /** "Ask in person" items: on the shop, not orderable. A price moves them onto the PayPal menu. */
-function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto }: { item: ItemWithVariants; onUpdate: OnUpdate } & PhotoProps) {
+function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto, pictures }: { item: ItemWithVariants; onUpdate: OnUpdate } & PhotoProps) {
+  const picture = reviewPicture(item, shopKind, pictures);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [touched, setTouched] = useState(false);
@@ -165,12 +175,14 @@ function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto }: { item: Item
           shopId={shopId}
           itemId={item.id}
           name={item.name}
-          photoUrl={item.photoUrl}
-          category={itemCategory(item, shopKind)}
+          {...picture}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
         />
-        <span className="flex-1 font-semibold [overflow-wrap:anywhere]">{item.name}</span>
+        <span className="flex flex-1 flex-col">
+          <span className="font-semibold [overflow-wrap:anywhere]">{item.name}</span>
+          <ExampleCaption show={pictureSource(picture) === 'example'} />
+        </span>
         {!open && (
           <Button variant="ghost" icon={CircleDollarSign} onClick={() => setOpen(true)}>
             Set a price<span className="sr-only"> for {item.name}</span>
@@ -210,11 +222,11 @@ function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto }: { item: Item
   );
 }
 
-export function InPersonList({ items, onUpdate, shopId, shopKind, onPhoto }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
+export function InPersonList({ items, onUpdate, shopId, shopKind, onPhoto, pictures }: { items: ItemWithVariants[]; onUpdate: OnUpdate } & PhotoProps) {
   return (
     <ul className="flex flex-col divide-y divide-line">
       {items.map((it) => (
-        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} />
+        <InPersonRow key={it.id} item={it} onUpdate={onUpdate} shopId={shopId} shopKind={shopKind} onPhoto={onPhoto} pictures={pictures} />
       ))}
     </ul>
   );

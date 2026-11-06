@@ -194,6 +194,20 @@ describe('edits', () => {
       expect(itemCategory(renamed, 'food')).toBe('drink');
     });
 
+    it('stores Claude’s example photo, keeps it on other edits and drops it on a rename (Part A3)', () => {
+      const [taco] = items.replaceDrafts(db, shopId, [draft('Al pastor', [300], { category: 'taco', examplePhoto: 'taco-1' })]);
+      expect(taco.examplePhoto).toBe('taco-1');
+      applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, description: 'Pork and pineapple' }] }));
+      expect(items.byIdForShop(db, shopId, taco.id)!.examplePhoto).toBe('taco-1');
+      items.update(db, taco.id, { photoUrl: '/i/mine.webp' });
+      expect(items.byIdForShop(db, shopId, taco.id)!.examplePhoto).toBe('taco-1');
+      items.update(db, taco.id, { photoUrl: null });
+      expect(items.byIdForShop(db, shopId, taco.id)!.examplePhoto).toBe('taco-1');
+      expect(applyLocal(taco, { itemId: taco.id, name: 'Horchata' }).examplePhoto).toBeNull();
+      applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, name: 'Horchata' }] }));
+      expect(items.byIdForShop(db, shopId, taco.id)!.examplePhoto).toBeNull();
+    });
+
     it('keeps the chosen picture when the name is sent unchanged, or not at all', () => {
       const [taco] = items.replaceDrafts(db, shopId, [draft('Al pastor', [300], { category: 'taco' })]);
       applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, name: 'Al pastor', variants: [{ label: null, priceCents: 350 }] }] }));

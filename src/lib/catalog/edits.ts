@@ -127,6 +127,7 @@ export function applyItemUpdates(db: Db, shopId: string, input: ItemUpdatesInput
         soldOut: u.soldOut,
         issues: u.resolveIssues ? [] : u.resolveDuplicate ? item.issues.filter((c) => c !== 'DUPLICATE') : undefined,
         category: renamed(item, u) ? null : undefined,
+        examplePhoto: renamed(item, u) ? null : undefined,
       });
       if (u.variants) items.setVariants(db, u.itemId, u.variants);
     }

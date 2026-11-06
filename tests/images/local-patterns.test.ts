@@ -18,8 +18,8 @@ describe('images.localPatterns', () => {
     for (const s of SAMPLES) expect(allowed(s.image), s.image).toBe(true);
   });
 
-  it('allows every photo responsiveImage gives a srcset (demo photos and uploads)', () => {
-    for (const src of ['/demo/marigold-bakehouse/cover.jpg', '/i/img_abcdefghijklmnopqrst.webp']) {
+  it('allows every photo responsiveImage gives a srcset (demo photos, library examples, uploads, cached Pexels matches)', () => {
+    for (const src of ['/demo/marigold-bakehouse/cover.jpg', '/library/croissant-1.webp', '/i/img_abcdefghijklmnopqrst.webp', '/i/library/pexels-123.webp']) {
       expect(responsiveImage(src, '100vw').srcSet).toBeTruthy();
       expect(allowed(src), src).toBe(true);
     }

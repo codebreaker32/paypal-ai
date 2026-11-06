@@ -88,6 +88,10 @@ describe('shopJsonLd', () => {
     const almond = listed.find((i) => i.name === 'Almond croissant')!;
     const plain = ldFor({ ...shop, coverUrl: null }, listed.map((i) => (i.id === almond.id ? { ...i, photoUrl: null } : i)), urlsFor(shop.slug));
     expect(menuItemsOf(plain).find((m) => m.name === 'Almond croissant')).not.toHaveProperty('image');
+    // A library example photo is for people only: never an item's image.
+    const example = ldFor(shop, listed.map((i) => (i.id === almond.id ? { ...i, photoUrl: null, examplePhoto: 'croissant-1' } : i)), urlsFor(shop.slug));
+    expect(menuItemsOf(example).find((m) => m.name === 'Almond croissant')).not.toHaveProperty('image');
+    expect(JSON.stringify(example)).not.toMatch(/library|pexels/);
     expect(plain.image).toBe(`${APP}/s/${shop.slug}/photo/1`);
     expect(ldFor({ ...shop, coverUrl: null, menuPhotoPaths: [] }, listed, urlsFor(shop.slug))).not.toHaveProperty('image');
   });
