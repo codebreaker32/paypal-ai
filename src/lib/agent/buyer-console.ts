@@ -11,8 +11,10 @@ import { getConfig } from '@/lib/config';
 import { getDb, type Db } from '@/lib/db';
 import * as assistantRepo from '@/lib/db/repos/assistant';
 import * as shopsRepo from '@/lib/db/repos/shops';
-import { consoleHeaders } from './console-key';
+import { formatUSD } from '@/lib/domain/money';
 import { sanitizeShopName } from '@/lib/mcp/instructions';
+import { priceOrder, type PriceLineInput } from '@/lib/orders/pricing';
+import { consoleHeaders } from './console-key';
 
 /** What the console streams to the browser, one JSON object per line. */
 export type ConsoleEvent =
@@ -165,6 +167,12 @@ export async function* runBuyerConsoleTurn(input: BuyerConsoleTurnInput): AsyncG
         run: async (args, context) => {
           // Never reach the shop (and never place an order) for a reader that has gone.
           if (signal.aborted) throw new Error('The turn was stopped.');
+          // The read-back is enforced here, not only asked for in the prompt. A refusal never reaches the door, so the
+          // Activity panel (calls to the agent door) doesn't list it.
+          if (tool.name === 'create_order') {
+            const refusal = readBackRefusal(db, shop.id, args as Record<string, unknown>, prior);
+            if (refusal) return refusal;
+          }
           const id = context?.toolUse.id ?? `call_${toolCalls + 1}`;
           toolCalls++;
           const sent = scopeRequestId(args as Record<string, unknown>, sessionId);
@@ -265,6 +273,67 @@ function userTurns(messages: BetaMessageParam[]): number {
 }
 
 // ---- helpers ------------------------------------------------------------------------------------------
+
+/**
+ * create_order goes through only after a read-back: the last thing the assistant said before the person's message
+ * (text they saw, then answered) names the total this order would have, priced as the door prices it (shipping fee
+ * included). Returns the error Claude gets instead of the door's answer, or null to let the call through. An order that
+ * pricing refuses goes through too, so the door's own error says what is wrong with it.
+ */
+function readBackRefusal(db: Db, shopId: string, args: Record<string, unknown>, prior: BetaMessageParam[]): string | null {
+  const total = orderTotalCents(db, shopId, args);
+  if (total === null || lastAnswer(prior).some((said) => namesAmount(said, total))) return null;
+  return JSON.stringify({
+    error: {
+      code: 'READ_BACK_FIRST',
+      message:
+        'Read the order back first: each item with its option, quantity and price, pickup or shipping (with the shipping fee) ' +
+        `and the total (${formatUSD(total)}). Then wait for the person to say yes before calling create_order.`,
+    },
+  });
+}
+
+/** The total in cents the door would charge for these create_order arguments, or null when it would refuse them. */
+function orderTotalCents(db: Db, shopId: string, args: Record<string, unknown>): number | null {
+  const shop = shopsRepo.byId(db, shopId);
+  if (!shop || !Array.isArray(args.items)) return null;
+  const lines: PriceLineInput[] = [];
+  for (const raw of args.items as unknown[]) {
+    const line = (raw ?? {}) as { item_id?: unknown; option_id?: unknown; quantity?: unknown };
+    if (typeof line.item_id !== 'string' || typeof line.quantity !== 'number') return null;
+    if (line.option_id !== undefined && typeof line.option_id !== 'string') return null;
+    lines.push({ itemId: line.item_id, optionId: line.option_id, quantity: line.quantity });
+  }
+  const { fulfillment } = args;
+  if (fulfillment !== undefined && fulfillment !== 'pickup' && fulfillment !== 'shipping') return null;
+  try {
+    return priceOrder(db, shop, lines, fulfillment).totalCents;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The text blocks of the assistant's last message before this turn. Text in a message that also called a tool was
+ * never shown to the person (see the runner loop), so that message counts as saying nothing.
+ */
+function lastAnswer(prior: BetaMessageParam[]): string[] {
+  const last = prior.findLast((m) => m.role === 'assistant');
+  if (!last) return [];
+  if (typeof last.content === 'string') return [last.content];
+  if (last.content.some((b) => b.type === 'tool_use')) return [];
+  return last.content.flatMap((b) => (b.type === 'text' ? [b.text] : []));
+}
+
+/** Whether `text` names `cents` as a dollar amount: $27.00, $1,250.00, or $27 when the cents are zero. */
+function namesAmount(text: string, cents: number): boolean {
+  const whole = String(Math.floor(cents / 100));
+  const wholes = [...new Set([whole, whole.replace(/\B(?=(\d{3})+$)/g, ',')])].join('|');
+  const frac = cents % 100;
+  const amount = frac === 0 ? `(?:${wholes})(?:\\.00)?` : `(?:${wholes})\\.${String(frac).padStart(2, '0')}`;
+  // Not a longer number: $27 is not $275, $27.50 or $27,500.
+  return new RegExp(`\\$\\s?${amount}(?!\\d|[.,]\\d)`).test(text);
+}
 
 /**
  * The door de-duplicates create_order per shop by client_request_id, and models tend to make up readable keys

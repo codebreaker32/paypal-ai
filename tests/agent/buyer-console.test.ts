@@ -510,6 +510,112 @@ describe('runBuyerConsoleTurn', () => {
     expect(mcp.closed()).toBe(1);
   });
 
+  describe('read-back before create_order', () => {
+    const almond = () => s.item['Almond croissant'].id;
+    const sourdough = () => s.item['Sourdough loaf'].id;
+    const placed = (total: string) =>
+      ok({ order_ref: 'ord_rb', order_number: 'SHF-RBRBRB', status: 'awaiting_approval', total, approval_url: 'https://www.sandbox.paypal.com/checkoutnow?token=RB1' });
+
+    /** A conversation whose earlier turns are `turns` (the person's message, then what the assistant answered). */
+    function conversation(turns: [string, Block[]][]): string {
+      const session = assistant.create(db, s.shop.id);
+      assistant.append(db, session.id, turns.flatMap(([said, answer]) => [{ role: 'user', content: said }, { role: 'assistant', content: answer }]), []);
+      return session.id;
+    }
+
+    /** One turn where Claude calls create_order with `args`, then ends with `after`. */
+    async function orderTurn(sessionId: string | null, userText: string, args: Record<string, unknown>, door: ToolReply = placed('9.50')) {
+      const claude = stubClaude([reply([toolUse('toolu_co', 'create_order', args)], 'tool_use'), reply([text('Done.')])]);
+      const mcp = stubMcp({ create_order: door });
+      const events = await collect(
+        runBuyerConsoleTurn({ shopSlug: s.shop.slug, sessionId, userText, mcpUrl: MCP_URL, client: claude.client, mcpClientFactory: mcp.factory, db }),
+      );
+      const toolResult = JSON.stringify(claude.requests[1]?.messages.at(-1) ?? null);
+      return { events, mcp, toolResult };
+    }
+
+    it("refuses create_order on the first message, even with a yes in it, and tells Claude to read the order back", async () => {
+      const { events, mcp, toolResult } = await orderTurn(null, 'Two almond croissants for pickup, yes place it', {
+        items: [{ item_id: almond(), quantity: 2 }],
+        fulfillment: 'pickup',
+      });
+      expect(mcp.calls).toEqual([]); // never reached the door
+      expect(toolResult).toContain('READ_BACK_FIRST');
+      expect(toolResult).toContain('$9.50'); // 2 × $4.75, pickup
+      // The Activity panel lists calls to the agent door: this one never got there.
+      expect(events.map((e) => e.type)).toEqual(['session', 'text', 'done']);
+    });
+
+    it.each([
+      ['with cents', [{ item_id: 'almond', quantity: 2 }], 'Two almond croissants at $4.75 each, pickup. Total: $9.50. Shall I place it?'],
+      ['a whole-dollar total without cents', [{ item_id: 'sourdough', quantity: 2 }], 'Two sourdough loaves, pickup: $18 in total. Place it?'],
+      ['a whole-dollar total with cents', [{ item_id: 'sourdough', quantity: 2 }], '- 2 × Sourdough loaf, $9.00 each\n- Pickup\n- **Total: $18.00**\n\nShall I place it?'],
+    ])('places the order after a read-back of the same total (%s) and a yes', async (_label, lines, readBack) => {
+      const ids: Record<string, () => string> = { almond, sourdough };
+      const items = lines.map((l) => ({ item_id: ids[l.item_id](), quantity: l.quantity }));
+      const id = conversation([['I would like to order', [text(readBack)]]]);
+      const { events, mcp } = await orderTurn(id, 'Yes', { items, fulfillment: 'pickup' });
+      expect(mcp.calls.map((c) => c.name)).toEqual(['create_order']);
+      expect(events.map((e) => e.type)).toEqual(['session', 'tool_call', 'tool_result', 'approval', 'text', 'done']);
+    });
+
+    it('refuses when the order changed after the read-back (a different total)', async () => {
+      const id = conversation([['Two almond croissants for pickup', [text('Two almond croissants, pickup. Total: $9.50. Shall I place it?')]]]);
+      const { events, mcp, toolResult } = await orderTurn(id, 'Make it three. Yes, place it', {
+        items: [{ item_id: almond(), quantity: 3 }],
+        fulfillment: 'pickup',
+      });
+      expect(mcp.calls).toEqual([]);
+      expect(toolResult).toContain('READ_BACK_FIRST');
+      expect(toolResult).toContain('$14.25');
+      expect(events.map((e) => e.type)).toEqual(['session', 'text', 'done']);
+    });
+
+    it("doesn't take $9.50 for $9.50x: the amount must stand on its own", async () => {
+      const id = conversation([['Two almond croissants for pickup', [text('Total: $9.505 or $19.50, or $9.50.5. Shall I place it?')]]]);
+      const { mcp } = await orderTurn(id, 'Yes', { items: [{ item_id: almond(), quantity: 2 }], fulfillment: 'pickup' });
+      expect(mcp.calls).toEqual([]);
+    });
+
+    it('only counts the last thing the assistant said before this message', async () => {
+      const id = conversation([
+        ['Two almond croissants for pickup', [text('Two almond croissants, pickup. Total: $9.50. Shall I place it?')]],
+        ['Do you also have coffee?', [text('Yes: drip coffee, S $3.00 or L $4.00.')]],
+      ]);
+      const { mcp, toolResult } = await orderTurn(id, 'OK, just the croissants then. Yes', { items: [{ item_id: almond(), quantity: 2 }], fulfillment: 'pickup' });
+      expect(mcp.calls).toEqual([]);
+      expect(toolResult).toContain('READ_BACK_FIRST');
+    });
+
+    it("doesn't count text the person never saw (said alongside a tool call)", async () => {
+      const id = conversation([['Two almond croissants for pickup', [text('Total: $9.50. Placing it.'), toolUse('toolu_old', 'list_products', {})]]]);
+      // That turn broke off after its tool call: its result is stored, then this turn's message.
+      assistant.append(db, id, [{ role: 'user', content: [{ type: 'tool_result', tool_use_id: 'toolu_old', content: '{}' }] }], []);
+      const { mcp } = await orderTurn(id, 'Yes', { items: [{ item_id: almond(), quantity: 2 }], fulfillment: 'pickup' });
+      expect(mcp.calls).toEqual([]);
+    });
+
+    it("counts the shipping fee in a shipped order's total", async () => {
+      const shipped = { items: [{ item_id: almond(), quantity: 2 }], fulfillment: 'shipping' };
+      // $9.50 of croissants + $8.00 shipping: a read-back naming only the items total isn't the total.
+      const short = conversation([['Two almond croissants, shipped', [text('Two almond croissants: $9.50. Shall I place it?')]]]);
+      const refused = await orderTurn(short, 'Yes', shipped);
+      expect(refused.mcp.calls).toEqual([]);
+      expect(refused.toolResult).toContain('$17.50');
+
+      const full = conversation([['Two almond croissants, shipped', [text('Two almond croissants $9.50, shipping $8.00, total $17.50. Shall I place it?')]]]);
+      const placedTurn = await orderTurn(full, 'Yes', shipped, placed('17.50'));
+      expect(placedTurn.mcp.calls.map((c) => c.name)).toEqual(['create_order']);
+    });
+
+    it('lets the door answer an order pricing refuses (it explains what is wrong)', async () => {
+      // The shop offers pickup and shipping: without fulfillment the door asks for one (FULFILLMENT_REQUIRED).
+      const { events, mcp } = await orderTurn(null, 'Two almond croissants, yes', { items: [{ item_id: almond(), quantity: 2 }] }, fail('FULFILLMENT_REQUIRED', 'Choose pickup or shipping.'));
+      expect(mcp.calls.map((c) => c.name)).toEqual(['create_order']);
+      expect(events.map((e) => e.type)).toEqual(['session', 'tool_call', 'tool_result', 'text', 'done']);
+    });
+  });
+
   describe('without an Anthropic key', () => {
     const saved = process.env.ANTHROPIC_API_KEY;
     beforeEach(() => {
