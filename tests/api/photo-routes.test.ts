@@ -144,6 +144,7 @@ describe('photo upload routes', () => {
     expect(res.status).toBe(404);
     expect((await coverRoute.POST(await upload(jpeg), shopCtx(shopId))).status).toBe(404);
     expect((await coverRoute.DELETE(new Request('http://x', { method: 'DELETE' }), shopCtx(shopId))).status).toBe(404);
+    expect((await coverRoute.GET(new Request('http://x'), shopCtx(shopId))).status).toBe(404);
     expect((await itemPhotoRoute.DELETE(new Request('http://x', { method: 'DELETE' }), itemCtx(shopId, itemId))).status).toBe(404);
     expect(items.byIdForShop(state.db, shopId, itemId)!.photoUrl).toBeNull();
 
@@ -205,10 +206,12 @@ describe('photo upload routes', () => {
     const next = (await (await coverRoute.POST(await upload(wide), shopCtx(shopId))).json()) as { coverUrl: string };
     expect(fs.existsSync(stored(coverUrl))).toBe(false);
 
+    expect(await (await coverRoute.GET(new Request('http://x'), shopCtx(shopId))).json()).toEqual({ coverUrl: next.coverUrl });
     const cleared = await coverRoute.DELETE(new Request('http://x', { method: 'DELETE' }), shopCtx(shopId));
     expect(await cleared.json()).toEqual({ coverUrl: null });
     expect(shops.byId(state.db, shopId)!.coverUrl).toBeNull();
     expect(fs.existsSync(stored(next.coverUrl))).toBe(false);
+    expect(await (await coverRoute.GET(new Request('http://x'), shopCtx(shopId))).json()).toEqual({ coverUrl: null });
   });
 
   it('cover: refuses a bad image without touching the current cover', async () => {

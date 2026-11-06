@@ -614,6 +614,25 @@ const SCREENS: Screen[] = [
     },
   },
   {
+    // MOCKED: "Snap your counter" answers with three crops (no live Claude); one item already has a photo (Replace).
+    name: 'dashboard-menu-counter',
+    run: async (page, { context }) => {
+      await signIn(context, demo.shop.id, demo.ownerToken);
+      pollerJustChecked();
+      const crop = (file: string) => `data:image/jpeg;base64,${fs.readFileSync(path.join('public', 'demo', 'marigold-bakehouse', file)).toString('base64')}`;
+      const proposals = [
+        ['Butter croissant', 'butter-croissant.jpg'],
+        ['Cardamom bun', 'cardamom-bun.jpg'],
+        ['Pain au chocolat', 'pain-au-chocolat.jpg'],
+      ].map(([name, file]) => ({ itemId: demo.items[name].id, name, confidence: 'high', image: crop(file) }));
+      await page.route(`**/api/shops/${demo.shop.id}/counter`, (route) => route.fulfill({ json: { proposals } }));
+      await page.goto(`/shops/${demo.shop.id}?tab=menu`);
+      await page.locator('input[aria-label="Snap your counter"]').setInputFiles(path.join('public', 'demo', 'marigold-bakehouse', 'cover.jpg'));
+      await expect(page.getByRole('button', { name: 'Replace: Cardamom bun' })).toBeVisible();
+    },
+    viewport: true,
+  },
+  {
     name: 'dashboard-share',
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);

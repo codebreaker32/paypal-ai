@@ -3,6 +3,7 @@
 //   2000 px, WebP, metadata dropped; replaces (and deletes) an earlier upload. Errors as for an item photo
 //   (src/app/api/shops/[id]/items/[itemId]/photo/route.ts): 404, 400 NO_PHOTOS, 413, 415 BAD_IMAGE, 411, 429.
 // DELETE /api/shops/[id]/cover → 200 { coverUrl: null }.
+// GET /api/shops/[id]/cover → 200 { coverUrl } (the current cover or null), for the dashboard's Menu tab.
 import { getDb } from '@/lib/db';
 import { clearShopCover, setShopCover } from '@/lib/catalog/photos';
 import { errorResponse, notFound, ownedShop } from '@/lib/catalog/http';
@@ -14,6 +15,13 @@ import { readOnePhoto } from '@/lib/uploads';
 export const runtime = 'nodejs';
 
 type Ctx = { params: Promise<{ id: string }> };
+
+export async function GET(_req: Request, ctx: Ctx): Promise<Response> {
+  const { id } = await ctx.params;
+  const shop = await ownedShop(id);
+  if (!shop) return notFound();
+  return Response.json({ coverUrl: shop.coverUrl }, { headers: { 'cache-control': 'no-store' } });
+}
 
 export async function POST(req: Request, ctx: Ctx): Promise<Response> {
   const { id } = await ctx.params;

@@ -62,6 +62,9 @@ function usePhotoActions(
   return { busy, error, pick, remove: () => run(async () => (await remove(), null)) };
 }
 
+/** The file input fills its label, invisible: the label's whole area is the input's own tap target. */
+export const FILE_INPUT = 'absolute inset-0 z-0 size-full cursor-pointer opacity-0 file:cursor-pointer';
+
 /** A visually hidden file input inside a label styled as a button: the whole label is the tap target. */
 function FileLabel({
   label,
@@ -79,7 +82,7 @@ function FileLabel({
   return (
     <label
       className={cx(
-        'has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
+        'relative has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
         disabled && 'pointer-events-none',
         className,
       )}
@@ -89,7 +92,7 @@ function FileLabel({
         accept={PHOTO_ACCEPT}
         aria-label={label}
         disabled={disabled}
-        className="sr-only"
+        className={FILE_INPUT}
         onChange={(e) => {
           const files = e.currentTarget.files;
           onPick(files);
@@ -137,7 +140,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
     onChange,
     onError,
   );
-  const box = cx('relative block shrink-0 overflow-hidden rounded-(--thumb-radius)', size === 'md' ? 'size-16' : 'size-14', className);
+  const box = cx('relative block shrink-0 overflow-hidden rounded-(--thumb-radius) bg-surface-sunken', size === 'md' ? 'size-16' : 'size-14', className);
 
   return (
     <div className="flex flex-col gap-1" data-photo-picker={itemId}>
@@ -149,7 +152,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, tone = 0, onCh
           onClick={() => setOpen(true)}
           className={cx(box, 'transition-[filter] hover:brightness-95')}
         >
-          <ItemPhoto name={name} photoUrl={photoUrl} tone={tone} size="sm" className="size-full" />
+          <img src={photoUrl} alt={name} className="size-full object-cover" />
           {actions.busy && <Busy label={`Saving the photo of ${name}`} />}
         </button>
       ) : (
@@ -257,10 +260,9 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
             disabled={actions.busy}
             className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-surface-sunken px-5 font-semibold text-ink hover:bg-line"
           >
-            <Icon icon={ImagePlus} />
             <span aria-hidden="true">Replace cover</span>
           </FileLabel>
-          <Button variant="ghost" icon={Trash2} disabled={actions.busy} onClick={() => void actions.remove()}>
+          <Button variant="ghost" disabled={actions.busy} onClick={() => void actions.remove()}>
             Remove cover
           </Button>
         </div>

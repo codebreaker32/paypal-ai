@@ -1,15 +1,17 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { Ban, Hand } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
+import { useEffect, useState } from 'react';
+import { buttonClasses } from '@/components/ui/Button';
 import { FieldError } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
+import { cx } from '@/components/ui/cx';
+import { CoverPicker, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
+import { fetchCover } from '@/lib/client/item-photos';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants } from '@/lib/domain/types';
 import { setSoldOut } from './api';
+import { CounterSnap } from './menu/CounterSnap';
 import { Switch } from './Switch';
 
 function priceText(item: ItemWithVariants): string {
@@ -27,24 +29,115 @@ function bySection(items: ItemWithVariants[]): [string, ItemWithVariants[]][] {
   return [...out.entries()];
 }
 
+/** A dot and a word, as the order list shows status. */
+function StatusText({ tone, children }: { tone: 'warn' | 'muted'; children: string }) {
+  return (
+    <span className={cx('inline-flex items-center gap-2 text-sm font-semibold', tone === 'warn' ? 'text-warn' : 'text-ink-muted')}>
+      <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
+      {children}
+    </span>
+  );
+}
+
+function MenuRow({
+  item,
+  tone,
+  shopId,
+  busy,
+  error,
+  onToggle,
+  onPhoto,
+}: {
+  item: ItemWithVariants;
+  tone: number;
+  shopId: string;
+  busy: boolean;
+  error?: string;
+  onToggle: (next: boolean) => void;
+  onPhoto: (url: string | null) => void;
+}) {
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const soldOut = item.status === 'live' && item.soldOut;
+  return (
+    <li className="flex flex-col gap-1.5 py-3" data-item={item.name}>
+      <div className="flex items-center gap-3 sm:gap-4">
+        <ItemPhotoPicker
+          shopId={shopId}
+          itemId={item.id}
+          name={item.name}
+          photoUrl={item.photoUrl}
+          tone={tone}
+          size="sm"
+          onChange={onPhoto}
+          onError={setPhotoError}
+          className={cx(soldOut && item.photoUrl && 'opacity-60 grayscale')}
+        />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className={cx('font-semibold leading-6 [overflow-wrap:anywhere]', soldOut && 'text-ink-muted')}>{item.name}</span>
+          <span className="flex flex-wrap items-center gap-x-3 gap-y-0.5">
+            {item.status === 'live' && <span className="type-price text-sm text-ink-soft">{priceText(item)}</span>}
+            {item.status === 'in_person' && <StatusText tone="muted">Ask in person</StatusText>}
+            {soldOut && <StatusText tone="warn">Sold out today</StatusText>}
+          </span>
+        </div>
+        {item.status === 'live' && (
+          <Switch
+            label={
+              <>
+                <span className="sr-only">{item.name}: Sold out today</span>
+                <span aria-hidden="true">Sold out</span>
+              </>
+            }
+            checked={item.soldOut}
+            busy={busy}
+            onChange={onToggle}
+            inline
+          />
+        )}
+      </div>
+      <PhotoError error={photoError} />
+      {error && <FieldError>{error}</FieldError>}
+    </li>
+  );
+}
+
 export function MenuPanel({
   items,
   shopId,
   slug,
+  shopName,
+  coverUrl: initialCover,
   onItemsChange,
 }: {
   items: ItemWithVariants[];
   shopId: string;
   slug: string;
+  /** For the cover's alt text. */
+  shopName?: string;
+  /** The shop's cover; when the dashboard doesn't pass it, the tab reads it once (GET /api/shops/[id]/cover). */
+  coverUrl?: string | null;
   onItemsChange: (update: (items: ItemWithVariants[]) => ItemWithVariants[]) => void;
 }) {
   const toast = useToast();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [cover, setCover] = useState<string | null | undefined>(initialCover);
   const listed = items.filter((i) => i.status === 'live' || i.status === 'in_person');
+  const photos = listed.filter((i) => i.photoUrl).length;
 
-  const setItem = (id: string, soldOut: boolean) =>
-    onItemsChange((all) => all.map((i) => (i.id === id ? { ...i, soldOut } : i)));
+  useEffect(() => {
+    if (initialCover !== undefined) return;
+    let gone = false;
+    fetchCover(shopId)
+      .then((url) => !gone && setCover(url))
+      .catch(() => !gone && setCover(null));
+    return () => {
+      gone = true;
+    };
+  }, [shopId, initialCover]);
+
+  const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
+    onItemsChange((all) => all.map((i) => (i.id === id ? { ...i, ...patch } : i)));
 
   const toggle = async (item: ItemWithVariants, next: boolean) => {
     setBusy((b) => new Set(b).add(item.id));
@@ -53,14 +146,14 @@ export function MenuPanel({
       delete rest[item.id];
       return rest;
     });
-    setItem(item.id, next); // optimistic
+    setItem(item.id, { soldOut: next }); // optimistic
     try {
       const { items: saved } = await setSoldOut(shopId, item.id, next);
       const byId = new Map(saved.map((i) => [i.id, i]));
       onItemsChange((all) => all.map((i) => byId.get(i.id) ?? i));
       toast({ title: next ? `${item.name}: sold out today` : `${item.name} is back on`, tone: 'ok', durationMs: 3000 });
     } catch (e) {
-      setItem(item.id, !next);
+      setItem(item.id, { soldOut: !next });
       setErrors((all) => ({ ...all, [item.id]: e instanceof Error ? e.message : "Couldn’t save. Try again." }));
     } finally {
       setBusy((b) => {
@@ -73,69 +166,76 @@ export function MenuPanel({
 
   if (listed.length === 0) {
     return (
-      <Card tone="flat" padding="lg" className="flex flex-col gap-2">
+      <div className="flex max-w-measure flex-col items-start gap-3 rounded-(--card-radius) bg-surface-sunken p-6">
         <h2 className="type-heading">Nothing on your menu yet</h2>
-        <p className="text-ink-soft">
-          Publish items from{' '}
-          <Link href={`/shops/${shopId}/setup`} className="font-semibold text-accent-ink underline">
-            your setup page
-          </Link>{' '}
-          and they will show up here.
-        </p>
-      </Card>
+        <p className="text-ink-soft">Publish items from setup and they show up here.</p>
+        <Link href={`/shops/${shopId}/setup`} className={buttonClasses({ variant: 'primary' })}>
+          Go to setup
+        </Link>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <p className="max-w-measure text-ink-soft">
-        Ran out of something? Mark it sold out for today. It stays on{' '}
-        <Link href={`/s/${slug}`} className="font-semibold text-accent-ink underline">
-          your shop
-        </Link>
-        , but assistants can’t order it until you switch it back.
-      </p>
-      {bySection(listed).map(([section, sectionItems]) => (
-        <section key={section} aria-label={section} className="flex flex-col">
-          <h2 className="type-label border-b border-line pb-2 text-ink-muted">{section}</h2>
-          <ul className="flex flex-col">
-            {sectionItems.map((item) => (
-              <li key={item.id} className="flex flex-col gap-1 border-b border-line py-3" data-item={item.name}>
-                <div className="flex items-center gap-3">
-                  <div className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="font-semibold">{item.name}</span>
-                    <span className="type-meta type-price text-ink-muted">{priceText(item)}</span>
-                    {item.status === 'in_person' && (
-                      <Badge icon={Hand} className="self-start">
-                        Ask in person
-                      </Badge>
-                    )}
-                    {item.status === 'live' && item.soldOut && (
-                      <Badge tone="warn" icon={Ban} className="self-start">
-                        Sold out today
-                      </Badge>
-                    )}
-                  </div>
-                  {item.status === 'live' && (
-                    <Switch
-                      label={
-                        <>
-                          <span className="sr-only">{item.name}: </span>Sold out today
-                        </>
-                      }
-                      checked={item.soldOut}
-                      busy={busy.has(item.id)}
-                      onChange={(next) => toggle(item, next)}
-                      inline
-                    />
-                  )}
-                </div>
-                {errors[item.id] && <FieldError>{errors[item.id]}</FieldError>}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))}
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:gap-x-14">
+      <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
+        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
+          <div className="flex flex-col gap-1">
+            <h2 className="type-title">Menu</h2>
+            <p className="type-figures text-ink-soft">
+              {listed.length} items · {photos} with photos
+            </p>
+          </div>
+          <Link href={`/s/${slug}`} className="inline-flex min-h-tap items-center font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
+            See it on your shop
+          </Link>
+        </div>
+        {bySection(listed).map(([section, sectionItems], n) => (
+          <section key={section} aria-label={section} className="flex flex-col gap-1">
+            <h3 className="type-heading">{section}</h3>
+            <ul className="flex flex-col divide-y divide-line">
+              {sectionItems.map((item) => (
+                <MenuRow
+                  key={item.id}
+                  item={item}
+                  tone={n}
+                  shopId={shopId}
+                  busy={busy.has(item.id)}
+                  error={errors[item.id]}
+                  onToggle={(next) => void toggle(item, next)}
+                  onPhoto={(photoUrl) => setItem(item.id, { photoUrl })}
+                />
+              ))}
+            </ul>
+          </section>
+        ))}
+      </div>
+
+      {/* Phones: the counter action first, the cover after the list. Desktop: both in the right-hand column. */}
+      <section
+        aria-labelledby="counter-title"
+        className="order-first flex flex-col items-start gap-3 rounded-(--card-radius) bg-surface-sunken p-5 lg:order-none lg:col-start-2 lg:row-start-1"
+      >
+        <h2 id="counter-title" className="type-heading">
+          Photos in one go
+        </h2>
+        <p className="text-ink-soft">One photo of your display case: Claude crops a photo of each item it finds.</p>
+        <CounterSnap
+          shopId={shopId}
+          hasPhoto={(id) => Boolean(items.find((i) => i.id === id)?.photoUrl)}
+          onPhoto={(itemId, photoUrl) => setItem(itemId, { photoUrl })}
+        />
+      </section>
+      <section aria-labelledby="cover-title" className="flex flex-col gap-3 lg:col-start-2 lg:row-start-2 lg:self-start">
+        <h2 id="cover-title" className="type-heading">
+          Cover photo
+        </h2>
+        {cover === undefined ? (
+          <div aria-hidden="true" className="aspect-[16/7] w-full rounded-(--cover-radius) bg-surface-sunken sm:aspect-[3/1]" />
+        ) : (
+          <CoverPicker shopId={shopId} shopName={shopName ?? 'Your shop'} coverUrl={cover} onChange={setCover} />
+        )}
+      </section>
     </div>
   );
 }
