@@ -9,6 +9,8 @@ import * as items from '@/lib/db/repos/items';
 import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
+import * as orders from '@/lib/db/repos/orders';
+import { createOrderForShop } from '@/lib/orders/service';
 import { DEMO_PHOTO, DEMO_SHOP, seedDemoShop } from '../../scripts/seed-demo';
 
 const uploadsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'shelfie-seed-'));
@@ -114,5 +116,28 @@ describe('seedDemoShop', () => {
     await expect(seedDemoShop({ db: fresh, paypal: pp, uploadsDir, reset: true })).rejects.toThrow(/not the demo shop/);
     expect(shops.byId(fresh, theirs.id)).toMatchObject({ slug: DEMO_SHOP.slug, menuPhotoPaths: [] });
     expect(pp.calls).toHaveLength(0);
+  });
+
+  it('reports unpaid rehearsal orders and cancels them with cancelUnpaid, leaving paid ones alone', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const { shop } = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    const croissant = items.listWithVariants(fresh, shop.id).find((i) => i.name === 'Almond croissant')!;
+    const deps = { db: fresh, paypal: pp, appUrl: 'http://localhost:3000' };
+    const place = (key: string) => createOrderForShop(deps, shop, { lines: [{ itemId: croissant.id, quantity: 1 }], fulfillment: 'pickup', clientKey: 'local', clientRequestId: key });
+    const a = await place('rehearsal-a');
+    await place('rehearsal-b');
+    const paid = await place('rehearsal-c');
+    orders.casStatus(fresh, paid.id, 'awaiting_approval', 'approved');
+
+    const report = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    expect(report.unpaid).toBe(2);
+    expect(report.cancelled).toBe(0);
+    expect(orders.byId(fresh, a.id)!.status).toBe('awaiting_approval');
+
+    const cleared = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir, cancelUnpaid: true });
+    expect(cleared).toMatchObject({ unpaid: 0, cancelled: 2 });
+    expect(orders.byId(fresh, a.id)!.status).toBe('cancelled');
+    expect(orders.byId(fresh, paid.id)!.status).toBe('approved');
   });
 });

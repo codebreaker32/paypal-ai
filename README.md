@@ -66,7 +66,7 @@ npm run seed   # optional: publishes the demo shop "Marigold Bakehouse" to your 
 npm run dev    # http://localhost:3000
 ```
 
-`npm run seed` does not need the server running. It prints the shop URL, the agent door URL, an "Order with an AI" link and, the first time only, an **owner link** (`/claim/<token>`) that opens that shop's seller dashboard. `npm run seed -- --reset` recreates the shop with a new owner link. Open `http://localhost:3000` first; "Try a sample menu" needs no seeding.
+`npm run seed` does not need the server running. It prints the shop URL, the agent door URL, an "Order with an AI" link and, the first time only, an **owner link** (`/claim/<token>`) that opens that shop's seller dashboard. `npm run seed -- --reset` recreates the shop with a new owner link. Each run also says how many of the shop's orders are waiting for payment; `npm run seed -- --cancel-unpaid` cancels them (one caller can hold 3 unpaid orders per shop). Open `http://localhost:3000` first; "Try a sample menu" needs no seeding.
 
 ### Paying in the sandbox
 

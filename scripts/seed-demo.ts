@@ -1,8 +1,9 @@
-// npm run seed [-- --reset]
+// npm run seed [-- --reset | --cancel-unpaid]
 // Creates the demo shop "Marigold Bakehouse" from the recorded menu reading, resolves its review issues as a seller
 // would, publishes its items to the real PayPal sandbox catalog with the setup flow's own publishShop, and marks it
 // live. Idempotent: a second run reuses the shop and only publishes what is missing (an item PayPal turned down last
-// time, say). --reset deletes the shop (and its orders) and starts again.
+// time, say). --reset deletes the shop (and its orders) and starts again. Every run reports the demo shop's orders still
+// waiting for payment (one caller can hold 3); --cancel-unpaid cancels them before a recording.
 import { config } from 'dotenv';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,8 +13,10 @@ import { RESERVED_SLUG, publishShop, type PublishResult } from '@/lib/catalog/pu
 import { ConfigError, getConfig } from '@/lib/config';
 import { getDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
+import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
+import { cancelOrder } from '@/lib/orders/service';
 import type { PayPalPort } from '@/lib/paypal/types';
 
 config({ quiet: true });
@@ -46,6 +49,8 @@ export interface SeedOptions {
   paypal: PayPalPort;
   uploadsDir: string;
   reset?: boolean;
+  /** Cancel the demo shop's orders still waiting for buyer approval (rehearsal orders before a recording). */
+  cancelUnpaid?: boolean;
   log?: (line: string) => void;
 }
 
@@ -58,6 +63,10 @@ export interface SeedResult {
   published: number;
   /** Items PayPal turned down this run, with the seller's message; a re-run retries them. */
   failed: PublishResult['failed'];
+  /** Orders still waiting for buyer approval after this run. */
+  unpaid: number;
+  /** Unpaid orders this run cancelled (cancelUnpaid). */
+  cancelled: number;
 }
 
 export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
@@ -107,7 +116,17 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
     const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
     log(e.ok ? `  PayPal product ${e.paypalProductId}  ${name}` : `  Not added: ${name}: ${e.message}`);
   });
-  return { shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed };
+  const waiting = orders.listByShop(db, shopId, { status: ['awaiting_approval'] });
+  let cancelled = 0;
+  if (opts.cancelUnpaid) {
+    for (const o of waiting) {
+      if ((await cancelOrder({ db, paypal: opts.paypal, appUrl: '' }, o.id)).status === 'cancelled') cancelled++;
+    }
+  }
+  return {
+    shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed,
+    unpaid: waiting.length - cancelled, cancelled,
+  };
 }
 
 /** What a seller does on the review screen: "Looks right" on every CHECK, "Ask in person" on market prices. */
@@ -135,10 +154,11 @@ function ensurePhoto(uploadsDir: string, shopId: string): string {
 
 async function main(): Promise<void> {
   const reset = process.argv.includes('--reset');
+  const cancelUnpaid = process.argv.includes('--cancel-unpaid');
   const cfg = getConfig();
   // Imported here so tests and Playwright can import seedDemoShop without PayPal credentials.
   const { getPayPal } = await import('@/lib/paypal');
-  const result = await seedDemoShop({ db: getDb(), paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, log: (l) => console.log(l) });
+  const result = await seedDemoShop({ db: getDb(), paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, cancelUnpaid, log: (l) => console.log(l) });
   const { shop } = result;
   const live = items.listWithVariants(getDb(), shop.id).filter((i) => i.status === 'live');
   console.log('');
@@ -149,6 +169,10 @@ async function main(): Promise<void> {
   }
   if (live.some((i) => i.paypalProductId?.startsWith('PROD-FAKE'))) {
     console.log('Warning: this shop was seeded for tests with fake PayPal products. Run `npm run seed -- --reset` to publish it to the sandbox.');
+  }
+  if (result.cancelled) console.log(`Cancelled ${result.cancelled} order${result.cancelled === 1 ? '' : 's'} that ${result.cancelled === 1 ? 'was' : 'were'} waiting for payment.`);
+  if (result.unpaid) {
+    console.log(`${result.unpaid} order${result.unpaid === 1 ? ' is' : 's are'} waiting for payment. One caller can hold 3 unpaid orders per shop, so before recording run \`npm run seed -- --cancel-unpaid\`.`);
   }
   console.log(`  Shop:              ${cfg.appUrl}/s/${shop.slug}`);
   console.log(`  Agent door (MCP):  ${cfg.appUrl}/s/${shop.slug}/mcp`);

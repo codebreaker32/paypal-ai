@@ -20,7 +20,7 @@ npm run test:ai             # real Claude extraction on public/samples (needs AN
 npm run typecheck && npm run lint
 npm run e2e                 # Playwright (starts the app on port 3100; E2E_PORT overrides, E2E_REUSE_SERVER=1 attaches to a running one)
 npm run screenshots:prod -- <dir>  # all 68 judged screens (390/1440 + axe) against a production build
-npm run seed                # publish the demo shop (-- --reset recreates it); prints the owner link once
+npm run seed                # publish the demo shop (-- --reset recreates it; -- --cancel-unpaid cancels its unpaid rehearsal orders); prints the owner link once
 # photo -> live timing against a running app (see the header of the script for the DATABASE_PATH setup):
 DATABASE_PATH=data/measure/m.db BASE_URL=http://localhost:3109 npx tsx scripts/measure-photo-to-live.ts [runs]
 ```
