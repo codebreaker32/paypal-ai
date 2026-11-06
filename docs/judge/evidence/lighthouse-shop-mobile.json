@@ -1,0 +1,64 @@
+{
+  "page": "/s/marigold-bakehouse (seeded demo shop, production build: next build + next start)",
+  "lighthouse": "12.8.2",
+  "formFactor": "mobile",
+  "throttling": "simulate",
+  "date": "2026-11-06",
+  "commitNote": "main after review 5 fixes plus responsive images",
+  "runs": [
+    {
+      "performance": 92,
+      "fcp": "1.1 s",
+      "lcp": "2.8 s",
+      "tbt": "230 ms",
+      "cls": "0",
+      "speedIndex": "1.1 s",
+      "weight": "Total size was 428 KiB",
+      "lcpElement": "<img src=\"http://localhost:3180/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover…\" srcset=\"/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover.jpg&amp;w=6"
+    },
+    {
+      "performance": 89,
+      "fcp": "1.1 s",
+      "lcp": "3.4 s",
+      "tbt": "200 ms",
+      "cls": "0",
+      "speedIndex": "1.1 s",
+      "weight": "Total size was 428 KiB",
+      "lcpElement": "<img src=\"http://localhost:3180/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover…\" srcset=\"/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover.jpg&amp;w=6"
+    },
+    {
+      "performance": 91,
+      "fcp": "1.1 s",
+      "lcp": "2.7 s",
+      "tbt": "270 ms",
+      "cls": "0",
+      "speedIndex": "1.1 s",
+      "weight": "Total size was 428 KiB",
+      "lcpElement": "<img src=\"http://localhost:3180/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover…\" srcset=\"/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover.jpg&amp;w=6"
+    },
+    {
+      "performance": 91,
+      "fcp": "1.1 s",
+      "lcp": "2.7 s",
+      "tbt": "250 ms",
+      "cls": "0",
+      "speedIndex": "1.1 s",
+      "weight": "Total size was 428 KiB",
+      "lcpElement": "<img src=\"http://localhost:3180/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover…\" srcset=\"/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover.jpg&amp;w=6"
+    },
+    {
+      "performance": 92,
+      "fcp": "1.1 s",
+      "lcp": "2.7 s",
+      "tbt": "230 ms",
+      "cls": "0",
+      "speedIndex": "1.1 s",
+      "weight": "Total size was 428 KiB",
+      "lcpElement": "<img src=\"http://localhost:3180/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover…\" srcset=\"/_next/image?url=%2Fdemo%2Fmarigold-bakehouse%2Fcover.jpg&amp;w=6"
+    }
+  ],
+  "median": 91,
+  "before": {
+    "note": "same page before the image work (1.9 MB): 75 on an idle VM (5 runs 75-86), LCP 5.2 s"
+  }
+}

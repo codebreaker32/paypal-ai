@@ -74,6 +74,7 @@ function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; 
         category={itemCategory(item, kind)}
         tone={tone}
         dim={unavailable}
+        sizes="(min-width: 1024px) 136px, (min-width: 640px) 128px, 112px"
         className="size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-l-none sm:rounded-r-(--card-radius) lg:size-34"
       />
     </Pressable>

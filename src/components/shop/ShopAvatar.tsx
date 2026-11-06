@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- site-relative logos, covers and menu photos of unknown size */
 import { ItemIllustration } from '@/components/illustrations/ItemIllustration';
 import { cx } from '@/components/ui/cx';
+import { responsiveImage } from '@/lib/images/responsive';
 import { shopAvatar, type AvatarShop } from '@/lib/domain/avatar';
 import type { ItemCategory } from '@/lib/domain/category';
 
@@ -21,6 +22,9 @@ const SIZE = {
   xl: 'size-20 sm:size-24 rounded-(--photo-radius)',
 } as const;
 
+/** The widest each size is drawn (CSS px), for the srcset of a photo avatar. */
+const DRAWN_PX = { sm: 40, md: 56, lg: 80, xl: 96 } as const;
+
 /**
  * The shop's picture in a rounded square: its logo, else its cover or menu photo cropped square, else a Shelfie drawing
  * of what it sells most. Never letters (`shopAvatar`). Decorative: the shop's name always sits beside it.
@@ -35,9 +39,18 @@ export function ShopAvatar({ shop, items, size = 'md', className }: ShopAvatarPr
     // The badge sits over the cover itself, so it shows a detail of it (the centre, about 1.8x), not a smaller copy.
     return (
       <span aria-hidden="true" data-avatar="cover" className={cx(box, 'bg-surface-sunken overflow-hidden')}>
-        <img src={source.src} alt="" className="block size-full scale-[1.8] object-cover object-center" />
+        <img src={source.src} {...responsiveImage(source.src, `${Math.round(DRAWN_PX[size] * 1.8)}px`)} alt="" className="block size-full scale-[1.8] object-cover object-center" />
       </span>
     );
   }
-  return <img src={source.src} alt="" aria-hidden="true" data-avatar={source.kind} className={cx(box, 'bg-surface-sunken object-cover')} />;
+  return (
+    <img
+      src={source.src}
+      {...responsiveImage(source.src, `${DRAWN_PX[size]}px`)}
+      alt=""
+      aria-hidden="true"
+      data-avatar={source.kind}
+      className={cx(box, 'bg-surface-sunken object-cover')}
+    />
+  );
 }

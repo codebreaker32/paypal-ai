@@ -2,6 +2,7 @@
 import { ItemIllustration, tileTone } from '@/components/illustrations/ItemIllustration';
 import { cx } from '@/components/ui/cx';
 import type { ItemCategory } from '@/lib/domain/category';
+import { responsiveImage } from '@/lib/images/responsive';
 
 export { tileTone };
 
@@ -18,6 +19,8 @@ export interface ItemPhotoProps {
   eager?: boolean;
   /** Decorative copies (the start page mock-up, list thumbnails next to the name) pass an empty alt. */
   decorative?: boolean;
+  /** How wide the photo is drawn (an `<img sizes>` value): adds a srcset of resized copies, so a small tile loads a small file. */
+  sizes?: string;
 }
 
 /**
@@ -25,11 +28,12 @@ export interface ItemPhotoProps {
  * drawing of what the item is (a loaf, a croissant, a taco …) on its section's tint, so a menu with no photos still
  * reads as a deliberate, colour-coded grid of pictures rather than grey boxes or letters.
  */
-export function ItemPhoto({ name, photoUrl, category, tone = 0, dim, className, decorative, eager }: ItemPhotoProps) {
+export function ItemPhoto({ name, photoUrl, category, tone = 0, dim, className, decorative, eager, sizes }: ItemPhotoProps) {
   if (photoUrl) {
     return (
       <img
         src={photoUrl}
+        {...(sizes ? responsiveImage(photoUrl, sizes) : {})}
         alt={decorative ? '' : name}
         loading={eager ? 'eager' : 'lazy'}
         decoding="async"

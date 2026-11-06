@@ -16,6 +16,7 @@ import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { LISTED_STATUSES } from '@/lib/domain/listed';
 import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
+import { responsiveImage } from '@/lib/images/responsive';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 
 /** Published shops only: drafts and unknown slugs are 404. */
@@ -62,6 +63,10 @@ function HowToGetIt({ shop }: { shop: Shop }) {
   );
 }
 
+/** The cover spans the page (at most the 76rem container); a strip photo is a quarter of it. */
+const COVER_SIZES = '(min-width: 1216px) 1216px, 100vw';
+const STRIP_SIZES = '(min-width: 1216px) 304px, 25vw';
+
 /** The cover: the shop's own photo, else a strip of its item photos (like a store-front window), else nothing. */
 function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
   const strip = items.filter((i) => i.photoUrl).slice(0, 4);
@@ -70,11 +75,11 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
     <div className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
       <div className="relative h-44 overflow-hidden bg-surface-sunken sm:h-64 sm:rounded-(--cover-radius) lg:h-80">
         {shop.coverUrl ? (
-          <img src={shop.coverUrl} alt="" fetchPriority="high" className="size-full object-cover" />
+          <img src={shop.coverUrl} {...responsiveImage(shop.coverUrl, COVER_SIZES)} alt="" fetchPriority="high" className="size-full object-cover" />
         ) : (
           <div className="grid size-full grid-flow-col auto-cols-fr gap-1">
             {strip.map((i) => (
-              <img key={i.id} src={i.photoUrl!} alt="" fetchPriority="high" className="size-full object-cover" />
+              <img key={i.id} src={i.photoUrl!} {...responsiveImage(i.photoUrl!, STRIP_SIZES)} alt="" fetchPriority="high" className="size-full object-cover" />
             ))}
           </div>
         )}
