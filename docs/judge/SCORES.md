@@ -4,3 +4,5 @@
 |---|---|---|---|---|
 | 0 (spec) | 19 | 21 | n/a (no UI) | Approach 1 (seller-first) beat approach 2 (18 / 19); spec rewritten with the judge's 3 fixes and take-from-loser list |
 | 1 | 21 | 21 | 1 (plain copy: raw AI notes on the review card) | First UI round on main: full core flow verified on the real sandbox (capture gate), 50 screens with 0 axe violations. Verdict: fix |
+| directions | A2: A 4 / B 4 | n/a | A 0 / B 0 | Visual-direction round (`directions.md`): A "Menu board" beat B "Counter ledger" on "this is my shop" and video moments; take-from-B list folded into A |
+| 2 | 22 | 21 | 0 | Direction A merged and polished; plain review copy (re-recorded samples); 8 more async states screenshotted; Claude Code CLI ordered through the agent door; Render blueprint; 3 sourced seller voices. A2 4 → 5. Verdict: **ship** |
