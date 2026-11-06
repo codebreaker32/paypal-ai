@@ -145,6 +145,8 @@
   --container-page: 76rem;
   --container-measure: 36rem;
   --container-narrow: 64rem;
+  /* The counter card: 5 × 7 in, the size of a standard frame or acrylic sign holder. */
+  --container-card: 5in;
 
   /* Radius */
   --radius-*: initial;
@@ -480,5 +482,17 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ───────────── Print ───────────── */
+/*
+ * A page that marks one element `data-print-alone` (the counter card, /shops/[id]/card) prints that element only: the
+ * site header and footer, the skip link and the toast region drop out, and the page hides its own toolbar with
+ * `print:hidden`.
+ */
+@media print {
+  body:has([data-print-alone]) > :not(:has([data-print-alone])) {
+    display: none !important;
   }
 }
