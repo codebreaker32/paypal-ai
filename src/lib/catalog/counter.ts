@@ -7,7 +7,7 @@ import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import { matchCounterPhoto, type CounterConfidence, type CounterItem, type CounterMatch, type CounterPhoto } from '@/lib/ai/counter';
 import { cropRect } from '@/lib/photos/crop';
-import { normalizePhoto, type PhotoEncoding } from '@/lib/uploads';
+import { decodePhotoPixels } from '@/lib/uploads';
 
 export interface CounterProposal {
   itemId: string;
@@ -17,8 +17,8 @@ export interface CounterProposal {
   image: string;
 }
 
-/** The photo upright and fitted to 2000 px: the crops are cut from it. */
-const COUNTER_PHOTO: PhotoEncoding = { maxEdge: 2000, format: 'jpeg', quality: 85 };
+/** The photo upright and fitted to 2000 px, decoded once to pixels: Claude's copy and every crop are cut from it. */
+const COUNTER_EDGE = 2000;
 const CROP_WIDTH = 1200;
 /**
  * Claude scales an image down before looking at it when its long edge is over 1568 px or it is over ~1.15 MP, and its
@@ -46,15 +46,16 @@ export async function proposeCounterPhotos(
   input: Buffer,
   deps: { match?: Match; signal?: AbortSignal } = {},
 ): Promise<CounterProposal[]> {
-  const jpeg = await normalizePhoto(input, COUNTER_PHOTO);
+  const full = await decodePhotoPixels(input, COUNTER_EDGE);
+  const { width, height } = full;
+  const pixels = () => sharp(full.data, { raw: { width, height, channels: full.channels } });
   const items = itemsRepo.listWithVariants(db, shopId).filter((i) => i.status !== 'removed');
   if (!items.length) return [];
-  const { width, height } = await sharp(jpeg).metadata();
-  const size = claudeSize(width!, height!);
-  const small = await sharp(jpeg).resize(size.width, size.height, { fit: 'fill' }).jpeg({ quality: 85 }).toBuffer();
+  const size = claudeSize(width, height);
+  const small = await pixels().resize(size.width, size.height, { fit: 'fill' }).jpeg({ quality: 85 }).toBuffer();
   const photo: CounterPhoto = { data: small, mediaType: 'image/jpeg', ...size };
-  const sx = width! / size.width;
-  const sy = height! / size.height;
+  const sx = width / size.width;
+  const sy = height / size.height;
   const list: CounterItem[] = items.map((i) => ({ id: i.id, name: i.name, section: i.section, description: i.description }));
   const match = deps.match ?? ((p, l) => matchCounterPhoto(p, l, { signal: deps.signal }));
 
@@ -64,8 +65,8 @@ export async function proposeCounterPhotos(
     const item = byId.get(m.itemId);
     if (!item) continue;
     const box = { x0: m.box.x0 * sx, y0: m.box.y0 * sy, x1: m.box.x1 * sx, y1: m.box.y1 * sy };
-    const rect = cropRect(box, width!, height!);
-    const webp = await sharp(jpeg)
+    const rect = cropRect(box, width, height);
+    const webp = await pixels()
       .extract(rect)
       .resize({ width: Math.min(CROP_WIDTH, rect.width), height: Math.round(Math.min(CROP_WIDTH, rect.width) * 0.75), fit: 'cover' })
       .webp({ quality: 80 })
