@@ -255,6 +255,11 @@ describe('seller-facing issue text', () => {
     expect(detail({ deal_text: 'FREE w/ tune-up, else $10', prices: [price(1000, 'FREE w/ tune-up, else $10', 'else')] }))
       .toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
   });
+  it('a condition printed beside a plain price still asks (the reading put it in deal_text only)', () => {
+    const item = catalog(raw({ deal_text: 'FREE w/ tune-up, else $10', prices: [price(1000, '$10')] })).items[0];
+    expect(item.issues).toEqual(['CHECK']);
+    expect(item.issueDetail).toBe('Printed as “FREE w/ tune-up, else $10”. We set $10.00. Is that right?');
+  });
   it('sizes keep their labels', () => {
     expect(detail({ prices: [price(300, '3ish', 'S'), price(400, '$4', 'L')] }))
       .toBe('Printed as “3ish”. We set S $3.00 and L $4.00. Is that right?');

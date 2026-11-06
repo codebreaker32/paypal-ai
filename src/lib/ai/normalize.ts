@@ -88,6 +88,9 @@ function buildVariants(it: ExtractedItem): { variants: DraftVariant[]; flags: Pr
     }
     return { label, priceCents: cents };
   });
+  // A condition printed beside a plain price ("FREE w/ tune-up, else $10" read as $10) is still worth asking about.
+  const condition = it.price_kind !== 'deal' && it.deal_text ? clean(it.deal_text) : '';
+  if (condition !== '' && parseAmountToCents(condition) === null && variants.some((v) => v.priceCents != null)) flags.printedAs ??= condition;
   return { variants, flags };
 }
 
