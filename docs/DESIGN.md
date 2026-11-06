@@ -35,7 +35,7 @@ The tokens come in three layers, and components only use the second and third:
 | `ink-soft` | ink-700 | `#3d4148` | Body copy on a white page |
 | `ink-muted` | ink-600 | `#5e636c` | Meta text |
 | `ink-faint` | ink-400 | `#a3a7ae` | Decoration only (2.41:1, never text) |
-| `accent`, `accent-ink` | pom-600 | `#c21a4b` | Logo, active tab and filter, counts, price emphasis. Never an error, a failed state or "Sold out" |
+| `accent`, `accent-ink` | pom-600 | `#c21a4b` | Logo, active tab and filter, counts, price emphasis, and one deliberate echo of the logo: the scan line that sweeps the menu photo while it is read (`setup/ReadingStep.tsx`, the viewfinder at work; white would vanish on white paper and ink on a dark board). Never an error, a failed state or "Sold out" |
 | `accent-hover` / `accent-active` | pom-700 / pom-800 | `#a3153f` / `#861235` | |
 | `accent-soft`, `selection` | pom-50 / pom-100 | `#fdeaf0` / `#f9d3df` | Text selection |
 | `ok` / `ok-soft` | green-700 / green-50 | `#1e7a45` / `#e4f3ea` | Paid, live |
@@ -78,7 +78,7 @@ A dimmed fallback tile (sold out, a cancelled or expired order) switches to surf
 
 **Error against the brand.** Pomegranate is a blue-leaning crimson (OKLCH hue 12°); the error vermilion leans orange (hue 37°, the old `#b42318` was 30°), so an error never reads as the brand. It stays redder and more saturated than `warn` (amber, hue 53°, chroma 0.13 against 0.17), and status always pairs the colour with a word.
 
-**shadcn names.** `components.json` points shadcn at these tokens. Its semantic names are mapped in `@theme`: `background`, `card`, `popover` = white; `foreground`, `*-foreground` = ink (white on `primary` and `destructive`); `primary` = ink (the black pill); `secondary`, `muted` = grey-50; `muted-foreground` = ink-600; `destructive` = error; `border` = line; `input` = control; `ring` = focus. `accent` keeps Shelfie's meaning (pomegranate): a shadcn component that uses `bg-accent` as a hover fill must be changed to `bg-muted` when it is added. No shadcn palette or oklch variables are imported, and the palette stays closed.
+**shadcn names.** `components.json` points shadcn at these tokens. Its semantic names are mapped in `@theme` onto our roles, never onto primitives, so repointing a role carries its aliases: `background` = surface, `card`, `popover` = surface-raised; `foreground`, `*-foreground` = ink (surface on `primary` and `destructive`, on-accent on `accent`); `primary` = ink (the black pill); `secondary`, `muted` = surface-sunken; `muted-foreground` = ink-muted; `destructive` = error; `border` = line; `input` = control; `ring` = focus. `danger` is likewise `var(--color-error)`. `accent` keeps Shelfie's meaning (pomegranate): a shadcn component that uses `bg-accent` as a hover fill must be changed to `bg-muted` when it is added. No shadcn palette or oklch variables are imported, and the palette stays closed.
 
 ### Type
 
@@ -129,14 +129,14 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 
 ## Motion (`src/components/motion`)
 
-`MotionProvider` (root layout) is `LazyMotion features={domAnimation} strict` plus `MotionConfig reducedMotion="user"`. Inside it, use `m.div` from `motion/react`, never `motion.div` (strict mode throws). Server HTML is never hidden: content visible at hydration stays put; only content below the fold, or mounted later on the client, plays an entrance.
+`MotionProvider` (root layout) is `LazyMotion` (`domAnimation`, loaded by a dynamic import after first paint, retried once; if both tries fail, `<html data-motion-off>` makes everything the primitives were hiding visible) in `strict` mode, plus `MotionConfig reducedMotion="user"`. Inside it, use `m.div` from `motion/react`, never `motion.div` (strict mode throws). Server HTML is never hidden: content visible at hydration stays put; only content below the fold, or mounted later on the client, plays an entrance.
 
 | Component | Props | Does |
 |---|---|---|
 | `Reveal` | `as?`, `delay?` (s), `y?` (16 px), `once?` (true), `className`, `children` | Fades and rises in when scrolled into view (360 ms). One block per screen, not every section. |
 | `Stagger`, `StaggerItem` | `as?`, `gap?` (0.04 s), `className`; item: `as?`, `y?` (8 px) | A list whose items rise in one after another (220 ms each, the whole list within 400 ms). An item added after the list has shown (a new order) rises in on its own. |
 | `Pressable` | `as?` (any element or component), `lift?` (true), `className`, `...rest` | CSS only, server-safe: −2 px hover lift with `shadow-md` fading in on a pseudo-element, and a 0.98 press. Don't put `overflow-hidden` on it (that clips the shadow); clip the photo inside. |
-| `CountUp` | `cents`, `format?` (formatUSD; client callers only), `className` | Counts from the previous value to the new one (360 ms). The final text is always the accessible text (`aria-live="off"`; the running count is an aria-hidden overlay). |
+| `CountUp` | `cents`, `format?` (formatUSD; client callers only), `className` | Counts from the previous value to the new one (360 ms), set up before paint so the new total never flashes first. The final text is always the accessible text (the running count is an aria-hidden overlay). It is `aria-live="off"`, so it never announces: a total inside a live region (a cart, a status line) needs its own announcement of the final value. The overlay and the final text share one inline grid cell, so a change in digit count ($9.99 to $10.00) resizes it; keep it where a few pixels of width can move (end of a line, right-aligned column). |
 | `StatusSwap` | `value`, `className`, `children` | `AnimatePresence mode="popLayout"` crossfade with a 4 px rise when `value` changes; the leaving copy is aria-hidden. |
 
 
