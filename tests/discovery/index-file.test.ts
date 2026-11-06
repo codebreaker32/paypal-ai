@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import { INDEX_LIMIT, discoveryIndex } from '@/lib/discovery/index-file';
+import { canBePaid } from '@/lib/domain/payee';
 import { seedShop } from '../helpers/shop';
 
 const APP = 'https://shelfie.example';
@@ -47,6 +48,19 @@ describe('listOrderableForIndex', () => {
     seedShop(db, { name: 'No Email Co', payeeEmail: null });
     seedShop(db, { name: 'Marigold Bakehouse' }); // the demo shop: no email, paid to the platform
     expect(shops.listOrderableForIndex(db, INDEX_LIMIT).map((s) => s.name).sort()).toEqual(['Has Email', 'Marigold Bakehouse']);
+  });
+
+  // The SQL can't call canBePaid, so it repeats the rule: it must list a live shop exactly when the helper says so.
+  it.each([
+    ['the demo shop', 'with', 'Marigold Bakehouse', 'seller@example.com', true],
+    ['the demo shop', 'without', 'Marigold Bakehouse', null, true],
+    ['another shop', 'with', 'Rosa Bakes', 'seller@example.com', true],
+    ['another shop', 'without', 'Rosa Bakes', null, false],
+  ] as const)('agrees with canBePaid for %s %s a PayPal email', (_who, _with, name, payeeEmail, listed) => {
+    const db = createTestDb();
+    const { shop } = seedShop(db, { name, payeeEmail });
+    expect(canBePaid(shop)).toBe(listed);
+    expect(shops.listOrderableForIndex(db, INDEX_LIMIT).some((s) => s.slug === shop.slug)).toBe(listed);
   });
 
   it(`stops at the newest ${200}`, () => {

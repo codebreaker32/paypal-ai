@@ -3,6 +3,7 @@ import type Database from 'better-sqlite3';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
+import { PAYEE_KEEP_MESSAGE } from '@/lib/domain/payee';
 import type { DraftItem } from '@/lib/domain/types';
 import { EditError, addItem, applyItemUpdates, applyShopPatch, parseItemUpdates, parseNewItem, parseShopPatch } from '@/lib/catalog/edits';
 
@@ -95,6 +96,24 @@ describe('edits', () => {
       expect(demo.slug).toBe('marigold-bakehouse');
       shops.publish(db, demo.id);
       expect(applyShopPatch(db, shops.byId(db, demo.id)!, parseShopPatch({ payeeEmail: null })).payeeEmail).toBeNull();
+    });
+
+    it('refuses to clear the email of a live or a paused shop with words true for both, and for clearing', () => {
+      shops.update(db, shopId, { payeeEmail: 'rosa@example.com' });
+      shops.publish(db, shopId);
+      for (const status of ['live', 'paused'] as const) {
+        const shop = shops.update(db, shopId, { status });
+        let err: unknown = null;
+        try {
+          applyShopPatch(db, shop, parseShopPatch({ payeeEmail: null }));
+        } catch (e) {
+          err = e;
+        }
+        expect(err, status).toBeInstanceOf(EditError);
+        expect((err as EditError).message, status).toBe(PAYEE_KEEP_MESSAGE);
+        expect(PAYEE_KEEP_MESSAGE).toBe('Your shop needs a PayPal email to take orders. To change it, enter the new one.');
+        expect(shops.byId(db, shopId)!.payeeEmail).toBe('rosa@example.com');
+      }
     });
 
     it('only toggles live and paused on a published shop', () => {

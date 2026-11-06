@@ -23,6 +23,7 @@ const base: ReceiptOrder = {
   captureRefused: false,
   cancelledByShop: false,
   paidTo: null,
+  goingTo: null,
   lines: [{ name: 'Almond croissant', label: null, qty: 2, unitCents: 500 }],
 };
 const order = (patch: Partial<ReceiptOrder>): ReceiptOrder => ({ ...base, ...patch });
@@ -137,5 +138,19 @@ describe('Receipt slip', () => {
     expect(legacy).toContain('Paid to Shelfie’s PayPal account for Rosa Bakes');
     expect(legacy).not.toContain('demo');
     expect(render(null)).not.toContain('Paid to');
+  });
+
+  it('while PayPal still holds the payment, says where it is going and that PayPal is confirming it, never "Paid to"', () => {
+    const html = renderToStaticMarkup(
+      createElement(Receipt, {
+        orderRef: 'ord_1',
+        initial: order({ status: 'payment_pending', approvalUrl: null, goingTo: { kind: 'seller', shopName: 'Marigold Bakehouse', maskedEmail: 'r•••@example.com' } }),
+        pickupNotes: PICKUP,
+        fromAssistant: false,
+        tracking: null,
+      }),
+    );
+    expect(html).toContain('Going to Marigold Bakehouse’s own PayPal account (r•••@example.com). PayPal is still confirming it.');
+    expect(html).not.toContain('Paid to');
   });
 });

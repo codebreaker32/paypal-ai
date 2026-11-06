@@ -20,6 +20,7 @@ const OUT = path.resolve(__dirname, '..', 'data', 'discovery');
 
 let live: FixtureShop;
 let paused: FixtureShop;
+let noPayee: FixtureShop;
 let draft: { shop: Shop; ownerToken: string };
 
 const shopUrl = (s: Shop) => `${BASE}/s/${s.slug}`;
@@ -35,6 +36,7 @@ test.beforeAll(() => {
   live = createFixtureShop('Findable Door Bakery');
   paused = createFixtureShop('Findable Paused Pies');
   shopsRepo.update(db, paused.shop.id, { status: 'paused' });
+  noPayee = createFixtureShop('Findable Unpaid Bagels', { payeeEmail: null }); // live, but can't be paid: refuses every order
   draft = shopsRepo.create(db, { name: 'Findable Draft Deli' });
   fs.mkdirSync(OUT, { recursive: true });
 });
@@ -70,6 +72,15 @@ test.describe('shop page, for agents that read it', () => {
     expect(ld.hasMenu.hasMenuSection.length).toBeGreaterThan(0);
     expect(ld).not.toHaveProperty('potentialAction');
   });
+
+  test('a shop that isn’t taking orders (paused, or no PayPal email) has no agent door <link> either', async ({ request }) => {
+    for (const shop of [paused.shop, noPayee.shop]) {
+      const html = await (await request.get(`/s/${shop.slug}`)).text();
+      const head = html.slice(0, html.indexOf('</head>'));
+      expect(head, shop.name).not.toMatch(/<link[^>]*rel="alternate"/);
+      expect(html, shop.name).toContain('application/ld+json');
+    }
+  });
 });
 
 test.describe('discovery files', () => {
@@ -83,6 +94,7 @@ test.describe('discovery files', () => {
       expect(text).toContain(doorUrl(live.shop));
       expect(text).toContain(`${BASE}/s/<slug>/mcp`);
       expect(text).not.toContain('Findable Paused Pies');
+      expect(text).not.toContain('Findable Unpaid Bagels');
       expect(text).not.toContain('Findable Draft Deli');
     });
   }
@@ -111,11 +123,14 @@ test.describe('counter card', () => {
     await expect(page.getByRole('link', { name: 'Back to Share' })).toHaveAttribute('href', `/shops/${live.shop.id}?tab=share`);
   });
 
-  test('a draft shop’s card says to publish first', async ({ page, context }) => {
+  test('a draft shop has no card yet (its address changes at first publish): no QR, no links, no Print', async ({ page, context }) => {
     await signIn(context, draft.shop.id, draft.ownerToken);
     await page.goto(`/shops/${draft.shop.id}/card`);
-    await expect(page.getByText('Your shop isn’t published yet.')).toBeVisible();
+    await expect(page.getByText('Your counter card is ready once your shop is live.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
+    await expect(page.getByTestId('card-qr')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Print card' })).toHaveCount(0);
+    expect(await page.content()).not.toContain(draft.shop.slug);
   });
 
   test('prints the card alone, on one page', async ({ page, context }) => {

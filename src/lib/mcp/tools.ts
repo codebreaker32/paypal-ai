@@ -7,11 +7,11 @@ import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { toPayPalValue } from '@/lib/domain/money';
-import { maskEmail } from '@/lib/domain/payee';
+import { canBePaid, maskEmail } from '@/lib/domain/payee';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 import { OrderError } from '@/lib/orders/errors';
-import { ORDER_LIMITS, hasPayee, isListed, optionViews, shopModes, takesOrders, unavailableReason } from '@/lib/orders/pricing';
+import { ORDER_LIMITS, isListed, optionViews, shopModes, takesOrders, unavailableReason } from '@/lib/orders/pricing';
 import { createOrderForShop, lastCaptureFailure, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
 import { isOpen } from '@/lib/orders/state';
 import { allow } from '@/lib/rate-limit';
@@ -351,7 +351,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
 /** Where the money goes, for the agent to tell the user if asked. The seller's email is masked, never sent in full. */
 function paymentsNote(shop: Shop): string {
   if (shop.payeeEmail !== null) return `Paid straight to the shop's own PayPal account (${maskEmail(shop.payeeEmail)}).`;
-  if (hasPayee(shop)) return "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.";
+  if (canBePaid(shop)) return "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.";
   return "This shop hasn't set up where to be paid yet, so it can't take online orders.";
 }
 

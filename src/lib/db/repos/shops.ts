@@ -114,6 +114,8 @@ export function publish(db: Db, id: string): Shop {
 /**
  * The shops /agents.txt and /llms.txt list: live and able to take orders (a PayPal email, or the demo shop, which is
  * paid to the platform). Newest first, at most `limit`. Not paused, not draft.
+ * The payee condition is `canBePaid` (src/lib/domain/payee.ts) written in SQL, which can't call it: change both together
+ * (tests/discovery/index-file.test.ts checks they agree).
  */
 export function listOrderableForIndex(db: Db, limit: number): { name: string; slug: string; about: string }[] {
   return db

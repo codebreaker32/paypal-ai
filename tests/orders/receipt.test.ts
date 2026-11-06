@@ -1,10 +1,11 @@
 // The receipt's "Paid to" line (spec §4 Receipt, §8a): the seller's own PayPal account, masked, or Shelfie's demo account.
+// While PayPal still holds the payment it says where the money is going instead, never "Paid to".
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import * as ordersRepo from '@/lib/db/repos/orders';
-import { paidToText, receiptView } from '@/lib/orders/receipt';
+import { goingToText, paidToText, receiptView } from '@/lib/orders/receipt';
 import { createOrderForShop, syncOrder, type OrderDeps } from '@/lib/orders/service';
 import { seedShop, type SeededShop } from '../helpers/shop';
 
@@ -28,19 +29,29 @@ describe('receiptView paidTo', () => {
     await syncOrder(deps, o.id, 'return_url');
     const view = receiptView(db, o.id)!;
     expect(view.paidTo).toEqual({ kind: 'seller', shopName: 'Rosa Bakes', maskedEmail: 'r•••@example.com' });
+    expect(view.goingTo).toBeNull();
     expect(JSON.stringify(view)).not.toContain('rosa@example.com');
     // A later change to the shop's email doesn't rewrite where this order was paid.
     shops.update(db, s.shop.id, { payeeEmail: 'other@example.com' });
     expect(receiptView(db, o.id)!.paidTo).toEqual({ kind: 'seller', shopName: 'Rosa Bakes', maskedEmail: 'r•••@example.com' });
   });
 
-  it('a payment PayPal holds (pending) already says where it goes', async () => {
+  it('a payment PayPal holds (pending) says where it is going, and not that it was paid', async () => {
     const s = seedShop(db, { name: 'Rosa Bakes', payeeEmail: 'rosa@exmaple.com' });
     const o = await place(s);
     fake.nextCapture = 'PENDING_UNILATERAL';
     fake.approve(o.paypalOrderId);
     await syncOrder(deps, o.id, 'return_url');
-    expect(receiptView(db, o.id)).toMatchObject({ status: 'payment_pending', paidTo: { kind: 'seller', maskedEmail: 'r•••@exmaple.com' } });
+    const view = receiptView(db, o.id)!;
+    expect(view).toMatchObject({ status: 'payment_pending', paidTo: null });
+    expect(view.goingTo).toEqual({ kind: 'seller', shopName: 'Rosa Bakes', maskedEmail: 'r•••@exmaple.com' });
+    expect(goingToText(view.goingTo!)).toBe('Going to Rosa Bakes’s own PayPal account (r•••@exmaple.com). PayPal is still confirming it.');
+  });
+
+  it("a held payment for the demo shop is going to Shelfie's demo account", () => {
+    expect(goingToText({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true })).toBe(
+      'Going to Shelfie’s demo PayPal account for Marigold Bakehouse. PayPal is still confirming it.',
+    );
   });
 
   it("the demo shop's order is paid to Shelfie's demo account", async () => {
@@ -79,6 +90,6 @@ describe('receiptView paidTo', () => {
     fake.orders.get(o.paypalOrderId)!.purchase_units[0].amount!.value = '0.01';
     fake.approve(o.paypalOrderId);
     await syncOrder(deps, o.id, 'return_url');
-    expect(receiptView(db, o.id)).toMatchObject({ status: 'failed', paidTo: null });
+    expect(receiptView(db, o.id)).toMatchObject({ status: 'failed', paidTo: null, goingTo: null });
   });
 });

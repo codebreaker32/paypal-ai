@@ -30,8 +30,10 @@ export interface ReceiptOrder {
    * charged; automatic retries have stopped (only the buyer coming back from PayPal, or a webhook, tries again).
    */
   captureRefused: boolean;
-  /** Who the payment went to, once paid or held by PayPal (spec §8a). The email is only ever masked here. */
+  /** Who the payment went to, once paid (spec §8a). The email is only ever masked here. */
   paidTo: PaidTo | null;
+  /** While PayPal still holds the payment (payment_pending): whose account it is going to. Not paid yet, so not paidTo. */
+  goingTo: PaidTo | null;
   lines: ReceiptLine[];
 }
 
@@ -43,13 +45,23 @@ export type PaidTo =
   | { kind: 'seller'; shopName: string; maskedEmail: string }
   | { kind: 'platform'; shopName: string; demo: boolean };
 
+/** "Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Shelfie’s demo PayPal account for Marigold Bakehouse". */
+function accountText(p: PaidTo): string {
+  if (p.kind === 'seller') return `${p.shopName}’s own PayPal account (${p.maskedEmail})`;
+  return `Shelfie’s ${p.demo ? 'demo ' : ''}PayPal account for ${p.shopName}`;
+}
+
 /**
  * "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s demo PayPal account for …"
  * (the demo shop) / "Paid to Shelfie’s PayPal account for …" (another shop's order from before it had an email).
  */
 export function paidToText(p: PaidTo): string {
-  if (p.kind === 'seller') return `Paid to ${p.shopName}’s own PayPal account (${p.maskedEmail})`;
-  return `Paid to Shelfie’s ${p.demo ? 'demo ' : ''}PayPal account for ${p.shopName}`;
+  return `Paid to ${accountText(p)}`;
+}
+
+/** A payment PayPal still holds: "Going to Marigold Bakehouse’s own PayPal account (r•••@…). PayPal is still confirming it." */
+export function goingToText(p: PaidTo): string {
+  return `Going to ${accountText(p)}. PayPal is still confirming it.`;
 }
 
 /** Statuses the receipt keeps polling for. */

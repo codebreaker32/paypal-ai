@@ -13,6 +13,7 @@ import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { formatUSD } from '@/lib/domain/money';
+import { takesOrders } from '@/lib/orders/pricing';
 import type { Shop } from '@/lib/domain/types';
 
 /** Published shops only: drafts and unknown slugs are 404. */
@@ -101,11 +102,12 @@ function Intro({ shop, photoCount }: { shop: Shop; photoCount: number }) {
           </a>
         )}
       </div>
-      {shop.status === 'paused' && (
+      {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
+      {!takesOrders(shop) && (
         <p role="status" className="flex items-start gap-2.5 rounded-md bg-warn-soft px-4 py-3 font-semibold text-warn">
           <Icon icon={PauseCircle} className="mt-0.5" />
           <span>
-            Not taking orders right now.{' '}
+            {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
             <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
           </span>
         </p>
@@ -126,8 +128,9 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
   return (
     <>
       {/* For agents that read the page itself (spec §10a): React hoists the link into <head>; the JSON-LD is the menu
-          as schema.org offers, with the agent door as an OrderAction while the shop is live. */}
-      <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />
+          as schema.org offers. Both name the agent door only while the shop takes orders (live, and it can be paid),
+          like /agents.txt and /llms.txt. */}
+      {takesOrders(shop) && <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(shopJsonLd(shop, items, { shopUrl, doorUrl })) }}
