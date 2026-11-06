@@ -6,7 +6,7 @@ Shelfie's demo video (under 3:00, 1920x1080, 30 fps, H.264 + AAC) is built from 
 |---|---|---|
 | The script: scenes, narration, which clip each scene plays, on-screen facts | [`project/demo.json`](project/demo.json) (demoday's manifest schema) | by hand; the transcript with measured lengths is [`project/SCRIPT.md`](project/SCRIPT.md) (generated) |
 | The voice-over: one MP3 and one word-timings file per scene | `project/audio/<scene>.mp3`, `<scene>.words.json` (committed, about 2 MB) | Kokoro-82M on the CPU, [`voice/kokoro_tts.py`](voice/kokoro_tts.py) |
-| The screen clips, one per shot of [`docs/DEMO.md`](../docs/DEMO.md) | `project/clips/*.mp4` (gitignored) | `npm run clips` at the repo root ([`clips/README.md`](clips/README.md)) |
+| The screen clips, one per shot of [`docs/DEMO.md`](../docs/DEMO.md) | `project/clips/*.mp4` (gitignored) | `npm run clips` at the repo root ([`clips/README.md`](clips/README.md)) records into `video/clips/`; the render hard-links each clip it needs from there into `project/clips/` when it is not there yet (an edited clip already in `project/clips/` is kept) |
 
 [`remotion/`](remotion/) composes them: demoday's Remotion template, restyled in the Shelfie brand ([`docs/DESIGN.md`](../docs/DESIGN.md): white page, ink `#111214`, one pomegranate accent `#c21a4b`, Figtree embedded in the bundle, no gradients, glow or glass), with captions burned in from the word timings.
 

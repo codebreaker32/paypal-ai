@@ -18,7 +18,7 @@
  * - --only a,b: just those scenes (a short test render).
  */
 import path from "node:path";
-import { existsSync } from "node:fs";
+import { copyFileSync, existsSync, linkSync, mkdirSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
@@ -46,6 +46,26 @@ export function probeSec(file) {
   } catch {
     return null;
   }
+}
+
+/**
+ * `npm run clips` (repo root) records into video/clips/. A scene's clip lives at
+ * video/project/clips/ (Remotion's public dir); when it is missing there but
+ * recorded, hard-link it in (copy across filesystems). An existing project clip
+ * (an edited or re-timed one) is never replaced.
+ */
+export function linkRecordedClip(projectDir, rel) {
+  if (!rel || !rel.startsWith("clips/")) return;
+  const dest = path.join(projectDir, rel);
+  const src = path.resolve(projectDir, "..", rel);
+  if (existsSync(dest) || !existsSync(src)) return;
+  mkdirSync(path.dirname(dest), { recursive: true });
+  try {
+    linkSync(src, dest);
+  } catch {
+    copyFileSync(src, dest);
+  }
+  console.log(`  linked ${path.relative(process.cwd(), src)} -> ${path.relative(process.cwd(), dest)}`);
 }
 
 const norm = (t) => String(t).toLowerCase().replace(/[^\p{L}\p{N}']/gu, "");
@@ -78,6 +98,7 @@ export async function buildProps({ manifestPath = DEFAULT_MANIFEST, placeholders
     const out = { ...scene };
     if (scene.kind === "demo") {
       const abs = scene.video ? path.join(projectDir, scene.video) : null;
+      linkRecordedClip(projectDir, scene.video);
       if (!abs || !existsSync(abs)) {
         if (placeholders) out.placeholder = true;
         else problems.push(`scene "${scene.id}": clip not found at ${scene.video} (record it, or render with --placeholders)`);
