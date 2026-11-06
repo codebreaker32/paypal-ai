@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-06 08:28 IST (session 5 running)_
+_Last updated: 2026-11-06 08:52 IST (end of session 5)_
 
 ## Current phase
 **Session 5 (from 07:14 IST; capped at 120 min, so it ends by ~09:14 IST).** Running:
@@ -41,10 +41,16 @@ _Last updated: 2026-11-06 08:28 IST (session 5 running)_
 - **done:** `docs/SUBMISSION.md`, a Devpost draft built from verified facts only (pitch, features, how it's built, AI tools, a test-card box), with TODOs for the video, the public repo URL and a hosted URL.
 - **done, merged:** the dashboard loading skeleton (`(dashboard)/loading.tsx`) is now a screenshot, `dashboard-loading` at 390 and 1440 px. The test holds the page's RSC navigation request in the browser, on a production build. The whole spec passed: 68/68 with 0 axe violations. The PNGs and the note are in `docs/judge/screenshots/` (the round-3 folder is unchanged). Every async state now has a screenshot.
 - **done:** a whole-codebase correctness review workflow. Four area reviewers covered orders and capture, the PayPal client, the agent door and console, and setup and seller auth; each area's findings were checked by a skeptic that tried to refute them. **13 confirmed (1 high, 6 medium, 6 low) and 3 refuted**, written up in `docs/reviews/2026-11-06-whole-codebase.md`.
-- **running (started ~08:27 IST, 30-minute timebox, one commit per fix):** three fixers, each in its own worktree branch:
-  - `worktree-agent-a5960d55fd6ad36f2`: R6 (high: a reused `client_request_id` returns another buyer's order), R7 (a per-client unpaid-order cap, atomic), R8 (the status-sync throttle under concurrent calls), R4 (repeated capture attempts from the return URL and webhook);
-  - `worktree-agent-ad9397d221b98b4cd`: R1 (the toolkit's OAuth token goes stale, so tracking gets a 401), R3 (a refused capture is stuck in `approved`, and the seller is told it will land);
-  - `worktree-agent-aa4f69c230f44ccd7`: R10 (the same name and price in another section is dropped), R12 (the reading timeout budget), R11 (rate limits on shop creation and reading), R13/R9/R2/R5 (capped request bodies).
+- **done, merged: all 13 confirmed review findings are fixed** (statuses and commits in `docs/reviews/2026-11-06-whole-codebase.md`). 625 unit tests pass; typecheck and lint are clean.
+  - a reused `client_request_id` with different content gets `IDEMPOTENCY_CONFLICT` and no longer returns another buyer's order;
+  - one caller can hold 3 unpaid orders per shop (atomic, and the shop-wide 10 is kept);
+  - concurrent status calls share one PayPal sync; return-URL syncs are throttled, and a webhook approval older than the last declined capture doesn't capture again;
+  - the toolkit rebuilds on a 401 and retries once, which fixes tracking failing after the token expires. **Verified against a real sandbox 401.**
+  - a refused capture is shown plainly to the seller and becomes `failed` on VOIDED, 404 or expiry;
+  - the same item name and price in two sections stay two items;
+  - menu reading has a 180 s overall deadline inside the stale window;
+  - per-address limits on new shops, retakes and live readings;
+  - JSON and webhook bodies are capped at 64 KB.
 
 **Session 4 (from 05:24 IST; capped at 120 min, so it ends by ~07:24 IST).** Merged to main (`0c5791e`, 573 unit tests, typecheck and lint clean, pushed):
 - **Visual direction A "Menu board"** won the direction round (`docs/judge/directions.md`: A2 4 vs 4, 0 Part C fails for both). The judge's fixes and its take-from-B list were done on top:
@@ -125,15 +131,10 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. **If session 5 ended before merging the three review-fix branches above:**
-   - check `git log main..<branch>` for each one;
-   - merge what's committed and run `npm test`, typecheck and lint;
-   - fix any finding left NOT DONE (the details are in `docs/reviews/2026-11-06-whole-codebase.md`) and set each R-item's **Status** there.
-2. After the merges:
-   - re-run the capture gate, plus `npm run e2e` minus screenshots;
-   - run `npm run screenshots:prod -- docs/judge/screenshots/round-4`;
-   - run judge round 4 (fresh subagent; give it `docs/judge/round-3.md` for the fix accounting).
-3. Then the next-highest in-scope gain from the judge. The QR and discovery work needs the human's go-ahead (see below).
+1. **Check the full e2e run started at 08:50 IST on main** (log `/tmp/r4-e2e.log`, if it survived). If it didn't finish or isn't recorded under Verified, re-run it: `npx playwright test` on every spec except `screenshots.spec.ts`, which includes the real-sandbox capture gate.
+2. `npm run screenshots:prod -- docs/judge/screenshots/round-4`, then write `docs/judge/round-4-tests.txt` and a `README.md` in that folder (copy round-3's and add the dashboard-loading line).
+3. **Judge round 4** (fresh subagent, the round-3 prompt pattern): give it `docs/judge/round-3.md` for the fix accounting, plus `docs/reviews/2026-11-06-whole-codebase.md` as an artifact.
+4. Then the next-highest in-scope gain from the judge. The QR and discovery work needs the human's go-ahead (see below).
 
 ## Needs from human
 - **Decision: build "make the door findable"?** Judge round 3's only code-doable lever for Innovation (A4), Idea (B1) and B5 is:
