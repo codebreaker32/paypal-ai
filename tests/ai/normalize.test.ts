@@ -327,6 +327,17 @@ describe('recorded sample readings (what a keyless visitor sees)', () => {
       for (const t of [...r.items.map((i) => i.note ?? ''), ...r.warnings]) expect(t).not.toMatch(ENGINEER_TALK);
     });
   }
+  it('Marigold: 10 items · 4 need you, with the demo’s card texts', () => {
+    const c = catalog(recordedReading('marigold-bakehouse'));
+    expect(c.items).toHaveLength(10);
+    expect(c.needsAttention).toBe(4);
+    expect(c.items.filter((i) => i.issues.length > 0).map((i) => [i.name, i.issues, i.issueDetail])).toEqual([
+      ['Focaccia – rosemary & sea salt', ['CHECK'], 'A price is crossed out. We set $8.00. Is that right?'],
+      ['Cardamom bun', ['CHECK'], 'Printed as “2 for $7”. We set $3.50 each. Is that right?'],
+      ['Pain au chocolat', ['CHECK'], 'Hard to read in the photo. Are the name and price right?'],
+      ['Seasonal fruit galette', ['MARKET_PRICE'], 'Your menu says “market price” instead of a price.'],
+    ]);
+  });
   it('Marigold keeps the demo flags: the deal, the crossed-out price and the market price', () => {
     const c = catalog(recordedReading('marigold-bakehouse'));
     const deal = c.items.find((i) => /2 for \$7/.test(i.sourceText));
