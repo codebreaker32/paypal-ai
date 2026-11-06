@@ -1,6 +1,9 @@
 // What the receipt says for each order state (spec §4: confirming, paid, pending, declined, cancelled, expired; plus
 // an approved order whose capture PayPal refused), and when it keeps re-reading the order.
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
+import { Receipt } from '@/app/o/[ref]/Receipt';
 import { keepsPolling, statusView } from '@/app/o/[ref]/receipt-status';
 import type { ReceiptOrder } from '@/lib/orders/receipt-types';
 import type { OrderStatus } from '@/lib/domain/types';
@@ -56,10 +59,10 @@ describe('statusView', () => {
     expect(v.body).toMatch(/still clearing/);
   });
 
-  it('paid: shipping goes to the PayPal address; pickup shows the pickup notes', () => {
+  it('paid: shipping goes to the address given to PayPal (guest card or wallet); pickup shows the pickup notes', () => {
     const shipped = statusView(order({ status: 'paid', approvalUrl: null }), PICKUP, null);
     expect(shipped).toMatchObject({ tone: 'ok', title: 'Paid. Marigold Bakehouse has your order.' });
-    expect(shipped.body).toBe('Marigold Bakehouse will ship it to the address on your PayPal account.');
+    expect(shipped.body).toBe('Marigold Bakehouse will ship it to the address you gave PayPal.');
     const pickup = statusView(order({ status: 'paid', approvalUrl: null, fulfillment: 'pickup' }), PICKUP, null);
     expect(pickup.body).toBe(`Pick it up: ${PICKUP}`);
     const noNotes = statusView(order({ status: 'paid', approvalUrl: null, fulfillment: 'pickup' }), '', null);
@@ -96,5 +99,15 @@ describe('keepsPolling', () => {
 
   it('stops once PayPal refused the capture (only the buyer coming back or a webhook retries it)', () => {
     expect(keepsPolling(order({ status: 'approved', captureRefused: true }))).toBe(false);
+  });
+});
+
+describe('Receipt slip', () => {
+  it('says shipping goes to the address the buyer gave PayPal, not to a PayPal account a guest buyer doesn’t have', () => {
+    const html = renderToStaticMarkup(
+      createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null }), pickupNotes: PICKUP, fromAssistant: false, tracking: null }),
+    );
+    expect(html).toContain('Shipping to the address you gave PayPal.');
+    expect(html).not.toContain('PayPal account');
   });
 });

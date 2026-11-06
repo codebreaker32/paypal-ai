@@ -367,7 +367,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await page.goto(`/o/${fx.paid.id}`);
       await settle(page);
       await expect(page.getByRole('heading', { level: 1, name: 'Paid. Marigold Bakehouse has your order.' })).toBeVisible();
-      await expect(page.getByText('Marigold Bakehouse will ship it to the address on your PayPal account.')).toBeVisible();
+      await expect(page.getByText('Marigold Bakehouse will ship it to the address you gave PayPal.')).toBeVisible();
       await expect(page.getByRole('link', { name: /PayPal/ })).toHaveCount(0);
       await expect(page.getByRole('link', { name: 'Back to shop' })).toHaveAttribute('href', `/s/${SLUG}`);
       await expectAccessible(page);
