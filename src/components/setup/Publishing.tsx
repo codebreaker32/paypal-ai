@@ -3,6 +3,8 @@
 import { useCallback, useRef, useState } from 'react';
 import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
+import { Stagger, StaggerItem } from '@/components/motion/reveal';
+import { StatusSwap } from '@/components/motion/status-swap';
 import { cx } from '@/components/ui/cx';
 import { ApiError, publish, type PublishEvent } from './api';
 import { publishCounts } from './review-model';
@@ -111,23 +113,26 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
         </div>
       </div>
       {total > 0 && (
-        <ul className="flex flex-col divide-y divide-line border-y border-line">
+        <Stagger as="ul" className="flex flex-col divide-y divide-line border-y border-line">
           {rows.map((r) => (
-            <li key={r.itemId} className="flex items-start gap-3 py-2.5">
-              {r.state === 'pending' ? (
-                <Icon icon={Loader2} className="mt-0.5 animate-spin text-ink-muted" label="Adding" />
-              ) : r.state === 'ok' ? (
-                <Icon icon={CircleCheck} className="mt-0.5 text-ok" label="Added" />
-              ) : (
-                <Icon icon={CircleAlert} className="mt-0.5 text-error" label="Not added" />
-              )}
+            <StaggerItem as="li" key={r.itemId} className="flex items-start gap-3 py-2.5">
+              {/* Each item's result swaps in as PayPal answers for it. */}
+              <StatusSwap value={r.state} className="mt-0.5 shrink-0">
+                {r.state === 'pending' ? (
+                  <Icon icon={Loader2} className="animate-spin text-ink-muted" label="Adding" />
+                ) : r.state === 'ok' ? (
+                  <Icon icon={CircleCheck} className="text-ok" label="Added" />
+                ) : (
+                  <Icon icon={CircleAlert} className="text-error" label="Not added" />
+                )}
+              </StatusSwap>
               <span className="flex flex-1 flex-col">
                 <span className={cx('[overflow-wrap:anywhere]', r.state === 'pending' && 'text-ink-soft')}>{r.name}</span>
                 {r.state === 'failed' && r.message && <span className="text-sm text-error">{r.message}</span>}
               </span>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       )}
     </div>
   );

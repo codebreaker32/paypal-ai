@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
+import { Skeleton } from '@/components/ui/skeleton';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
@@ -131,6 +132,19 @@ export function ReadingStep({
             <p className="text-ink-muted">This usually takes about 10 seconds.</p>
           )}
         </div>
+        {/* The list it is building: item-shaped rows that shimmer (still under reduced motion: no shimmer). */}
+        <ul aria-hidden="true" data-testid="reading-list" className="flex flex-col divide-y divide-line border-y border-line">
+          {['w-40', 'w-28', 'w-48', 'w-32'].map((w, i) => (
+            <li key={i} className="flex items-center gap-3 py-3" style={{ opacity: 1 - i * 0.2 }}>
+              <Skeleton className="size-10 shrink-0" rounded="md" />
+              <span className="flex flex-1 flex-col gap-1.5">
+                <Skeleton className={`h-4 ${w} max-w-full`} />
+                <Skeleton className="h-3 w-20" />
+              </span>
+              <Skeleton className="h-4 w-12 shrink-0" />
+            </li>
+          ))}
+        </ul>
       </div>
 
       <div className="lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">

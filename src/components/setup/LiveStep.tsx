@@ -2,7 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { m } from 'motion/react';
+import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
+import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
 import { Bot, Check, ChevronDown, Copy, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -24,6 +27,29 @@ export interface LiveProps {
   pendingCount: number;
   /** Names of the items still waiting for PayPal (a publish that partly failed). */
   pendingNames: string[];
+  /** The shop's picture beside its name (`ShopAvatar`): never letters. */
+  avatar?: Pick<ShopAvatarProps, 'shop' | 'items' | 'menuPhotoSrc'>;
+}
+
+const subscribeNothing = () => () => {};
+
+/**
+ * The one celebratory beat: when the shop goes live in this browser (the step mounts after publishing), its picture
+ * and name scale in. A direct load paints at once (server HTML is never hidden). Reduced motion keeps only the fade.
+ */
+function LiveBeat({ delay = 0, className, children }: { delay?: number; className?: string; children: ReactNode }) {
+  const clientMount = useSyncExternalStore(subscribeNothing, () => true, () => false);
+  const [initial] = useState(clientMount ? { opacity: 0, scale: 0.86 } : false);
+  return (
+    <m.div
+      className={className}
+      initial={initial}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: MOTION_S.slow, delay, ease: EASE_OUT }}
+    >
+      {children}
+    </m.div>
+  );
 }
 
 async function copyText(text: string): Promise<boolean> {
@@ -113,13 +139,22 @@ export function LiveStep(p: LiveProps) {
   return (
     <div className="mx-auto flex w-full max-w-page flex-col gap-10 px-gutter pt-8 pb-section lg:pt-12">
       <header className="flex max-w-measure flex-col gap-3">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-          <span className={cx('inline-flex items-center gap-2 font-semibold', paused ? 'text-warn' : 'text-ok')}>
-            <span aria-hidden="true" className="size-2 rounded-full bg-current" />
-            {paused ? 'Paused' : 'Live'}
-          </span>
-          <span className="text-ink-muted">{p.name}</span>
-        </p>
+        <div className="flex items-center gap-4">
+          {p.avatar && (
+            <LiveBeat className="origin-center">
+              <ShopAvatar {...p.avatar} size="lg" />
+            </LiveBeat>
+          )}
+          <LiveBeat delay={0.08} className="flex min-w-0 origin-left flex-col gap-1">
+            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
+              <span className={cx('inline-flex items-center gap-2 font-semibold', paused ? 'text-warn' : 'text-ok')}>
+                <span aria-hidden="true" className="size-2 rounded-full bg-current" />
+                {paused ? 'Paused' : 'Live'}
+              </span>
+            </p>
+            <p className="type-title [overflow-wrap:anywhere]">{p.name}</p>
+          </LiveBeat>
+        </div>
         <h1 className="type-display">{paused ? 'Your shop is paused' : 'Your shop is live'}</h1>
         <p className="type-lead text-ink-soft">
           {p.liveCount} {p.liveCount === 1 ? 'item is' : 'items are'} in your PayPal catalog
