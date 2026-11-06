@@ -6,7 +6,7 @@ import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from
 import { m } from 'motion/react';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
 import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
-import { Bot, Check, ChevronDown, Copy, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
+import { Check, ChevronDown, Copy, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
@@ -231,7 +231,7 @@ export function LiveStep(p: LiveProps) {
           <h2 id="try-title" className="type-title">
             See it work
           </h2>
-          <ButtonLink href={`/s/${p.slug}?assistant=1`} size="lg" variant="secondary" icon={Bot} fullWidth className="bg-surface hover:bg-line">
+          <ButtonLink href={`/s/${p.slug}?assistant=1`} size="lg" variant="secondary" fullWidth className="bg-surface hover:bg-line">
             Watch an AI order from you
           </ButtonLink>
           <ButtonLink href={`/shops/${p.shopId}`} variant="ghost" fullWidth className="hover:bg-line">

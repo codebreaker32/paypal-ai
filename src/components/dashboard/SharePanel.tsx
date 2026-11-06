@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { Bot, ExternalLink, Printer } from 'lucide-react';
+import { ExternalLink, Printer } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { cx } from '@/components/ui/cx';
 import { CopyButton } from './CopyButton';
@@ -75,7 +75,7 @@ export function SharePanel({ shopId, shopUrl, doorUrl, slug }: { shopId: string;
             Print counter card
           </ButtonLink>
         </section>
-        <ButtonLink href={`/s/${slug}?assistant=1`} variant="ghost" icon={Bot} className="w-full sm:w-auto sm:self-start">
+        <ButtonLink href={`/s/${slug}?assistant=1`} variant="ghost" className="w-full sm:w-auto sm:self-start">
           Watch an AI order from you
         </ButtonLink>
       </div>

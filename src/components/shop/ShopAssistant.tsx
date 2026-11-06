@@ -1,7 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { Bot, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { LogoMark } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
@@ -97,9 +98,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
             // Fits the first screen under the header (and stays in view, sticky, as the menu scrolls).
             <Card padding="none" className="flex h-[min(52rem,calc(100dvh-8.5rem))] min-h-96 flex-col overflow-hidden shadow-md">
               <div className="flex items-center gap-3 border-b border-line px-5 py-3">
-                <span aria-hidden="true" className="inline-flex size-9 items-center justify-center rounded-full bg-ink text-surface">
-                  <Icon icon={Bot} size="sm" />
-                </span>
+                <LogoMark className="size-9" />
                 <div className="min-w-0 flex-1">
                   <h2 className="type-heading leading-6">{title}</h2>
                   <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
@@ -121,7 +120,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
             <Card className="flex flex-col gap-4 shadow-md" padding="lg">
               <h2 className="type-title">{title}</h2>
               <p className="text-ink-soft">{pitch}</p>
-              <Button ref={openerRef} size="lg" icon={Bot} fullWidth onClick={show}>
+              <Button ref={openerRef} size="lg" fullWidth onClick={show}>
                 {title}
               </Button>
               <p className="type-meta text-ink-muted">
@@ -139,7 +138,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       {/* Phones: the order bar sticks to the bottom of the screen while the page scrolls. */}
       <div data-order-bar className="sticky bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)] lg:hidden">
         {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping (only when the shop takes orders). */}
-        <Button size="lg" icon={Bot} fullWidth onClick={show}>
+        <Button size="lg" fullWidth onClick={show}>
           {title}
           {takesOrders && <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>}
         </Button>

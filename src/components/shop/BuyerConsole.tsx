@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useId, useReducer, useRef, useState, type FormEvent, type RefObject } from 'react';
 import {
-  Bot,
   CircleAlert,
   CircleCheck,
   CircleX,
@@ -19,11 +18,11 @@ import type { OrderStatus } from '@/lib/domain/types';
 import { Button, ButtonLink, buttonClasses } from '@/components/ui/button';
 import { FieldError, TextInput } from '@/components/ui/field';
 import { cx } from '@/components/ui/cx';
-import { Icon } from '@/components/ui/icon';
 import { CountUp } from '@/components/motion/count-up';
 import { Pressable } from '@/components/motion/pressable';
 import { StatusSwap } from '@/components/motion/status-swap';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
+import { LogoMark } from '@/components/brand/Logo';
 import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
 import {
@@ -220,9 +219,8 @@ function UserBubble({ text }: { text: string }) {
 function AssistantSays({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
-        <Icon icon={Bot} size="sm" label="Assistant" />
-      </span>
+      {/* The assistant speaks as Shelfie: its avatar is the mark, bare (no tile behind the logo). */}
+      <LogoMark label="Assistant" className="mt-0.5 size-7" />
       <RichText text={text} className="min-w-0 flex-1 pt-1 text-sm leading-6 [overflow-wrap:anywhere]" />
     </div>
   );
@@ -406,9 +404,7 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
       </div>
       {state.busy && !calling && (
         <p className="flex items-center gap-2.5 text-sm text-ink-muted" role="status">
-          <span aria-hidden="true" className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
-            <Icon icon={Bot} size="sm" />
-          </span>
+          <LogoMark className="size-7" />
           <span className="bc-thinking font-semibold">Thinking…</span>
         </p>
       )}
