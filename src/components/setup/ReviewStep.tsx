@@ -50,10 +50,11 @@ function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void 
     );
   }
   const busy = state.status === 'pending' || state.status === 'saving';
+  if (!busy && state.status !== 'saved') return null;
   return (
     <span className="flex items-center gap-1.5 type-meta text-ink-muted" role="status">
-      <Icon icon={busy ? Loader2 : state.status === 'saved' ? CircleCheck : History} size="sm" className={cx(busy && 'animate-spin', state.status === 'saved' && 'text-ok')} />
-      {busy ? 'Saving…' : state.status === 'saved' ? 'Saved' : 'Changes save as you go'}
+      <Icon icon={busy ? Loader2 : CircleCheck} size="sm" className={cx(busy && 'animate-spin', !busy && 'text-ok')} />
+      {busy ? 'Saving…' : 'Saved'}
     </span>
   );
 }
@@ -249,10 +250,7 @@ export function ReviewStep(props: ReviewProps) {
             }
           />
 
-          <div className="flex items-center gap-4 lg:hidden">
-            <PhotoStrip shopId={shopId} count={photoCount} className="shrink-0" />
-            <p className="type-meta text-ink-muted">Tap your photo to compare it with what we read.</p>
-          </div>
+          <PhotoStrip shopId={shopId} count={photoCount} className="shrink-0 lg:hidden" />
 
           {(props.recorded || props.nonUsd) && (
             <div className="flex flex-col gap-3">
@@ -301,12 +299,9 @@ export function ReviewStep(props: ReviewProps) {
           )}
 
           <section aria-labelledby="ready-title" className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1">
-              <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
-                Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
-              </h2>
-              <p className="text-ink-soft">Each becomes a product in your PayPal catalog.</p>
-            </div>
+            <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
+              Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
+            </h2>
             {ready.length ? (
               <ReadyList items={ready} onUpdate={onUpdate} shopId={shopId} onPhoto={onPhoto} />
             ) : (
@@ -328,7 +323,7 @@ export function ReviewStep(props: ReviewProps) {
 
           <div className="flex flex-col gap-3">
             {lines.length > 0 && (
-              <Disclosure title="Lines we skipped" count={lines.length} hint="Headings, hours and notes that aren’t things to buy.">
+              <Disclosure title="Lines we skipped" count={lines.length}>
                 <SkippedList lines={lines} onMake={makeItem} />
               </Disclosure>
             )}

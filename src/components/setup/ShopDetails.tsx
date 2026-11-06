@@ -162,8 +162,8 @@ export function ShopDetails({
           required={!payeeOptional}
           hint={
             payeeOptional
-              ? 'Buyers pay straight into this PayPal account. Leave it empty and this demo shop is paid to Shelfie’s demo PayPal account.'
-              : 'Buyers pay straight into this PayPal account. Use the email you log in to PayPal with.'
+              ? 'Leave it empty and this demo shop is paid to Shelfie’s demo PayPal account.'
+              : 'The email you log in to PayPal with. Buyers pay you there.'
           }
           error={payeeTouched && !payeeParsed.ok && !(payeeOptional && payeeBlank) ? payeeParsed.message : undefined}
         >

@@ -248,7 +248,6 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
             <Icon icon={ImagePlus} />
           </span>
           <span className="font-semibold text-ink">Add a cover photo</span>
-          <span className="type-meta">Your counter, your window or your best tray</span>
           {actions.busy && <Busy label="Saving your cover" />}
         </FileLabel>
       )}
