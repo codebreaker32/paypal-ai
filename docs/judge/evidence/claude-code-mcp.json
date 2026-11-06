@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "marigold-bakehouse": {
+      "type": "http",
+      "url": "http://localhost:3143/s/marigold-bakehouse/mcp"
+    }
+  }
+}
