@@ -306,7 +306,9 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
   );
 }
 
-/** Desktop only: the shop's orders beside the open one (list + detail), the open one marked. */
+const SIDEBAR_ORDERS = 40;
+
+/** Desktop only: the shop's newest orders beside the open one (list + detail), the open one marked. */
 function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, string | null> }) {
   return (
     <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 lg:block">
@@ -353,8 +355,9 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   const events = eventsRepo.list(db, order.id);
   const entries = timelineEntries(events, order);
   const pending = isOpen(order.status) || ((order.status === 'paid' || order.status === 'fulfilled') && !order.brief);
-  const allOrders = ordersRepo.listByShop(db, shop.id);
-  const photos = new Map(itemsRepo.listWithVariants(db, shop.id).map((i) => [i.id, i.photoUrl]));
+  // The desktop sidebar shows only the newest orders; this runs on every render and every AutoRefresh tick.
+  const allOrders = ordersRepo.listByShop(db, shop.id, { limit: SIDEBAR_ORDERS });
+  const photos = itemsRepo.photoUrls(db, shop.id);
 
   return (
     <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">

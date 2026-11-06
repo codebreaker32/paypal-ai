@@ -70,6 +70,12 @@ export function listWithVariants(db: Db, shopId: string, opts: { status?: ItemSt
   return withVariants(db, rows);
 }
 
+/** Each of a shop's items' photo URL (or null), without reading their variants. */
+export function photoUrls(db: Db, shopId: string): Map<string, string | null> {
+  const rows = db.prepare('SELECT id, photo_url FROM items WHERE shop_id = ?').all(shopId) as { id: string; photo_url: string | null }[];
+  return new Map(rows.map((r) => [r.id, r.photo_url ?? null]));
+}
+
 /** Item scoped to its shop: never returns another shop's item. */
 export function byIdForShop(db: Db, shopId: string, itemId: string): ItemWithVariants | null {
   const r = db.prepare('SELECT * FROM items WHERE id = ? AND shop_id = ?').get(itemId, shopId) as ItemRow | undefined;

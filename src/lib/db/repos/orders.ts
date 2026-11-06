@@ -86,10 +86,13 @@ export function byClientRequestId(db: Db, shopId: string, key: string): Order | 
   return r ? toOrder(db, r) : null;
 }
 
-export function listByShop(db: Db, shopId: string, opts: { status?: OrderStatus[] } = {}): Order[] {
-  const rows = opts.status?.length
-    ? (db.prepare(`SELECT * FROM orders WHERE shop_id = ? AND status IN (${opts.status.map(() => '?').join(',')}) ORDER BY created_at DESC`).all(shopId, ...opts.status) as OrderRow[])
-    : (db.prepare('SELECT * FROM orders WHERE shop_id = ? ORDER BY created_at DESC').all(shopId) as OrderRow[]);
+/** A shop's orders, newest first; `limit`: only the newest that many (their lines are read only for those). */
+export function listByShop(db: Db, shopId: string, opts: { status?: OrderStatus[]; limit?: number } = {}): Order[] {
+  const statuses = opts.status ?? [];
+  const where = statuses.length ? ` AND status IN (${statuses.map(() => '?').join(',')})` : '';
+  const limit = opts.limit === undefined ? '' : ' LIMIT ?';
+  const args: unknown[] = [shopId, ...statuses, ...(opts.limit === undefined ? [] : [Math.max(0, Math.floor(opts.limit))])];
+  const rows = db.prepare(`SELECT * FROM orders WHERE shop_id = ?${where} ORDER BY created_at DESC${limit}`).all(...args) as OrderRow[];
   return rows.map((r) => toOrder(db, r));
 }
 
