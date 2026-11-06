@@ -7,7 +7,8 @@ _Last updated: 2026-11-06 23:25 IST (run 3, session 3)_
 
 **Run 3, session 3 (from 23:10 IST).** New from the human (~22:00): **Part A2, a real Shelfie logo** before any final clip or render (DECISIONS).
 - **done:** 6 logo concepts (designers A and B, `docs/judge/logo/concepts/`); **logo round** (`docs/judge/logo-round.md`): **B1 "Awning" wins 28/35** (runner-up A2 26), the only mark unmistakable at 16 px in a tab strip.
-- **running (worktrees):** B1 refined once with the judge's 5 changes and applied everywhere (header, favicon, PWA, card, OG image, README, video cards, the assistant avatar, DESIGN.md logo section); the duplicate-tab-panel fix; bread drawing variants.
+- **running (worktrees):** B1 refined once with the judge's 5 changes and applied everywhere (header, favicon, PWA, card, OG image, README, video cards, the assistant avatar, DESIGN.md logo section); the duplicate-tab-panel fix.
+- **done, merged: bread drawings vary by name** (TDD): boule (sourdough, country…), baguette, focaccia, else the loaf; Marigold's three breads now differ. **Verified on main:** typecheck clean, **1075 unit tests** (88 files); the worker ran `e2e/shop.spec.ts` 30/30.
 - **Next:** logo judge (`.scratch/judge-logo-prompt.md`) picks one → refine once → apply everywhere (header, favicon, PWA icons, apple-touch, manifest, counter card, a new OG image, README, video intro/outro, the assistant's avatar instead of the robot icon) + DESIGN.md logo section → screenshots and recordings re-taken → full e2e with the capture gate → final clips → render → video judge.
 
 **Run 3, session 2 (from 21:19 IST).** Session 1 ended while wave 2's workers were finishing; their work was committed on their branches (clean worktrees).
