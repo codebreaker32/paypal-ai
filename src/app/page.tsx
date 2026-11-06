@@ -1,8 +1,10 @@
 import { unstable_rethrow } from 'next/navigation';
 import { LayoutDashboard } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
-import { monogram } from '@/components/shop/ItemPhoto';
+import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
 import { listOwnedShops } from '@/lib/auth/owner';
+import { getDb } from '@/lib/db';
+import * as itemsRepo from '@/lib/db/repos/items';
 import { StorePreview } from './_start/StorePreview';
 import { StartActions } from './_start/StartActions';
 
@@ -10,11 +12,21 @@ import { StartActions } from './_start/StartActions';
 interface ReturningShop {
   id: string;
   name: string;
+  /** What its picture is made from (never letters): logo, cover, menu photo, else its items' drawing. */
+  avatar: Pick<ShopAvatarProps, 'shop' | 'items'>;
 }
 
 async function getReturningShops(): Promise<ReturningShop[]> {
   try {
-    return (await listOwnedShops()).map((s) => ({ id: s.id, name: s.name }));
+    const db = getDb();
+    return (await listOwnedShops()).slice(0, 3).map((s) => ({
+      id: s.id,
+      name: s.name,
+      avatar: {
+        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, slug: s.slug, kind: s.kind, menuPhotoPaths: s.menuPhotoPaths },
+        items: itemsRepo.listWithVariants(db, s.id).map((i) => ({ category: i.category, name: i.name, section: i.section, description: i.description })),
+      },
+    }));
   } catch (err) {
     unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
     // The start page must always render; a storage problem only hides the shortcut.
@@ -34,9 +46,7 @@ function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
         {shops.slice(0, 3).map((shop) => (
           <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <span className="flex min-w-0 items-center gap-3">
-              <span aria-hidden="true" className="inline-flex size-10 shrink-0 items-center justify-center rounded-(--thumb-radius) bg-accent font-extrabold text-on-accent">
-                {monogram(shop.name)}
-              </span>
+              <ShopAvatar {...shop.avatar} size="sm" menuPhotoSrc={`/api/shops/${shop.id}/photo/1`} />
               <span className="truncate text-lg font-bold">{shop.name}</span>
             </span>
             <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>

@@ -45,6 +45,7 @@ The tokens come in three layers, and components only use the second and third:
 | `info` / `info-soft` | blue-700 / blue-50 | `#2457a6` / `#e7eefa` | Shipped, picked up |
 | `paypal` (hover, active) | paypal-500 (700, 900) | `#0070ba` (`#005ea6`, `#003087`) | The PayPal approve button only |
 | `tile-rose`, `-sage`, `-sky`, `-lilac` | | `#fce7ee`/`#8e1a43`, `#e3f1e8`/`#1f5a37`, `#e5eefa`/`#1e4c8a`, `#eee9fb`/`#4b3091` | The photo fallback, one tint per menu section |
+| `--ill-ink`, `--ill-dough`, `--ill-wheat`, `--ill-cocoa`, `--ill-leaf`, `--ill-steel`, `--ill-pom` | | `#1d1a1c`, `#fff4e0`, `#f2bd62`, `#8a5638`, `#86bd78`, `#c4ced8`, `var(--pom-600)` | The illustration palette: read only by `public/illustrations.svg` (no Tailwind utility) |
 
 **Contrast** (WCAG 2.1, computed from the hex values):
 
@@ -73,7 +74,7 @@ The tokens come in three layers, and components only use the second and third:
 | info on white | 7.03:1 |
 | the tile inks on their tints | 6.99 to 8.30:1 |
 
-A dimmed fallback tile (a cancelled or expired order) switches to ink-muted on surface-sunken (5.54:1) instead of fading with opacity.
+A dimmed fallback tile (sold out, a cancelled or expired order) switches to surface-sunken and shows its drawing in greyscale at half opacity. The drawing is decorative (the item's name labels the tile), so it carries no text contrast requirement.
 
 **Error against the brand.** Pomegranate is a blue-leaning crimson (OKLCH hue 12°); the error vermilion leans orange (hue 37°, the old `#b42318` was 30°), so an error never reads as the brand. It stays redder and more saturated than `warn` (amber, hue 53°, chroma 0.13 against 0.17), and status always pairs the colour with a word.
 
@@ -143,11 +144,21 @@ Order status (`dashboard/status.tsx`): `OrderStatusText` is a coloured dot and t
 
 ## The photo and its fallback (`shop/ItemPhoto.tsx`)
 
-Item photos are 4:3 crops with the `photo` radius. Thumbnails use `thumb` (10 px).
+Item photos are 4:3 crops with the `photo` radius. Thumbnails use `thumb` (10 px). A crop the seller keeps from "Snap your counter" is their photo.
 
-An item without a photo shows its **monogram** ("Country sourdough loaf" becomes "Cs") set heavy on its section's tint. The tints cycle rose, sage, sky and lilac by menu section. A thin "shelf" rule sits under the letters at md/lg sizes. A menu with no photos therefore reads as a deliberate, colour-coded grid rather than grey boxes.
+**No letters stand in for a picture, anywhere.** An item without a photo shows a Shelfie drawing of what it is, on its section's tint (rose, sage, sky, lilac, cycling by menu section), so a menu with no photos still reads as a deliberate, colour-coded grid of pictures. Sold-out and cancelled tiles keep the drawing, grey and at half opacity, on `surface-sunken`.
 
-The shop cover is the seller's own photo, or a strip of up to four item photos. With a cover, the shop's monogram tile sits over the cover's bottom edge with a white ring. Without one, it sits beside the name.
+### The illustrations (`illustrations/ItemIllustration.tsx`, `public/illustrations.svg`)
+
+- **Twelve drawings**, one per item category (`src/lib/domain/category.ts`): bread (a scored loaf), pastry (a segmented croissant with curved horns), cake (a frosted cake on a stand), coffee (a takeaway cup), tea (a teapot), taco, burrito (half in foil, straight crimp lines), drink (a glass with a straw and lime), dessert (a cone), bike_part (a bicycle), tool (a wrench crossed with a screwdriver) and goods (a shopping bag). Contact sheet: `docs/judge/evidence/illustrations.png`.
+- **Style:** rounded geometric shapes, one ink outline (2.75 units on a 96 x 72 viewBox, round caps and joins), two or three flat fills from the illustration palette (`--ill-*`), and exactly one pomegranate detail (the loaf's scores like the logo's, the croissant's drizzle, the cherry, the cup's sticker, the teapot's knob, the tomatoes, the salsa, the straw, the saddle, the screwdriver's handle, the bag's sticker). Most sit on a short ink shelf line. They read at 44 px and at 224 px.
+- **Category:** Claude picks one per item when it reads the menu (`category` in the extraction schema). Rows without one (older shops, a hand-added item) fall back to `guessCategory`, keyword rules on the name, then the description, then the section; an unmatched item is `tool` in a services shop, else `goods`.
+- **Cost:** each drawing is a `<symbol>` in one static sheet; a tile is `<svg><use href="/illustrations.svg#bread"/></svg>`, so the paths are downloaded once and cached and never repeated in a page's HTML. The comment in that file must never contain a double hyphen (invalid XML blanks every drawing).
+- **Never a product image for agents:** `image_url` in `list_products` and `image` in the JSON-LD stay the seller's real photos; an item without one has no image there.
+
+### The shop's picture (`shop/ShopAvatar.tsx`)
+
+The shop's logo (a square upload), else its cover cropped square, else the first photo of its menu, else the drawing of the category it sells most (`shopAvatar`, ties to the earliest item). With a cover, it sits over the cover's bottom edge with a white ring, in its own stacking layer so the first menu card never covers it. Without one, it sits beside the name.
 
 ## Screens
 
@@ -158,7 +169,7 @@ The shop cover is the seller's own photo, or a strip of up to four item photos. 
   - The empty state is a one-sentence greeting and starter prompts as tinted pills.
   - The Activity panel and the approval card are grey wells, not outlined boxes.
 - **Dashboard shell:**
-  - The shop's monogram, its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.
+  - The shop's picture (`ShopAvatar`), its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.
   - Then the tabs: Orders · Menu · Share · Settings.
   - Orders has a segmented filter (44 px) and groups (To prepare, Waiting for payment, collapsible, and Done), each with its subtotal.
 - **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid. On phones the buyer's name gives way last.

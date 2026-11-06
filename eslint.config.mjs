@@ -11,6 +11,8 @@ const eslintConfig = defineConfig([
     ".claude/**",
     ".superpowers/**",
     "public/samples/**",
+    // The demo video is its own package (video/remotion, Remotion + JSX) with its own tooling.
+    "video/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

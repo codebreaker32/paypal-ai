@@ -36,6 +36,41 @@ describe('item photos and shop covers', () => {
     expect(shops.update(db, shop.id, { coverUrl: null }).coverUrl).toBeNull();
   });
 
+  it('stores an item category (null when the reading has none) and a shop logo', () => {
+    const { shop } = shops.create(db, { name: 'Marigold Bakehouse' });
+    expect(shop.logoUrl).toBeNull();
+    const base = { section: null, description: null, sourceText: 'x', confidence: 'high' as const, kind: 'PHYSICAL' as const, issues: [], issueDetail: null, status: 'draft' as const, variants: [{ label: null, priceCents: 500 }] };
+    const [loaf, bun] = items.replaceDrafts(db, shop.id, [{ ...base, name: 'Country sourdough loaf', category: 'bread' }, { ...base, name: 'Cardamom bun' }]);
+    expect(loaf.category).toBe('bread');
+    expect(bun.category).toBeNull();
+    items.update(db, bun.id, { category: 'pastry' });
+    expect(items.byIdForShop(db, shop.id, bun.id)?.category).toBe('pastry');
+    db.prepare("UPDATE items SET category = 'sandwich' WHERE id = ?").run(loaf.id);
+    expect(items.byIdForShop(db, shop.id, loaf.id)?.category).toBeNull();
+    expect(shops.update(db, shop.id, { logoUrl: '/i/logo.webp' }).logoUrl).toBe('/i/logo.webp');
+    expect(shops.update(db, shop.id, { logoUrl: null }).logoUrl).toBeNull();
+  });
+
+  it('adds items.category and shops.logo_url (run 3) to an older database', () => {
+    const g = globalThis as unknown as { __shelfieDb?: { close(): void } };
+    g.__shelfieDb?.close();
+    delete g.__shelfieDb;
+    const file = tempDbPath('migrate-category');
+    const old = new Database(file);
+    old.exec(SCHEMA_SQL.replace(/\n\s*category TEXT,[^\n]*/, '').replace(/\n\s*logo_url TEXT,[^\n]*/, ''));
+    const colsOf = (t: string, d: { prepare(sql: string): { all(): unknown[] } }) =>
+      (d.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map((c) => c.name);
+    expect(colsOf('items', old)).not.toContain('category');
+    expect(colsOf('shops', old)).not.toContain('logo_url');
+    old.close();
+    process.env.DATABASE_PATH = file;
+    const upgraded = getDb();
+    expect(colsOf('items', upgraded)).toContain('category');
+    expect(colsOf('shops', upgraded)).toContain('logo_url');
+    upgraded.close();
+    delete g.__shelfieDb;
+  });
+
   it('adds items.photo_url and shops.cover_url to an older database', () => {
     const g = globalThis as unknown as { __shelfieDb?: { close(): void } };
     g.__shelfieDb?.close();

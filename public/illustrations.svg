@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+<!-- Shelfie item drawings (run 3). One ink outline weight, flat fills from the "ill" tokens in src/app/globals.css,
+     one pomegranate detail each, 4:3. Used by src/components/illustrations/ItemIllustration.tsx through a use element,
+     so each drawing is downloaded once and cached, never repeated in a page's HTML. Never sent to agents as a product image.
+     No double hyphen may appear inside this comment: it would make the file invalid XML and every drawing blank. -->
+<defs>
+<symbol id="bread" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<path style="fill:var(--ill-wheat)" d="M22 59V47c0-12 11.6-20 26-20s26 8 26 20v12z"/>
+<path style="stroke:var(--ill-dough)" d="M30 42c1.5-5 6-9 12.5-10.5"/>
+<path style="stroke:var(--ill-pom)" d="M40 36l5 7M52 35l5 7"/>
+</g></symbol>
+<symbol id="pastry" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M12 60h72"/>
+<path style="fill:var(--ill-wheat)" d="M28 43C21 44 15 50 15 56.5c0 3.5 4.5 4.5 10 1.5L29 52z"/>
+<path style="fill:var(--ill-wheat)" d="M68 43C75 44 81 50 81 56.5c0 3.5-4.5 4.5-10 1.5L67 52z"/>
+<path style="fill:var(--ill-wheat)" d="M26 43.5C28 37.5 35 35 40.5 36L40 54c-5 1.5-10 1.5-14.5-.5z"/>
+<path style="fill:var(--ill-wheat)" d="M70 43.5C68 37.5 61 35 55.5 36L56 54c5 1.5 10 1.5 14.5-.5z"/>
+<path style="fill:var(--ill-wheat)" d="M38.5 34C40.5 28.5 55.5 28.5 57.5 34L59 52.5c-4 3.5-18 3.5-22 0z"/>
+<path style="stroke:var(--ill-dough)" d="M43 33.5c2.5-1.2 6.5-1.2 9 0"/>
+<path style="stroke:var(--ill-pom)" d="M29 46c3.5-3 6 1.5 9.5-1.5s6 1.5 9.5-1.5 6 1.5 9.5-1.5 6 1.5 9.5-1.5"/>
+</g></symbol>
+<symbol id="cake" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path style="fill:var(--ill-dough)" d="M44 55h8l3 5H41z"/>
+<path style="fill:var(--ill-wheat)" d="M27 52V36h42v16z"/>
+<path style="stroke:var(--ill-dough)" d="M30 47h36"/>
+<path style="fill:var(--ill-dough)" d="M27 42v-7c0-4 9-6 21-6s21 2 21 6v7c-1.5 3-4.5 3-6 0-1.5 4-5.5 4-7 0-1.5 4-6.5 4-8 0-1.5 4-5.5 4-7 0-1.5 4-5.5 4-7 0-1.5 3-5.5 3-7 0z"/>
+<rect style="fill:var(--ill-dough)" x="19" y="51" width="58" height="4.5" rx="2.25"/>
+<path d="M48 22.5c0-3 2-5 5-5.5"/>
+<circle style="fill:var(--ill-pom)" cx="48" cy="25.5" r="3.5"/>
+</g></symbol>
+<symbol id="coffee" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<path style="fill:var(--ill-dough)" d="M34 33l3 27h22l3-27z"/>
+<path style="fill:var(--ill-wheat)" d="M34.9 41h26.2l-1.2 11H36.1z"/>
+<path style="fill:var(--ill-cocoa)" d="M38 26.5l2-4.5h16l2 4.5"/>
+<path style="fill:var(--ill-cocoa)" d="M31 33v-3.5c0-1.7 1.3-3 3-3h28c1.7 0 3 1.3 3 3V33z"/>
+<circle style="fill:var(--ill-pom);stroke:none" cx="48" cy="46.5" r="2.75"/>
+</g></symbol>
+<symbol id="tea" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<path style="fill:var(--ill-leaf)" d="M31 48c-6 0-10-6-13-13l4.5-2c2 4.5 5 7 9 7z"/>
+<path d="M65 40c9.5-1 11.5 13.5 1 16"/>
+<path style="fill:var(--ill-leaf)" d="M31 60c-5-4-6-10-5-15 1-6 6-10 10-11h24c4 1 9 5 10 11 1 5 0 11-5 15z"/>
+<path style="stroke:var(--ill-dough)" d="M30 47h36"/>
+<path style="fill:var(--ill-dough)" d="M37 34c0-4 5-6 11-6s11 2 11 6z"/>
+<circle style="fill:var(--ill-pom)" cx="48" cy="25" r="3"/>
+</g></symbol>
+<symbol id="taco" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<g transform="rotate(-7 48 46)">
+<path style="fill:var(--ill-wheat)" d="M21 39c0-11 10-18 22-18 8 0 15 3 19 8"/>
+<path style="fill:var(--ill-leaf)" d="M20 39c0-6 5-9 9-6 1-5 7-7 10-3 2-5 9-5 11 0 3-4 9-3 10 2 4-3 9 0 9 7 0 0-1 2-2 2z"/>
+<circle style="fill:var(--ill-pom)" cx="35" cy="35.5" r="2.6"/>
+<circle style="fill:var(--ill-pom)" cx="56.5" cy="34.5" r="2.6"/>
+<path style="fill:var(--ill-wheat)" d="M17 39h62a31 22 0 0 1-62 0z"/>
+<circle style="fill:var(--ill-cocoa);stroke:none" cx="33" cy="47" r="1.7"/>
+<circle style="fill:var(--ill-cocoa);stroke:none" cx="47" cy="54" r="1.7"/>
+<circle style="fill:var(--ill-cocoa);stroke:none" cx="61" cy="47.5" r="1.7"/>
+<circle style="fill:var(--ill-cocoa);stroke:none" cx="54" cy="44" r="1.2"/>
+</g>
+</g></symbol>
+<symbol id="burrito" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<g transform="rotate(-14 48 44)">
+<path style="fill:var(--ill-wheat)" d="M32 34h38v20H32c-5.5 0-10-4.5-10-10s4.5-10 10-10z"/>
+<path style="fill:var(--ill-steel)" d="M45 34H32c-5.5 0-10 4.5-10 10s4.5 10 10 10h13l-2.5-3.5 2.5-3-2.5-3.5 2.5-3-2.5-3.5z"/>
+<path d="M27 40.5h11M26 47.5h12"/>
+<path d="M57 35c3 5 3 13 0 18"/>
+<ellipse style="fill:var(--ill-cocoa)" cx="70" cy="44" rx="4.5" ry="10"/>
+<circle style="fill:var(--ill-pom);stroke:none" cx="70.5" cy="41" r="2.2"/>
+</g>
+</g></symbol>
+<symbol id="drink" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<path style="stroke:var(--ill-pom);stroke-width:3.5" d="M52 46l7-27.5h7"/>
+<path style="fill:var(--ill-wheat)" d="M35.8 33h24.4L57 60H39z"/>
+<rect style="fill:var(--ill-dough)" x="42" y="38" width="8" height="8" rx="2" transform="rotate(12 46 42)"/>
+<path d="M35 26l4 34h18l4-34"/>
+<circle style="fill:var(--ill-leaf)" cx="35.5" cy="27.5" r="6.5"/>
+<path d="M35.5 23.5v8M31.5 27.5h8"/>
+</g></symbol>
+<symbol id="dessert" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path style="fill:var(--ill-wheat)" d="M37 38l11 24 11-24z"/>
+<path d="M43 39.5l8 10M53 39.5l-8 10"/>
+<path style="fill:var(--ill-dough)" d="M35 39c-2-10 5-18 13-18s15 8 13 18c-2 2.5-5 1-6.5-.5-2 2.5-5 2.5-7 0-2 2.5-5 2.5-6.5.5-1.5 1.5-4.5 2.5-6 0z"/>
+<path style="stroke:var(--ill-cocoa)" d="M41 30c2-3 5-4.5 8-4.5"/>
+<path d="M48 14.5c0-3 2-5 5-5.5"/>
+<circle style="fill:var(--ill-pom)" cx="48" cy="18" r="3.5"/>
+</g></symbol>
+<symbol id="bike_part" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<circle cx="27" cy="46" r="13"/>
+<circle cx="69" cy="46" r="13"/>
+<circle style="stroke:var(--ill-steel)" cx="27" cy="46" r="8.5"/>
+<circle style="stroke:var(--ill-steel)" cx="69" cy="46" r="8.5"/>
+<path style="stroke-width:6.5" d="M27 46l17-17M27 46h21M44 29l4 17M44 29h20M64 29L48 46M64 29l5 17M44 29l-1-3.5M64 29l-1.5-6"/>
+<path style="stroke:var(--ill-steel);stroke-width:2" d="M27 46l17-17M27 46h21M44 29l4 17M44 29h20M64 29L48 46M64 29l5 17M44 29l-1-3.5M64 29l-1.5-6"/>
+<path d="M60 22.5h7.5"/>
+<circle style="fill:var(--ill-ink);stroke:none" cx="27" cy="46" r="2"/>
+<circle style="fill:var(--ill-ink);stroke:none" cx="69" cy="46" r="2"/>
+<path style="stroke:var(--ill-pom);stroke-width:4.5" d="M37.5 24.5h10"/>
+</g></symbol>
+<symbol id="tool" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path style="fill:var(--ill-steel);fill-rule:evenodd" transform="rotate(-35 48 36)" d="M31.2 32.5h33.6a8 8 0 0 1 14.6.5H73v6h6.4a8 8 0 0 1-14.6.5H31.2a8 8 0 1 1 0-7zM27.2 36a3.2 3.2 0 1 0-6.4 0 3.2 3.2 0 1 0 6.4 0z"/>
+<g transform="rotate(35 48 36)">
+<path style="fill:var(--ill-steel)" d="M42 34h26l5 2-5 2H42z"/>
+<rect style="fill:var(--ill-pom)" x="20" y="30.5" width="23" height="11" rx="5.5"/>
+<path d="M28 34v4M34 34v4"/>
+</g>
+</g></symbol>
+<symbol id="goods" viewBox="0 0 96 72"><g style="fill:none;stroke:var(--ill-ink);stroke-width:2.75;stroke-linecap:round;stroke-linejoin:round">
+<path d="M14 60h68"/>
+<path d="M40 31v-5c0-5 3.5-8 8-8s8 3 8 8v5"/>
+<path style="fill:var(--ill-wheat)" d="M30 30h36l2 30H28z"/>
+<path style="fill:var(--ill-dough)" d="M30 30h36l.4 6H29.6z"/>
+<circle style="fill:var(--ill-pom)" cx="48" cy="47.5" r="5"/>
+</g></symbol>
+</defs>
+</svg>

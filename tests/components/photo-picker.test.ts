@@ -3,7 +3,7 @@
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { CoverPicker, ItemPhotoPicker, pickOne } from '@/components/setup/PhotoPicker';
+import { CoverPicker, ItemPhotoPicker, LogoPicker, pickOne } from '@/components/setup/PhotoPicker';
 
 const files = (...list: File[]) => list as unknown as FileList;
 const jpeg = (bytes = 10, name = 'bun.jpg') => new File([new Uint8Array(bytes)], name, { type: 'image/jpeg' });
@@ -26,13 +26,14 @@ describe('pickOne', () => {
 });
 
 describe('ItemPhotoPicker', () => {
-  const props = { shopId: 'shp_1', itemId: 'itm_1', name: 'Cardamom bun', onChange: () => {} };
+  const props = { shopId: 'shp_1', itemId: 'itm_1', name: 'Cardamom bun', category: 'pastry' as const, onChange: () => {} };
 
-  it('without a photo: the tile is a labelled file input showing the monogram', () => {
+  it('without a photo: the tile is a labelled file input showing the item’s drawing, never letters', () => {
     const html = renderToStaticMarkup(createElement(ItemPhotoPicker, { ...props, photoUrl: null }));
     expect(html).toContain('aria-label="Add a photo of Cardamom bun"');
     expect(html).toContain('type="file"');
-    expect(html).toContain('>Cb<');
+    expect(html).toContain('href="/illustrations.svg#pastry"');
+    expect(html).not.toContain('>Cb<');
   });
 
   it('with a photo: the photo (with alt text) opens Replace and Remove', () => {
@@ -51,5 +52,17 @@ describe('CoverPicker', () => {
     expect(set).toContain('alt="Marigold cover"');
     expect(set).toContain('aria-label="Replace the cover photo"');
     expect(set).toContain('Remove cover');
+  });
+});
+
+describe('LogoPicker', () => {
+  it('asks for a logo when there is none, and offers Replace and Remove when there is', () => {
+    const none = renderToStaticMarkup(createElement(LogoPicker, { shopId: 'shp_1', shopName: 'Marigold', logoUrl: null, onChange: () => {} }));
+    expect(none).toContain('aria-label="Add a logo"');
+    expect(none).toContain('type="file"');
+    const set = renderToStaticMarkup(createElement(LogoPicker, { shopId: 'shp_1', shopName: 'Marigold', logoUrl: '/i/l.webp', onChange: () => {} }));
+    expect(set).toContain('alt="Marigold logo"');
+    expect(set).toContain('aria-label="Replace the logo"');
+    expect(set).toContain('Remove logo');
   });
 });

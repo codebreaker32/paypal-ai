@@ -3,14 +3,16 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { monogram } from '@/components/shop/ItemPhoto';
+import { ShopAvatar } from '@/components/shop/ShopAvatar';
+import { LogoPicker } from '@/components/setup/PhotoPicker';
+import { itemCategory } from '@/lib/domain/category';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { Tabs } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/toast';
 import { formatUSD } from '@/lib/domain/money';
 import { canBePaid } from '@/lib/domain/payee';
-import type { ItemWithVariants, Order, ShopStatus } from '@/lib/domain/types';
+import type { ItemWithVariants, Order, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
 import { MenuPanel } from './MenuPanel';
@@ -23,7 +25,11 @@ export type DashboardTab = 'orders' | 'menu' | 'share' | 'settings';
 
 export interface DashboardProps {
   /** `payeeEmail`: where buyers' money goes (owner only); `isDemo`: Shelfie's demo shop, which may have none. */
-  shop: { id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null };
+  shop: {
+    id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null;
+    /** For the header's picture (`ShopAvatar`): its logo, the kind and whether there is a menu photo to fall back on. */
+    logoUrl?: string | null; kind?: ShopKind; hasMenuPhoto?: boolean;
+  };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
   initialPaypalReachable: boolean;
@@ -58,6 +64,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const [orders, setOrders] = useState(initialOrders);
   const [items, setItems] = useState(initialItems);
   const [coverUrl, setCoverUrl] = useState(shop.coverUrl ?? null);
+  const [logoUrl, setLogoUrl] = useState(shop.logoUrl ?? null);
+  const kind = shop.kind ?? 'food';
   const [paypalReachable, setPaypalReachable] = useState(initialPaypalReachable);
   const [status, setStatus] = useState<ShopStatus>(shop.status);
   const [payeeEmail, setPayeeEmail] = useState(shop.payeeEmail);
@@ -150,16 +158,19 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   };
 
   const toPrepare = orders.filter((o) => o.status === 'paid').length;
-  const photos = new Map(items.map((i) => [i.id, i.photoUrl]));
+  const photos = new Map(items.map((i) => [i.id, { photoUrl: i.photoUrl, category: itemCategory(i, kind) }]));
   const paused = status === 'paused';
 
   return (
     <div className="mx-auto flex w-full max-w-wide flex-col gap-6 px-gutter pt-6 pb-section lg:pt-8">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-4">
-          <span aria-hidden="true" className="hidden size-14 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-xl font-extrabold text-on-accent sm:inline-flex">
-            {monogram(shop.name)}
-          </span>
+          <ShopAvatar
+            shop={{ logoUrl, coverUrl, slug: shop.slug, kind, menuPhotoPaths: shop.hasMenuPhoto ? ['page-1'] : [] }}
+            items={items}
+            menuPhotoSrc={`/api/shops/${shop.id}/photo/1`}
+            className="hidden sm:block"
+          />
           <div className="flex min-w-0 flex-col gap-1">
             <h1 className="type-display">{shop.name}</h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -238,7 +249,17 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'settings',
             label: 'Settings',
-            content: <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />,
+            content: (
+              <div className="flex flex-col gap-10">
+                <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />
+                <section aria-labelledby="settings-logo-title" className="flex max-w-measure flex-col gap-4 border-t border-line pt-8">
+                  <h2 id="settings-logo-title" className="type-title">
+                    Your logo
+                  </h2>
+                  <LogoPicker shopId={shop.id} shopName={shop.name} logoUrl={logoUrl} onChange={setLogoUrl} />
+                </section>
+              </div>
+            ),
           },
         ]}
       />

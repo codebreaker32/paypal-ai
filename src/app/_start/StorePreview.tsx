@@ -7,9 +7,9 @@ import { formatUSD } from '@/lib/domain/money';
 // The demo shop as seeded (scripts/seed-demo.ts): prices from public/samples/marigold-bakehouse.jpg, photos from public/demo.
 const DEMO = '/demo/marigold-bakehouse';
 const ITEMS = [
-  { name: 'Almond croissant', cents: 500, photo: `${DEMO}/almond-croissant.jpg` },
-  { name: 'Country sourdough loaf', cents: 900, photo: `${DEMO}/country-sourdough-loaf.jpg` },
-  { name: 'Cardamom bun', cents: 450, photo: `${DEMO}/cardamom-bun.jpg` },
+  { name: 'Almond croissant', cents: 500, photo: `${DEMO}/almond-croissant.jpg`, category: 'pastry' },
+  { name: 'Country sourdough loaf', cents: 900, photo: `${DEMO}/country-sourdough-loaf.jpg`, category: 'bread' },
+  { name: 'Cardamom bun', cents: 450, photo: `${DEMO}/cardamom-bun.jpg`, category: 'pastry' },
 ] as const;
 const LINES = [
   { qty: 2, name: 'Almond croissant', cents: 500 },
@@ -48,7 +48,7 @@ export function StorePreview() {
                   <p className="truncate text-sm font-bold text-ink">{i.name}</p>
                   <p className="text-xs font-semibold text-ink-soft tabular-nums">{formatUSD(i.cents)}</p>
                 </div>
-                <ItemPhoto name={i.name} photoUrl={i.photo} tone={n} size="sm" decorative className="size-14 rounded-(--thumb-radius)" />
+                <ItemPhoto name={i.name} photoUrl={i.photo} category={i.category} tone={n} size="sm" decorative className="size-14 rounded-(--thumb-radius)" />
               </li>
             ))}
           </ul>

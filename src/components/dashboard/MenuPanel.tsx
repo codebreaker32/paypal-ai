@@ -1,5 +1,6 @@
 'use client';
 
+import { categoryOf } from '@/lib/domain/category';
 import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
@@ -65,6 +66,7 @@ function MenuRow({
           itemId={item.id}
           name={item.name}
           photoUrl={item.photoUrl}
+          category={categoryOf(item)}
           tone={tone}
           size="sm"
           onChange={onPhoto}

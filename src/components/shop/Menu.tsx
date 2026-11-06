@@ -1,6 +1,7 @@
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
-import type { ItemWithVariants } from '@/lib/domain/types';
+import { itemCategory } from '@/lib/domain/category';
+import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
 import { ItemPhoto } from './ItemPhoto';
 import { SectionTabs } from './SectionTabs';
 
@@ -42,7 +43,7 @@ function Prices({ item }: { item: ItemWithVariants }) {
   );
 }
 
-function MenuItem({ item, tone }: { item: ItemWithVariants; tone: number }) {
+function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; kind: ShopKind }) {
   const unavailable = item.soldOut && item.status !== 'in_person';
   return (
     <li
@@ -64,6 +65,7 @@ function MenuItem({ item, tone }: { item: ItemWithVariants; tone: number }) {
       <ItemPhoto
         name={item.name}
         photoUrl={item.photoUrl}
+        category={itemCategory(item, kind)}
         tone={tone}
         dim={unavailable}
         className="size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-none lg:size-34"
@@ -73,7 +75,7 @@ function MenuItem({ item, tone }: { item: ItemWithVariants; tone: number }) {
 }
 
 /** The shop's menu as people order from it: sticky section tabs, then each section's items as photo cards. */
-export function Menu({ sections }: { sections: MenuSection[] }) {
+export function Menu({ sections, kind }: { sections: MenuSection[]; kind: ShopKind }) {
   const ids = sections.map((s, i) => ({ id: sectionId(s.name, i), name: s.name }));
   return (
     <section aria-labelledby="menu-title" className="flex flex-col gap-6">
@@ -89,7 +91,7 @@ export function Menu({ sections }: { sections: MenuSection[] }) {
             <h3 className="type-title">{section.name}</h3>
             <ul className="flex flex-col divide-y divide-line sm:grid sm:grid-cols-2 sm:gap-4 sm:divide-y-0">
               {section.items.map((item) => (
-                <MenuItem key={item.id} item={item} tone={i} />
+                <MenuItem key={item.id} item={item} tone={i} kind={kind} />
               ))}
             </ul>
           </div>

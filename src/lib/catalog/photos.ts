@@ -15,6 +15,8 @@ import { EditError } from './edits';
 
 export const ITEM_PHOTO: PhotoEncoding = { maxEdge: 1200, format: 'webp', quality: 80 };
 export const COVER_PHOTO: PhotoEncoding = { maxEdge: 2000, format: 'webp', quality: 80 };
+/** The shop's logo: its centre square, 512 px a side (the avatar is at most 96 px, so 2x and some). */
+export const LOGO_PHOTO: PhotoEncoding = { maxEdge: 512, format: 'webp', quality: 85, square: true };
 
 /** The only file names GET /i/[file] serves (and the only uploads this module ever deletes). */
 export const UPLOADED_PHOTO_FILE = /^img_[a-z2-7]{20}\.webp$/;
@@ -96,6 +98,22 @@ export async function setShopCover(db: Db, shopId: string, input: Buffer): Promi
 export async function clearShopCover(db: Db, shopId: string): Promise<void> {
   const previous = shopsRepo.byId(db, shopId)?.coverUrl ?? null;
   shopsRepo.update(db, shopId, { coverUrl: null });
+  await deleteUploaded(previous);
+}
+
+/** Stores `input` as the shop's logo (a centred square) and returns its URL. Throws UploadError like setItemPhoto. */
+export async function setShopLogo(db: Db, shopId: string, input: Buffer): Promise<string> {
+  const url = await savePhoto(input, LOGO_PHOTO);
+  const previous = shopsRepo.byId(db, shopId)?.logoUrl ?? null;
+  shopsRepo.update(db, shopId, { logoUrl: url });
+  await deleteUploaded(previous);
+  return url;
+}
+
+/** Clears the shop's logo (the avatar falls back to the cover, a menu photo or a drawing) and deletes the file. */
+export async function clearShopLogo(db: Db, shopId: string): Promise<void> {
+  const previous = shopsRepo.byId(db, shopId)?.logoUrl ?? null;
+  shopsRepo.update(db, shopId, { logoUrl: null });
   await deleteUploaded(previous);
 }
 

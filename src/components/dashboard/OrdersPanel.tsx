@@ -1,5 +1,6 @@
 'use client';
 
+import type { ItemPicture } from '@/lib/domain/category';
 import { useState } from 'react';
 import { Bot, ChevronDown, CloudOff } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
@@ -75,7 +76,7 @@ export function OrdersPanel({
   shopId: string;
   slug: string;
   fresh: ReadonlySet<string>;
-  photos?: ReadonlyMap<string, string | null>;
+  photos?: ReadonlyMap<string, ItemPicture>;
   paypalReachable: boolean;
   onOrderChange: (order: Order) => void;
   onShowShare: () => void;

@@ -153,3 +153,26 @@ test.describe('on a desktop', () => {
     await expect(page.getByText('Photos in one go')).toBeVisible();
   });
 });
+
+test.describe('the shop logo (Settings)', () => {
+  test.use({ viewport: DESKTOP });
+
+  test('without a logo the header shows a picture, never letters; a logo replaces it and Remove brings the picture back', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}?tab=settings`);
+    const header = page.locator('header').filter({ has: page.getByRole('heading', { level: 1 }) });
+    // The fixture shop has no logo or cover: the header's picture is its menu photo or a drawing, never initials.
+    await expect(header.locator('[data-avatar], [data-illustration]').first()).toBeVisible();
+    await expect(header.getByText(/^[A-Z][a-z]?$/)).toHaveCount(0);
+
+    await page.getByLabel('Add a logo').setInputFiles(path.join(PHOTOS, 'cover.jpg'));
+    await expect(page.getByRole('img', { name: /logo$/ })).toHaveAttribute('src', /^\/i\//);
+    const logoUrl = shopsRepo.byId(getDb(), shop.shop.id)!.logoUrl!;
+    expect(logoUrl).toMatch(/^\/i\//);
+    await expect(header.locator('img[data-avatar="logo"]')).toHaveAttribute('src', logoUrl);
+
+    await page.getByRole('button', { name: 'Remove logo' }).click();
+    await expect(page.getByLabel('Add a logo')).toBeAttached();
+    expect(shopsRepo.byId(getDb(), shop.shop.id)!.logoUrl).toBeNull();
+    await expect(header.locator('img[data-avatar="logo"]')).toHaveCount(0);
+  });
+});

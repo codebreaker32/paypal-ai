@@ -1,5 +1,6 @@
 // zodOutputFormat requires zod v4 schemas; zod 3.25 ships them at 'zod/v4'.
 import { z } from 'zod/v4';
+import { CATEGORIES } from '@/lib/domain/category';
 
 // Plain types, enums, nullable and arrays only: the structured-output JSON-schema subset
 // rejects some constraints. Ranges are validated in normalize.ts.
@@ -25,6 +26,8 @@ const ItemSchema = z.object({
   confidence: z.enum(['high', 'medium', 'low']),
   note: z.string().nullable(),
   looks_like_instruction: z.boolean(),
+  // Nullable, so the model may leave it out when nothing fits; itemCategory() then guesses from the words.
+  category: z.enum(CATEGORIES).nullable(),
 });
 
 const SkippedSchema = z.object({
@@ -51,3 +54,15 @@ export const MenuExtractionSchema = z.object({
 
 export type MenuExtraction = z.infer<typeof MenuExtractionSchema>;
 export type ExtractedItem = MenuExtraction['items'][number];
+
+/** A reading stored before items had a category (the recorded samples, extractions saved by runs 1–2) gets category null. */
+function withCategories(raw: unknown): unknown {
+  if (!raw || typeof raw !== 'object' || !Array.isArray((raw as { items?: unknown }).items)) return raw;
+  const r = raw as { items: unknown[] };
+  return { ...r, items: r.items.map((it) => (it && typeof it === 'object' && !('category' in it) ? { ...it, category: null } : it)) };
+}
+
+/** Validates a stored model reading against the live schema, tolerating readings older than the item category. */
+export function parseStoredReading(raw: unknown) {
+  return MenuExtractionSchema.safeParse(withCategories(raw));
+}

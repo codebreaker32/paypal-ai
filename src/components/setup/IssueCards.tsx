@@ -1,5 +1,6 @@
 'use client';
 
+import { categoryOf } from '@/lib/domain/category';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (messag
       itemId={item.id}
       name={item.name}
       photoUrl={item.photoUrl}
+      category={categoryOf(item)}
       size="sm"
       onChange={(url) => photo.onPhoto(item.id, url)}
       onError={onError}

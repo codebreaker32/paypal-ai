@@ -355,6 +355,28 @@ test.describe('console states', () => {
     await expectAccessible(page);
   });
 
+  test('the shop’s picture is a picture, never letters, and nothing covers it at 390, 768 or 1440', async ({ page }) => {
+    for (const [slug, width] of [
+      [SLUG, 390], [SLUG, 768], [SLUG, 1440],
+      [edgeShop.slug, 390], [edgeShop.slug, 1440],
+    ] as const) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(`/s/${slug}`);
+      await settle(page);
+      // The demo shop shows its cover (cropped square) over the cover's edge; the edge shop, with no photos and no
+      // stored categories, the drawing of its most common guessed category, and its items' drawings on their tints.
+      const avatar = page.locator('main [data-avatar], main [data-illustration]').first();
+      await expect(avatar).toBeVisible();
+      if (slug === edgeShop.slug) await expect(page.locator('main [data-illustration] use').first()).toHaveAttribute('href', /^\/illustrations\.svg#[a-z_]+$/);
+      const box = (await avatar.boundingBox())!;
+      const top = await page.evaluate(({ x, y }) => {
+        const hit = document.elementFromPoint(x, y);
+        return !!hit?.closest('[data-avatar], [data-illustration]');
+      }, { x: box.x + box.width / 2, y: box.y + box.height / 2 });
+      expect(top, `${slug} at ${width}`).toBe(true);
+    }
+  });
+
   test('draft and unknown shops are 404', async ({ page }) => {
     const res = await page.goto('/s/no-such-shop-anywhere');
     expect(res?.status()).toBe(404);

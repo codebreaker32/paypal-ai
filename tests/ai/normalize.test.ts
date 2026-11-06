@@ -3,13 +3,15 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { normalizeExtraction, retakeTipFor } from '@/lib/ai/normalize';
 import { MAX_VARIANTS } from '@/lib/catalog/rules';
-import { MenuExtractionSchema, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
+import { parseStoredReading, type ExtractedItem, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import type { DraftCatalog, DraftItem, UnreadableMenu } from '@/lib/domain/types';
 
 const dir = path.resolve(import.meta.dirname, 'fixtures');
 function fixture(name: string): MenuExtraction {
-  return MenuExtractionSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')));
+  const parsed = parseStoredReading(JSON.parse(fs.readFileSync(path.join(dir, `${name}.json`), 'utf8')));
+  if (!parsed.success) throw parsed.error;
+  return parsed.data;
 }
 function catalog(raw: MenuExtraction): DraftCatalog {
   const r = normalizeExtraction(raw);
@@ -37,7 +39,7 @@ function raw(...items: Partial<ExtractedItem>[]): MenuExtraction {
     items: items.map((p) => ({
       section: null, name: 'Thing', description: null, source_text: 'Thing', page: 1,
       prices: [{ label: null, amount_cents: 500, raw: '$5' }], price_kind: 'fixed' as const, deal_text: null,
-      confidence: 'high' as const, note: null, looks_like_instruction: false, ...p,
+      confidence: 'high' as const, note: null, looks_like_instruction: false, category: 'goods' as const, ...p,
     })),
   };
 }
@@ -564,5 +566,18 @@ describe('retakeTipFor', () => {
     expect(retakeTipFor(['blurry', 'dark'])).toBe('Hold steady and tap to focus. Move closer to a light');
     expect(retakeTipFor([])).toMatch(/another photo/i);
     expect(retakeTipFor(['non_usd'])).toMatch(/another photo/i);
+  });
+});
+
+describe('category (the drawing shown without a photo)', () => {
+  it('keeps the category Claude chose', () => {
+    const c = catalog(raw({ name: 'Country sourdough loaf', category: 'bread' }));
+    expect(c.items[0].category).toBe('bread');
+  });
+  it('an older reading without one, or an unknown value, keeps null (itemCategory guesses later)', () => {
+    const missing = raw({ name: 'Country sourdough loaf' });
+    delete (missing.items[0] as Partial<ExtractedItem>).category;
+    expect(catalog(missing).items[0].category).toBeNull();
+    expect(catalog(raw({ name: 'Bun', category: 'sandwich' as ExtractedItem['category'] })).items[0].category).toBeNull();
   });
 });

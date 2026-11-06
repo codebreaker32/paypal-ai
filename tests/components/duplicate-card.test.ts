@@ -8,7 +8,7 @@ const TWICE = 'Listed twice with different prices: $450.00 and $40.00.';
 
 const item = (id: string, priceCents: number, issues: IssueCode[], issueDetail: string): ItemWithVariants => ({
   id, shopId: 'shp_1', section: 'Gifts', name: 'Gift box', description: null, sourceText: `Gift box ${priceCents / 100}`,
-  confidence: 'high', issues, issueDetail, kind: 'PHYSICAL', status: 'draft', soldOut: false, photoUrl: null, sort: 0,
+  confidence: 'high', issues, issueDetail, kind: 'PHYSICAL', status: 'draft', soldOut: false, photoUrl: null, category: null, sort: 0,
   paypalProductId: null, publishedAt: null, updatedAt: '2026-11-06T00:00:00Z',
   variants: [{ id: `${id}-v0`, itemId: id, label: null, priceCents, sort: 0 }],
 });

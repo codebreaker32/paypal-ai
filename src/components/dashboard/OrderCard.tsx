@@ -6,6 +6,7 @@ import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
+import type { ItemPicture } from '@/lib/domain/category';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order } from '@/lib/domain/types';
 import { agentLabel, buyerLabel, itemSummary, whereLabel } from '@/lib/seller/view';
@@ -55,7 +56,7 @@ export function OrderCard({
   shopId: string;
   fresh?: boolean;
   /** itemId -> photo URL, for the first line's thumbnail. */
-  photos?: ReadonlyMap<string, string | null>;
+  photos?: ReadonlyMap<string, ItemPicture>;
   onChange: (order: Order) => void;
 }) {
   const href = `/shops/${shopId}/orders/${order.id}`;
@@ -74,7 +75,8 @@ export function OrderCard({
     >
       <ItemPhoto
         name={first?.name ?? order.number}
-        photoUrl={first ? (photos?.get(first.itemId) ?? null) : null}
+        photoUrl={first ? (photos?.get(first.itemId)?.photoUrl ?? null) : null}
+        category={(first && photos?.get(first.itemId)?.category) || 'goods'}
         size="sm"
         decorative
         eager
