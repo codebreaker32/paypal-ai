@@ -1,6 +1,8 @@
-# Video frame check: `video/out/shelfie-demo.mp4` (render of 07 Nov 2026, ~02:50 IST)
+# Video frame check: `video/out/shelfie-demo.mp4` (final render, 07 Nov 2026, ~03:15 IST)
 
-**File:** 166.78 s (2:46.8), 1920x1080, H.264 at 30/1 fps, AAC audio. Rendered from `video/project/demo.json` on the final clips (recorded 02:10–02:30 IST on `f073227`, the final Part A/A2/A3 UI, every clip 0 dup / 0 drop).
+**File:** 165.30 s (2:45.3), 1920x1080, H.264 at 30/1 fps, AAC audio at **-14.0 LUFS integrated, true peak -1.0 dBFS** (`ebur128`). Rendered from `video/project/demo.json` on the final clips: 01–04 and 07 recorded 02:10–02:30 IST on `f073227` (the final Part A/A2/A3 UI), 05, 06, 06b, 08, 09 and 10 re-taken ~03:00 IST for the video round's fixes; every clip 0 dup / 0 drop.
+
+**Video round fixes, checked in these frames:** Claude Code's order (SHF-FTABWQ) shows as *Waiting for payment* / *Waiting for approval* on the dashboard and the order page's list, never *Cancelled* (sheet 6); the discovery captions sit at the bottom, clear of the command and its shop URL (sheet 4); the architecture card has no footer sentence under the closing captions (sheet 7); the tamper scene opens on the typed command (sheet 6); the PayPal scene stays on the receipt (sheet 5).
 
 **Method:** one frame every 2 s (`ffmpeg -vf fps=1/2`), 84 frames, tiled 3x4 into the 7 sheets in [`video-frames/`](video-frames/); I viewed every sheet.
 
@@ -12,4 +14,4 @@
 | Logo | Only the Awning logo (intro, headers, counter card, architecture card, end card). |
 | Captions | One line each, never clipped, never covering the key UI (top placement on UI shots). |
 | Example photos | Shown and labelled on the Menu tab in the counter scene ("Example photo, replace with yours"), replaced by Claude's crops on camera. |
-| Blemish | ~2:00: the price-tamper clip opens on an empty prompt for a moment (fixed by starting it at 1.6 s). |
+| Known, kept | `localhost:3251` URLs (a local run), and the setup clip's new shop is `marigold-bakehouse-3` while later clips use the seeded `marigold-bakehouse` (each take starts a new shop from the sample). |
