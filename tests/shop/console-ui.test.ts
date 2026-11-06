@@ -6,6 +6,7 @@ import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/c
 import {
   approvalCard,
   consoleReducer,
+  consoleToSave,
   initialConsoleState,
   refsToCheck,
   restoreConsoleState,
@@ -88,6 +89,22 @@ describe('consoleReducer', () => {
     expect(new Set(next.entries.map((e) => e.key)).size).toBe(next.entries.length);
   });
 
+  it('keeps an approval card that was still waiting for the end of the turn across a reload', () => {
+    // The buyer reloads while Claude is still writing after create_order: no done ever arrives.
+    const s = run(
+      consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' }),
+      { type: 'session', id: 'asst_2' },
+      { type: 'tool_call', id: 't1', name: 'create_order', input: {} },
+      { type: 'tool_result', id: 't1', ok: true, result: { order_ref: 'ord_a', status: 'awaiting_approval' }, ms: 900 },
+      { type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=a', total: '9.00', orderRef: 'ord_a', orderNumber: 'SHF-AAAAAA' },
+    );
+    const restored = restoreConsoleState(JSON.parse(JSON.stringify(consoleToSave(s))));
+    expect(restored.entries.map((e) => e.kind)).toEqual(['user', 'activity', 'approval']);
+    expect(restored.entries.at(-1)).toMatchObject({ kind: 'approval', orderRef: 'ord_a', total: '9.00', orderNumber: 'SHF-AAAAAA' });
+    expect(refsToCheck(restored)).toEqual(['ord_a']);
+    expect(new Set(restored.entries.map((e) => e.key)).size).toBe(restored.entries.length);
+  });
+
   it('ignores saved data that is not a conversation', () => {
     expect(restoreConsoleState({ nope: true })).toEqual(initialConsoleState);
     expect(restoreConsoleState(null)).toEqual(initialConsoleState);
@@ -160,6 +177,20 @@ describe('approval cards', () => {
     // An error result, or a status for another order, changes nothing.
     expect(approvalOf(askStatus(s, 't3', { error: { code: 'ORDER_NOT_FOUND' } }, false)).status).toBe('paid');
     expect(approvalOf(askStatus(s, 't4', { order_ref: 'ord_other', status: 'cancelled' })).status).toBe('paid');
+  });
+
+  it('follow a capture PayPal refused, as get_order_status reports it, so the card stops saying "Confirming with PayPal"', () => {
+    const refused = { approve: false, label: 'Payment refused', tone: 'danger' };
+    // Read as approved while the capture was still running, then PayPal refused it.
+    let s = consoleReducer(placed(), { type: 'order_status', orderRef: 'ord_1', status: 'approved', captureRefused: false });
+    s = askStatus(s, 't1', { order_ref: 'ord_1', status: 'approved', capture_refused: true });
+    expect(approvalCard(approvalOf(s))).toEqual(refused);
+    expect(refsToCheck(s)).toEqual([]);
+    // The console's own status check ran the capture, and PayPal refused it.
+    expect(approvalCard(approvalOf(askStatus(placed(), 't2', { order_ref: 'ord_1', status: 'approved', capture_refused: true })))).toEqual(refused);
+    // A capture that went through after all clears it.
+    s = askStatus(s, 't3', { order_ref: 'ord_1', status: 'approved', capture_refused: false });
+    expect(approvalCard(approvalOf(s))).toEqual({ approve: false, label: 'Confirming with PayPal', tone: 'info' });
   });
 
   it('follow a status read in the same turn as the order (the card is still held until the turn ends)', () => {

@@ -135,6 +135,8 @@ export const TOOL_OUTPUT_SCHEMAS = {
     total: z.string(),
     paid_at: z.string().nullable(),
     approval_url: z.string().nullable(),
+    /** PayPal refused to complete the approved payment (nothing was charged). */
+    capture_refused: z.boolean(),
     tracking: z.array(trackingOut),
     message: z.string(),
   }),
@@ -315,6 +317,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         }
       }
       const tracking = ordersRepo.trackers(db, order.id);
+      const captureFailure = lastCaptureFailure(db, order);
       return {
         order_ref: order.id,
         order_number: order.number,
@@ -323,8 +326,9 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         total: toPayPalValue(order.totalCents),
         paid_at: order.paidAt,
         approval_url: order.status === 'awaiting_approval' ? order.approvalUrl : null,
+        capture_refused: captureFailure !== null,
         tracking: tracking.map((t) => ({ carrier: t.carrier, tracking_number: t.trackingNumber, status: t.paypalStatus })),
-        message: statusMessage(order, shop, tracking, lastCaptureFailure(db, order)) + staleNote,
+        message: statusMessage(order, shop, tracking, captureFailure) + staleNote,
       };
     },
   });
