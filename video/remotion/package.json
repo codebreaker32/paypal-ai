@@ -1,0 +1,24 @@
+{
+  "name": "shelfie-demo-video",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Remotion compositor for Shelfie's demo video (from demoday's template, restyled in the Shelfie brand). Reads ../project/demo.json.",
+  "scripts": {
+    "voice": "HF_HOME=${HF_HOME:-../models} ${KOKORO_PYTHON:-../.venv/bin/python} -I ../voice/kokoro_tts.py ../project/demo.json",
+    "voice:pick": "HF_HOME=${HF_HOME:-../models} ${KOKORO_PYTHON:-../.venv/bin/python} -I ../voice/pick_voice.py",
+    "props": "node scripts/build-props.mjs",
+    "srt": "node scripts/srt.mjs",
+    "render": "node scripts/render.mjs",
+    "render:animatic": "node scripts/render.mjs --placeholders --out ../out/animatic.mp4 --no-poster",
+    "studio": "node scripts/build-props.mjs --placeholders && remotion studio src/index.jsx --public-dir ../project"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.499",
+    "@remotion/fonts": "4.0.499",
+    "@remotion/transitions": "4.0.499",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.499"
+  }
+}
