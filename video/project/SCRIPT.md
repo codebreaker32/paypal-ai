@@ -2,35 +2,37 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 1). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:37.3** (157.27 s): 130.79 s of narration (359 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
+**Runtime 2:42.3** (162.27 s): 135.78 s of narration (377 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
-| problem | 1 | 0:00.0 | 21.39 | 22.43 |
-| snap | 2 | 0:22.4 | 5.33 | 7.27 |
-| review | 2 | 0:29.7 | 18.23 | 19.67 |
-| counter | 2 | 0:49.4 | 5.88 | 7.33 |
-| card | 2 | 0:56.7 | 7.78 | 8.23 |
-| discovery | 3 | 1:04.9 | 11.68 | 16.13 |
-| console | 4 | 1:21.1 | 13.92 | 16.87 |
-| paypal | 4 | 1:37.9 | 9.09 | 11.53 |
-| tamper | 4 | 1:49.5 | 4.68 | 6.13 |
-| dashboard | 5 | 1:55.6 | 14.37 | 15.83 |
-| tracking | 5 | 2:11.4 | 3.92 | 6.37 |
-| close | 6 | 2:17.8 | 14.52 | 15.97 |
-| end | 6 | 2:33.3 | - | 4.00 |
+| problem | 1 | 0:00.0 | 26.38 | 27.43 |
+| snap | 2 | 0:27.4 | 5.33 | 7.27 |
+| review | 2 | 0:34.7 | 18.23 | 19.67 |
+| counter | 2 | 0:54.4 | 5.88 | 7.33 |
+| card | 2 | 1:01.7 | 7.78 | 8.23 |
+| discovery | 3 | 1:09.9 | 11.68 | 16.13 |
+| console | 4 | 1:26.1 | 13.92 | 16.87 |
+| paypal | 4 | 1:42.9 | 9.09 | 11.53 |
+| tamper | 4 | 1:54.5 | 4.68 | 6.13 |
+| dashboard | 5 | 2:00.6 | 14.37 | 15.83 |
+| tracking | 5 | 2:16.4 | 3.92 | 6.37 |
+| close | 6 | 2:22.8 | 14.52 | 15.97 |
+| end | 6 | 2:38.3 | - | 4.00 |
 
 ## Beat 1: The problem: who it's for and why now
 
-### problem (21.39 s voice, 22.44 s scene)
+### problem (26.38 s voice, 27.43 s scene)
 
 **Screen:** Clip 01: the handwritten Marigold menu on a counter, zooming in slowly.
 
-> AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website. She has this sheet of paper. In a US Census survey, 47 percent of food and lodging businesses had no website. An assistant can't order from a sheet of paper.
+> AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.
 
 On-screen text: "PayPal's agent checkout “is limited to Store Sync customers today”, for merchants “using their existing website storefronts”." (PayPal Developer blog, Sep 2026)
 
-On-screen text: "47% of US accommodation and food-service employer firms reported having no website." (US Census Bureau, Annual Survey of Entrepreneurs (data year 2016))
+On-screen text: "“Text messages and Facebook messages and Instagram DMs … And then tracking them on a spreadsheet.”" (A home baker in Virginia, Radio IQ, Jul 2026)
+
+On-screen text: "47% of US accommodation and food-service employer firms reported having no website (data year 2016)." (US Census Bureau, Annual Survey of Entrepreneurs, data year 2016)
 
 ## Beat 2: Snap a paper menu; the shop goes live with photos
 

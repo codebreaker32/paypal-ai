@@ -3,10 +3,10 @@
 
 A drop-in for demoday's ``scripts/gen/tts.mjs`` (which needs fal.ai or ElevenLabs):
 it writes the same artifacts in the same shape, so demoday's renderer, captions
-and our SRT writer work unchanged.
+and our SRT writer work unchanged. From the repo root:
 
-    HF_HOME=/home/aman/paypal-ai/video/models \\
-      /home/aman/paypal-ai/video/.venv/bin/python -I video/voice/kokoro_tts.py \\
+    HF_HOME=video/models \\
+      video/.venv/bin/python -I video/voice/kokoro_tts.py \\
       video/project/demo.json [--line <scene-id>]... [--force]
 
 For every scene with ``narration`` (or only the ``--line`` ones) it writes, next to
@@ -116,6 +116,13 @@ def encode_mp3(audio, out: Path) -> None:
     )
 
 
+def save_manifest(path: Path, m: dict) -> None:
+    """Write demo.json atomically (temp file, then rename)."""
+    tmp = path.with_name(path.name + ".tmp")
+    tmp.write_text(json.dumps(m, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(path)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("manifest", type=Path, help="path to demo.json")
@@ -156,7 +163,13 @@ def main() -> int:
                 cached = False
         if not cached:
             if pipe is None:
-                from kokoro import KPipeline  # slow import: only when a line needs speaking
+                try:
+                    from kokoro import KPipeline  # slow import: only when a line needs speaking
+                except ImportError as e:
+                    print(f"{e}. Run this with the Kokoro venv's Python (video/README.md), from the repo root:\n"
+                          "  HF_HOME=video/models video/.venv/bin/python -I video/voice/kokoro_tts.py "
+                          "video/project/demo.json", file=sys.stderr)
+                    return 1
                 pipe = KPipeline(lang_code=lang, repo_id=MODEL)
             audio, words = synthesise(pipe, text, voice, speed)
             encode_mp3(audio, mp3)
@@ -170,9 +183,10 @@ def main() -> int:
         scene["narrationSec"] = round(n, 3)
         scene["durationSec"] = scene_duration(m, scene, n)
         total += n
+        # Saved after every line, so a failure later in the run leaves no stale
+        # duration behind for the lines already spoken.
+        save_manifest(manifest_path, m)
         print(f"  {scene['id']:<14} {'cached' if cached else 'spoken'} {n:6.2f} s speech, scene {scene['durationSec']:6.2f} s")
-
-    manifest_path.write_text(json.dumps(m, indent=2, ensure_ascii=False) + "\n")
 
     timeline = m["timeline"]
     runtime = sum(s.get("durationSec") or 0 for s in timeline) - sum(

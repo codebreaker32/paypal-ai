@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Voice pick: the same two narration sentences in a few Kokoro-82M voices.
+"""Voice pick: the same two narration sentences in a few Kokoro-82M voices. From the repo root:
 
-    HF_HOME=/home/aman/paypal-ai/video/models \
-      /home/aman/paypal-ai/video/.venv/bin/python -I video/voice/pick_voice.py [out_dir]
+    HF_HOME=video/models \
+      video/.venv/bin/python -I video/voice/pick_voice.py [out_dir]
 
 Writes <out_dir>/<voice>.mp3 (default video/out/voices/, gitignored) and prints
 each clip's length. Listen to them side by side and set voice.voice (and
@@ -13,8 +13,12 @@ import sys
 import time
 from pathlib import Path
 
-import numpy as np
-from kokoro import KPipeline
+try:
+    import numpy as np
+    from kokoro import KPipeline
+except ImportError as e:
+    sys.exit(f"{e}. Run this with the Kokoro venv's Python (set up as in video/README.md), from the repo root:\n"
+             "  HF_HOME=video/models video/.venv/bin/python -I video/voice/pick_voice.py")
 
 SR = 24000
 TEXT = (

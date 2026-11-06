@@ -56,27 +56,34 @@
       "beat": 1,
       "screen": "Clip 01: the handwritten Marigold menu on a counter, zooming in slowly.",
       "video": "clips/01-menu-photo.mp4",
-      "narration": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website. She has this sheet of paper. In a US Census survey, 47 percent of food and lodging businesses had no website. An assistant can't order from a sheet of paper.",
+      "narration": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.",
       "onScreen": [
         {
           "from": "But PayPal's",
-          "to": "She has this sheet",
+          "to": "She has no website",
           "text": "PayPal's agent checkout “is limited to Store Sync customers today”, for merchants “using their existing website storefronts”.",
           "source": "PayPal Developer blog, Sep 2026"
         },
         {
-          "from": "In a US Census",
+          "from": "One home baker",
+          "to": "In a 2016",
+          "extraSec": 0,
+          "text": "“Text messages and Facebook messages and Instagram DMs … And then tracking them on a spreadsheet.”",
+          "source": "A home baker in Virginia, Radio IQ, Jul 2026"
+        },
+        {
+          "from": "In a 2016",
           "to": "An assistant",
           "extraSec": 0.8,
-          "text": "47% of US accommodation and food-service employer firms reported having no website.",
-          "source": "US Census Bureau, Annual Survey of Entrepreneurs (data year 2016)"
+          "text": "47% of US accommodation and food-service employer firms reported having no website (data year 2016).",
+          "source": "US Census Bureau, Annual Survey of Entrepreneurs, data year 2016"
         }
       ],
       "holdSec": 0.6,
       "audio": "audio/problem.mp3",
       "words": "audio/problem.words.json",
-      "narrationSec": 21.394,
-      "durationSec": 22.444
+      "narrationSec": 26.384,
+      "durationSec": 27.434
     },
     {
       "id": "snap",
