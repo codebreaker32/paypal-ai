@@ -30,7 +30,7 @@ export function ShopAvatar({ shop, items, size = 'md', menuPhotoSrc, className }
   const source = shopAvatar(shop, items);
   const box = cx('block shrink-0 overflow-hidden', SIZE[size], className);
   if (source.kind === 'illustration') {
-    return <ItemIllustration category={source.category} tone={0} className={cx(box, 'p-[8%]')} />;
+    return <ItemIllustration category={source.category} tone={0} className={box} />;
   }
   const src = source.kind === 'menu' && menuPhotoSrc ? menuPhotoSrc : source.src;
   return <img src={src} alt="" aria-hidden="true" data-avatar={source.kind} className={cx(box, 'bg-surface-sunken object-cover')} />;
