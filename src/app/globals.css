@@ -122,11 +122,11 @@
   --color-ok-soft: var(--green-50);
   --color-warn: var(--amber-800);
   --color-warn-soft: var(--amber-50);
-  /* Errors and failed states. `danger` is the older name of the same role. */
+  /* Errors and failed states. `danger` is the older name of the same role (an alias of the role, not of a hex). */
   --color-error: var(--vermilion-700);
   --color-error-soft: var(--vermilion-50);
-  --color-danger: var(--vermilion-700);
-  --color-danger-soft: var(--vermilion-50);
+  --color-danger: var(--color-error);
+  --color-danger-soft: var(--color-error-soft);
   --color-info: var(--blue-700);
   --color-info-soft: var(--blue-50);
   /* Helpful notes: a slate tint well with ink text, and slate for its label and icon. */
@@ -156,24 +156,24 @@
   /* shadcn's semantic names (components.json), mapped onto ours so a component added with `npx shadcn add` speaks
      Shelfie without its default palette. `accent` keeps Shelfie's meaning (pomegranate, never a hover fill): when a
      shadcn component uses `bg-accent` for hover or selection, change it to `bg-muted`. */
-  --color-background: var(--white);
-  --color-foreground: var(--ink-900);
-  --color-card: var(--white);
-  --color-card-foreground: var(--ink-900);
-  --color-popover: var(--white);
-  --color-popover-foreground: var(--ink-900);
-  --color-primary: var(--ink-900);
-  --color-primary-foreground: var(--white);
-  --color-secondary: var(--grey-50);
-  --color-secondary-foreground: var(--ink-900);
-  --color-muted: var(--grey-50);
-  --color-muted-foreground: var(--ink-600);
-  --color-accent-foreground: var(--white);
-  --color-destructive: var(--vermilion-700);
-  --color-destructive-foreground: var(--white);
-  --color-border: var(--grey-100);
-  --color-input: var(--grey-500);
-  --color-ring: var(--ink-900);
+  --color-background: var(--color-surface);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface-raised);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface-raised);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-ink);
+  --color-primary-foreground: var(--color-surface);
+  --color-secondary: var(--color-surface-sunken);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-surface-sunken);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent-foreground: var(--color-on-accent);
+  --color-destructive: var(--color-error);
+  --color-destructive-foreground: var(--color-surface);
+  --color-border: var(--color-line);
+  --color-input: var(--color-control);
+  --color-ring: var(--color-focus);
 
   /* Type scale: major third from 16 px, rounded to the 2 px grid. Smallest step is 13 px. */
   --text-*: initial;
