@@ -496,6 +496,16 @@ const SCREENS: Screen[] = [
     },
   },
   {
+    // The first screen only, as a buyer's phone shows it: the sticky "Order with an assistant" bar at the bottom. (In
+    // the full-page `shop` capture Chromium draws that bar where the first screen ended, over the menu.)
+    name: 'shop-first-screen',
+    viewport: true,
+    run: async (page) => {
+      await page.goto(`/s/${SLUG}`);
+      await expect(page.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' })).toBeVisible();
+    },
+  },
+  {
     // A shop published from the Marigold sample menu: no photos, so every item shows the designed fallback.
     name: 'shop-no-photos',
     run: async (page) => {
