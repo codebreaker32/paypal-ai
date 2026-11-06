@@ -57,7 +57,8 @@ describe('buildOrderBody', () => {
     const seller = buildOrderBody({ ...base, payeeEmail: 'rosa@example.com' }) as { purchase_units: Record<string, unknown>[] };
     expect(seller.purchase_units[0].payee).toEqual({ email_address: 'rosa@example.com' });
     expect('payee' in platform.purchase_units[0]).toBe(false);
-    const { payee: _payee, ...rest } = seller.purchase_units[0];
+    const rest = { ...seller.purchase_units[0] };
+    delete rest.payee;
     expect({ ...seller, purchase_units: [rest] }).toEqual(platform);
     expect(Object.keys(seller.purchase_units[0])).toEqual(['reference_id', 'custom_id', 'invoice_id', 'description', 'amount', 'items', 'payee']);
   });

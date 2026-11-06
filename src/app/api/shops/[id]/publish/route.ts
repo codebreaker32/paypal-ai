@@ -4,13 +4,14 @@
 //   { type: 'item', itemId, ok: true, paypalProductId } | { type: 'item', itemId, ok: false, message }   (per item)
 //   { type: 'done', published, failed: [{ itemId, message }], shop: { status, slug } }
 //   { type: 'error', message }   (only if the run itself broke)
+// A shop without the seller's PayPal email (other than the demo shop) is a 409 PAYEE_REQUIRED before anything starts.
 // Re-POSTing publishes only what is left (items already in PayPal are skipped), so it is the retry.
 // It also finishes a run that broke after its items reached PayPal but before the shop went live.
 // The run never depends on the browser: if the seller closes the tab, it carries on and goes live.
 import { ConfigError } from '@/lib/config';
 import * as shops from '@/lib/db/repos/shops';
-import { canGoLive, itemsToPublish, publishShop } from '@/lib/catalog/publish';
-import { notFound, ownedShop } from '@/lib/catalog/http';
+import { assertPayee, canGoLive, itemsToPublish, publishShop } from '@/lib/catalog/publish';
+import { errorResponse, notFound, ownedShop } from '@/lib/catalog/http';
 import { jsonError } from '@/lib/http/json-error';
 import type { OrderDeps } from '@/lib/orders/service';
 import { getOrderDeps } from '@/lib/services';
@@ -23,7 +24,14 @@ const running = new Set<string>();
 
 export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/publish'>): Promise<Response> {
   const { id } = await ctx.params;
-  if (!(await ownedShop(id))) return notFound();
+  const owned = await ownedShop(id);
+  if (!owned) return notFound();
+  // Where the money goes comes first: without the seller's PayPal email nothing is sent to PayPal (spec §8a).
+  try {
+    assertPayee(owned);
+  } catch (err) {
+    return errorResponse(err, 'POST /api/shops/[id]/publish');
+  }
 
   let deps: OrderDeps;
   try {
