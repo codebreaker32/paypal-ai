@@ -43,13 +43,13 @@ export function cardKindFor(it: ItemLike & { issues: IssueCode[] }): CardKind {
   return 'check';
 }
 
-/** Dollars typed on a decimal keypad → integer cents. "4.5" → 450, "$12" → 1200. Anything else → null. */
+/** Dollars typed on a decimal keypad → integer cents. "4.5" → 450, "$12" → 1200. $0 or anything else → null. */
 export function parsePriceInput(raw: string): number | null {
   const s = raw.trim().replace(/^\$\s*/, '').replace(',', '.');
   if (!/^\d{1,4}(\.\d{0,2})?$|^\.\d{1,2}$/.test(s)) return null;
   const [whole, frac = ''] = s.split('.');
   const cents = Number(whole || '0') * 100 + Number(frac.padEnd(2, '0'));
-  return cents <= MAX_PRICE_CENTS ? cents : null;
+  return cents > 0 && cents <= MAX_PRICE_CENTS ? cents : null;
 }
 
 /** Cents → what goes back into a price field: 450 → "4.50", 1200 → "12". */

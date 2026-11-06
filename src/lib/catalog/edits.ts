@@ -19,6 +19,8 @@ export class EditError extends Error {
 }
 
 const cents = z.number().int().min(0).max(MAX_PRICE_CENTS);
+/** An item's price: over $0 (isPriced never sells a $0 one), within the order cap. */
+const priceCents = z.number().int().min(1).max(MAX_PRICE_CENTS);
 const text = (max: number) => z.string().trim().max(max);
 const name = (max: number) => z.string().trim().min(1, 'Give it a name').max(max);
 
@@ -57,7 +59,7 @@ export function applyShopPatch(db: Db, shop: Shop, patch: ShopPatchInput): Shop 
 
 // ───────────── Items ─────────────
 
-const VariantSchema = z.object({ label: text(60).nullable(), priceCents: cents.nullable() }).strict();
+const VariantSchema = z.object({ label: text(60).nullable(), priceCents: priceCents.nullable() }).strict();
 
 const ItemUpdateSchema = z
   .object({
@@ -124,7 +126,7 @@ const NewItemSchema = z
   .object({
     name: name(127),
     section: text(80).nullable().optional(),
-    priceCents: cents.nullable().optional(),
+    priceCents: priceCents.nullable().optional(),
     sourceText: text(500),
   })
   .strict();
