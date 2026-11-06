@@ -1,15 +1,22 @@
 # Progress
 
-_Last updated: 2026-11-06 12:10 IST (run 2, session 1)_
+_Last updated: 2026-11-06 13:30 IST (run 2, session 1)_
 
 ## Current phase
-**Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended. Two workers are building Task 10 (findable door) and Task 11 (pay each seller) in parallel worktrees.
+**Run 2, session 1 (from 11:19 IST).** The human approved three things on 6 Nov: make the door findable, pay each seller, and US sandbox accounts (DECISIONS "Run 2"). Spec §8a/§10a and §14 and the plan (Wave 4, Tasks 10–13) are amended. Items 1–3 of the run brief are built and verified (below); next are the milestone review and judge round 6.
 - **Verified (spike, 11:20–11:30 IST, real sandbox):**
   - `.env` now has a US buyer and a US seller email; the platform app is unchanged (it still reads session 7's orders).
   - **PayPal wallet-login checkout works:** the US buyer logged in to PayPal and paid an order whose `payee.email_address` is the US seller; the platform's capture COMPLETED and PayPal's order shows that payee (order `82Y279425D4017918`, capture `2HU61847PK455934H`, seller protection ELIGIBLE). This was a raw REST order, not yet through the app.
   - A payee email with no PayPal account: PayPal still takes the payment but holds it (capture PENDING, reason `UNILATERAL`).
   - PayPal refuses tracking from the platform on a seller's capture (`NOT_AUTHORIZED`).
   - Guest card checkout on a seller-routed order is declined at capture.
+- **done, merged: Task 10, the findable door** (`2d09bae`, review clean after one fix round). A printable **counter card** from the Share tab (shop name, "Order ahead with any AI assistant, pay with PayPal", a QR code of the shop link made locally, the door URL), schema.org **JSON-LD** (`FoodEstablishment`/`Store`/`LocalBusiness`, the menu as offers, `paymentAccepted: PayPal`, an `OrderAction` whose target is the door) and a `<link rel="alternate" title="Agent door (MCP)">` on the shop page, and **`/agents.txt`** and **`/llms.txt`**. The review's one Important finding (a seller's about text could put a forged "Agent door:" first in `/llms.txt`) is fixed and tested. Follow-up I1 (merged): discovery advertises only shops that can take orders.
+- **done, merged: Task 11, pay each seller** (`ff748c4`, review clean after one fix round). **Your PayPal email** in setup (Publish waits for it) and a **Settings** tab; every order sets `purchase_units[0].payee.email_address` from a snapshot on the order; a different payee on PayPal's record stops the capture; a held payment (`UNILATERAL`) is explained to the seller; the receipt says "Paid to <shop>'s own PayPal account (r•••@…)"; tracking on a seller-paid order is saved in Shelfie; the demo shop is the only one that may be paid to the platform account. 774 unit tests pass on main (from 670); typecheck and lint are clean.
+- **Verified: Claude Code finds the door from the shop URL alone** (Task 13, `docs/judge/evidence/discovery-claude-code.md`). Claude Code 2.1.318 (`--bare`, `claude-opus-5-5`, an empty folder outside the repo, no MCP servers, only `curl` allowed) was given only `http://localhost:3301/s/marigold-bakehouse` on a production build. It read the page's `<link rel="alternate" title="Agent door (MCP)">`, called `tools/list`, `get_shop_info`, `list_products` and `create_order` with ids only, and returned a real PayPal link: SHF-LFMY4J, PayPal `38C29533C7243501S`, $10.00, in 22.9 s. PayPal's record shows the Catalog SKU.
+- **Verified: the capture gate with payee routing and PayPal wallet login** (Task 12, `e2e/capture.spec.ts`, real sandbox, 13:25 IST, **2 passed in 2.4 min**):
+  - **seller payout:** a new shop read by Claude, published with the US sandbox seller's email → an order over the door (shipped, nut-allergy note) → the US sandbox buyer **logs in to PayPal and pays from the wallet** → receipt Paid ("Paid to Marigold Bakehouse's own PayPal account (…)") → PayPal's record names the seller as payee, capture COMPLETED → Claude brief (agent) flags the allergy → tracking saved in Shelfie → `get_order_status` returns it. SHF-253EUJ → PayPal `7GN31874GM5893441` → capture `6U574455KV233030V` ($27.00).
+  - **the platform-paid demo shop:** seeded with no seller email → guest card → Paid ("Shelfie's demo PayPal account") → capture COMPLETED → brief → USPS tracker **SHIPPED at PayPal** → `get_order_status`. SHF-5BXHAX → PayPal `5DS68560HA999971D` → capture `1LM3708643310142L` ($27.00).
+  - The first run hung after PayPal had already captured (`2WL12780EJ7941316`): the wallet helper clicked a leftover button with no timeout. Clicks are now bounded to 3 s.
 - **done:** `docs/DEPLOY.md` (exact human steps for Render, environment variables, the PayPal webhook and a smoke test; never run). `render.yaml` asks for the optional `PAYPAL_SANDBOX_SELLER_EMAIL`.
 - **done: secret scan of the entire git history** (12:02 IST) with gitleaks 8.30.1 (`gitleaks git . --log-opts=--all`, 247 commits, every ref): **no leaks found**. A second scan looked for every `.env` value (app keys, Anthropic key, all sandbox logins) in `git log --all -p` and in every tracked file: **0 hits**. One string shaped like a PayPal token is the fake `A21AAexpiredShelfieTestToken` in `tests/sandbox/paypal.sandbox.test.ts` (a test of the 401 refresh), not a secret.
 
@@ -160,6 +167,9 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Spike: PayPal Agent Toolkit tools (`get_order`, `list_products`, `get_shipment_tracking`) execute against the sandbox.
 
 ## Verified (ran it)
+- **PayPal wallet-login checkout** (moved from Unverified on 6 Nov 2026): the US sandbox buyer logged in to PayPal and paid an order routed to the US sandbox seller, through the app, in the capture gate (SHF-253EUJ, capture `6U574455KV233030V` COMPLETED, payee = the seller). Guest card checkout stays verified for platform-paid orders (SHF-5BXHAX); the sandbox declines it on seller-routed orders.
+- **Paying each seller:** PayPal's own order record names the shop's PayPal email as payee (capture gate, above).
+- **Discovery:** Claude Code given only the shop URL found the door and ordered (SHF-LFMY4J).
 - **Full e2e suite on main after all 13 review fixes were merged (08:53 IST):** 56 passed and 1 skipped (the hidden "Other" carrier) in 5.6 min, with real Claude and the real sandbox. The capture gate passed: order SHF-7SUNB6 → PayPal order `1L435977R28460711` → capture `01164370A4783870X` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker `9400111179393520752942` was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Full e2e suite on main after the session-5 merges (07:43 IST):** 56 passed and 1 skipped (the hidden "Other" carrier) in 6.5 min, with real Claude and the real sandbox. The capture gate passed in 1.4 min: order SHF-GW9P2M → PayPal order `72E098971B1748300` → capture `9AS032720T739521X` COMPLETED ($27.00). The brief flagged the nut allergy, the USPS tracker was SHIPPED at PayPal, and `get_order_status` read it back.
 - **Capture gate re-run on main after the direction-A merge (session 4, 07:02 IST), passed in 2.3 min, with screenshots refreshed in the current design (`docs/judge/screenshots/capture/`):** order SHF-28CLQE → PayPal order `8UL03058RN6568620` → capture `0PJ97777YU143884P` COMPLETED ($27.00). The Claude brief flagged the nut allergy. The USPS tracker `9400111179392836896326` was SHIPPED at PayPal, and `get_order_status` read it back.
@@ -182,15 +192,13 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - Task 8 (session 1 worker): AI order brief written 3× by the Claude brief agent calling the Agent Toolkit's `get_order` on real sandbox orders (~10 s each).
 
 ## Unverified
-- Paying with a PayPal wallet login: the sandbox merchant and the `.env` buyer are both India accounts, and PayPal blocks IN-to-IN wallet payments ("This seller doesn't accept payments in your currency").
+- Webhook delivery for a capture paid into a seller's account (whether PayPal sends `PAYMENT.CAPTURE.*` for it to the platform app's webhook). The poller and the return URL confirm those payments.
+- Whether the brief agent's `get_shipment_tracking` is refused on a seller's capture like tracking creation is (the brief falls back to its template on a tool error; the seller gate's brief came from the agent).
 - Webhooks (no public URL on the VM).
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-1. Merge Task 10 (findable door) and Task 11 (pay each seller) after their task reviews.
-2. Task 12: the capture gate with payee routing and wallet login (US buyer → US seller), plus the guest-card gate on the platform-paid demo shop.
-3. Task 13: the Claude Code CLI given only the shop URL finds the door and orders; evidence in `docs/judge/evidence/`.
-4. Code review of the milestone, then judge round 6.
+1. Code review of the milestone (`d35952b..HEAD`), the full e2e suite and `screenshots:prod` for round 6, then judge round 6.
 5. `docs/SUBMISSION.md` (Devpost text, AI tools, testing instructions), `docs/DEMO.md` (door discovery, seller payout) and raw clips in `video/clips/`.
 
 ## Needs from human
