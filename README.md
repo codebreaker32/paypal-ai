@@ -44,7 +44,7 @@ The in-app **buyer console** ("Order with an assistant") is a Claude agent that 
 Requirements: Node.js 22 or newer, npm, a free PayPal developer account, an Anthropic API key.
 
 ```bash
-git clone <this repo> shelfie && cd shelfie
+git clone https://github.com/codebreaker32/paypal-ai.git shelfie && cd shelfie
 npm install
 cp .env.example .env
 ```
@@ -56,6 +56,7 @@ Fill in `.env`. No credentials are committed; here is how to get yours.
 | `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` | [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → Create App. Use the app's Client ID, and its **Secret** as `PAYPAL_SECRET_KEY`. |
 | `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys. Without it, sample menus still work (recorded reading), but your own photos, order briefs and the buyer console do not. |
 | `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:3000`; on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
+| `SHELFIE_RECORDED_SAMPLES` (optional) | Set to `1` and the sample menus use Claude's saved reading of the sample photo even when a key is set: instant, for recording a demo. Your own photos are always read live. |
 | `PAYPAL_WEBHOOK_ID` (optional) | Only once deployed on a public HTTPS URL: the webhook id from your PayPal app. Locally the 15 s poller confirms payments. |
 | `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` (optional) | Leave empty. A sandbox Personal account for a future wallet-login test; no test or app path uses them today (the end-to-end tests pay by guest card). Not needed to pay (see below). |
 | `DATABASE_PATH`, `UPLOADS_DIR` (optional) | Defaults `data/shelfie.db` and `data/uploads`. |
@@ -162,13 +163,14 @@ Two Playwright specs are worth knowing by name:
 # Claude brief is written; USPS tracking is added at PayPal; get_order_status reads it back. ~2 minutes.
 E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
 
-# Every screen at 390 px and 1440 px with an axe (WCAG 2.1 A/AA) check, into docs/judge/screenshots/round-1/
-# (SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
+# Every screen at 390 px and 1440 px with an axe (WCAG 2.1 A/AA) check, into data/screenshots/ (gitignored;
+# SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
 npm run screenshots
 
 # The same 66 screens against a production build (next build + next start), which avoids dev-mode compile
-# pauses: a fresh e2e database, one run, no retries needed. The judged round-2 set was made this way.
-npm run screenshots:prod -- docs/judge/screenshots/round-2
+# pauses: a fresh e2e database, one run. The judged sets (round 2 onwards) were made this way. The folder is
+# required and is replaced, so pick a new one or a /tmp path.
+npm run screenshots:prod -- /tmp/shelfie-shots
 ```
 
 ## Architecture

@@ -1,6 +1,6 @@
-// Round-1 screenshots for judging: every screen at 390×844 and 1440×900 into docs/judge/screenshots/round-1/, each
-// checked with axe (WCAG 2.1 A/AA). Serious or critical violations fail the test; every violation found is written to
-// round-1/axe-results.json.
+// Screenshots for judging: every screen at 390×844 and 1440×900 into SCREENSHOTS_DIR (default data/screenshots/, which
+// is gitignored, so a plain run never overwrites a committed round), each checked with axe (WCAG 2.1 A/AA). Serious or
+// critical violations fail the test; every violation found is written to axe-results.json in the same folder.
 //
 // One story across the set: the demo shop Marigold Bakehouse (scripts/seed-demo.ts, here with a fake PayPal), its
 // menu read from public/samples/marigold-bakehouse.jpg. States that are slow to reach live (paid, shipped, expired,
@@ -13,7 +13,7 @@
 // (page.route, or streamThenHold for a stream that stays open). Each one is listed in the screenshots README.
 //
 // Run: E2E_PORT=3111 npx playwright test e2e/screenshots.spec.ts   (or: npm run screenshots)
-// SCREENSHOTS_DIR=docs/judge/screenshots/round-2 writes a later round's set somewhere else (default: round-1).
+// SCREENSHOTS_DIR=docs/judge/screenshots/round-4 writes a judged round's set (npm run screenshots:prod does this).
 import fs from 'node:fs';
 import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
@@ -38,7 +38,7 @@ import { E2E_DB, addFixtureOrder, createFixtureShop, fixtureFromShop, type Fixtu
 
 const OUT = process.env.SCREENSHOTS_DIR
   ? path.resolve(process.env.SCREENSHOTS_DIR)
-  : path.resolve(__dirname, '..', 'docs', 'judge', 'screenshots', 'round-1');
+  : path.resolve(__dirname, '..', 'data', 'screenshots');
 const AXE_FILE = path.join(OUT, 'axe-results.json');
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
