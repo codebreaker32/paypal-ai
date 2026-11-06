@@ -263,6 +263,19 @@ function paypalItemName(l: PricedLine): string {
 // ---- sync -----------------------------------------------------------------------------------------
 
 /**
+ * When syncOrder's PayPal read last failed and last got an answer, for the whole process (on globalThis so dev hot
+ * reloads share it). lastCheckedAt is stamped even when the read fails, so the dashboard's "Can't reach PayPal"
+ * banner needs this to notice an outage.
+ */
+type PayPalReads = { lastFailMs: number | null; lastOkMs: number | null };
+const paypalReads = ((globalThis as unknown as { __shelfiePayPalReads?: PayPalReads }).__shelfiePayPalReads ??= {
+  lastFailMs: null,
+  lastOkMs: null,
+});
+
+export const paypalReadHealth = (): Readonly<PayPalReads> => paypalReads;
+
+/**
  * Reads the order from PayPal and moves ours forward: APPROVED → claim → capture; COMPLETED → reconcile;
  * not approved after 60 minutes → expired. Settled orders are returned as they are: no PayPal call, no write.
  */
@@ -281,10 +294,16 @@ export async function syncOrder(
     let pp: PayPalOrder | null;
     try {
       pp = await deps.paypal.getOrder(order.paypalOrderId);
+      paypalReads.lastOkMs = nowMs;
     } catch (e) {
       // PayPal drops orders that were never approved; treat a 404 as "not approved".
-      if (e instanceof PayPalApiError && e.status === 404) pp = null;
-      else throw paypalUnavailable(e, 'get order');
+      if (e instanceof PayPalApiError && e.status === 404) {
+        pp = null;
+        paypalReads.lastOkMs = nowMs;
+      } else {
+        paypalReads.lastFailMs = nowMs;
+        throw paypalUnavailable(e, 'get order');
+      }
     }
     // PayPal keeps saying APPROVED after a declined capture. A webhook about an approval we already tried (it was
     // created before the decline) is not a new approval, so it must not trigger another capture.
