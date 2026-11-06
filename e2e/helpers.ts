@@ -45,6 +45,13 @@ export async function settle(page: Page) {
       new Promise((done) => setTimeout(done, 15_000)),
     ]),
   );
+  // Loaded is not painted: a full-page capture can show an off-screen photo as blank until it is decoded.
+  await page.evaluate(() =>
+    Promise.race([
+      Promise.all(Array.from(document.images).map((img) => img.decode().catch(() => undefined))),
+      new Promise((done) => setTimeout(done, 15_000)),
+    ]),
+  );
   // Let entrance animations (some delayed) finish; spinners loop forever and are skipped.
   await page.evaluate(() =>
     Promise.all(
