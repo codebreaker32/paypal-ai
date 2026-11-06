@@ -385,6 +385,10 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
     await pay.waitFor({ state: 'visible', timeout: 90_000 });
     await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
     await sleep(1500);
+    // Logged in: switch the redactor on in PayPal's frames (it stays off there so the login works), then make sure.
+    for (const fr of p.frames()) await fr.evaluate(() => (window as unknown as { __shelfieRedact?: () => void }).__shelfieRedact?.()).catch(() => {});
+    const shown = await Promise.all(p.frames().map((fr) => fr.locator('body').innerText({ timeout: 2_000 }).catch(() => '')));
+    if (leaks(shown.join('\n'), LOGINS)) throw new Error("a sandbox login is visible on PayPal's review page, so 06b is not recorded");
     } catch (e) {
       // The page is redacted (the login shows masked), so the screenshot is safe to keep in /tmp for a look.
       await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-login-failed.png') }).catch(() => {});

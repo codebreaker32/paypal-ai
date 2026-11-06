@@ -49,7 +49,17 @@
       else scrubEl(n);
     }
   };
+  // PayPal's checkout reads the login back from its own page, so masking it there fails the login. On paypal.com the
+  // redactor starts switched off: those pages are recorded only before the login is typed (the end of 06, an empty
+  // email field) and after it, when the recorder has called __shelfieRedact() in every frame (06b).
+  let on = !/(^|\.)paypal\.com$/.test(location.hostname);
+  const paused = () => !on;
+  window.__shelfieRedact = () => {
+    on = true;
+    scrubTree(document);
+  };
   new MutationObserver((records) => {
+    if (paused()) return;
     for (const r of records) {
       if (r.type === 'characterData') scrubText(r.target);
       else if (r.type === 'attributes') scrubEl(r.target);
@@ -57,8 +67,8 @@
     }
   }).observe(document, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ATTRS });
   // Values typed or set by script don't show up as mutations.
-  const onValue = (e) => e.target && scrubEl(e.target);
+  const onValue = (e) => !paused() && e.target && scrubEl(e.target);
   document.addEventListener('input', onValue, true);
   document.addEventListener('change', onValue, true);
-  document.addEventListener('DOMContentLoaded', () => scrubTree(document), { once: true });
+  document.addEventListener('DOMContentLoaded', () => paused() || scrubTree(document), { once: true });
 }
