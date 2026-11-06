@@ -184,7 +184,7 @@ export function MenuPanel({
           <div className="flex flex-col gap-1">
             <h2 className="type-title">Menu</h2>
             <p className="type-figures text-ink-soft">
-              {listed.length} items · {photos} with photos
+              {listed.length} {listed.length === 1 ? 'item' : 'items'} · {photos} with photos
             </p>
           </div>
           <Link href={`/s/${slug}`} className="inline-flex min-h-tap items-center font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">

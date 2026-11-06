@@ -473,7 +473,7 @@ export const LIBRARY: readonly LibraryPhoto[] = [
     file: '/library/cake-whole-2.webp',
     type: 'cake-whole',
     category: 'cake',
-    tags: ['whole cake', 'cake', 'birthday cake', 'celebration cake', 'tart'],
+    tags: ['whole cake', 'cake', 'birthday cake', 'celebration cake', 'tart', 'lemon cake', 'lemon tart', 'citrus cake'],
     shows: 'A lemon tart with a slice cut, among lemons on a pink cloth',
     source: 'https://www.pexels.com/photo/delicious-lemon-tart-on-pink-background-with-fresh-lemons-31111197/',
     photographer: 'Angelica Britto',

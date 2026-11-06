@@ -88,6 +88,55 @@ function find(haystack: string[], phrase: string[]): number {
   return -1;
 }
 
+/**
+ * Flavours an item or photo can name, stemmed as `words` stems them, grouped where a photo of one is a fair example of
+ * the other (a lemon tart for an olive oil citrus cake). A photo whose description names a flavour conflicts with an
+ * item that names only other flavours: a chocolate cake is no example of a citrus cake. An item that names no flavour
+ * (a "Birthday cake") may show any.
+ */
+const FLAVOUR_GROUP: ReadonlyMap<string, string> = new Map(
+  (
+    [
+      ['chocolate', ['chocolat', 'cocoa', 'fudg', 'mocha', 'brownie']],
+      ['citrus', ['citru', 'lemon', 'lime', 'orang', 'yuzu']],
+      ['vanilla', ['vanilla']],
+      ['berry', ['strawberri', 'berri', 'blueberri', 'raspberri', 'cherri']],
+      ['carrot', ['carrot']],
+      ['coffee', ['coffe', 'espresso']],
+      ['matcha', ['matcha']],
+      ['banana', ['banana']],
+      ['apple', ['appl']],
+      ['pumpkin', ['pumpkin']],
+      ['coconut', ['coconut']],
+    ] as const
+  ).flatMap(([group, stems]) => stems.map((st) => [st, group] as const)),
+);
+
+function flavours(text: string[]): Set<string> {
+  const out = new Set<string>();
+  for (const w of text) {
+    const g = FLAVOUR_GROUP.get(w);
+    if (g) out.add(g);
+  }
+  return out;
+}
+
+/** Whether the photo names a flavour and the item names flavours, none of them the photo's. */
+function flavourConflict(photo: LibraryPhoto, itemFlavours: ReadonlySet<string>): boolean {
+  if (!itemFlavours.size) return false;
+  const shown = flavours(words(photo.shows));
+  if (!shown.size) return false;
+  for (const f of shown) if (itemFlavours.has(f)) return false;
+  return true;
+}
+
+/** Whether the photo names one of the item's flavours. */
+function flavourMatch(photo: LibraryPhoto, itemFlavours: ReadonlySet<string>): boolean {
+  if (!itemFlavours.size) return false;
+  for (const f of flavours(words(photo.shows))) if (itemFlavours.has(f)) return true;
+  return false;
+}
+
 /** FNV-1a over the item's words: picks among equally good photos the same way every time. */
 function hash(text: string): number {
   let h = 0x811c9dc5;
@@ -137,7 +186,13 @@ export function matchLibraryPhoto(item: MatchItem, shopKind: ShopKind, opts: Mat
     { category: isItemCategory(item.category) ? item.category : null, name: item.name, section: item.section ?? null, description: item.description ?? null },
     shopKind,
   );
-  const allowed = library.filter((p) => allowedForShop(p, shopKind, category));
+  const itemFlavours = flavours([...words(item.name), ...words(item.description)]);
+  const allowed = library.filter((p) => allowedForShop(p, shopKind, category) && !flavourConflict(p, itemFlavours));
+  /** Among equally good photos, the ones that name the item's flavour, when any do. */
+  const sameFlavour = (tier: LibraryPhoto[]) => {
+    const hit = tier.filter((p) => flavourMatch(p, itemFlavours));
+    return hit.length ? hit : tier;
+  };
 
   const chosen = opts.chosenId ? allowed.find((p) => p.id === opts.chosenId) : undefined;
   if (chosen) return chosen;
@@ -159,11 +214,11 @@ export function matchLibraryPhoto(item: MatchItem, shopKind: ShopKind, opts: Mat
       tier = [photo];
     } else if (c === 0) tier.push(photo);
   }
-  if (tier.length) return pick(tier, item.name, opts.avoid);
+  if (tier.length) return pick(sameFlavour(tier), item.name, opts.avoid);
 
   if (!FALLBACK.has(category)) return null;
   return pick(
-    allowed.filter((p) => p.category === category),
+    sameFlavour(allowed.filter((p) => p.category === category)),
     item.name,
     opts.avoid,
   );
