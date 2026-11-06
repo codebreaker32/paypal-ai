@@ -122,7 +122,7 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
             className="group inline-flex min-h-tap shrink-0 items-center gap-3 self-start rounded-(--card-radius) pr-2 font-semibold no-underline"
           >
             <Image
-              src={`/s/${shop.slug}/photo/1`}
+              src={`/s/${shop.slug}/photo/1?size=avatar`}
               alt={`The price list ${shop.name} was made from`}
               width={88}
               height={88}
