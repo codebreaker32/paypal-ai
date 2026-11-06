@@ -167,7 +167,7 @@ E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.
 # SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
 npm run screenshots
 
-# The same 66 screens against a production build (next build + next start), which avoids dev-mode compile
+# The same 68 screens against a production build (next build + next start), which avoids dev-mode compile
 # pauses: a fresh e2e database, one run. The judged sets (round 2 onwards) were made this way. The folder is
 # required and is replaced, so pick a new one or a /tmp path.
 npm run screenshots:prod -- /tmp/shelfie-shots
