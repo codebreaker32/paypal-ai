@@ -43,15 +43,18 @@ export async function startDisplay(name = ':97'): Promise<Display> {
 
 export interface Capture {
   file: string;
-  stop(): Promise<void>;
+  /** Stops recording; resolves with ffmpeg's frame counters (duplicated frames mean x11grab fell behind). */
+  stop(): Promise<{ frames: number; dup: number; drop: number }>;
 }
 
 /** Records the whole display to `file` (MP4, H.264, yuv420p, 30 fps) until stop(). */
 export function startCapture(display: Display, file: string): Capture {
   fs.mkdirSync(path.dirname(file), { recursive: true });
+  const progress = `${file}.progress`;
+  fs.rmSync(progress, { force: true });
   const ff: ChildProcess = spawn(
     'ffmpeg',
-    ['-y', '-loglevel', 'error', '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS), '-video_size', `${W}x${H}`,
+    ['-y', '-loglevel', 'error', '-progress', progress, '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS), '-video_size', `${W}x${H}`,
       '-i', `${display.name}.0`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS),
       '-movflags', '+faststart', file],
     { stdio: ['pipe', 'ignore', 'inherit'] },
@@ -63,6 +66,10 @@ export function startCapture(display: Display, file: string): Capture {
       ff.stdin?.write('q');
       ff.stdin?.end();
       await Promise.race([done, sleep(10_000).then(() => ff.kill('SIGKILL'))]);
+      const text = fs.existsSync(progress) ? fs.readFileSync(progress, 'utf8') : '';
+      fs.rmSync(progress, { force: true });
+      const last = (key: string) => Number([...text.matchAll(new RegExp(`^${key}=(\\d+)$`, 'gm'))].at(-1)?.[1] ?? 0);
+      return { frames: last('frame'), dup: last('dup_frames'), drop: last('drop_frames') };
     },
   };
 }
@@ -79,8 +86,13 @@ export interface Stage {
  * Opens a headed Chromium filling the display in kiosk mode (a persistent context, so the first window honours
  * --kiosk and shows no browser chrome). `phone`: the page is a stage on the app's own origin, served by Playwright
  * (no app route), holding a 390x844 iframe scaled to fill the frame's height; drive the app through `stage.app`.
+ * `deviceScaleFactor`: 4/3 lays a desktop page out at 1440x810 CSS px and fills the 1920x1080 display with it.
  */
-export async function openStage(display: Display, kind: 'desktop' | 'phone', opts: { origin: string; profileDir: string; storageState?: string }): Promise<Stage> {
+export async function openStage(
+  display: Display,
+  kind: 'desktop' | 'phone',
+  opts: { origin: string; profileDir: string; storageState?: string; deviceScaleFactor?: number },
+): Promise<Stage> {
   fs.rmSync(opts.profileDir, { recursive: true, force: true });
   const context = await chromium.launchPersistentContext(opts.profileDir, {
     headless: false,
@@ -89,7 +101,7 @@ export async function openStage(display: Display, kind: 'desktop' | 'phone', opt
     locale: 'en-US',
     timezoneId: 'America/Los_Angeles',
     args: ['--kiosk', '--window-position=0,0', `--window-size=${W},${H}`, '--no-first-run', '--no-default-browser-check',
-      '--disable-infobars', '--hide-crash-restore-bubble', '--force-device-scale-factor=1', '--hide-scrollbars'],
+      '--disable-infobars', '--hide-crash-restore-bubble', `--force-device-scale-factor=${opts.deviceScaleFactor ?? 1}`, '--hide-scrollbars'],
   });
   if (opts.storageState) {
     const state = JSON.parse(fs.readFileSync(opts.storageState, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
