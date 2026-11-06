@@ -122,7 +122,7 @@ export function ReadingStep({
         />
         <div className="flex flex-col gap-2" aria-live="polite">
           <p className="flex items-center gap-2.5 type-lead font-semibold">
-            <Icon icon={Loader2} className="animate-spin text-accent" />
+            <Icon icon={Loader2} className="animate-spin text-ink" />
             <span>{LINES[line]}</span>
           </p>
           {slow ? (
@@ -152,7 +152,7 @@ export function ReadingStep({
 
       <Link
         href="/"
-        className="-my-2 inline-flex min-h-tap items-center self-start justify-self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent lg:col-span-6 lg:col-start-1 lg:row-start-2"
+        className="-my-2 inline-flex min-h-tap items-center self-start justify-self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink lg:col-span-6 lg:col-start-1 lg:row-start-2"
       >
         Cancel
       </Link>

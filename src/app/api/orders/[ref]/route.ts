@@ -9,7 +9,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ ref: string }>
   const order = receiptView(getDb(), ref);
   if (!order) {
     return Response.json(
-      { error: { code: 'ORDER_NOT_FOUND', message: "We couldn't find that order." } },
+      { error: { code: 'ORDER_NOT_FOUND', message: "We couldn’t find that order." } },
       { status: 404, headers: { 'cache-control': 'no-store' } },
     );
   }

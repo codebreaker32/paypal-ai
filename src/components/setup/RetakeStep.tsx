@@ -13,9 +13,9 @@ import { PhotoStrip } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
 
 const TITLES: Record<string, string> = {
-  not_a_menu: "This doesn't look like a price list",
-  unreadable: "We couldn't read this photo",
-  no_items: "We couldn't find any prices",
+  not_a_menu: "This doesn’t look like a price list",
+  unreadable: "We couldn’t read this photo",
+  no_items: "We couldn’t find any prices",
 };
 
 // The reader's tip for "not a menu" restates the problem; say what to photograph instead.
@@ -60,7 +60,7 @@ export function RetakeStep({
 
   return (
     <div className="mx-auto flex w-full max-w-page flex-col gap-8 px-gutter pt-8 pb-section lg:pt-12">
-      <StepHeader step={1} title={TITLES[reason] ?? TITLES.unreadable} lead="Your photos are saved. Try another one and we'll read it again." />
+      <StepHeader step={1} title={TITLES[reason] ?? TITLES.unreadable} lead="Your photos are saved. Try another one and we’ll read it again." />
 
       <Card as="section" aria-labelledby="tip-title" className="flex max-w-measure items-start gap-3">
         <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-warn-soft text-warn">
@@ -105,7 +105,7 @@ export function RetakeStep({
         {(problem || error) && <FieldError>{problem ?? error}</FieldError>}
         <Link
           href="/"
-          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"
+          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink"
         >
           Try a sample menu instead
         </Link>
@@ -126,7 +126,7 @@ export function FailedStep({ shopId, photoCount, message, onRetry }: { shopId: s
         </Button>
         <Link
           href="/"
-          className="inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent sm:self-auto"
+          className="inline-flex min-h-tap items-center self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink sm:self-auto"
         >
           Start over
         </Link>

@@ -51,7 +51,7 @@ export const SKIP_REASON: Record<SkipReason, string> = {
   hours: 'Opening hours',
   policy: 'Shop policy',
   addon: 'Add-on',
-  illegible: "Couldn't read it",
+  illegible: "Couldn’t read it",
   instruction: 'Looked like an instruction, not a menu item',
   other: 'Not something to buy',
 };

@@ -124,7 +124,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
       toast({ title: paused ? 'Agent orders paused' : 'Taking agent orders again', tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setStatus(before);
-      setPauseError(e instanceof Error ? e.message : "Couldn't save. Try again.");
+      setPauseError(e instanceof Error ? e.message : "Couldn’t save. Try again.");
     } finally {
       setPausing(false);
     }
@@ -137,13 +137,13 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-6 pb-section lg:pt-10">
       <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="flex flex-col gap-2">
-          <h1 className="type-title">{shop.name}</h1>
+          <h1 className="type-display">{shop.name}</h1>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <ShopStatusBadge status={status} />
             {status !== 'draft' ? (
               <Link
                 href={`/s/${shop.slug}`}
-                className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink underline underline-offset-4 hover:text-accent-active"
+                className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink underline underline-offset-4 hover:decoration-ink"
               >
                 View your shop <Icon icon={ExternalLink} size="sm" />
               </Link>
@@ -163,7 +163,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
               label="Pause agent orders"
               description={
                 paused
-                  ? "Assistants can still read your menu but can't order. Paid orders aren't affected."
+                  ? "Assistants can still read your menu but can’t order. Paid orders aren’t affected."
                   : 'Stops new orders from AI assistants, for example when you are sold out for the day.'
               }
               checked={paused}
@@ -177,7 +177,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
 
       {pollFailures >= 2 && (
         <p role="status" className="type-meta text-ink-muted">
-          Can&apos;t reach Shelfie to refresh orders. Retrying every few seconds.
+          Can’t reach Shelfie to refresh orders. Retrying every few seconds.
         </p>
       )}
 

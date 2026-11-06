@@ -14,11 +14,11 @@ const BASE =
 
 const VARIANT: Record<ButtonVariant, string> = {
   primary:
-    'bg-(--button-primary-bg) text-(--button-primary-fg) shadow-xs hover:bg-(--button-primary-bg-hover) ' +
-    'active:bg-(--button-primary-bg-active)',
+    'border-(length:--button-border-w) border-(--button-primary-border) bg-(--button-primary-bg) text-(--button-primary-fg) ' +
+    'shadow-xs hover:bg-(--button-primary-bg-hover) active:bg-(--button-primary-bg-active)',
   secondary:
-    'border border-(--button-secondary-border) bg-(--button-secondary-bg) text-(--button-secondary-fg) ' +
-    'hover:bg-(--button-secondary-bg-hover)',
+    'border-(length:--button-border-w) border-(--button-secondary-border) bg-(--button-secondary-bg) ' +
+    'text-(--button-secondary-fg) hover:bg-(--button-secondary-bg-hover)',
   ghost: 'text-(--button-ghost-fg) hover:bg-(--button-ghost-bg-hover) underline-offset-4',
   paypal:
     'bg-(--button-paypal-bg) text-(--button-paypal-fg) shadow-xs hover:bg-(--button-paypal-bg-hover) ' +

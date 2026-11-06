@@ -84,9 +84,9 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
     <div className="flex flex-col gap-2">
       <div className="rounded-md bg-surface-sunken px-3.5 py-2.5">
         <p className="type-meta text-ink-muted">We read</p>
-        <p className="[overflow-wrap:anywhere]">“{item.sourceText}”</p>
+        <p className="font-display text-lg leading-7 italic [overflow-wrap:anywhere]">“{item.sourceText}”</p>
         {showPrice && (
-          <p className="mt-1.5 flex items-baseline gap-2 border-t border-line-strong pt-1.5">
+          <p className="mt-1.5 flex items-baseline gap-2 rule-dashed pt-1.5">
             <span className="type-meta text-ink-muted">Price</span>
             <span className="type-price font-semibold">{priceSummary(item)}</span>
           </p>

@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-export const NETWORK_MESSAGE = "We couldn't reach Shelfie. Check your connection and try again.";
+export const NETWORK_MESSAGE = "We couldn’t reach Shelfie. Check your connection and try again.";
 const SERVER_MESSAGE = 'Something went wrong on our side. Try again in a moment.';
 
 export interface CallOptions {

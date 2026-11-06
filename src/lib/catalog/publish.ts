@@ -44,12 +44,12 @@ export function productFor(item: ItemWithVariants, shop: Shop): CreateProductInp
 // What the seller reads when an item doesn't reach PayPal. PayPal's own text ("Request is not
 // well-formed…", "Client Authentication failed") and Node's ("fetch failed") stay in the server log.
 const SELLER_MESSAGES = {
-  details: "PayPal didn't accept this item's name or description.",
-  keys: "PayPal didn't accept Shelfie's sandbox keys. Check PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY in .env, then retry.",
+  details: "PayPal didn’t accept this item’s name or description.",
+  keys: "PayPal didn’t accept Shelfie’s sandbox keys. Check PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY in .env, then retry.",
   busy: 'PayPal is busy right now. Wait a minute, then retry.',
   outage: 'PayPal had a problem on its side. Retry in a moment.',
-  offline: "We couldn't reach PayPal. Check the connection, then retry.",
-  other: "PayPal didn't add this item. Retry in a moment.",
+  offline: "We couldn’t reach PayPal. Check the connection, then retry.",
+  other: "PayPal didn’t add this item. Retry in a moment.",
 } as const;
 
 const NETWORK_ERROR = /fetch failed|network|socket|timed? ?out|timeout|abort|ECONN|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|UND_ERR/i;

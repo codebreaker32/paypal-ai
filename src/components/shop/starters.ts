@@ -53,7 +53,7 @@ export function starterPrompts(shop: Pick<Shop, 'kind' | 'fulfillment'>, items: 
   }
 
   const word = sectionWord((a ?? items.find((i) => i.status === 'live' || i.status === 'in_person'))?.section);
-  prompts.push(word ? `What ${word} do you have?` : "What's on the menu today?");
+  prompts.push(word ? `What ${word} do you have?` : "What’s on the menu today?");
 
   const sized = live.find((i) => priced(i).length > 1);
   if (sized) prompts.push(`What sizes does the ${lower(sized.name)} come in?`);

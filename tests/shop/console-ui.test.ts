@@ -62,15 +62,15 @@ describe('consoleReducer', () => {
     let broken = run(consoleReducer(initialConsoleState, { type: 'send', text: 'Yes' }), {
       type: 'approval', approvalUrl: 'https://www.sandbox.paypal.com/checkoutnow?token=2', total: '9.00', orderRef: 'ord_2',
     });
-    broken = consoleReducer(broken, { type: 'fail', message: "The shop didn't answer. Try again." });
+    broken = consoleReducer(broken, { type: 'fail', message: "The shop didn’t answer. Try again." });
     expect(broken.entries.map((e) => e.kind)).toEqual(['user', 'approval', 'error']);
   });
 
   it('shows error events and failures as error entries and stops being busy', () => {
     let s = consoleReducer(initialConsoleState, { type: 'send', text: 'hi' });
-    s = run(s, { type: 'error', message: "The shop didn't answer. Try again." });
+    s = run(s, { type: 'error', message: "The shop didn’t answer. Try again." });
     expect(s.busy).toBe(false);
-    expect(s.entries.at(-1)).toMatchObject({ kind: 'error', message: "The shop didn't answer. Try again." });
+    expect(s.entries.at(-1)).toMatchObject({ kind: 'error', message: "The shop didn’t answer. Try again." });
     s = consoleReducer(consoleReducer(s, { type: 'send', text: 'again' }), { type: 'fail', message: 'Too many messages.' });
     expect(s.busy).toBe(false);
     expect(s.entries.at(-1)).toMatchObject({ kind: 'error', message: 'Too many messages.' });
@@ -249,7 +249,7 @@ describe('starterPrompts', () => {
 
   it('still offers questions for a shop with nothing orderable', () => {
     const prompts = starterPrompts({ kind: 'food', fulfillment: 'shipping' }, [item('Market fish', null, [null], { status: 'in_person' })]);
-    expect(prompts).toEqual(["What's on the menu today?", 'How much is shipping?']);
+    expect(prompts).toEqual(["What’s on the menu today?", 'How much is shipping?']);
   });
 });
 

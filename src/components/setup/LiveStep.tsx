@@ -79,7 +79,7 @@ function CopyRow({
         onClick={async () => {
           const ok = await copyText(value);
           setCopied(ok);
-          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn't copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
+          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
         }}
       >
         {copied ? 'Copied' : copyLabel}
@@ -184,7 +184,7 @@ export function LiveStep(p: LiveProps) {
             <CopyRow value={p.shopUrl} label="Shop link" />
             <Link
               href={`/s/${p.slug}`}
-              className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent/40 hover:decoration-accent"
+              className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent-hover hover:decoration-ink"
             >
               Open your shop <Icon icon={ExternalLink} size="sm" />
             </Link>

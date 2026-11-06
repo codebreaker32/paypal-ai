@@ -34,9 +34,9 @@ export const MAX_USER_TURNS = 16;
 export const NO_KEY_MESSAGE =
   'This assistant needs an Anthropic API key on the server (ANTHROPIC_API_KEY). ' +
   'Any MCP client, like Claude Code or Claude Desktop, can still order through the agent door below.';
-export const SHOP_UNREACHABLE_MESSAGE = "The shop didn't answer. Try again.";
+export const SHOP_UNREACHABLE_MESSAGE = "The shop didn’t answer. Try again.";
 export const ASSISTANT_FAILED_MESSAGE = "The assistant stopped before it finished. Try again.";
-export const REFUSAL_MESSAGE = "The assistant can't help with that. Try asking another way.";
+export const REFUSAL_MESSAGE = "The assistant can’t help with that. Try asking another way.";
 export const TOO_MANY_STEPS_MESSAGE = 'The assistant took too many steps without finishing. Ask again, one thing at a time.';
 export const CONVERSATION_FULL_MESSAGE = 'This conversation is full. Start a new one to keep ordering.';
 

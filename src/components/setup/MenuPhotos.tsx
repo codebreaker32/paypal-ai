@@ -32,7 +32,7 @@ export function MenuPhoto({
   children?: ReactNode;
 }) {
   return (
-    <div className={cx('relative overflow-hidden rounded-lg bg-surface-sunken shadow-lg', className)}>
+    <div className={cx('relative overflow-hidden border-6 border-surface-raised bg-surface-sunken shadow-lg', className)}>
       <Image
         src={src ?? photoUrl(shopId, page, version)}
         alt={`Your menu photo, page ${page}`}

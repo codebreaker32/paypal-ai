@@ -50,10 +50,10 @@ export default async function StartPage() {
     <div className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 pb-section lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-12">
       <section aria-labelledby="start-title" className="lg:col-span-5">
         {returningShops.length > 0 && <WelcomeBack shops={returningShops} />}
-        <h1 id="start-title" className="type-display">
-          Your price list, open to AI shoppers.
+        <h1 id="start-title" className="type-hero">
+          Your price list, open to <span className="mark-highlight">AI shoppers.</span>
         </h1>
-        <p className="mt-4 max-w-measure type-lead text-ink-soft">
+        <p className="mt-5 max-w-measure type-lead text-ink-soft">
           Photograph your menu. Shelfie reads it and opens a PayPal shop any AI assistant can order from.
         </p>
         <div className="mt-8">

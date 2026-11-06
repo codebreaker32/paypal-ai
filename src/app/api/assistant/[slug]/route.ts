@@ -37,7 +37,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
 
   const buyerIp = clientIp(req);
   if (!allow(`assistant:${buyerIp}`, CONSOLE_RATE.limit, CONSOLE_RATE.windowMs)) {
-    return jsonError(429, 'RATE_LIMITED', "You've sent a lot of messages in the last hour. Try again later.");
+    return jsonError(429, 'RATE_LIMITED', "You’ve sent a lot of messages in the last hour. Try again later.");
   }
 
   // A closed tab stops the turn: no more Claude calls and no orders for a buyer who has gone. Either the request is
@@ -86,7 +86,7 @@ function ndjson(events: AsyncGenerator<ConsoleEvent>, stop: () => void): Readabl
         if (finished) return;
         finished = true;
         console.error(`[shelfie] buyer console stream failed: ${e instanceof Error ? e.stack ?? e.message : String(e)}`);
-        controller.enqueue(line({ type: 'error', message: "The shop didn't answer. Try again." }));
+        controller.enqueue(line({ type: 'error', message: "The shop didn’t answer. Try again." }));
         controller.close();
       }
     },

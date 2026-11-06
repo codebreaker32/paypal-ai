@@ -1,26 +1,36 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { Fraunces, Public_Sans } from 'next/font/google';
+import { IBM_Plex_Mono, Playfair_Display, Schibsted_Grotesk } from 'next/font/google';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
 import { ToastProvider } from '@/components/ui/Toast';
 import './globals.css';
 
-const fraunces = Fraunces({
+// Display: a high-contrast menu serif, roman and italic (menu sections are set in the italic).
+const playfair = Playfair_Display({
   subsets: ['latin'],
-  variable: '--font-fraunces',
-  axes: ['SOFT', 'opsz'],
+  variable: '--font-playfair',
+  style: ['normal', 'italic'],
   display: 'swap',
 });
 
-const publicSans = Public_Sans({
+// UI text: a newspaper grotesk.
+const schibsted = Schibsted_Grotesk({
   subsets: ['latin'],
-  variable: '--font-public-sans',
+  variable: '--font-schibsted',
+  display: 'swap',
+});
+
+// Receipt lines and order numbers.
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  variable: '--font-plex-mono',
+  weight: ['400', '500', '600'],
   display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: 'Shelfie — your price list, open to AI shoppers',
+  title: 'Shelfie: your price list, open to AI shoppers',
   description:
     'Snap a photo of your paper price list. Shelfie reads it, lists it with PayPal, and opens an agent door any AI assistant can order and pay through.',
 };
@@ -31,7 +41,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${publicSans.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${schibsted.variable} ${plexMono.variable}`}>
       <body className="flex min-h-dvh flex-col bg-surface text-ink">
         <a
           href="#main"

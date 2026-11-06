@@ -17,7 +17,7 @@ function CopyButton({ text, label, what }: { text: string; label: string; what: 
       setTimeout(() => setCopied(false), 2000);
       toast({ title: `${what} copied`, tone: 'ok' });
     } catch {
-      toast({ title: "Couldn't copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
+      toast({ title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
     }
   };
   return (
@@ -51,11 +51,11 @@ export function AgentDoor({ slug, shopName, url }: AgentDoorProps) {
   return (
     <section id="agent-door" aria-labelledby="agent-door-title" className="flex scroll-mt-6 flex-col gap-4">
       <h2 id="agent-door-title" className="type-title flex items-center gap-2.5">
-        <Icon icon={DoorOpen} size="lg" className="text-accent" />
+        <Icon icon={DoorOpen} size="lg" className="text-ink" />
         Agent door
       </h2>
       <p className="max-w-measure text-ink-soft">
-        Any AI assistant that speaks MCP can read {shopName}&apos;s menu and place an order through this address. Prices
+        Any AI assistant that speaks MCP can read {shopName}’s menu and place an order through this address. Prices
         always come from the shop, and the buyer approves every payment on PayPal.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
