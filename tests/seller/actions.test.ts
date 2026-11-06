@@ -12,7 +12,7 @@ import { addTracking, markPickedUp, parseTrackingInput, SellerActionError, type 
 import { seedShop, type SeededShop } from '../helpers/shop';
 
 let seq = 0;
-function placeOrder(db: Db, s: SeededShop, opts: { fulfillment?: 'pickup' | 'shipping'; status?: 'paid' | 'awaiting_approval' } = {}): Order {
+function placeOrder(db: Db, s: SeededShop, opts: { fulfillment?: 'pickup' | 'shipping'; status?: 'paid' | 'awaiting_approval'; payeeEmail?: string | null } = {}): Order {
   const it = s.item['Sourdough loaf'];
   const line: OrderLine = { itemId: it.id, variantId: it.variants[0].id, name: it.name, label: null, unitCents: 900, qty: 1, paypalProductId: it.paypalProductId };
   const fulfillment = opts.fulfillment ?? 'shipping';
@@ -22,7 +22,7 @@ function placeOrder(db: Db, s: SeededShop, opts: { fulfillment?: 'pickup' | 'shi
       shopId: s.shop.id, fulfillment, buyerName: null, buyerNote: null, agentName: 'Claude', clientRequestId: null,
       itemsCents: 900, shippingCents: fulfillment === 'shipping' ? 800 : 0, totalCents: fulfillment === 'shipping' ? 1700 : 900,
       paypalOrderId: `PPT${String(++seq).padStart(14, '0')}`, approvalUrl: 'https://example.test/approve',
-      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(), payeeEmail: opts.payeeEmail ?? null,
     },
     [line],
   );
@@ -107,6 +107,34 @@ describe('addTracking', () => {
     expect(types.at(-1)).toEqual(['tracking_added', 'seller']);
     // Scoped to this shop's own PayPal ids.
     expect(tk.scopes[0].orderIds.has(o.paypalOrderId)).toBe(true);
+  });
+
+  it("a seller-paid order: saved in Shelfie only, no toolkit call (PayPal refuses the platform's tracker on the seller's capture)", async () => {
+    const o = placeOrder(db, s, { payeeEmail: 'rosa@example.com' });
+    const tk = stubToolkit();
+
+    const r = await addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, { carrier: 'USPS', trackingNumber: '9400111899223100000000', carrierName: null });
+
+    expect(tk.execute.create_shipment_tracking).not.toHaveBeenCalled();
+    expect(tk.scopes).toHaveLength(0);
+    expect(r.atPayPal).toBe(false);
+    expect(r.order.status).toBe('fulfilled');
+    expect(r.trackers).toEqual([expect.objectContaining({ carrier: 'USPS', trackingNumber: '9400111899223100000000', paypalStatus: null })]);
+    expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'tracking_added', source: 'seller', detail: { atPayPal: false } });
+    // A retry with the same number finishes without a second tracker.
+    await expect(addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, { carrier: 'USPS', trackingNumber: '9400111899223100000000', carrierName: null }))
+      .rejects.toMatchObject({ code: 'ALREADY_FULFILLED' });
+    expect(orders.trackers(db, o.id)).toHaveLength(1);
+  });
+
+  it('a platform-paid order (the demo shop) still goes to PayPal and says so', async () => {
+    const o = placeOrder(db, s);
+    expect(o.payeeEmail).toBeNull();
+    const tk = stubToolkit();
+    const r = await addTracking({ ...deps, toolkit: tk.factory }, s.shop, o.id, { carrier: 'UPS', trackingNumber: '1Z999AA10123456784', carrierName: null });
+    expect(tk.execute.create_shipment_tracking).toHaveBeenCalledTimes(1);
+    expect(r.atPayPal).toBe(true);
+    expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'tracking_added', detail: { atPayPal: true } });
   });
 
   it('maps Other to PayPal OTHER and keeps the carrier name on our tracker', async () => {

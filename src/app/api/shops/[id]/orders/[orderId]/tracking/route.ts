@@ -1,5 +1,6 @@
-// POST /api/shops/[id]/orders/[orderId]/tracking (owner): { carrier, trackingNumber, carrierName? } → PayPal tracker
-// through the Agent Toolkit → tracker row → order fulfilled.
+// POST /api/shops/[id]/orders/[orderId]/tracking (owner): { carrier, trackingNumber, carrierName? } → { order, trackers,
+// atPayPal }. A platform-paid order's tracker goes to PayPal
+// through the Agent Toolkit; a seller-paid order's is saved here only (spec §8a). Then the order is fulfilled.
 import { getOwnedShop } from '@/lib/auth/owner';
 import { getOrderDeps } from '@/lib/services';
 import { addTracking, parseTrackingInput, SellerActionError } from '@/lib/seller/actions';
@@ -15,8 +16,8 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/orde
   const parsed = parseTrackingInput(await readJson(req));
   if (!parsed.ok) return jsonError(400, 'INVALID_TRACKING', parsed.message);
   try {
-    const { order, trackers } = await addTracking(getOrderDeps(), shop, orderId, parsed.value);
-    return json({ order, trackers });
+    const { order, trackers, atPayPal } = await addTracking(getOrderDeps(), shop, orderId, parsed.value);
+    return json({ order, trackers, atPayPal });
   } catch (e) {
     if (e instanceof SellerActionError) return jsonError(e.status, e.code, e.message);
     console.error(`[shelfie] ${'tracking'} failed: ${e instanceof Error ? e.message : String(e)}`);

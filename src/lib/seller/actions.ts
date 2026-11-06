@@ -1,5 +1,6 @@
 // Seller actions on a paid order (spec §4 Dashboard / Order detail, §8 Add tracking):
-// Mark picked up (pickup orders) and Add tracking (shipping orders, sent to PayPal through the Agent Toolkit).
+// Mark picked up (pickup orders) and Add tracking (shipping orders: sent to PayPal through the Agent Toolkit for a
+// platform-paid order; saved in Shelfie only for an order paid into the seller's own PayPal account, spec §8a).
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
@@ -96,18 +97,30 @@ async function withOrderLock<T>(orderId: string, fn: () => Promise<T>): Promise<
   }
 }
 
+export interface TrackingResult {
+  order: Order;
+  trackers: Tracker[];
+  /**
+   * Whether the tracker went to PayPal. False for an order paid into the seller's own account: PayPal refuses the
+   * platform's tracker on a capture that belongs to the seller (NOT_AUTHORIZED, verified 6 Nov), so it is saved in
+   * Shelfie only (the buyer's agent reads it through get_order_status) and the seller adds it in PayPal themselves.
+   */
+  atPayPal: boolean;
+}
+
 /**
- * Sends the tracking number to PayPal (toolkit create_shipment_tracking on the order's capture), stores the tracker,
- * marks the order fulfilled and logs `tracking_added`. Only for this shop's paid shipping orders. Runs one at a time
- * per order; if an earlier attempt stored this tracker but didn't mark the order fulfilled, a retry finishes that
- * without calling PayPal again.
+ * Stores the tracker, marks the order fulfilled and logs `tracking_added`. For a platform-paid order (the demo shop)
+ * the number goes to PayPal first (toolkit create_shipment_tracking on the order's capture); for a seller-paid order
+ * (`payeeEmail` set) there is no PayPal call (see TrackingResult.atPayPal). Only for this shop's paid shipping orders.
+ * Runs one at a time per order; if an earlier attempt stored this tracker but didn't mark the order fulfilled, a retry
+ * finishes that without calling PayPal again.
  */
 export async function addTracking(
   deps: OrderDeps & { toolkit?: TrackingToolkitFactory },
   shop: Shop,
   orderId: string,
   input: TrackingInput,
-): Promise<{ order: Order; trackers: Tracker[] }> {
+): Promise<TrackingResult> {
   return withOrderLock(orderId, () => addTrackingNow(deps, shop, orderId, input));
 }
 
@@ -116,17 +129,23 @@ async function addTrackingNow(
   shop: Shop,
   orderId: string,
   input: TrackingInput,
-): Promise<{ order: Order; trackers: Tracker[] }> {
+): Promise<TrackingResult> {
   const { db } = deps;
   const order = ownOrder(deps, shop, orderId);
   if (order.fulfillment !== 'shipping') {
     throw new SellerActionError(409, 'PICKUP_ORDER', 'This is a pickup order. Mark it picked up instead.');
   }
   requirePaid(order);
+  const atPayPal = order.payeeEmail === null;
   const stored = ordersRepo.trackers(db, order.id).find((t) => t.trackingNumber === input.trackingNumber);
   if (stored) {
-    // PayPal has it and so do we, but the order is still paid: an earlier attempt failed after storing the tracker.
-    return finishTracking(deps, order.id, stored.carrier, input);
+    // PayPal has it (if it goes there) and so do we, but the order is still paid: an earlier attempt failed after storing it.
+    return finishTracking(deps, order.id, stored.carrier, input, atPayPal);
+  }
+  if (!atPayPal) {
+    const carrier = carrierLabel(input);
+    ordersRepo.addTracker(db, { orderId: order.id, carrier, trackingNumber: input.trackingNumber, paypalStatus: null });
+    return finishTracking(deps, order.id, carrier, input, false);
   }
 
   let result: unknown;
@@ -148,27 +167,29 @@ async function addTrackingNow(
 
   const carrier = carrierLabel(input);
   ordersRepo.addTracker(db, { orderId: order.id, carrier, trackingNumber: input.trackingNumber, paypalStatus: 'SHIPPED' });
-  return finishTracking(deps, order.id, carrier, input);
+  return finishTracking(deps, order.id, carrier, input, true);
 }
 
-/** Marks the order fulfilled and logs `tracking_added`, once the tracker is at PayPal and stored. */
+/** Marks the order fulfilled and logs `tracking_added`, once the tracker is stored (and at PayPal, when it goes there). */
 async function finishTracking(
   deps: OrderDeps,
   orderId: string,
   carrier: string,
   input: TrackingInput,
-): Promise<{ order: Order; trackers: Tracker[] }> {
+  atPayPal: boolean,
+): Promise<TrackingResult> {
   const { db } = deps;
   try {
     await markFulfilled(deps, orderId, 'seller');
   } catch (e) {
-    // Someone fulfilled it a moment ago; the tracker is at PayPal and stored either way.
+    // Someone fulfilled it a moment ago; the tracker is stored (and at PayPal) either way.
     if (!(e instanceof InvalidTransition)) throw e;
   }
   eventsRepo.add(db, orderId, 'tracking_added', 'seller', {
     carrier,
     paypalCarrier: input.carrier,
     trackingNumber: input.trackingNumber,
+    atPayPal,
   });
-  return { order: ordersRepo.byId(db, orderId)!, trackers: ordersRepo.trackers(db, orderId) };
+  return { order: ordersRepo.byId(db, orderId)!, trackers: ordersRepo.trackers(db, orderId), atPayPal };
 }
