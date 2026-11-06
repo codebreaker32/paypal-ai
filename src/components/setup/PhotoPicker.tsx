@@ -275,7 +275,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
       {coverUrl && (
         <div className="flex flex-wrap gap-2">
           <FileLabel
-            label="Replace the cover photo"
+            label="Replace cover"
             onPick={(f) => void actions.pick(f)}
             disabled={actions.busy}
             className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-surface-sunken px-5 font-semibold text-ink hover:bg-line"
@@ -335,7 +335,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
           {logoUrl && (
             <div className="flex flex-wrap gap-2">
               <FileLabel
-                label="Replace the logo"
+                label="Replace logo"
                 onPick={(f) => void actions.pick(f)}
                 disabled={actions.busy}
                 className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-surface-sunken px-5 font-semibold text-ink hover:bg-line"
