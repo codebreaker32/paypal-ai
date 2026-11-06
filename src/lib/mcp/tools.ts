@@ -9,7 +9,7 @@ import { toPayPalValue } from '@/lib/domain/money';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 import { OrderError } from '@/lib/orders/errors';
 import { ORDER_LIMITS, isListed, optionViews, shopModes, unavailableReason } from '@/lib/orders/pricing';
-import { createOrderForShop, lastCaptureFailure, syncOrder, type OrderDeps } from '@/lib/orders/service';
+import { createOrderForShop, lastCaptureFailure, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
 import { isOpen } from '@/lib/orders/state';
 import { allow } from '@/lib/rate-limit';
 import { fromOrderError, fromZodError, toolError, toolOk } from './errors';
@@ -304,7 +304,8 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       const lastChecked = order.lastCheckedAt ? Date.parse(order.lastCheckedAt) : null;
       if (isOpen(order.status) && (lastChecked === null || now() - lastChecked >= STATUS_SYNC_MIN_INTERVAL_MS)) {
         try {
-          order = await syncOrder(deps, order.id, 'mcp');
+          // Shared: concurrent calls all see the old lastCheckedAt, so they join one sync instead of each calling PayPal.
+          order = await syncOrderShared(deps, order.id, 'mcp');
         } catch (e) {
           if (!(e instanceof OrderError && e.code === 'PAYPAL_UNAVAILABLE')) throw e;
           order = ordersRepo.byId(db, order.id)!;

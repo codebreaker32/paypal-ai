@@ -288,6 +288,22 @@ export async function syncOrder(deps: OrderDeps, orderId: string, source: EventS
   return ordersRepo.byId(db, orderId)!;
 }
 
+/** Syncs in progress per (trigger, order), shared by concurrent callers. */
+const syncsInFlight = new Map<string, Promise<Order>>();
+
+/**
+ * syncOrder for triggers anyone can repeat (get_order_status): concurrent calls for one order share one sync, so a
+ * burst of calls (e.g. a JSON-RPC batch) costs one PayPal read instead of one each.
+ */
+export function syncOrderShared(deps: OrderDeps, orderId: string, source: EventSource): Promise<Order> {
+  const slot = `${source}\u0000${orderId}`;
+  const pending = syncsInFlight.get(slot);
+  if (pending) return pending;
+  const p = syncOrder(deps, orderId, source).finally(() => syncsInFlight.delete(slot));
+  syncsInFlight.set(slot, p);
+  return p;
+}
+
 async function reconcile(deps: OrderDeps, order: Order, pp: PayPalOrder | null, source: EventSource, nowMs: number): Promise<Order> {
   switch (pp?.status) {
     case 'APPROVED':

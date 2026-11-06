@@ -332,6 +332,20 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(gets()).toBe(2);
   });
 
+  it('get_order_status shares one PayPal sync between concurrent calls for an order (R8)', async () => {
+    const client = await connect();
+    const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
+    const realGet = fake.getOrder.bind(fake);
+    fake.getOrder = async (id) => {
+      await new Promise((r) => setTimeout(r, 30));
+      return realGet(id);
+    };
+    const gets = () => fake.calls.filter((c) => c.method === 'getOrder').length;
+    const results = await Promise.all(Array.from({ length: 20 }, () => call(client, 'get_order_status', { order_ref })));
+    for (const r of results) expect(ok<{ status: string }>('get_order_status', r).status).toBe('awaiting_approval');
+    expect(gets()).toBe(1);
+  });
+
   it('get_order_status falls back to the stored status when PayPal is down', async () => {
     const client = await connect();
     const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
