@@ -44,3 +44,9 @@ yarn-error.log*
 # Python venv for the local Kokoro voice-over (run 3, Part B)
 video/.venv/
 video/models/
+
+# Demo video pipeline (video/README.md): Remotion's own deps, the generated
+# props, and the screen clips the render reads (recorded with CLIPS_OUT=video/project/clips)
+video/remotion/node_modules/
+video/remotion/src/props.json
+video/project/clips/
