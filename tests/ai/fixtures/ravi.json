@@ -29,7 +29,7 @@
       "confidence": "high",
       "note": null,
       "looks_like_instruction": false,
-      "category": "bike_part"
+      "category": "tool"
     },
     {
       "section": null,
@@ -109,7 +109,7 @@
       "confidence": "high",
       "note": "Price is $18 plus the cost of parts.",
       "looks_like_instruction": false,
-      "category": "bike_part"
+      "category": "tool"
     },
     {
       "section": null,

@@ -109,7 +109,7 @@
       "confidence": "high",
       "note": null,
       "looks_like_instruction": false,
-      "category": "goods"
+      "category": "meal"
     },
     {
       "section": "EXTRAS",
@@ -129,7 +129,7 @@
       "confidence": "high",
       "note": null,
       "looks_like_instruction": false,
-      "category": "goods"
+      "category": "meal"
     },
     {
       "section": "BURRITOS",
