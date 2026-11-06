@@ -1,0 +1,220 @@
+/*
+ * The start page's story, played once on load (about 9 s) and then held on its last frame:
+ *   0.0 s  the phone's camera frames the paper price list, the viewfinder closes in, the shutter flashes
+ *   2.5 s  the photo gives way to the live shop: its name, then its rows, one by one
+ *   4.5 s  "Order with an assistant" is pressed and becomes the assistant's order card; its lines type in
+ *   7.9 s  "Approve on PayPal" is pressed and resolves to "Paid with PayPal"; the seller's note drops in
+ *
+ * Every element's resting style is the final frame, so reduced motion (and no-animation) shows it at once, and the
+ * animations only run the way there (fill-mode both). Only transform, opacity and visibility change.
+ */
+
+.hs-camera {
+  visibility: hidden;
+  opacity: 0;
+  animation: hs-camera-out 2.9s var(--ease-in-out) both;
+}
+@keyframes hs-camera-out {
+  0%,
+  86% {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.hs-viewfinder {
+  animation: hs-viewfinder-in 1s var(--ease-out) 0.3s both;
+}
+@keyframes hs-viewfinder-in {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hs-shutter {
+  visibility: hidden;
+  opacity: 0;
+  animation: hs-shutter 0.36s var(--ease-out) 1.6s both;
+}
+@keyframes hs-shutter {
+  0% {
+    visibility: visible;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+  }
+}
+
+/* The shop builds in: --at is each element's start time. */
+.hs-rise {
+  animation: hs-rise var(--duration-slow) var(--ease-out) var(--at, 0s) both;
+}
+@keyframes hs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* The phone's order button: in with the shop, pressed, then it gives way to the order card. */
+.hs-order-button {
+  visibility: hidden;
+  opacity: 0;
+  animation: hs-order-button 2.4s var(--ease-out) 2.6s both;
+}
+@keyframes hs-order-button {
+  0% {
+    visibility: visible;
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  15%,
+  70% {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+  78% {
+    opacity: 1;
+    transform: scale(0.95);
+  }
+  100% {
+    visibility: hidden;
+    opacity: 0;
+    transform: scale(0.95);
+  }
+}
+
+.hs-card {
+  animation: hs-card-in var(--duration-slow) var(--ease-out) 4.6s both;
+}
+@keyframes hs-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(32px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* A line "types in": a cover the colour of the card shrinks to the right, uncovering the text left to right. */
+.hs-type {
+  position: relative;
+}
+.hs-type::after {
+  content: '';
+  position: absolute;
+  inset: 0 -2px;
+  background: var(--color-surface);
+  transform-origin: right center;
+  visibility: hidden;
+  transform: scaleX(0);
+  animation: hs-type-in 0.5s steps(14, end) var(--at, 0s) both;
+}
+@keyframes hs-type-in {
+  from {
+    visibility: visible;
+    transform: scaleX(1);
+  }
+  to {
+    visibility: hidden;
+    transform: scaleX(0);
+  }
+}
+
+/* "Ready to pay" / "Approve $27.00 on PayPal" give way to "Paid" / "Paid with PayPal". */
+.hs-before {
+  visibility: hidden;
+  opacity: 0;
+  animation: hs-swap-out var(--duration-base) var(--ease-out) var(--at, 0s) both;
+}
+@keyframes hs-swap-out {
+  from {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.hs-after {
+  animation: hs-swap-in var(--duration-base) var(--ease-out) var(--at, 0s) both;
+}
+@keyframes hs-swap-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hs-press {
+  animation: hs-press var(--duration-fast) var(--ease-in-out) var(--at, 0s) both;
+}
+@keyframes hs-press {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: scale(0.95);
+  }
+}
+
+.hs-note {
+  animation: hs-note-in var(--duration-slow) var(--ease-out) 8.5s both;
+}
+@keyframes hs-note-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hs-camera,
+  .hs-viewfinder,
+  .hs-shutter,
+  .hs-rise,
+  .hs-order-button,
+  .hs-card,
+  .hs-type::after,
+  .hs-before,
+  .hs-after,
+  .hs-press,
+  .hs-note {
+    animation: none;
+  }
+}

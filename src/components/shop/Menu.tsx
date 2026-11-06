@@ -1,3 +1,5 @@
+import { Pressable } from '@/components/motion/pressable';
+import { Reveal } from '@/components/motion/reveal';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import { itemCategory } from '@/lib/domain/category';
@@ -46,14 +48,17 @@ function Prices({ item }: { item: ItemWithVariants }) {
 function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; kind: ShopKind }) {
   const unavailable = item.soldOut && item.status !== 'in_person';
   return (
-    <li
+    // A card that answers the pointer (a 2 px lift with its shadow on hover, a press on tap). Not clipped itself (that
+    // would clip the hover shadow): the photo rounds its own outer corners instead.
+    <Pressable
+      as="li"
       data-menu-item={item.name}
-      className="flex min-h-32 items-stretch gap-4 py-4 sm:rounded-(--card-radius) sm:bg-(--card-bg) sm:py-0 sm:pl-4 sm:shadow-(--card-shadow) sm:overflow-hidden"
+      className="flex min-h-32 items-stretch gap-4 py-4 sm:rounded-(--card-radius) sm:bg-(--card-bg) sm:py-0 sm:pl-4 sm:shadow-(--card-shadow)"
     >
       <div className="flex min-w-0 flex-1 flex-col gap-1 sm:py-3.5">
         <h4 className={cx('font-bold leading-6 [overflow-wrap:anywhere]', unavailable && 'text-ink-muted')}>{item.name}</h4>
-        {item.description && <p className="line-clamp-2 text-sm text-ink-muted [overflow-wrap:anywhere]">{item.description}</p>}
-        <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-2">
+        {/* The price sits right under the name, where the eye lands next; the description follows, clamped. */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <Prices item={item} />
           {item.status === 'in_person' ? (
             <span className="type-meta font-semibold text-ink-soft">Ask in person</span>
@@ -61,6 +66,7 @@ function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; 
             item.soldOut && <span className="type-meta font-bold text-ink">Sold out today</span>
           )}
         </div>
+        {item.description && <p className="mt-1 line-clamp-2 text-sm text-ink-muted [overflow-wrap:anywhere]">{item.description}</p>}
       </div>
       <ItemPhoto
         name={item.name}
@@ -68,9 +74,9 @@ function MenuItem({ item, tone, kind }: { item: ItemWithVariants; tone: number; 
         category={itemCategory(item, kind)}
         tone={tone}
         dim={unavailable}
-        className="size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-none lg:size-34"
+        className="size-28 shrink-0 self-center rounded-(--thumb-radius) sm:size-32 sm:self-stretch sm:rounded-l-none sm:rounded-r-(--card-radius) lg:size-34"
       />
-    </li>
+    </Pressable>
   );
 }
 
@@ -87,13 +93,20 @@ export function Menu({ sections, kind }: { sections: MenuSection[]; kind: ShopKi
         <p className="text-ink-soft">Nothing on the menu yet.</p>
       ) : (
         sections.map((section, i) => (
-          <div key={section.name} id={ids[i].id} className="flex scroll-mt-16 flex-col gap-1 sm:gap-4">
-            <h3 className="type-title">{section.name}</h3>
-            <ul className="flex flex-col divide-y divide-line sm:grid sm:grid-cols-2 sm:gap-4 sm:divide-y-0">
-              {section.items.map((item) => (
-                <MenuItem key={item.id} item={item} tone={i} kind={kind} />
-              ))}
-            </ul>
+          <div
+            key={section.name}
+            id={ids[i].id}
+            className="scroll-mt-[calc(var(--shop-tabs-h)+1rem)] scroll-mb-[calc(var(--shop-bar-h)+1rem)]"
+          >
+            {/* A section below the fold rises in once as it scrolls into view; the first screen paints as served. */}
+            <Reveal className="flex flex-col gap-1 sm:gap-4">
+              <h3 className="type-title">{section.name}</h3>
+              <ul className="flex flex-col divide-y divide-line sm:grid sm:grid-cols-2 sm:gap-4 sm:divide-y-0">
+                {section.items.map((item) => (
+                  <MenuItem key={item.id} item={item} tone={i} kind={kind} />
+                ))}
+              </ul>
+            </Reveal>
           </div>
         ))
       )}
