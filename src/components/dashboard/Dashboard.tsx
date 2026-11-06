@@ -6,6 +6,7 @@ import { ExternalLink } from 'lucide-react';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { LogoPicker } from '@/components/setup/PhotoPicker';
 import { itemCategory } from '@/lib/domain/category';
+import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { Tabs } from '@/components/ui/tabs';
@@ -182,7 +183,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         <div className="flex min-w-0 items-center gap-4">
           <ShopAvatar
             shop={{ logoUrl, coverUrl, slug: shop.slug, kind, menuPhotoPaths: shop.hasMenuPhoto ? ['page-1'] : [] }}
-            items={items}
+            items={listedItems(items)}
             menuPhotoSrc={`/api/shops/${shop.id}/photo/1`}
             className="hidden sm:block"
           />

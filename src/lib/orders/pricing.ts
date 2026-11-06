@@ -2,6 +2,7 @@
 import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import { formatUSD, toPayPalValue } from '@/lib/domain/money';
+import { isListed } from '@/lib/domain/listed';
 import { canBePaid } from '@/lib/domain/payee';
 import type { Fulfillment, ItemKind, ItemWithVariants, OrderLine, Shop, Variant } from '@/lib/domain/types';
 import { sanitizeLabel } from '@/lib/text';
@@ -48,8 +49,8 @@ export function shopModes(shop: Shop): Fulfillment[] {
   return shop.fulfillment === 'both' ? ['pickup', 'shipping'] : [shop.fulfillment];
 }
 
-/** Items an agent can see: live ones and "ask in person" ones. */
-export const isListed = (item: ItemWithVariants): boolean => item.status === 'live' || item.status === 'in_person';
+/** Items an agent can see: live ones and "ask in person" ones, as on the shop page (`LISTED_STATUSES`). */
+export { isListed };
 
 /** Options with a real price. Unpriced options are never orderable. */
 export function pricedOptions(item: ItemWithVariants): Variant[] {

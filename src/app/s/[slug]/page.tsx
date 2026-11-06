@@ -12,6 +12,7 @@ import { getDb } from '@/lib/db';
 import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
+import { LISTED_STATUSES } from '@/lib/domain/listed';
 import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
@@ -138,7 +139,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
   const { slug } = await params;
   const { assistant } = await searchParams;
   const shop = loadShop(slug);
-  const items = itemsRepo.listWithVariants(getDb(), shop.id, { status: ['live', 'in_person'] });
+  const items = itemsRepo.listWithVariants(getDb(), shop.id, { status: [...LISTED_STATUSES] });
   const shopUrl = `${getConfig().appUrl}/s/${shop.slug}`;
   const doorUrl = `${shopUrl}/mcp`;
   // Live, and it can be paid: otherwise the door refuses every order, so nothing on the page offers one.

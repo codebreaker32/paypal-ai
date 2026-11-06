@@ -1,6 +1,7 @@
 'use client';
 
 import { itemCategory } from '@/lib/domain/category';
+import { listedItems } from '@/lib/domain/listed';
 import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
@@ -130,7 +131,7 @@ export function MenuPanel({
   const toast = useToast();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const listed = items.filter((i) => i.status === 'live' || i.status === 'in_person');
+  const listed = listedItems(items);
   const photos = listed.filter((i) => i.photoUrl).length;
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>

@@ -44,7 +44,7 @@ export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup
         pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
         avatar={{
           shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, slug: shop.slug, kind: shop.kind, menuPhotoPaths: shop.menuPhotoPaths },
-          items: all.map((i) => ({ category: i.category, name: i.name, section: i.section, description: i.description })),
+          items: items.avatarItems(db, id),
           menuPhotoSrc: `/api/shops/${id}/photo/1`,
         }}
       />
