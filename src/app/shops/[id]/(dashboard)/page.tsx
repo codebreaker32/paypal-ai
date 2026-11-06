@@ -1,4 +1,4 @@
-// Seller dashboard (spec §4): Orders · Menu · Share. Owner only; reads SQLite, then the client re-reads its API every 5 s.
+// Seller dashboard (spec §4): Orders · Menu · Share · Settings. Owner only; reads SQLite, then the client re-reads its API every 5 s.
 import type { Metadata } from 'next';
 import { withFallbackBrief } from '@/lib/ai/template';
 import { Dashboard, type DashboardTab } from '@/components/dashboard/Dashboard';
@@ -8,6 +8,7 @@ import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
+import { isDemoShop } from '@/lib/domain/payee';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]'>): Promise<Metadata> {
   const { id } = await params;
@@ -22,11 +23,11 @@ export default async function DashboardPage({ params, searchParams }: PageProps<
   const db = getDb();
   const orders = ordersRepo.listByShop(db, shop.id);
   const items = itemsRepo.listWithVariants(db, shop.id);
-  const initialTab: DashboardTab = tab === 'menu' || tab === 'share' ? tab : 'orders';
+  const initialTab: DashboardTab = tab === 'menu' || tab === 'share' || tab === 'settings' ? tab : 'orders';
 
   return (
     <Dashboard
-      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status }}
+      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop) }}
       initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}

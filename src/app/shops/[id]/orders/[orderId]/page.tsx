@@ -2,8 +2,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, CircleCheck, Mail, MapPin, Store, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleCheck, Mail, MapPin, Settings, Store, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
+import { ButtonLink } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
@@ -19,9 +20,10 @@ import { getDb } from '@/lib/db';
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
+import { isDemoShop } from '@/lib/domain/payee';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { actionWords, agentLabel, cancelledByShop, cardDeclined, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, cancelledByShop, cardDeclined, heldForUnknownEmail, lineName, paypalCardWords, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -38,7 +40,11 @@ function SectionTitle({ id, children }: { id: string; children: React.ReactNode 
   );
 }
 
-function ActionCard({ shop, order, trackers, declined, byShop, className }: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; byShop: boolean; className?: string }) {
+function ActionCard({
+  shop, order, trackers, declined, byShop, held, className,
+}: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; byShop: boolean; held: boolean; className?: string }) {
+  // Paid into the seller's own PayPal account: PayPal refuses Shelfie's tracker on it, so tracking is saved here (spec §8a).
+  const sellerPaid = order.payeeEmail !== null;
   const body = (() => {
     if (order.status === 'paid' && order.fulfillment === 'pickup') {
       return (
@@ -54,9 +60,11 @@ function ActionCard({ shop, order, trackers, declined, byShop, className }: { sh
         <>
           <SectionTitle id="action-title">Add tracking</SectionTitle>
           <p className="text-ink-soft">
-            Ship it to the address from PayPal, then add the tracking number. It goes to PayPal for the buyer, and their assistant can read it back.
+            {sellerPaid
+              ? 'Ship it to the address from PayPal, then add the tracking number here so the buyer’s assistant can read it back. Add it to this payment in your PayPal account too.'
+              : 'Ship it to the address from PayPal, then add the tracking number. It goes to PayPal for the buyer, and their assistant can read it back.'}
           </p>
-          <TrackingForm shopId={shop.id} orderId={order.id} />
+          <TrackingForm shopId={shop.id} orderId={order.id} atPayPal={!sellerPaid} />
         </>
       );
     }
@@ -75,9 +83,15 @@ function ActionCard({ shop, order, trackers, declined, byShop, className }: { sh
                 <li key={t.trackingNumber} className="flex flex-col gap-1 rounded-md bg-surface-sunken py-2 pr-1 pl-3">
                   <div className="flex flex-wrap items-center justify-between gap-2 pr-2">
                     <span className="font-semibold">{t.carrier}</span>
-                    <Badge tone="ok" icon={CircleCheck}>
-                      Sent to PayPal
-                    </Badge>
+                    {t.paypalStatus !== null ? (
+                      <Badge tone="ok" icon={CircleCheck}>
+                        Sent to PayPal
+                      </Badge>
+                    ) : (
+                      <Badge tone="info" icon={CircleCheck}>
+                        Saved in Shelfie
+                      </Badge>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <span className="type-price min-w-0 font-mono text-sm [overflow-wrap:anywhere]">{t.trackingNumber}</span>
@@ -87,10 +101,15 @@ function ActionCard({ shop, order, trackers, declined, byShop, className }: { sh
               ))}
             </ul>
           )}
+          {trackers.some((t) => t.paypalStatus === null) && (
+            <p className="type-meta text-ink-muted">
+              PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.
+            </p>
+          )}
         </>
       );
     }
-    const [title, text] = actionWords(order, declined, byShop);
+    const [title, text] = actionWords(order, declined, byShop, held);
     return (
       <>
         <SectionTitle id="action-title">{title}</SectionTitle>
@@ -99,6 +118,11 @@ function ActionCard({ shop, order, trackers, declined, byShop, className }: { sh
           <p className="type-meta text-ink-muted">
             The PayPal link expires at <LocalTime iso={order.expiresAt} />.
           </p>
+        )}
+        {held && (
+          <ButtonLink href={`/shops/${shop.id}?tab=settings`} variant="secondary" icon={Settings} className="w-full sm:w-auto sm:self-start">
+            Check your PayPal email
+          </ButtonLink>
         )}
       </>
     );
@@ -249,7 +273,8 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
   );
 }
 
-function PayPalCard({ order, className }: { order: Order; className?: string }) {
+function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; className?: string }) {
+  const words = paypalCardWords(order, isDemoShop(shop));
   const row = (label: string, value: string | null, what: string, empty: string) => (
     <div className="flex flex-col gap-0.5">
       <dt className="type-meta text-ink-muted">{label}</dt>
@@ -271,10 +296,17 @@ function PayPalCard({ order, className }: { order: Order; className?: string }) 
     <Card as="section" aria-labelledby="paypal-title" padding="lg" className={cx('flex flex-col gap-3', className)}>
       <SectionTitle id="paypal-title">PayPal</SectionTitle>
       <dl className="flex flex-col gap-2">
+        {/* The account this order pays: the email it was created with (a later Settings change doesn't move it). */}
+        <div className="flex flex-col gap-0.5">
+          <dt className="type-meta text-ink-muted">Paid to</dt>
+          <dd className="flex min-h-tap items-center font-medium [overflow-wrap:anywhere]" data-testid="paid-to">
+            {words.paidTo}
+          </dd>
+        </div>
         {row('Order ID', order.paypalOrderId, 'PayPal order ID', '')}
         {row('Transaction ID', order.captureId, 'PayPal transaction ID', 'Created when the payment is received')}
       </dl>
-      <p className="type-meta text-ink-muted">Search these in your PayPal account to find the payment.</p>
+      <p className="type-meta text-ink-muted">{words.note}</p>
     </Card>
   );
 }
@@ -331,9 +363,17 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
           <TimelineCard entries={entries} className="order-5 lg:order-none" />
         </div>
         <div className="contents lg:col-span-5 lg:flex lg:flex-col lg:gap-6">
-          <ActionCard shop={shop} order={order} trackers={trackers} declined={cardDeclined(order, events)} byShop={cancelledByShop(order, events)} className="order-2 lg:order-none" />
+          <ActionCard
+            shop={shop}
+            order={order}
+            trackers={trackers}
+            declined={cardDeclined(order, events)}
+            byShop={cancelledByShop(order, events)}
+            held={heldForUnknownEmail(order, events)}
+            className="order-2 lg:order-none"
+          />
           <BuyerCard shop={shop} order={order} className="order-3 lg:order-none" />
-          <PayPalCard order={order} className="order-6 lg:order-none" />
+          <PayPalCard shop={shop} order={order} className="order-6 lg:order-none" />
         </div>
       </div>
     </div>

@@ -59,6 +59,44 @@ describe('edits', () => {
       expect(parseShopPatch({ shippingFeeCents: 0 }).shippingFeeCents).toBe(0);
     });
 
+    it("saves the seller's PayPal email trimmed and lower-cased, and refuses a malformed one with the seller message", () => {
+      expect(parseShopPatch({ payeeEmail: '  Rosa@Example.COM ' }).payeeEmail).toBe('rosa@example.com');
+      const saved = applyShopPatch(db, shops.byId(db, shopId)!, parseShopPatch({ payeeEmail: 'Rosa@Example.com' }));
+      expect(saved.payeeEmail).toBe('rosa@example.com');
+      for (const bad of ['rosa@', 'rosa example.com', 'rosa@example', '', 42]) {
+        const e = (() => {
+          try {
+            parseShopPatch({ payeeEmail: bad });
+          } catch (err) {
+            return err as EditError;
+          }
+          return null;
+        })();
+        expect(e).toBeInstanceOf(EditError);
+        expect({ code: e!.code, status: e!.status, message: e!.message }).toEqual({
+          code: 'INVALID_PAYEE_EMAIL',
+          status: 400,
+          message: 'Enter the email you use to log in to PayPal, like rosa@example.com.',
+        });
+      }
+    });
+
+    it('lets a draft shop clear its PayPal email, but not a published one (except the demo shop)', () => {
+      shops.update(db, shopId, { payeeEmail: 'rosa@example.com' });
+      expect(applyShopPatch(db, shops.byId(db, shopId)!, parseShopPatch({ payeeEmail: null })).payeeEmail).toBeNull();
+      shops.update(db, shopId, { payeeEmail: 'rosa@example.com' });
+      shops.publish(db, shopId);
+      expect(errorOf(() => applyShopPatch(db, shops.byId(db, shopId)!, parseShopPatch({ payeeEmail: null })))).toEqual({ code: 'PAYEE_REQUIRED', status: 409 });
+      expect(shops.byId(db, shopId)!.payeeEmail).toBe('rosa@example.com');
+      // A different email is fine.
+      expect(applyShopPatch(db, shops.byId(db, shopId)!, parseShopPatch({ payeeEmail: 'rosa.b@example.com' })).payeeEmail).toBe('rosa.b@example.com');
+      // The demo shop may go back to being paid to the platform account.
+      const demo = shops.create(db, { name: 'Marigold Bakehouse', payeeEmail: 'seller@example.com' }).shop;
+      expect(demo.slug).toBe('marigold-bakehouse');
+      shops.publish(db, demo.id);
+      expect(applyShopPatch(db, shops.byId(db, demo.id)!, parseShopPatch({ payeeEmail: null })).payeeEmail).toBeNull();
+    });
+
     it('only toggles live and paused on a published shop', () => {
       const draftShop = shops.byId(db, shopId)!;
       expect(errorOf(() => applyShopPatch(db, draftShop, parseShopPatch({ status: 'live' })))).toEqual({ code: 'NOT_PUBLISHED', status: 409 });

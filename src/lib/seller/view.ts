@@ -61,8 +61,38 @@ export interface TimelineEntry {
   tone: 'neutral' | 'ok' | 'warn' | 'danger' | 'info';
 }
 
+/** PayPal's reason for holding a payment to an email no PayPal account uses yet (verified in the sandbox, 6 Nov). */
+export const UNILATERAL = 'UNILATERAL';
+
+const heldWords = (email: string | null) => `PayPal is holding this payment: no PayPal account uses ${email ?? 'your PayPal email'} yet`;
+
+/**
+ * A payment_pending order that PayPal holds because its payee email has no PayPal account yet (a typo, or the seller
+ * hasn't signed up): the latest capture_pending event carries PayPal's reason UNILATERAL.
+ */
+export function heldForUnknownEmail(order: Pick<Order, 'status'>, events: OrderEventRow[]): boolean {
+  if (order.status !== 'payment_pending') return false;
+  const last = events.filter((e) => e.type === 'capture_pending' && !(e.detail as { ignored?: boolean } | null)?.ignored).at(-1);
+  return (last?.detail as { pendingReason?: unknown } | null)?.pendingReason === UNILATERAL;
+}
+
+/**
+ * The order page's PayPal card: the account this order paid (the email it was created with; owner only) and where to
+ * find the payment. No payee: Shelfie's account, called the demo's only for the demo shop (`isDemo`); another shop's
+ * order without one dates from before it had a PayPal email.
+ */
+export function paypalCardWords(order: Pick<Order, 'payeeEmail'>, isDemo: boolean): { paidTo: string; note: string } {
+  if (order.payeeEmail !== null) return { paidTo: order.payeeEmail, note: 'Search these in that PayPal account to find the payment.' };
+  return isDemo
+    ? { paidTo: 'Shelfie’s demo PayPal account', note: 'This demo shop is paid to Shelfie’s own sandbox account, so the payment is there, not in yours.' }
+    : {
+        paidTo: 'Shelfie’s PayPal account',
+        note: 'This order was placed before your shop had a PayPal email, so the payment is in Shelfie’s account, not yours.',
+      };
+}
+
 /** Order events as plain words. Repeated (ignored) events, sync bookkeeping and unknown types are left out. */
-export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'fulfillment' | 'agentName'>): TimelineEntry[] {
+export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'fulfillment' | 'agentName' | 'payeeEmail'>): TimelineEntry[] {
   const out: TimelineEntry[] = [];
   for (const e of events) {
     const d = (e.detail ?? {}) as Record<string, unknown>;
@@ -79,7 +109,7 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry('Payment received', 'ok');
         break;
       case 'capture_pending':
-        entry('Payment pending at PayPal', 'warn');
+        entry(d.pendingReason === UNILATERAL ? heldWords(order.payeeEmail) : 'Payment pending at PayPal', 'warn');
         break;
       case 'capture_declined':
         entry('Payment declined; the buyer can try again on PayPal', 'warn');
@@ -97,7 +127,12 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry("Couldn’t reach PayPal to take the payment; trying again", 'warn');
         break;
       case 'mismatch':
-        entry("Stopped: PayPal’s amount didn’t match this order", 'danger');
+        entry(
+          d.payeeMatches === false
+            ? 'Stopped: PayPal would have paid a different PayPal account, so nothing was charged'
+            : "Stopped: PayPal’s amount didn’t match this order",
+          'danger',
+        );
         break;
       case 'cancelled':
         entry(
@@ -115,7 +150,8 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry(order.fulfillment === 'pickup' ? 'Marked picked up' : 'Marked shipped', 'info');
         break;
       case 'tracking_added':
-        entry(`Tracking added: ${String(d.carrier ?? '')} ${String(d.trackingNumber ?? '')}`.trim(), 'info');
+        // Saved: a seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform, spec §8a).
+        entry(`${d.atPayPal === false ? 'Tracking saved' : 'Tracking added'}: ${String(d.carrier ?? '')} ${String(d.trackingNumber ?? '')}`.trim(), 'info');
         break;
       default:
         break;
@@ -127,8 +163,24 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
 /** Declined card and shop-cancelled: the same rules as the receipt and get_order_status. */
 export { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 
-/** Title and text of the order detail's action card for an order the seller can't act on yet (or any more). */
-export function actionWords(order: Pick<Order, 'status' | 'captureRefused'>, declined = false, byShop = false): [string, string] {
+/**
+ * Title and text of the order detail's action card for an order the seller can't act on yet (or any more). `held`:
+ * PayPal holds the payment because no PayPal account uses the order's email (heldForUnknownEmail).
+ */
+export function actionWords(
+  order: Pick<Order, 'status' | 'captureRefused'> & { payeeEmail?: string | null },
+  declined = false,
+  byShop = false,
+  held = false,
+): [string, string] {
+  if (order.status === 'payment_pending' && held) {
+    return [
+      'PayPal is holding this payment',
+      // The title already says PayPal is holding it; the text says why and what to do.
+      `No PayPal account uses ${order.payeeEmail ?? 'your PayPal email'} yet. If that’s your email, sign up for PayPal with it to receive the money. ` +
+        'If it has a typo, correct it in Settings so new orders reach you. Don’t hand over or ship until it shows Paid.',
+    ];
+  }
   if (order.status === 'cancelled' && byShop) return ['Cancelled', 'The shop cancelled it before the buyer paid. Nothing was charged.'];
   if (order.status === 'awaiting_approval' && declined) {
     return ['Card declined', 'PayPal declined the buyer’s card. They can pick another on PayPal. Nothing to prepare until it shows Paid.'];

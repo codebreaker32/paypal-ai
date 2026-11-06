@@ -6,7 +6,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE } from './helpers';
-import { addFixtureOrder, createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
+import { getDb } from '@/lib/db';
+import * as shopsRepo from '@/lib/db/repos/shops';
+import { FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
@@ -174,6 +176,31 @@ test.describe('dashboard', () => {
     await a11y(page);
   });
 
+  test('Settings tab: Your PayPal email is checked on blur, saved through PATCH /api/shops/[id], and new orders use it', async ({ page, context }) => {
+    // The real route (nothing mocked): its own shop, so the other tests' shops keep their email.
+    const seller = createFixtureShop('Settings Test Bakery');
+    await signInAsOwner(context, seller, BASE);
+    await page.goto(dashboard(seller, '?tab=settings'));
+    await expect(page.getByRole('tab', { name: 'Settings', selected: true })).toBeVisible();
+    const field = page.getByLabel('Your PayPal email');
+    await expect(field).toHaveValue(FIXTURE_PAYEE);
+    await field.fill('rosa@example');
+    await field.blur();
+    await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
+    await page.getByRole('button', { name: 'Save' }).click();
+    expect(shopsRepo.byId(getDb(), seller.shop.id)!.payeeEmail).toBe(FIXTURE_PAYEE);
+    await field.fill(' Rosa.Bakes@Example.com ');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'Saved. New orders are paid to rosa.bakes@example.com.' })).toBeVisible();
+    await expect(field).toHaveValue('rosa.bakes@example.com');
+    expect(shopsRepo.byId(getDb(), seller.shop.id)!.payeeEmail).toBe('rosa.bakes@example.com');
+    // A live shop can't go back to no email.
+    await field.fill('');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.getByText('Enter the email you use to log in to PayPal, like rosa@example.com.')).toBeVisible();
+    await a11y(page);
+  });
+
   test('empty dashboard points at the assistant demo', async ({ page, context }) => {
     await signInAsOwner(context, empty, BASE);
     await page.goto(dashboard(empty));
@@ -217,6 +244,8 @@ test.describe('order detail', () => {
   test("tracking form: sending, PayPal's error, then sent", async ({ page, context }) => {
     await signInAsOwner(context, scratch, BASE);
     const o = addFixtureOrder(scratch, {
+      // Paid to the platform account (as the demo shop's orders are): this tracker goes on to PayPal.
+      payeeEmail: null,
       status: 'paid', fulfillment: 'shipping', minutesAgo: 4, buyerName: 'Ola', lines: [['Seeded rye', 1]],
       payer: { name: 'Ola Bello', email: 'ola@example.com' },
       shipTo: { name: 'Ola Bello', line1: '1 Elm St', line2: null, city: 'Dallas', state: 'TX', postalCode: '75201', countryCode: 'US' },
@@ -254,13 +283,55 @@ test.describe('order detail', () => {
   });
 
   test('fulfilled shipping order shows its tracking', async ({ page }) => {
+    // Paid into the seller's own PayPal account: the tracker was saved in Shelfie, not sent to PayPal (spec §8a).
     await page.goto(detail(full, orders.shipped.id));
     const action = page.locator('section[aria-labelledby="action-title"]');
     await expect(action.getByRole('heading', { name: 'Shipped' })).toBeVisible();
     await expect(action).toContainText('USPS');
     await expect(action).toContainText('9400111899223197428490');
-    await expect(action).toContainText('Sent to PayPal');
-    await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Tracking added: USPS 9400111899223197428490');
+    await expect(action).toContainText('Saved in Shelfie');
+    await expect(action).toContainText('add it to this payment in your PayPal account too');
+    await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Tracking saved: USPS 9400111899223197428490');
+    await expect(page.getByTestId('paid-to')).toHaveText(FIXTURE_PAYEE);
+    await a11y(page);
+  });
+
+  test("tracking on an order paid to the seller's own PayPal account is saved in Shelfie, with the PayPal note", async ({ page, context }) => {
+    await signInAsOwner(context, scratch, BASE);
+    const o = addFixtureOrder(scratch, {
+      status: 'paid', fulfillment: 'shipping', minutesAgo: 5, buyerName: 'Kim', lines: [['Seeded rye', 1]],
+      payer: { name: 'Kim Vo', email: 'kim@example.com' },
+      shipTo: { name: 'Kim Vo', line1: '9 Pine St', line2: null, city: 'Houston', state: 'TX', postalCode: '77002', countryCode: 'US' },
+    });
+    expect(o.payeeEmail).toBe(FIXTURE_PAYEE);
+    await page.goto(detail(scratch, o.id));
+    await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('Add it to this payment in your PayPal account too.');
+    await page.getByLabel('Tracking number').fill('9400 1118 9922 3100 0000 77');
+    // The real route: no PayPal call is made for this order, so nothing here is mocked.
+    await page.getByRole('button', { name: 'Save tracking' }).click();
+    await expect(page.getByRole('status').filter({ hasText: 'PayPal only lets the account that was paid add tracking' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Saved. The buyer’s assistant can see it now.' })).toBeVisible();
+    await page.reload();
+    const action = page.locator('section[aria-labelledby="action-title"]');
+    await expect(action.getByRole('heading', { name: 'Shipped' })).toBeVisible();
+    await expect(action).toContainText('Saved in Shelfie');
+    await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Tracking saved: USPS 9400111899223100000077');
+  });
+
+  test('a payment PayPal holds for an email with no PayPal account says so and points to Settings', async ({ page, context }) => {
+    await signInAsOwner(context, scratch, BASE);
+    const o = addFixtureOrder(scratch, {
+      status: 'payment_pending', fulfillment: 'pickup', minutesAgo: 7, buyerName: 'Lu', lines: [['Morning bun', 2]],
+      payeeEmail: 'rosa@exmaple.com', pendingReason: 'UNILATERAL', payer: { name: 'Lu Chen', email: 'lu@example.com' },
+    });
+    await page.goto(detail(scratch, o.id));
+    const action = page.locator('section[aria-labelledby="action-title"]');
+    await expect(action.getByRole('heading', { name: 'PayPal is holding this payment' })).toBeVisible();
+    await expect(action).toContainText('No PayPal account uses rosa@exmaple.com yet.');
+    await expect(page.getByTestId('paid-to')).toHaveText('rosa@exmaple.com');
+    await action.getByRole('link', { name: 'Check your PayPal email' }).click();
+    await expect(page).toHaveURL(new RegExp(`/shops/${scratch.shop.id}\\?tab=settings$`));
+    await expect(page.getByLabel('Your PayPal email')).toHaveValue(FIXTURE_PAYEE);
     await a11y(page);
   });
 });

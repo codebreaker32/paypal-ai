@@ -3,6 +3,7 @@ import type Database from 'better-sqlite3';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
+import { EditError } from '@/lib/catalog/edits';
 import { RESERVED_SLUG, canGoLive, publishShop, type PublishProgress } from '@/lib/catalog/publish';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
@@ -17,6 +18,9 @@ const draft = (name: string, prices: (number | null)[], extra: Partial<DraftItem
 
 const byName = (db: Database.Database, shopId: string, name: string) =>
   items.listWithVariants(db, shopId).find((i) => i.name === name)!;
+
+/** A seller's PayPal email: every shop but the demo shop needs one to publish (spec §8a). */
+const SELLER = 'seller@example.com';
 
 describe('publishShop', () => {
   let db: Database.Database;
@@ -67,8 +71,30 @@ describe('publishShop', () => {
     expect(sent.get(`pub-${coffee.id}`)).toMatchObject({ description: 'Coffee' });
   });
 
+  it('refuses a shop without a PayPal email before anything reaches PayPal (PAYEE_REQUIRED)', async () => {
+    const rosa = shops.create(db, { name: 'draft r0sa0001' }).shop.id;
+    shops.update(db, rosa, { name: "Rosa's Bakes" });
+    items.replaceDrafts(db, rosa, [draft('Bun', [300])]);
+    const err = await publishShop({ db, paypal }, rosa).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(EditError);
+    expect(err).toMatchObject({ code: 'PAYEE_REQUIRED', status: 409, message: 'Add your PayPal email to publish.' });
+    expect(paypal.calls).toHaveLength(0);
+    expect(shops.byId(db, rosa)).toMatchObject({ status: 'draft', slug: 'draft-r0sa0001' });
+    // With the email it publishes.
+    shops.update(db, rosa, { payeeEmail: 'rosa@example.com' });
+    expect(await publishShop({ db, paypal }, rosa)).toEqual({ published: 1, failed: [] });
+    expect(shops.byId(db, rosa)!.status).toBe('live');
+  });
+
+  it('publishes the demo shop with no PayPal email (it is paid to the platform account)', async () => {
+    const demo = shops.byId(db, shopId)!;
+    expect(demo).toMatchObject({ slug: RESERVED_SLUG, payeeEmail: null });
+    expect((await publishShop({ db, paypal }, shopId)).published).toBe(2);
+    expect(shops.byId(db, shopId)!.status).toBe('live');
+  });
+
   it('uses SERVICE products and no category for a services shop', async () => {
-    const ravi = shops.create(db, { name: "Ravi's Bike Repair", kind: 'services' }).shop.id;
+    const ravi = shops.create(db, { name: "Ravi's Bike Repair", kind: 'services', payeeEmail: SELLER }).shop.id;
     items.replaceDrafts(db, ravi, [draft('Flat fix', [1500], { kind: 'SERVICE', section: null })]);
     await publishShop({ db, paypal }, ravi);
     const sent = paypal.calls.at(-1)!.args[0] as Record<string, unknown>;
@@ -182,7 +208,7 @@ describe('publishShop', () => {
   describe('a run that broke before the shop went live', () => {
     // Every publishable item reached PayPal, but the shop is still a draft with its draft slug.
     function brokenRun(): string {
-      const id = shops.create(db, { name: 'draft q1w2e3r4' }).shop.id;
+      const id = shops.create(db, { name: 'draft q1w2e3r4', payeeEmail: SELLER }).shop.id;
       shops.update(db, id, { name: "Tía Lupe's" });
       items.replaceDrafts(db, id, [draft('Taco', [350]), draft('Agua fresca', [300])]);
       for (const it of items.listWithVariants(db, id)) items.setPayPalProductId(db, it.id, `PROD-${it.id}`);
@@ -210,7 +236,7 @@ describe('publishShop', () => {
   });
 
   it('runs at most 3 PayPal calls at once', async () => {
-    const many = shops.create(db, { name: 'Many' }).shop.id;
+    const many = shops.create(db, { name: 'Many', payeeEmail: SELLER }).shop.id;
     items.replaceDrafts(db, many, Array.from({ length: 8 }, (_, i) => draft(`Thing ${i}`, [100 + i])));
     let inFlight = 0;
     let peak = 0;
@@ -247,7 +273,7 @@ describe('publishShop', () => {
   });
 
   it('sends the latest version of an item edited while it waited its turn, and keeps one removed off the shop', async () => {
-    const many = shops.create(db, { name: 'Many' }).shop.id;
+    const many = shops.create(db, { name: 'Many', payeeEmail: SELLER }).shop.id;
     items.replaceDrafts(db, many, Array.from({ length: 5 }, (_, i) => draft(`Thing ${i}`, [100 + i])));
     const [, , , fourth, fifth] = items.listWithVariants(db, many);
     let first = true;
@@ -272,7 +298,7 @@ describe('publishShop', () => {
   });
 
   it('skips an item moved to "ask in person" or removed while it waited its turn, and still reports it', async () => {
-    const many = shops.create(db, { name: 'Many' }).shop.id;
+    const many = shops.create(db, { name: 'Many', payeeEmail: SELLER }).shop.id;
     items.replaceDrafts(db, many, Array.from({ length: 5 }, (_, i) => draft(`Thing ${i}`, [100 + i])));
     const [, , , fourth, fifth] = items.listWithVariants(db, many);
     let release!: () => void;
@@ -317,7 +343,7 @@ describe('publishShop', () => {
 
   it('leaves the shop a draft when nothing could be published', async () => {
     paypal.failNext('createProduct', new Error('down'));
-    const solo = shops.create(db, { name: 'Solo' }).shop.id;
+    const solo = shops.create(db, { name: 'Solo', payeeEmail: SELLER }).shop.id;
     items.replaceDrafts(db, solo, [draft('Only thing', [500])]);
     const r = await publishShop({ db, paypal }, solo);
     expect(r.published).toBe(0);
@@ -335,7 +361,7 @@ describe('publishShop', () => {
   });
 
   it('gives a draft shop its real slug from its name on first publish', async () => {
-    const id = shops.create(db, { name: 'draft k7f2qxm4' }).shop.id;
+    const id = shops.create(db, { name: 'draft k7f2qxm4', payeeEmail: SELLER }).shop.id;
     shops.update(db, id, { name: "Rosa's Bakes" });
     items.replaceDrafts(db, id, [draft('Bun', [300])]);
     await publishShop({ db, paypal }, id);
@@ -350,7 +376,7 @@ describe('publishShop', () => {
 
   it('picks a free slug when the name is taken', async () => {
     shops.create(db, { name: 'Rosa' });
-    const id = shops.create(db, { name: 'draft aaaa1111' }).shop.id;
+    const id = shops.create(db, { name: 'draft aaaa1111', payeeEmail: SELLER }).shop.id;
     shops.update(db, id, { name: 'Rosa' });
     items.replaceDrafts(db, id, [draft('Bun', [300])]);
     await publishShop({ db, paypal }, id);
@@ -360,7 +386,7 @@ describe('publishShop', () => {
   it("never gives a visitor's shop the demo shop's slug, even before the demo shop exists", async () => {
     const fresh = createTestDb();
     const visitor = () => {
-      const id = shops.create(fresh, { name: `draft ${Math.random().toString(36).slice(2, 10).padEnd(8, '0')}` }).shop.id;
+      const id = shops.create(fresh, { name: `draft ${Math.random().toString(36).slice(2, 10).padEnd(8, '0')}`, payeeEmail: SELLER }).shop.id;
       shops.update(fresh, id, { name: 'Marigold Bakehouse' });
       items.replaceDrafts(fresh, id, [draft('Bun', [300])]);
       return id;

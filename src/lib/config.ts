@@ -15,6 +15,8 @@ export interface Config {
   uploadsDir: string;
   buyerEmail: string | null;
   buyerPassword: string | null;
+  /** PAYPAL_SANDBOX_SELLER_EMAIL: `npm run seed` pays the demo shop to this sandbox seller (else the platform account). */
+  sellerEmail: string | null;
 }
 
 const opt = (name: string): string | null => {
@@ -45,5 +47,6 @@ export function getConfig(): Config {
     uploadsDir: opt('UPLOADS_DIR') ?? 'data/uploads',
     buyerEmail: opt('PAYPAL_SANDBOX_BUYER_EMAIL'),
     buyerPassword: opt('PAYPAL_SANDBOX_BUYER_PASSWORD'),
+    sellerEmail: opt('PAYPAL_SANDBOX_SELLER_EMAIL'),
   };
 }

@@ -14,10 +14,11 @@ const base: CreatePayPalOrderInput = {
   fulfillment: 'pickup',
   returnUrl: 'http://localhost:3000/o/ord_1/return',
   cancelUrl: 'http://localhost:3000/o/ord_1/cancel',
+  payeeEmail: null,
 };
 
 describe('buildOrderBody', () => {
-  it('pickup order matches the verified shape', () => {
+  it('pickup order paid to the platform (no payee) matches the verified shape', () => {
     expect(buildOrderBody(base)).toEqual({
       intent: 'CAPTURE',
       purchase_units: [
@@ -49,6 +50,17 @@ describe('buildOrderBody', () => {
         },
       },
     });
+  });
+
+  it("a seller's order adds purchase_units[0].payee with the email, and nothing else changes (verified 6 Nov)", () => {
+    const platform = buildOrderBody(base) as { purchase_units: Record<string, unknown>[] };
+    const seller = buildOrderBody({ ...base, payeeEmail: 'rosa@example.com' }) as { purchase_units: Record<string, unknown>[] };
+    expect(seller.purchase_units[0].payee).toEqual({ email_address: 'rosa@example.com' });
+    expect('payee' in platform.purchase_units[0]).toBe(false);
+    const rest = { ...seller.purchase_units[0] };
+    delete rest.payee;
+    expect({ ...seller, purchase_units: [rest] }).toEqual(platform);
+    expect(Object.keys(seller.purchase_units[0])).toEqual(['reference_id', 'custom_id', 'invoice_id', 'description', 'amount', 'items', 'payee']);
   });
 
   it('shipping order adds breakdown.shipping, includes it in the total and uses GET_FROM_FILE', () => {

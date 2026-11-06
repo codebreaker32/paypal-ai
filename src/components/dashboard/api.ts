@@ -29,13 +29,17 @@ export const markPickedUp = (shopId: string, orderId: string) =>
   call<{ order: Order }>(`/api/shops/${shopId}/orders/${orderId}/fulfil`, { method: 'POST' });
 
 export const addTracking = (shopId: string, orderId: string, input: { carrier: string; trackingNumber: string; carrierName?: string }) =>
-  call<{ order: Order; trackers: Tracker[] }>(`/api/shops/${shopId}/orders/${orderId}/tracking`, {
+  call<{ order: Order; trackers: Tracker[]; atPayPal: boolean }>(`/api/shops/${shopId}/orders/${orderId}/tracking`, {
     method: 'POST',
     body: JSON.stringify(input),
   });
 
 export const setShopStatus = (shopId: string, status: 'live' | 'paused') =>
   call<{ shop: Shop }>(`/api/shops/${shopId}`, { method: 'PATCH', body: JSON.stringify({ status }) });
+
+/** The seller's PayPal email (null: only the demo shop, which is then paid to Shelfie's demo account). */
+export const setPayeeEmail = (shopId: string, payeeEmail: string | null) =>
+  call<{ shop: Shop }>(`/api/shops/${shopId}`, { method: 'PATCH', body: JSON.stringify({ payeeEmail }) });
 
 export const setSoldOut = (shopId: string, itemId: string, soldOut: boolean) =>
   call<{ items: ItemWithVariants[] }>(`/api/shops/${shopId}/items`, {

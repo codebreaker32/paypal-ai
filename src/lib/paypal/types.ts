@@ -22,7 +22,16 @@ export interface PayPalOrder {
         country_code?: string;
       };
     };
-    payments?: { captures?: { id: string; status: 'COMPLETED' | 'PENDING' | 'DECLINED' | 'REFUNDED' | 'FAILED' | string }[] };
+    /** Who PayPal pays. A seller's order shows the email we sent (verified 6 Nov: no merchant_id comes back). */
+    payee?: { email_address?: string; merchant_id?: string };
+    payments?: {
+      captures?: {
+        id: string;
+        status: 'COMPLETED' | 'PENDING' | 'DECLINED' | 'REFUNDED' | 'FAILED' | string;
+        /** Why a capture is PENDING, e.g. UNILATERAL: the payee email has no PayPal account yet (verified 6 Nov). */
+        status_details?: { reason?: string };
+      }[];
+    };
   }[];
   links?: { rel: string; href: string; method?: string }[];
 }
@@ -38,6 +47,8 @@ export interface CreatePayPalOrderInput {
   fulfillment: Fulfillment;
   returnUrl: string;
   cancelUrl: string;
+  /** The seller's PayPal email → purchase_units[0].payee.email_address; null: the platform account is paid (demo shop). */
+  payeeEmail: string | null;
 }
 
 export interface CreateProductInput {

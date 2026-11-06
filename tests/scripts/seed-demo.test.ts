@@ -91,10 +91,29 @@ describe('seedDemoShop', () => {
     expect(again).toMatchObject({ created: false, published: 1, failed: [] });
   });
 
+  it('routes the demo shop to PAYPAL_SANDBOX_SELLER_EMAIL when given, updates it on a re-run, and falls back to the platform', async () => {
+    const fresh = createTestDb();
+    const pp = createFakePayPal();
+    const first = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir, payeeEmail: 'seller@example.com' });
+    expect(first.shop).toMatchObject({ status: 'live', payeeEmail: 'seller@example.com' });
+    expect(first.payee).toEqual({ kind: 'seller', maskedEmail: 's•••@example.com' });
+    // The env var changed: the next run follows it (orders already sent keep theirs).
+    const second = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir, payeeEmail: 'other.seller@example.com' });
+    expect(second.shop.payeeEmail).toBe('other.seller@example.com');
+    expect(second.payee).toEqual({ kind: 'seller', maskedEmail: 'o•••@example.com' });
+    // Unset: paid to the platform account again.
+    const third = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir });
+    expect(third.shop.payeeEmail).toBeNull();
+    expect(third.payee).toEqual({ kind: 'platform' });
+    // --reset keeps following it.
+    const reset = await seedDemoShop({ db: fresh, paypal: pp, uploadsDir, reset: true, payeeEmail: 'seller@example.com' });
+    expect(reset).toMatchObject({ created: true, shop: { slug: DEMO_SHOP.slug, status: 'live', payeeEmail: 'seller@example.com' } });
+  });
+
   it("keeps its slug when a visitor's Marigold sample was published first", async () => {
     const fresh = createTestDb();
     const pp = createFakePayPal();
-    const visitor = shops.create(fresh, { name: 'draft abcd2345' }).shop.id;
+    const visitor = shops.create(fresh, { name: 'draft abcd2345', payeeEmail: 'seller@example.com' }).shop.id;
     shops.update(fresh, visitor, { name: 'Marigold Bakehouse' });
     items.replaceDrafts(fresh, visitor, [
       { section: 'Pastries', name: 'Bun', description: null, sourceText: 'Bun $3', confidence: 'high', kind: 'PHYSICAL', issues: [], issueDetail: null, status: 'draft', variants: [{ label: null, priceCents: 300 }] },

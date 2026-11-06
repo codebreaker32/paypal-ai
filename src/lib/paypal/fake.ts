@@ -10,8 +10,11 @@ export interface FakePayPal extends PayPalPort {
   products: Map<string, CreateProductInput>;
   /** Buyer approves on PayPal. */
   approve(paypalOrderId: string, payer?: { name?: string; email?: string; shipTo?: { city: string; state: string } }): void;
-  /** Next capture returns this outcome instead of COMPLETED. */
-  nextCapture: 'COMPLETED' | 'PENDING' | 'DECLINED_422' | null;
+  /**
+   * Next capture returns this outcome instead of COMPLETED. PENDING_UNILATERAL is what the sandbox does for a payee email
+   * with no PayPal account: capture PENDING with status_details.reason UNILATERAL (verified 6 Nov).
+   */
+  nextCapture: 'COMPLETED' | 'PENDING' | 'PENDING_UNILATERAL' | 'DECLINED_422' | null;
   /** Makes the next call to `method` throw this error. */
   failNext(method: keyof PayPalPort, err: Error): void;
 }
@@ -61,7 +64,15 @@ export function createFakePayPal(): FakePayPal {
         orders.set(id, {
           id,
           status: 'PAYER_ACTION_REQUIRED',
-          purchase_units: [{ custom_id: input.orderId, invoice_id: input.orderNumber, amount: { currency_code: 'USD', value: toPayPalValue(items + input.shippingCents) } }],
+          purchase_units: [
+            {
+              custom_id: input.orderId,
+              invoice_id: input.orderNumber,
+              amount: { currency_code: 'USD', value: toPayPalValue(items + input.shippingCents) },
+              // PayPal echoes the payee we sent (with display_data, which Shelfie ignores).
+              ...(input.payeeEmail !== null ? { payee: { email_address: input.payeeEmail } } : {}),
+            },
+          ],
           links: [{ rel: 'payer-action', href: `https://www.sandbox.paypal.com/checkoutnow?token=${id}` }],
         });
         byRequestId.set(requestId, id);
@@ -87,7 +98,10 @@ export function createFakePayPal(): FakePayPal {
       fake.nextCapture = null;
       if (outcome === 'DECLINED_422') throw err422('INSTRUMENT_DECLINED');
       o.status = 'COMPLETED';
-      o.purchase_units[0].payments = { captures: [{ id: `CAP${String(++seq).padStart(14, '0')}`, status: outcome }] };
+      const capId = `CAP${String(++seq).padStart(14, '0')}`;
+      o.purchase_units[0].payments = {
+        captures: [outcome === 'PENDING_UNILATERAL' ? { id: capId, status: 'PENDING', status_details: { reason: 'UNILATERAL' } } : { id: capId, status: outcome }],
+      };
       return structuredClone(o);
     },
     approve(id, payer) {

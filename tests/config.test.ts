@@ -42,3 +42,18 @@ describe('getConfig().appUrl', () => {
     expect(readFileSync('.env.example', 'utf8')).not.toMatch(/^APP_URL=/m);
   });
 });
+
+describe('getConfig().sellerEmail', () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it('reads PAYPAL_SANDBOX_SELLER_EMAIL (optional: the demo shop is paid there), trimmed, or null when unset', () => {
+    vi.stubEnv('PAYPAL_SANDBOX_SELLER_EMAIL', '  seller@example.com ');
+    expect(getConfig().sellerEmail).toBe('seller@example.com');
+    vi.stubEnv('PAYPAL_SANDBOX_SELLER_EMAIL', '');
+    expect(getConfig().sellerEmail).toBeNull();
+  });
+
+  it('.env.example lists it, empty', () => {
+    expect(readFileSync('.env.example', 'utf8')).toMatch(/^PAYPAL_SANDBOX_SELLER_EMAIL=$/m);
+  });
+});

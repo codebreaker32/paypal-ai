@@ -72,6 +72,8 @@ describe('setup routes', () => {
     const created = await createShopFromSample(state.db, 'marigold-bakehouse');
     shopId = created.shop.id;
     state.jar.set(ownerCookieName(shopId), created.ownerToken);
+    // The seller's PayPal email, which publishing needs (spec §8a; refused without it below).
+    shops.update(state.db, shopId, { payeeEmail: 'seller@example.com' });
   });
   afterEach(() => {
     setPayPalForServices(undefined);
@@ -210,6 +212,30 @@ describe('setup routes', () => {
 
     const shop = await shopRoute.PATCH(jsonReq('PATCH', { fulfillment: 'both', shippingFeeCents: 800 }), ctx(shopId));
     expect(((await shop.json()) as { shop: { fulfillment: string; shippingFeeCents: number } }).shop).toMatchObject({ fulfillment: 'both', shippingFeeCents: 800 });
+  });
+
+  it("PATCH shop saves the seller's PayPal email lower-cased; a malformed one is a 400 with the seller message", async () => {
+    const ok = await shopRoute.PATCH(jsonReq('PATCH', { payeeEmail: ' Rosa@Example.com ' }), ctx(shopId));
+    expect(ok.status).toBe(200);
+    expect(((await ok.json()) as { shop: { payeeEmail: string } }).shop.payeeEmail).toBe('rosa@example.com');
+    const bad = await shopRoute.PATCH(jsonReq('PATCH', { payeeEmail: 'rosa@example' }), ctx(shopId));
+    expect(bad.status).toBe(400);
+    expect(await bad.json()).toEqual({
+      error: { code: 'INVALID_PAYEE_EMAIL', message: 'Enter the email you use to log in to PayPal, like rosa@example.com.' },
+    });
+    expect(shops.byId(state.db, shopId)!.payeeEmail).toBe('rosa@example.com');
+  });
+
+  it('publish without a PayPal email is a 409 PAYEE_REQUIRED and nothing reaches PayPal', async () => {
+    await extractRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    shops.update(state.db, shopId, { payeeEmail: null });
+    const fake = createFakePayPal();
+    setPayPalForServices(fake);
+    const res = await publishRoute.POST(new Request('http://x', { method: 'POST' }), ctx(shopId));
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: { code: 'PAYEE_REQUIRED', message: 'Add your PayPal email to publish.' } });
+    expect(fake.calls).toHaveLength(0);
+    expect(shops.byId(state.db, shopId)!.status).toBe('draft');
   });
 
   it('publish streams start, one line per item and done, and makes the shop live', async () => {

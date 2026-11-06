@@ -14,10 +14,22 @@ const SELECT =
   'w-full min-h-(--field-h) appearance-none rounded-(--field-radius) border border-(--field-border) bg-(--field-bg) pl-3.5 pr-10 ' +
   'text-base text-ink transition-[border-color] hover:border-ink-soft focus-visible:border-(--field-border-focus)';
 
-type State = { kind: 'idle' } | { kind: 'sending' } | { kind: 'sent'; carrier: string; trackingNumber: string } | { kind: 'error'; message: string };
+type State =
+  | { kind: 'idle' }
+  | { kind: 'sending' }
+  | { kind: 'sent'; carrier: string; trackingNumber: string; atPayPal: boolean }
+  | { kind: 'error'; message: string };
 
-/** Carrier + tracking number → PayPal (through Shelfie's toolkit route). States: sending, sent, PayPal's error. */
-export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: string }) {
+/** What the seller reads once a seller-paid order's tracking is saved (PayPal refuses it from Shelfie, spec §8a). */
+export const SAVED_NOT_AT_PAYPAL =
+  'Saved. The buyer’s assistant can see it now. PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.';
+
+/**
+ * Carrier + tracking number → Shelfie's tracking route. `atPayPal`: the order was paid to Shelfie's demo account, so the
+ * number goes on to PayPal (Agent Toolkit); otherwise it is saved for the buyer's assistant and the seller adds it in
+ * their own PayPal account. States: sending, sent or saved, PayPal's error.
+ */
+export function TrackingForm({ shopId, orderId, atPayPal = true }: { shopId: string; orderId: string; atPayPal?: boolean }) {
   const router = useRouter();
   const toast = useToast();
   const [carrier, setCarrier] = useState<CarrierId>('USPS');
@@ -37,14 +49,14 @@ export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: str
 
     setState({ kind: 'sending' });
     try {
-      const { trackers } = await addTracking(shopId, orderId, {
+      const { trackers, atPayPal: sentToPayPal } = await addTracking(shopId, orderId, {
         carrier,
         trackingNumber: number,
         ...(carrier === 'OTHER' ? { carrierName: carrierName.trim() } : {}),
       });
       const t = trackers.at(-1);
-      setState({ kind: 'sent', carrier: t?.carrier ?? carrier, trackingNumber: t?.trackingNumber ?? number });
-      toast({ title: 'Tracking sent to PayPal', description: 'The order moved to Done.', tone: 'ok' });
+      setState({ kind: 'sent', carrier: t?.carrier ?? carrier, trackingNumber: t?.trackingNumber ?? number, atPayPal: sentToPayPal !== false });
+      toast({ title: sentToPayPal === false ? 'Tracking saved' : 'Tracking sent to PayPal', description: 'The order moved to Done.', tone: 'ok' });
       router.refresh();
     } catch (err) {
       if (err instanceof ApiError && err.status === 400) {
@@ -55,6 +67,20 @@ export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: str
       }
     }
   };
+
+  if (state.kind === 'sent' && !state.atPayPal) {
+    return (
+      <div role="status" className="flex flex-col gap-1.5 rounded-md bg-ok-soft px-3 py-2.5 text-ok">
+        <p className="flex items-start gap-2 font-medium">
+          <Icon icon={CircleCheck} className="mt-0.5" />
+          <span>
+            {state.carrier} <span className="type-price font-semibold [overflow-wrap:anywhere]">{state.trackingNumber}</span>
+          </span>
+        </p>
+        <p className="text-sm">{SAVED_NOT_AT_PAYPAL}</p>
+      </div>
+    );
+  }
 
   if (state.kind === 'sent') {
     return (
@@ -121,8 +147,14 @@ export function TrackingForm({ shopId, orderId }: { shopId: string; orderId: str
         )}
       </Field>
       {state.kind === 'error' && <FieldError>{state.message}</FieldError>}
-      <Button type="submit" icon={Send} loading={sending} loadingLabel="Sending to PayPal…" className="w-full sm:w-auto sm:self-start">
-        Send tracking to PayPal
+      <Button
+        type="submit"
+        icon={Send}
+        loading={sending}
+        loadingLabel={atPayPal ? 'Sending to PayPal…' : 'Saving…'}
+        className="w-full sm:w-auto sm:self-start"
+      >
+        {atPayPal ? 'Send tracking to PayPal' : 'Save tracking'}
       </Button>
     </form>
   );

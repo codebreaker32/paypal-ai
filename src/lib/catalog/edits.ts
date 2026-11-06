@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
+import { isDemoShop, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { MAX_PRICE_CENTS, MAX_VARIANTS } from './rules';
 
@@ -43,16 +44,28 @@ const ShopPatchSchema = z
     fulfillment: z.enum(['pickup', 'shipping', 'both']).optional(),
     shippingFeeCents: cents.optional(),
     status: z.enum(['live', 'paused']).optional(),
+    /** The seller's PayPal email (checked by parsePayeeEmail below); null clears it, only while the shop is a draft. */
+    payeeEmail: z.unknown().optional(),
   })
   .strict();
 
-export type ShopPatchInput = z.infer<typeof ShopPatchSchema>;
+export type ShopPatchInput = Omit<z.infer<typeof ShopPatchSchema>, 'payeeEmail'> & { payeeEmail?: string | null };
 
-export const parseShopPatch = (body: unknown): ShopPatchInput => parse(ShopPatchSchema, body);
+export function parseShopPatch(body: unknown): ShopPatchInput {
+  const { payeeEmail, ...rest } = parse(ShopPatchSchema, body);
+  if (payeeEmail === undefined || payeeEmail === null) return payeeEmail === null ? { ...rest, payeeEmail: null } : rest;
+  const parsed = parsePayeeEmail(payeeEmail);
+  if (!parsed.ok) throw new EditError('INVALID_PAYEE_EMAIL', 400, parsed.message);
+  return { ...rest, payeeEmail: parsed.email };
+}
 
 export function applyShopPatch(db: Db, shop: Shop, patch: ShopPatchInput): Shop {
   if (patch.status && shop.status === 'draft') {
     throw new EditError('NOT_PUBLISHED', 409, 'Publish the shop before pausing or resuming it.');
+  }
+  // A live shop's orders need somewhere to be paid; only the demo shop falls back to the platform account (spec §8a).
+  if (patch.payeeEmail === null && shop.status !== 'draft' && !isDemoShop(shop)) {
+    throw new EditError('PAYEE_REQUIRED', 409, 'Your shop is live, so it needs a PayPal email. Enter a different one instead.');
   }
   return shops.update(db, shop.id, patch);
 }

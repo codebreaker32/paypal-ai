@@ -7,10 +7,11 @@ import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { toPayPalValue } from '@/lib/domain/money';
+import { maskEmail } from '@/lib/domain/payee';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 import { OrderError } from '@/lib/orders/errors';
-import { ORDER_LIMITS, isListed, optionViews, shopModes, unavailableReason } from '@/lib/orders/pricing';
+import { ORDER_LIMITS, hasPayee, isListed, optionViews, shopModes, takesOrders, unavailableReason } from '@/lib/orders/pricing';
 import { createOrderForShop, lastCaptureFailure, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
 import { isOpen } from '@/lib/orders/state';
 import { allow } from '@/lib/rate-limit';
@@ -96,6 +97,8 @@ export const TOOL_OUTPUT_SCHEMAS = {
     currency: z.literal('USD'),
     limits: z.object({ max_qty_per_line: z.number().int(), max_lines: z.number().int(), max_order: z.string() }),
     how_ordering_works: z.string(),
+    /** Whose PayPal account is paid (spec §8a). Only ever the masked email. */
+    payments: z.string(),
   }),
   list_products: z.object({
     sections: z.array(
@@ -218,7 +221,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
     title: 'Shop info',
     description:
       "Start here. Returns the shop's name and about text, whether it is taking orders, pickup and shipping options " +
-      '(with pickup notes and the flat shipping fee), limits, and how ordering works. Next: call list_products.',
+      '(with pickup notes and the flat shipping fee), limits, how ordering works, and whose PayPal account is paid. Next: call list_products.',
     annotations: { title: 'Shop info', readOnlyHint: true, openWorldHint: false },
     hint: 'get_shop_info takes no arguments.',
     run: async () => {
@@ -227,7 +230,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
       return {
         shop_name: shop.name,
         about: shop.about || null,
-        accepting_orders: shop.status === 'live',
+        accepting_orders: takesOrders(shop),
         fulfillment: {
           modes,
           pickup_notes: modes.includes('pickup') ? shop.pickupNotes || null : null,
@@ -236,6 +239,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
         currency: 'USD' as const,
         limits: { max_qty_per_line: ORDER_LIMITS.maxQtyPerLine, max_lines: ORDER_LIMITS.maxLines, max_order: toPayPalValue(shop.orderCapCents) },
         how_ordering_works: HOW_ORDERING_WORKS,
+        payments: paymentsNote(shop),
       };
     },
   });
@@ -343,6 +347,13 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
 }
 
 // ---- views ------------------------------------------------------------------------------------------
+
+/** Where the money goes, for the agent to tell the user if asked. The seller's email is masked, never sent in full. */
+function paymentsNote(shop: Shop): string {
+  if (shop.payeeEmail !== null) return `Paid straight to the shop's own PayPal account (${maskEmail(shop.payeeEmail)}).`;
+  if (hasPayee(shop)) return "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.";
+  return "This shop hasn't set up where to be paid yet, so it can't take online orders.";
+}
 
 function productView(item: ItemWithVariants) {
   const reason = unavailableReason(item);

@@ -2,6 +2,7 @@
 import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import { formatUSD, toPayPalValue } from '@/lib/domain/money';
+import { isDemoShop } from '@/lib/domain/payee';
 import type { Fulfillment, ItemKind, ItemWithVariants, OrderLine, Shop, Variant } from '@/lib/domain/types';
 import { sanitizeLabel } from '@/lib/text';
 import { OrderError } from './errors';
@@ -36,6 +37,15 @@ export interface OptionView {
   label: string | null;
   price: string;
 }
+
+/**
+ * Every shop is paid into its own PayPal account (spec §8a); only the demo shop may have no PayPal email, and is then
+ * paid to the platform account. Any other shop without one (say, published before payees existed) takes no orders.
+ */
+export const hasPayee = (shop: Pick<Shop, 'slug' | 'payeeEmail'>): boolean => shop.payeeEmail !== null || isDemoShop(shop);
+
+/** Live, and it knows where to be paid: what get_shop_info reports as accepting_orders. */
+export const takesOrders = (shop: Shop): boolean => shop.status === 'live' && hasPayee(shop);
 
 export function shopModes(shop: Shop): Fulfillment[] {
   return shop.fulfillment === 'both' ? ['pickup', 'shipping'] : [shop.fulfillment];
@@ -72,6 +82,13 @@ export function priceOrder(
       'SHOP_NOT_ACCEPTING_ORDERS',
       `${shopLabel(shop)} is not taking online orders right now.`,
       'Tell the user the shop has paused online orders. They can try again later or order in person.',
+    );
+  }
+  if (!hasPayee(shop)) {
+    throw new OrderError(
+      'SHOP_NOT_ACCEPTING_ORDERS',
+      `${shopLabel(shop)} hasn't set up where to be paid yet, so it can't take online orders.`,
+      "Tell the user the shop can't take online orders until it adds its PayPal account. They can order in person or try again later.",
     );
   }
   if (!lines.length) {

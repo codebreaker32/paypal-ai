@@ -5,9 +5,11 @@ import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import * as items from '@/lib/db/repos/items';
 import { slugify } from '@/lib/domain/ids';
+import { PAYEE_REQUIRED_MESSAGE, RESERVED_SLUG, isDemoShop } from '@/lib/domain/payee';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 import { categoryFor } from '@/lib/paypal/categories';
 import { PayPalApiError, type CreateProductInput, type PayPalPort } from '@/lib/paypal/types';
+import { EditError } from './edits';
 import { isPendingPublish } from './rules';
 
 export const PUBLISH_CONCURRENCY = 3;
@@ -84,6 +86,14 @@ function describeError(err: unknown): string {
   return String(err);
 }
 
+/**
+ * Every shop is paid into its own PayPal account, so it needs the seller's PayPal email to publish. Only the demo shop
+ * may publish without one: it is then paid to the platform account (spec §8a). Throws EditError PAYEE_REQUIRED (409).
+ */
+export function assertPayee(shop: Shop): void {
+  if (shop.payeeEmail === null && !isDemoShop(shop)) throw new EditError('PAYEE_REQUIRED', 409, PAYEE_REQUIRED_MESSAGE);
+}
+
 /** Runs fn over list with at most `limit` calls in flight. */
 async function pool<T>(list: T[], limit: number, fn: (x: T) => Promise<void>): Promise<void> {
   let next = 0;
@@ -100,8 +110,9 @@ const DRAFT_SLUG = /^draft-[a-z0-9]{8}(-\d+)?$/;
 /**
  * The demo shop's slug (`npm run seed`; the Start page's "See a live shop" links to it). A visitor's
  * published Marigold sample gets `marigold-bakehouse-2` and up, even before the demo shop exists.
+ * Defined with the payee rules (the demo shop is the one shop that may have no PayPal email).
  */
-export const RESERVED_SLUG = 'marigold-bakehouse';
+export { RESERVED_SLUG };
 
 function assignRealSlug(db: Db, shop: Shop): void {
   if (shop.publishedAt || !DRAFT_SLUG.test(shop.slug)) return;
@@ -157,6 +168,7 @@ export async function publishShop(
   const { db, paypal } = deps;
   const shop = shops.byId(db, shopId);
   if (!shop) throw new Error(`publishShop: unknown shop ${shopId}`);
+  assertPayee(shop);
 
   const todo = itemsToPublish(db, shopId);
   const result: PublishResult = { published: 0, failed: [] };

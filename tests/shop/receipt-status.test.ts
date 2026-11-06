@@ -22,6 +22,7 @@ const base: ReceiptOrder = {
   declined: false,
   captureRefused: false,
   cancelledByShop: false,
+  paidTo: null,
   lines: [{ name: 'Almond croissant', label: null, qty: 2, unitCents: 500 }],
 };
 const order = (patch: Partial<ReceiptOrder>): ReceiptOrder => ({ ...base, ...patch });
@@ -120,5 +121,21 @@ describe('Receipt slip', () => {
     );
     expect(html).toContain('Shipping to the address you gave PayPal.');
     expect(html).not.toContain('PayPal account');
+  });
+
+  it("says who was paid: the shop's own PayPal account (masked) or Shelfie's demo account", () => {
+    const render = (paidTo: ReceiptOrder['paidTo']) =>
+      renderToStaticMarkup(
+        createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null, paidTo }), pickupNotes: PICKUP, fromAssistant: false, tracking: null }),
+      );
+    expect(render({ kind: 'seller', shopName: 'Marigold Bakehouse', maskedEmail: 'r•••@example.com' })).toContain(
+      'Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)',
+    );
+    expect(render({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true })).toContain('Paid to Shelfie’s demo PayPal account for Marigold Bakehouse');
+    // A shop's order from before it had a PayPal email (paid to the platform): not called the demo.
+    const legacy = render({ kind: 'platform', shopName: 'Rosa Bakes', demo: false });
+    expect(legacy).toContain('Paid to Shelfie’s PayPal account for Rosa Bakes');
+    expect(legacy).not.toContain('demo');
+    expect(render(null)).not.toContain('Paid to');
   });
 });

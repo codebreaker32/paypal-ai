@@ -32,6 +32,24 @@ describe('repos', () => {
     expect(raw.owner_token_hash).not.toContain(a.ownerToken);
   });
 
+  it("stores a shop's PayPal email and an order's payee snapshot, which a later shop change never touches", () => {
+    const { shop } = shops.create(db, { name: 'Rosa', payeeEmail: 'rosa@example.com' });
+    expect(shop.payeeEmail).toBe('rosa@example.com');
+    expect(shops.create(db, { name: 'No email yet' }).shop.payeeEmail).toBeNull();
+    const [item] = items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425])]);
+    const base = {
+      shopId: shop.id, fulfillment: 'pickup' as const, buyerName: null, buyerNote: null, agentName: null, clientRequestId: null,
+      itemsCents: 425, shippingCents: 0, totalCents: 425, approvalUrl: 'https://x', expiresAt: new Date(Date.now() + 3600e3).toISOString(),
+    };
+    const line = [{ itemId: item.id, variantId: item.variants[0].id, name: 'Butter croissant', label: null, unitCents: 425, qty: 1, paypalProductId: null }];
+    const o = orders.insert(db, { ...base, paypalOrderId: 'PP-PAYEE', payeeEmail: 'rosa@example.com' }, line);
+    const platform = orders.insert(db, { ...base, paypalOrderId: 'PP-PLATFORM' }, line);
+    expect(shops.update(db, shop.id, { payeeEmail: 'rosa.new@example.com' }).payeeEmail).toBe('rosa.new@example.com');
+    expect(orders.byId(db, o.id)!.payeeEmail).toBe('rosa@example.com');
+    expect(orders.byId(db, platform.id)!.payeeEmail).toBeNull();
+    expect(shops.update(db, shop.id, { payeeEmail: null }).payeeEmail).toBeNull();
+  });
+
   it('replaces draft items and keeps variant order', () => {
     const { shop } = shops.create(db, { name: 'Marigold' });
     items.replaceDrafts(db, shop.id, [draft('Butter croissant', [425]), draft('Drip coffee', [300, 400])]);
