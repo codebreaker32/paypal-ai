@@ -1,7 +1,11 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { domAnimation, LazyMotion, MotionConfig } from 'motion/react';
+import { LazyMotion, MotionConfig } from 'motion/react';
+
+// domAnimation (animations, variants, exit, gestures, in-view) is fetched after the page's first JavaScript, so it stays
+// out of the critical path. Until it arrives, `m` elements render their initial state; server HTML is never hidden.
+const loadFeatures = () => import('./features').then((mod) => mod.default);
 
 /**
  * Mount once (the root layout does). Loads Motion's DOM animation features lazily and in strict mode, so components
@@ -10,7 +14,7 @@ import { domAnimation, LazyMotion, MotionConfig } from 'motion/react';
  */
 export function MotionProvider({ children }: { children: ReactNode }) {
   return (
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={loadFeatures} strict>
       <MotionConfig reducedMotion="user">{children}</MotionConfig>
     </LazyMotion>
   );
