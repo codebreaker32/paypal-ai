@@ -156,6 +156,10 @@ E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.
 # Every screen at 390 px and 1440 px with an axe (WCAG 2.1 A/AA) check, into docs/judge/screenshots/round-1/
 # (SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
 npm run screenshots
+
+# The same 66 screens against a production build (next build + next start), which avoids dev-mode compile
+# pauses: a fresh e2e database, one run, no retries needed. The judged round-2 set was made this way.
+npm run screenshots:prod -- docs/judge/screenshots/round-2
 ```
 
 ## Architecture

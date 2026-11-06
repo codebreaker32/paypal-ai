@@ -14,6 +14,7 @@
     "test:ai": "vitest run tests/ai-live",
     "e2e": "playwright test",
     "screenshots": "playwright test e2e/screenshots.spec.ts",
+    "screenshots:prod": "bash scripts/screenshots-prod.sh",
     "seed": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {
