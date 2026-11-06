@@ -75,3 +75,54 @@ test('the primary action is reachable by keyboard and shows a focus ring', async
   const outline = await snap.evaluate((el) => getComputedStyle(el).outlineStyle);
   expect(outline).toBe('solid');
 });
+
+// The hero's story (src/app/_start/StorePreview.tsx) settles on its last frame: there, no text is cut off by its box
+// and nothing covers it, at every width. Reduced motion shows that frame at once; with motion, it lands after ~9 s.
+async function heroTextProblems(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const hero = document.querySelector('[data-hero-story]')!;
+    const shown = (el: Element) => {
+      for (let e: Element | null = el; e && e !== document.body; e = e.parentElement) {
+        const cs = getComputedStyle(e);
+        if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false;
+      }
+      return true;
+    };
+    const problems: string[] = [];
+    for (const el of Array.from(hero.querySelectorAll<HTMLElement>('*'))) {
+      const own = Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE && n.textContent!.trim()).map((n) => n.textContent!.trim());
+      if (!own.length || !shown(el)) continue;
+      const text = el.textContent!.trim();
+      if (getComputedStyle(el).display !== 'inline' && el.scrollWidth > el.clientWidth) problems.push(`clipped: ${text}`);
+      const r = el.getBoundingClientRect();
+      const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (!hit || !(hit === el || el.contains(hit))) problems.push(`covered: ${text} (by ${hit?.textContent?.trim().slice(0, 30) ?? hit?.tagName})`);
+    }
+    return problems;
+  });
+}
+
+test('the hero story ends with every text readable, uncut and uncovered, at 390, 768, 1024 and 1440', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of [390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => document.fonts.ready);
+    await page.locator('[data-hero-story]').scrollIntoViewIfNeeded();
+    await expect(page.locator('[data-hero-story]')).toContainText('Paid with PayPal');
+    expect(await heroTextProblems(page), `at ${width}`).toEqual([]);
+  }
+});
+
+test('with motion, the hero plays the story once and settles on the same final frame', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto('/');
+  // Early on, the camera frames the paper price list and nothing is paid yet.
+  const approve = page.locator('[data-hero-story]').getByText(/^Approve \$27\.00 on PayPal$/);
+  const paid = page.locator('[data-hero-story]').getByText('Paid with PayPal', { exact: true });
+  await expect(paid).toHaveCSS('opacity', '0');
+  await page.waitForTimeout(10_000);
+  await expect(paid).toBeVisible();
+  await expect(approve).toBeHidden();
+  expect(await heroTextProblems(page)).toEqual([]);
+});
