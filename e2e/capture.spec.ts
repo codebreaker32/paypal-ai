@@ -213,16 +213,26 @@ interface GateRun {
 }
 
 /**
- * The seller's own pages show them their full PayPal email. In the seller gate that is the sandbox seller's login, so
- * it is replaced on screen before a screenshot is taken (and the replacement says so).
+ * In the seller gate two sandbox logins reach the seller's own pages: the seller's PayPal email ("Paid to") and the
+ * buyer's PayPal email (PayPal's payer record, shown under Buyer). Both are replaced on screen before a screenshot is
+ * taken, and the replacement says so, so committed screenshots never publish a sandbox login.
  */
-async function redactSellerEmail(page: Page): Promise<void> {
-  await page.evaluate((email) => {
+async function redactSandboxLogins(page: Page): Promise<void> {
+  const logins = [SELLER, BUYER?.email.toLowerCase()].filter((e): e is string => Boolean(e));
+  await page.evaluate((emails) => {
+    const esc = (x: string) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     for (let n = walker.nextNode(); n; n = walker.nextNode()) {
-      if (n.nodeValue && n.nodeValue.toLowerCase().includes(email)) n.nodeValue = n.nodeValue.replace(new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '[sandbox seller email, hidden in this screenshot]');
+      for (const email of emails) {
+        if (n.nodeValue && n.nodeValue.toLowerCase().includes(email)) {
+          n.nodeValue = n.nodeValue.replace(new RegExp(esc(email), 'gi'), '[sandbox login, hidden in this screenshot]');
+        }
+      }
     }
-  }, SELLER!);
+    for (const a of Array.from(document.querySelectorAll('a[href^="mailto:"]'))) {
+      if (emails.some((e) => a.getAttribute('href')!.toLowerCase().includes(e))) a.setAttribute('href', 'mailto:hidden');
+    }
+  }, logins);
 }
 
 /** Steps 2–7, shared by both gates. */
@@ -299,6 +309,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     ).toBeVisible();
     if (mode === 'seller') expect((await page.locator('body').innerText()).includes(SELLER!)).toBe(false); // masked only
     await settle(page);
+    if (mode === 'seller') await redactSandboxLogins(page);
     await shot(page, 'receipt-paid', true);
 
     const stored = await storedOrder(api, origin, shop.id, order.order_ref);
@@ -363,7 +374,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     await expect(card).toContainText(HAS_CLAUDE ? 'AI brief' : 'Summary');
     await expect(card).toContainText(b.headline);
     await settle(page);
-    if (mode === 'seller') await redactSellerEmail(page);
+    if (mode === 'seller') await redactSandboxLogins(page);
     await shot(page, 'dashboard-paid-brief');
 
     await page.goto(`/shops/${shop.id}/orders/${order.order_ref}`);
@@ -373,7 +384,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     expect(mode === 'seller' ? paidTo.toLowerCase() === SELLER : paidTo === 'Shelfie’s demo PayPal account', 'order page names who was paid').toBe(true);
     await expect(page.locator('section[aria-labelledby="timeline-title"]')).toContainText('Payment received');
     await settle(page);
-    if (mode === 'seller') await redactSellerEmail(page);
+    if (mode === 'seller') await redactSandboxLogins(page);
     await shot(page, 'order-paid-brief', true);
   });
 
@@ -392,7 +403,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     if (await refused.isVisible()) throw new Error(`Add tracking failed: ${await refused.innerText()}`);
     if (mode === 'seller') {
       await settle(page);
-      await redactSellerEmail(page);
+      await redactSandboxLogins(page);
       await shot(page, 'tracking-saved', true);
     }
 
@@ -404,7 +415,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     );
     if (mode === 'seller') await expect(page.getByRole('list', { name: 'Tracking' })).toContainText('Saved in Shelfie');
     await settle(page);
-    if (mode === 'seller') await redactSellerEmail(page);
+    if (mode === 'seller') await redactSandboxLogins(page);
     await shot(page, 'order-shipped', true);
 
     if (mode === 'platform') {

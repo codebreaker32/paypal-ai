@@ -1,0 +1,138 @@
+// Screen-clip stage for the demo video (docs/DEMO.md, video/clips/README.md).
+//
+// A virtual X display (Xvfb) at 1920x1080, a real headed Chromium driven by Playwright, and ffmpeg's x11grab
+// recording the whole display at a constant 30 fps into H.264 MP4. Phone shots put a 390x844 browser window in
+// the middle of a full-screen backdrop window, so every clip is 1920x1080 and edits together.
+//
+// Needs: Xvfb, ffmpeg (with libx264), xterm for terminal shots (`sudo apt-get install -y xvfb ffmpeg xterm`).
+import { spawn, type ChildProcess } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { chromium, type BrowserContext, type Frame, type Page } from '@playwright/test';
+
+export const W = 1920;
+export const H = 1080;
+export const FPS = 30;
+export const PHONE = { width: 390, height: 844 };
+/** The backdrop behind phone shots: the app's newsprint ground (docs/DESIGN.md), so edits don't flash. */
+const BACKDROP = '#efe9dc';
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+export interface Display {
+  name: string;
+  stop(): Promise<void>;
+}
+
+/** Starts Xvfb on `name` (e.g. ":97") at 1920x1080x24 and waits until it accepts clients. */
+export async function startDisplay(name = ':97'): Promise<Display> {
+  const lock = `/tmp/.X${name.slice(1)}-lock`;
+  if (fs.existsSync(lock)) throw new Error(`display ${name} is in use (${lock}); pick another with --display`);
+  const proc = spawn('Xvfb', [name, '-screen', '0', `${W}x${H}x24`, '-nolisten', 'tcp', '-ac'], { stdio: 'ignore' });
+  for (let i = 0; i < 50 && !fs.existsSync(lock); i++) await sleep(100);
+  if (!fs.existsSync(lock)) throw new Error('Xvfb did not start');
+  await sleep(300);
+  return {
+    name,
+    async stop() {
+      proc.kill('SIGTERM');
+      await sleep(300);
+    },
+  };
+}
+
+export interface Capture {
+  file: string;
+  stop(): Promise<void>;
+}
+
+/** Records the whole display to `file` (MP4, H.264, yuv420p, 30 fps) until stop(). */
+export function startCapture(display: Display, file: string): Capture {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const ff: ChildProcess = spawn(
+    'ffmpeg',
+    ['-y', '-loglevel', 'error', '-f', 'x11grab', '-draw_mouse', '0', '-framerate', String(FPS), '-video_size', `${W}x${H}`,
+      '-i', `${display.name}.0`, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS),
+      '-movflags', '+faststart', file],
+    { stdio: ['pipe', 'ignore', 'inherit'] },
+  );
+  return {
+    file,
+    async stop() {
+      const done = new Promise<void>((r) => ff.once('exit', () => r()));
+      ff.stdin?.write('q');
+      ff.stdin?.end();
+      await Promise.race([done, sleep(10_000).then(() => ff.kill('SIGKILL'))]);
+    },
+  };
+}
+
+export interface Stage {
+  context: BrowserContext;
+  page: Page;
+  /** Where the app runs for phone shots: an iframe on the app's own origin (so its cookies are first-party). */
+  app: Page | Frame;
+  close(): Promise<void>;
+}
+
+/**
+ * Opens a headed Chromium filling the display in kiosk mode (a persistent context, so the first window honours
+ * --kiosk and shows no browser chrome). `phone`: the page is a stage on the app's own origin, served by Playwright
+ * (no app route), holding a 390x844 iframe scaled to fill the frame's height; drive the app through `stage.app`.
+ */
+export async function openStage(display: Display, kind: 'desktop' | 'phone', opts: { origin: string; profileDir: string; storageState?: string }): Promise<Stage> {
+  fs.rmSync(opts.profileDir, { recursive: true, force: true });
+  const context = await chromium.launchPersistentContext(opts.profileDir, {
+    headless: false,
+    env: { ...process.env, DISPLAY: display.name },
+    viewport: null,
+    locale: 'en-US',
+    timezoneId: 'America/Los_Angeles',
+    args: ['--kiosk', '--window-position=0,0', `--window-size=${W},${H}`, '--no-first-run', '--no-default-browser-check',
+      '--disable-infobars', '--hide-crash-restore-bubble', '--force-device-scale-factor=1', '--hide-scrollbars'],
+  });
+  if (opts.storageState) {
+    const state = JSON.parse(fs.readFileSync(opts.storageState, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
+    await context.addCookies(state.cookies);
+  }
+  const page = context.pages()[0] ?? (await context.newPage());
+  let app: Page | Frame = page;
+  if (kind === 'phone') {
+    const stageUrl = `${opts.origin}/__clip_stage`;
+    const scale = ((H - 40) / PHONE.height).toFixed(4);
+    await page.route(stageUrl, (route) =>
+      route.fulfill({
+        contentType: 'text/html',
+        body: `<!doctype html><html><body style="margin:0;background:${BACKDROP};width:100vw;height:100vh;overflow:hidden;display:grid;place-items:center">
+<iframe id="phone" src="about:blank" style="width:${PHONE.width}px;height:${PHONE.height}px;border:0;border-radius:28px;background:#fff;transform:scale(${scale});box-shadow:0 18px 50px rgba(40,30,10,.18)"></iframe></body></html>`,
+      }),
+    );
+    await page.goto(stageUrl);
+    app = page.frame({ url: 'about:blank' })!;
+  }
+  return {
+    context,
+    page,
+    app,
+    async close() {
+      await context.close();
+    },
+  };
+}
+
+/** Navigates the stage's app (the page itself, or the phone iframe) and waits for it to load. */
+export async function goApp(stage: Stage, url: string): Promise<void> {
+  if ('goto' in stage.app && stage.app === stage.page) {
+    await stage.page.goto(url);
+    return;
+  }
+  const frame = stage.app as Frame;
+  await frame.goto(url);
+}
+
+/** Types like a person, one character at a time, into `selector` in the page or the phone frame. */
+export async function typeSlowly(where: Page | Frame, selector: string, text: string, delayMs = 45) {
+  await where.locator(selector).pressSequentially(text, { delay: delayMs });
+}
+
+export { sleep };
