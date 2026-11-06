@@ -1,6 +1,7 @@
 // Seller-side PayPal Agent Toolkit wrapper. Allowlist: orders.get, shipment.create, shipment.get.
 // Quirks of @paypal/agent-toolkit 1.11.0 handled here: results are JSON strings (errors come back as
-// {"error":{...}} strings, not throws), and the OAuth token is cached without expiry (instance rebuilt every 30 min).
+// {"error":{...}} strings, not throws), and the OAuth token is cached without expiry (instance rebuilt every 30 min,
+// and at once on a 401, then the call is retried once).
 import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
 import { betaTool } from '@anthropic-ai/sdk/helpers/beta/json-schema';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -90,7 +91,8 @@ function parseResult(raw: unknown): any {
   return parsed;
 }
 
-// One toolkit instance for the whole process (its OAuth token never expires inside the library), rebuilt every 30 min.
+// One toolkit instance for the whole process (its OAuth token never expires inside the library), rebuilt every 30 min
+// and on a 401 (the shared token expired).
 let sharedInstance: { tk: ToolkitLike; builtAt: number } | null = null;
 
 function defaultFactory(): ToolkitLike {
@@ -114,16 +116,40 @@ export function createSellerToolkit(
   // Injected factories (tests) get a private instance; the default factory shares the module-level one.
   let localInstance: { tk: ToolkitLike; builtAt: number } | null = null;
 
-  const tool = (name: string): ToolkitTool => {
-    let instance = opts.factory ? localInstance : sharedInstance;
-    if (!instance || now() - instance.builtAt >= TTL_MS) instance = { tk: factory(), builtAt: now() };
-    if (opts.factory) localInstance = instance;
-    else sharedInstance = instance;
-    const t = instance.tk.getTools()[name];
+  const instance = (): { tk: ToolkitLike; builtAt: number } => {
+    let current = opts.factory ? localInstance : sharedInstance;
+    if (!current || now() - current.builtAt >= TTL_MS) current = { tk: factory(), builtAt: now() };
+    if (opts.factory) localInstance = current;
+    else sharedInstance = current;
+    return current;
+  };
+  /** Drops the cached instance (only if it is still the one that failed, so a concurrent rebuild is kept). */
+  const drop = (failed: { tk: ToolkitLike; builtAt: number }) => {
+    if (opts.factory) {
+      if (localInstance === failed) localInstance = null;
+    } else if (sharedInstance === failed) sharedInstance = null;
+  };
+  const toolOf = (inst: { tk: ToolkitLike }, name: string): ToolkitTool => {
+    const t = inst.tk.getTools()[name];
     if (!t) throw new ToolkitError(`PayPal toolkit tool ${name} is not available`);
     return t;
   };
-  const call = async (name: string, args: Record<string, unknown>) => parseResult(await tool(name).execute(args));
+  const tool = (name: string): ToolkitTool => toolOf(instance(), name);
+  /**
+   * PayPal hands every client_credentials grant the same token until it expires, so an instance built late in a
+   * token's life holds a dead token before the 30-minute rebuild. A 401 is rejected before PayPal acts on the
+   * request, so dropping the instance and retrying once on a fresh one (which fetches the new token) is safe.
+   */
+  const call = async (name: string, args: Record<string, unknown>) => {
+    const first = instance();
+    try {
+      return parseResult(await toolOf(first, name).execute(args));
+    } catch (e) {
+      if (!(e instanceof ToolkitError) || e.status !== 401) throw e;
+      drop(first);
+      return parseResult(await tool(name).execute(args));
+    }
+  };
 
   const getOrder = scopeTool(scope, { id: 'order' }, ({ id }: { id: string }): Promise<PayPalOrder> => call('get_order', { id }));
   const getShipmentTracking = scopeTool(scope, { order_id: 'order' }, ({ order_id }: { order_id: string }) =>

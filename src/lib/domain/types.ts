@@ -119,6 +119,7 @@ export type OrderEvent =
   | 'capture_pending'
   | 'capture_declined'
   | 'capture_denied'
+  | 'capture_refused'
   | 'mismatch'
   | 'cancelled'
   | 'expired'
@@ -183,6 +184,8 @@ export interface Order {
   createdAt: string;
   updatedAt: string;
   lines: OrderLine[];
+  /** `approved`, but PayPal refused the capture for a non-transient reason (nothing was charged). Set by the repo. */
+  captureRefused?: boolean;
 }
 
 export interface NewOrder {

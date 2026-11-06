@@ -21,7 +21,7 @@ import * as ordersRepo from '@/lib/db/repos/orders';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';
 import { isOpen } from '@/lib/orders/state';
-import { agentLabel, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
+import { actionWords, agentLabel, lineName, timelineEntries, type TimelineEntry } from '@/lib/seller/view';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders/[orderId]'>): Promise<Metadata> {
   const { id, orderId } = await params;
@@ -90,15 +90,7 @@ function ActionCard({ shop, order, trackers, className }: { shop: Shop; order: O
         </>
       );
     }
-    const words: Record<Exclude<Order['status'], 'paid' | 'fulfilled'>, [string, string]> = {
-      awaiting_approval: ['Waiting for the buyer', "They haven’t approved the payment on PayPal yet. Nothing to prepare until they do."],
-      approved: ['Taking the payment', 'The buyer approved on PayPal. The payment should land in a few seconds.'],
-      payment_pending: ['Payment pending', "PayPal is still clearing this payment. Don’t hand over or ship until it shows Paid."],
-      failed: ['Payment failed', "Nothing was charged. Don’t hand over or ship this order."],
-      cancelled: ['Cancelled', 'The buyer cancelled on PayPal. Nothing was charged.'],
-      expired: ['Expired', 'The buyer didn\'t approve within 60 minutes, so the order expired. Nothing was charged.'],
-    };
-    const [title, text] = words[order.status];
+    const [title, text] = actionWords(order);
     return (
       <>
         <SectionTitle id="action-title">{title}</SectionTitle>

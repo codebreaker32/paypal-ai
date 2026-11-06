@@ -19,12 +19,14 @@ interface StatusMeta {
 }
 
 /** Seller words for each order status: always an icon and a word, never colour alone. */
-export function orderStatusMeta(order: Pick<Order, 'status' | 'fulfillment'>): StatusMeta {
+export function orderStatusMeta(order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>): StatusMeta {
   switch (order.status) {
     case 'awaiting_approval':
       return { label: 'Waiting for approval', tone: 'warn', icon: Clock };
     case 'approved':
-      return { label: 'Approved, taking payment', tone: 'info', icon: Hourglass };
+      return order.captureRefused
+        ? { label: 'PayPal refused payment', tone: 'danger', icon: CircleX }
+        : { label: 'Approved, taking payment', tone: 'info', icon: Hourglass };
     case 'payment_pending':
       return { label: 'Payment pending', tone: 'warn', icon: Hourglass };
     case 'paid':
@@ -42,7 +44,7 @@ export function orderStatusMeta(order: Pick<Order, 'status' | 'fulfillment'>): S
   }
 }
 
-export function OrderStatusBadge({ order, className }: { order: Pick<Order, 'status' | 'fulfillment'>; className?: string }) {
+export function OrderStatusBadge({ order, className }: { order: Pick<Order, 'status' | 'fulfillment' | 'captureRefused'>; className?: string }) {
   const m = orderStatusMeta(order);
   return (
     <Badge tone={m.tone} icon={m.icon} className={className}>

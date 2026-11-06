@@ -203,6 +203,9 @@ export async function syncOrder(deps: OrderDeps, orderId: string, source: EventS
 }
 
 async function reconcile(deps: OrderDeps, order: Order, pp: PayPalOrder | null, source: EventSource, nowMs: number): Promise<Order> {
+  if (captureRefusalIsFinal(deps.db, order, pp, nowMs)) {
+    return advanceOrder(deps.db, order, 'capture_refused', source, { detail: { paypalStatus: pp?.status ?? 'NOT_FOUND' } }).order;
+  }
   switch (pp?.status) {
     case 'APPROVED':
       return approveAndCapture(deps, order, pp, source, nowMs);
@@ -215,6 +218,16 @@ async function reconcile(deps: OrderDeps, order: Order, pp: PayPalOrder | null, 
     default:
       return expireIfDue(deps.db, order, source, nowMs, pp?.status ?? 'NOT_FOUND');
   }
+}
+
+/**
+ * An `approved` order whose capture PayPal refused waits for the buyer to come back and retry. That ends (the order
+ * fails, nothing was charged) once PayPal voids or drops the order, or once the order's window passes.
+ * A COMPLETED order is never failed here: settle() applies whatever PayPal captured.
+ */
+function captureRefusalIsFinal(db: Db, order: Order, pp: PayPalOrder | null, nowMs: number): boolean {
+  if (order.status !== 'approved' || pp?.status === 'COMPLETED' || !lastCaptureFailure(db, order)) return false;
+  return pp === null || pp.status === 'VOIDED' || nowMs >= Date.parse(order.expiresAt);
 }
 
 function expireIfDue(db: Db, order: Order, source: EventSource, nowMs: number, paypalStatus: string): Order {

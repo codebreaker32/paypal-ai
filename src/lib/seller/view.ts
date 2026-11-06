@@ -87,6 +87,12 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
       case 'capture_denied':
         entry('Payment denied by PayPal', 'danger');
         break;
+      case 'capture_failed':
+        entry('PayPal refused the payment, so nothing was charged. Don’t hand over or ship this order.', 'danger');
+        break;
+      case 'capture_refused':
+        entry('Payment failed: PayPal refused it and the order is now closed', 'danger');
+        break;
       case 'capture_error':
         entry("Couldn’t reach PayPal to take the payment; trying again", 'warn');
         break;
@@ -110,6 +116,25 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
     }
   }
   return out;
+}
+
+/** Title and text of the order detail's action card for an order the seller can't act on yet (or any more). */
+export function actionWords(order: Pick<Order, 'status' | 'captureRefused'>): [string, string] {
+  if (order.status === 'approved' && order.captureRefused) {
+    return [
+      'PayPal refused the payment',
+      'The buyer approved on PayPal, but PayPal refused to complete the payment, so nothing was charged. Don’t hand over or ship this order.',
+    ];
+  }
+  const words: Record<Exclude<Order['status'], 'paid' | 'fulfilled'>, [string, string]> = {
+    awaiting_approval: ['Waiting for the buyer', "They haven’t approved the payment on PayPal yet. Nothing to prepare until they do."],
+    approved: ['Taking the payment', 'The buyer approved on PayPal. The payment should land in a few seconds.'],
+    payment_pending: ['Payment pending', "PayPal is still clearing this payment. Don’t hand over or ship until it shows Paid."],
+    failed: ['Payment failed', "Nothing was charged. Don’t hand over or ship this order."],
+    cancelled: ['Cancelled', 'The buyer cancelled on PayPal. Nothing was charged.'],
+    expired: ['Expired', 'The buyer didn\'t approve within 60 minutes, so the order expired. Nothing was charged.'],
+  };
+  return order.status === 'paid' || order.status === 'fulfilled' ? ['', ''] : words[order.status];
 }
 
 /**

@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { createPayPalClient } from '@/lib/paypal/client';
 import { PayPalApiError } from '@/lib/paypal/types';
-import { createSellerToolkit, ToolkitError } from '@/lib/paypal/toolkit';
+import { PayPalAgentToolkit } from '@paypal/agent-toolkit/ai-sdk';
+import { createSellerToolkit, ToolkitError, type ToolkitLike } from '@/lib/paypal/toolkit';
 
 const have = !!process.env.PAYPAL_CLIENT_ID && !!process.env.PAYPAL_SECRET_KEY;
 
@@ -53,6 +54,28 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     const toolkit = createSellerToolkit({ orderIds: new Set([orderId]), productIds: new Set() });
     const viaToolkit = await toolkit.getOrder(orderId);
     expect(viaToolkit.id).toBe(orderId);
+  });
+
+  it('a forced rebuild of the shared toolkit still authenticates (clock past the 30-minute TTL)', async () => {
+    const toolkit = createSellerToolkit({ orderIds: new Set([orderId]), productIds: new Set() }, { now: () => Date.now() + 31 * 60_000 });
+    expect((await toolkit.getOrder(orderId)).id).toBe(orderId);
+  });
+
+  it('a toolkit holding an expired token gets a real 401, is rebuilt once and the call is retried (R1)', async () => {
+    const real = () =>
+      new PayPalAgentToolkit({
+        clientId: process.env.PAYPAL_CLIENT_ID ?? '',
+        clientSecret: process.env.PAYPAL_SECRET_KEY ?? '',
+        configuration: { context: { sandbox: true }, actions: { orders: { get: true }, shipment: { create: true, get: true } } },
+      });
+    const stale = real();
+    // Simulate the shared token having expired after this instance cached it (toolkit 1.11.0 internals).
+    (stale as unknown as { client: { _accessToken: string } }).client._accessToken = 'A21AAexpiredShelfieTestToken';
+    let builds = 0;
+    const factory = () => (++builds === 1 ? stale : real()) as unknown as ToolkitLike;
+    const toolkit = createSellerToolkit({ orderIds: new Set([orderId]), productIds: new Set() }, { factory });
+    expect((await toolkit.getOrder(orderId)).id).toBe(orderId);
+    expect(builds).toBe(2);
   });
 
   it('the toolkit reports a scoped but non-existent order as ToolkitError', async () => {

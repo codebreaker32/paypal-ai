@@ -23,6 +23,20 @@ function lines(db: Db, orderId: string): OrderLine[] {
   }));
 }
 
+/**
+ * An `approved` order whose latest capture outcome is a refusal (capture_failed, not superseded by a new approval or
+ * a transient error). Same rule as lastCaptureFailure() in the order service.
+ */
+function captureRefused(db: Db, r: OrderRow): boolean {
+  if (r.status !== 'approved') return false;
+  const last = db
+    .prepare(
+      `SELECT type FROM order_events WHERE order_id = ? AND type IN ('capture_failed','capture_error','paypal_approved') ORDER BY seq DESC LIMIT 1`,
+    )
+    .get(r.id) as { type: string } | undefined;
+  return last?.type === 'capture_failed';
+}
+
 function toOrder(db: Db, r: OrderRow): Order {
   return {
     id: r.id, number: r.number, shopId: r.shop_id, status: r.status, fulfillment: r.fulfillment, buyerName: r.buyer_name,
@@ -32,7 +46,7 @@ function toOrder(db: Db, r: OrderRow): Order {
     payerEmail: r.payer_email, shipTo: r.ship_to_json ? (JSON.parse(r.ship_to_json) as ShipTo) : null,
     brief: r.brief_json ? (JSON.parse(r.brief_json) as OrderBrief) : null, briefSource: r.brief_source, paidAt: r.paid_at,
     fulfilledAt: r.fulfilled_at, lastCheckedAt: r.last_checked_at, createdAt: r.created_at, updatedAt: r.updated_at,
-    lines: lines(db, r.id),
+    lines: lines(db, r.id), captureRefused: captureRefused(db, r),
   };
 }
 

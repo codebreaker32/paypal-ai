@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
@@ -10,6 +10,7 @@ import { isPollerRunning, pollOnce, startPoller, stopPoller } from '@/lib/orders
 import { OrderError } from '@/lib/orders/errors';
 import { InvalidTransition } from '@/lib/orders/state';
 import type { Order } from '@/lib/domain/types';
+import { groupOrders } from '@/lib/seller/view';
 import { seedShop, type SeededShop } from '../helpers/shop';
 
 const APP = 'http://localhost:3000';
@@ -383,6 +384,9 @@ describe('order service', () => {
           type: 'capture_failed', source: 'return_url', detail: { status: err.status, issue: err.issue, debugId: err.debugId },
         });
         expect(logged.mock.calls.map((c) => String(c[0])).join('\n')).toContain(err.debugId!);
+        // The seller dashboard reads the refusal off the order itself (R3).
+        expect(after.captureRefused).toBe(true);
+        expect(orders.listByShop(db, s.shop.id).find((x) => x.id === o.id)!.captureRefused).toBe(true);
         // The poller and the agent's status checks do not hammer PayPal with the same refused capture.
         clock += 60_000;
         await syncOrder(deps, o.id, 'poller');
@@ -394,6 +398,68 @@ describe('order service', () => {
         expect(calls('captureOrder').slice(-2).map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
       }
       logged.mockRestore();
+    });
+
+    describe('a refused capture has an exit (R3)', () => {
+      const refusedOrder = async () => {
+        const o = await order();
+        fake.approve(o.paypalOrderId);
+        fake.failNext('captureOrder', new PayPalApiError(422, 'UNPROCESSABLE_ENTITY', 'TRANSACTION_REFUSED', 'dbg-tr', 'refused'));
+        expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('approved');
+        return o;
+      };
+      let logged: ReturnType<typeof vi.spyOn>;
+      beforeEach(() => {
+        logged = vi.spyOn(console, 'error').mockImplementation(() => {});
+      });
+      afterEach(() => logged.mockRestore());
+
+      it('fails the order when PayPal voids it, and it leaves the waiting group', async () => {
+        const o = await refusedOrder();
+        fake.orders.get(o.paypalOrderId)!.status = 'VOIDED';
+        clock += MIN;
+        const after = await syncOrder(deps, o.id, 'poller');
+        expect(after.status).toBe('failed');
+        expect(after.captureRefused).toBe(false);
+        expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'capture_refused', source: 'poller', detail: { paypalStatus: 'VOIDED' } });
+        expect(groupOrders([after]).waiting).toHaveLength(0);
+      });
+
+      it('fails the order when PayPal no longer has it (404)', async () => {
+        const o = await refusedOrder();
+        fake.orders.delete(o.paypalOrderId);
+        const after = await syncOrder(deps, o.id, 'mcp');
+        expect(after.status).toBe('failed');
+        expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'capture_refused', detail: { paypalStatus: 'NOT_FOUND' } });
+      });
+
+      it('fails the order once its window passes, and the poller still sweeps it after 3 h', async () => {
+        const o = await refusedOrder();
+        const captures = calls('captureOrder').length;
+        clock += 59 * MIN;
+        expect((await syncOrder(deps, o.id, 'poller')).status).toBe('approved');
+        clock += 7 * 60 * MIN;
+        await pollOnce(deps);
+        const after = orders.byId(db, o.id)!;
+        expect(after.status).toBe('failed');
+        expect(events.list(db, o.id).at(-1)).toMatchObject({ type: 'capture_refused', source: 'poller', detail: { paypalStatus: 'APPROVED' } });
+        expect(calls('captureOrder').length).toBe(captures);
+        // Settled: later passes leave it alone.
+        const reads = calls('getOrder').length;
+        await pollOnce(deps);
+        expect(calls('getOrder').length).toBe(reads);
+      });
+
+      it('an approved order without a refusal is not failed by VOIDED or its window', async () => {
+        const o = await order();
+        fake.approve(o.paypalOrderId);
+        fake.failNext('captureOrder', new TypeError('fetch failed')); // transient: the order stays approved, no refusal
+        await expect(syncOrder(deps, o.id, 'return_url')).rejects.toBeInstanceOf(OrderError);
+        expect(orders.byId(db, o.id)!.status).toBe('approved');
+        fake.orders.get(o.paypalOrderId)!.status = 'VOIDED';
+        clock += 2 * 60 * MIN;
+        expect((await syncOrder(deps, o.id, 'poller')).status).toBe('approved');
+      });
     });
 
     it('fails without capturing when PayPal shows a different amount', async () => {
