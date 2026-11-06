@@ -23,7 +23,8 @@ npm run screenshots:prod -- <dir>  # every judged screen (390/1440 + axe) agains
 npm run clips               # raw demo clips (1920x1080, 30 fps) into video/clips/ (Xvfb + ffmpeg; see video/clips/README.md; --only 03- for one clip)
 # Video pipeline (video/README.md): Kokoro voice + Remotion, its own package in video/remotion (npm ci there first)
 cd video/remotion && npm run voice   # narration from video/project/demo.json -> video/project/audio/, SCRIPT.md, video/shelfie-demo.srt
-cd video/remotion && npm run render  # video/out/shelfie-demo.mp4 + poster.png (clips in video/project/clips/; render:animatic draws missing ones as placeholders)
+cd video/remotion && npm run render  # video/out/shelfie-demo.mp4 + poster.png, loudness-normalised to -14 LUFS (clips in video/project/clips/; render:animatic draws missing ones as placeholders)
+node video/tools/align-cuts.mjs video/project/demo.json <oldClipsDir> video/clips  # re-align the edit's cut points after re-recording clips
 npm run seed                # publish the demo shop (-- --reset recreates it; -- --cancel-unpaid cancels its unpaid rehearsal orders); prints the owner link once; paid to PAYPAL_SANDBOX_SELLER_EMAIL when set, else the platform account
 # photo -> live timing against a running app (see the header of the script for the DATABASE_PATH setup):
 DATABASE_PATH=data/measure/m.db BASE_URL=http://localhost:3109 npx tsx scripts/measure-photo-to-live.ts [runs]
