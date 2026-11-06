@@ -133,7 +133,7 @@ describe('POST /api/paypal/webhook', () => {
 
     expect(res.status).toBe(200);
     expect(syncOrder).toHaveBeenCalledTimes(1);
-    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook');
+    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook', { eventTime: expect.any(String) });
     const paid = orders.byId(getDb(), o.id)!;
     expect(paid.status).toBe('paid');
     expect(paid.shipTo?.city).toBe('Austin');
@@ -159,7 +159,7 @@ describe('POST /api/paypal/webhook', () => {
     const o = await newOrder(); // the fake still says PAYER_ACTION_REQUIRED; the fixture's resource says COMPLETED
     const res = await route.POST(deliver(approvedEvent(o.paypalOrderId)));
     expect(res.status).toBe(200);
-    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook');
+    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook', { eventTime: expect.any(String) });
     expect(orders.byId(getDb(), o.id)!.status).toBe('awaiting_approval');
     expect(fake.calls.filter((c) => c.method === 'captureOrder' && c.args[0] === o.paypalOrderId)).toHaveLength(0);
   });
@@ -176,7 +176,7 @@ describe('POST /api/paypal/webhook', () => {
     const res = await route.POST(deliver(captureEvent('capture-completed', o.paypalOrderId)));
 
     expect(res.status).toBe(200);
-    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook');
+    expect(syncOrder).toHaveBeenCalledWith(expect.anything(), o.id, 'webhook', { eventTime: expect.any(String) });
     expect(orders.byId(getDb(), o.id)!.status).toBe('paid');
   });
 

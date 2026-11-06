@@ -211,8 +211,16 @@ describe('GET /api/orders/[ref]', () => {
     logged.mockRestore();
     let body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
     expect(body.order).toMatchObject({ status: 'approved', captureRefused: true, declined: false, approvalUrl: null });
-    // The buyer comes back through PayPal's return URL again: a fresh capture, and this time PayPal accepts.
+    // A reload within 5 s is throttled (R4): no second capture attempt.
+    const captures = () => fake.calls.filter((c) => c.method === 'captureOrder' && c.args[0] === order.paypalOrderId).length;
     await returnGET(get(`/api/paypal/return?o=${order.id}`));
+    expect(captures()).toBe(1);
+    // The buyer comes back through PayPal's return URL again later: a fresh capture, and this time PayPal accepts.
+    const later = Date.now() + 6_000;
+    vi.spyOn(Date, 'now').mockReturnValue(later);
+    await returnGET(get(`/api/paypal/return?o=${order.id}`));
+    vi.mocked(Date.now).mockRestore();
+    expect(captures()).toBe(2);
     body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
     expect(body.order).toMatchObject({ status: 'paid', captureRefused: false });
   });

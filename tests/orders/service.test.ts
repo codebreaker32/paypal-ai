@@ -5,7 +5,7 @@ import * as orders from '@/lib/db/repos/orders';
 import * as events from '@/lib/db/repos/events';
 import { createFakePayPal, type FakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError, type CreatePayPalOrderInput } from '@/lib/paypal/types';
-import { MAX_OPEN_ORDERS_PER_CLIENT, cancelOrder, createOrderForShop, markFulfilled, syncOrder, type OrderDeps } from '@/lib/orders/service';
+import { MAX_OPEN_ORDERS_PER_CLIENT, cancelOrder, createOrderForShop, markFulfilled, syncOrder, syncOrderShared, type OrderDeps } from '@/lib/orders/service';
 import { isPollerRunning, pollOnce, startPoller, stopPoller } from '@/lib/orders/poller';
 import { OrderError } from '@/lib/orders/errors';
 import { InvalidTransition } from '@/lib/orders/state';
@@ -368,6 +368,43 @@ describe('order service', () => {
       // Buyer picks another funding source on the same link; the return URL captures with a fresh request id.
       const paid = await syncOrder(deps, o.id, 'return_url');
       expect(paid.status).toBe('paid');
+      expect(calls('captureOrder').map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
+    });
+
+    it('throttles return-URL syncs per order, so reloads cannot drive repeated captures on a declined card (R4)', async () => {
+      const o = await order();
+      fake.nextCapture = 'DECLINED_422';
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('awaiting_approval');
+      for (let i = 0; i < 5; i++) {
+        clock += 900;
+        expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('awaiting_approval');
+      }
+      expect(calls('captureOrder')).toHaveLength(1);
+      expect(calls('getOrder')).toHaveLength(1);
+      // Concurrent hits share one sync.
+      clock += 5_000;
+      fake.nextCapture = 'DECLINED_422';
+      await Promise.all(Array.from({ length: 5 }, () => syncOrderShared(deps, o.id, 'return_url', { throttle: true })));
+      expect(calls('captureOrder')).toHaveLength(2);
+      // After 5 s the buyer coming back (re-approved with another card) captures as before.
+      clock += 5_000;
+      expect((await syncOrderShared(deps, o.id, 'return_url', { throttle: true })).status).toBe('paid');
+      expect(calls('captureOrder')).toHaveLength(3);
+    });
+
+    it('skips the capture for a webhook approval older than the last declined capture, but not for a newer one (R4)', async () => {
+      const o = await order();
+      const approvedAt = new Date(Date.now() - 60_000).toISOString();
+      fake.nextCapture = 'DECLINED_422';
+      fake.approve(o.paypalOrderId);
+      expect((await syncOrder(deps, o.id, 'return_url')).status).toBe('awaiting_approval');
+      // The CHECKOUT.ORDER.APPROVED webhook for that same approval arrives after the decline: no second capture.
+      expect((await syncOrder(deps, o.id, 'webhook', { eventTime: approvedAt })).status).toBe('awaiting_approval');
+      expect(calls('captureOrder')).toHaveLength(1);
+      // A webhook for a new approval (after the decline) captures.
+      const reapprovedAt = new Date(Date.now() + 60_000).toISOString();
+      expect((await syncOrder(deps, o.id, 'webhook', { eventTime: reapprovedAt })).status).toBe('paid');
       expect(calls('captureOrder').map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
     });
 

@@ -266,7 +266,12 @@ function paypalItemName(l: PricedLine): string {
  * Reads the order from PayPal and moves ours forward: APPROVED → claim → capture; COMPLETED → reconcile;
  * not approved after 60 minutes → expired. Settled orders are returned as they are: no PayPal call, no write.
  */
-export async function syncOrder(deps: OrderDeps, orderId: string, source: EventSource): Promise<Order> {
+export async function syncOrder(
+  deps: OrderDeps,
+  orderId: string,
+  source: EventSource,
+  opts: { /** Webhook only: PayPal's create_time for the event. */ eventTime?: string | null } = {},
+): Promise<Order> {
   const { db } = deps;
   const order = ordersRepo.byId(db, orderId);
   if (!order) throw orderNotFound(orderId);
@@ -281,27 +286,64 @@ export async function syncOrder(deps: OrderDeps, orderId: string, source: EventS
       if (e instanceof PayPalApiError && e.status === 404) pp = null;
       else throw paypalUnavailable(e, 'get order');
     }
-    await reconcile(deps, order, pp, source, nowMs);
+    // PayPal keeps saying APPROVED after a declined capture. A webhook about an approval we already tried (it was
+    // created before the decline) is not a new approval, so it must not trigger another capture.
+    const staleApproval = source === 'webhook' && pp?.status === 'APPROVED' && predatesLastRefusal(db, order.id, opts.eventTime);
+    if (!staleApproval) await reconcile(deps, order, pp, source, nowMs);
   } finally {
     ordersRepo.update(db, orderId, { lastCheckedAt: iso(nowMs) });
   }
   return ordersRepo.byId(db, orderId)!;
 }
 
+/** A sync started by a trigger anyone can repeat runs at most this often per order (with `throttle`). */
+export const SYNC_MIN_INTERVAL_MS = 5_000;
+
 /** Syncs in progress per (trigger, order), shared by concurrent callers. */
 const syncsInFlight = new Map<string, Promise<Order>>();
+/** When the last throttled sync per (trigger, order) started. */
+const lastThrottledSync = new Map<string, number>();
 
 /**
- * syncOrder for triggers anyone can repeat (get_order_status): concurrent calls for one order share one sync, so a
- * burst of calls (e.g. a JSON-RPC batch) costs one PayPal read instead of one each.
+ * syncOrder for triggers anyone can repeat (get_order_status, the return URL): concurrent calls for one order share
+ * one sync, so a burst of calls (e.g. a JSON-RPC batch) costs one PayPal read instead of one each. With `throttle`, a
+ * new sync for this trigger and order starts at most every SYNC_MIN_INTERVAL_MS; calls in between get the stored order.
+ * The throttle is per trigger so an agent polling get_order_status never delays the buyer's own return from PayPal.
  */
-export function syncOrderShared(deps: OrderDeps, orderId: string, source: EventSource): Promise<Order> {
+export async function syncOrderShared(deps: OrderDeps, orderId: string, source: EventSource, opts: { throttle?: boolean } = {}): Promise<Order> {
   const slot = `${source}\u0000${orderId}`;
   const pending = syncsInFlight.get(slot);
   if (pending) return pending;
+  if (opts.throttle) {
+    const nowMs = clock(deps);
+    const last = lastThrottledSync.get(slot);
+    if (last !== undefined && nowMs >= last && nowMs - last < SYNC_MIN_INTERVAL_MS) {
+      const order = ordersRepo.byId(deps.db, orderId);
+      if (!order) throw orderNotFound(orderId);
+      return order;
+    }
+    if (lastThrottledSync.size > 10_000) {
+      for (const [k, t] of lastThrottledSync) if (nowMs - t >= SYNC_MIN_INTERVAL_MS) lastThrottledSync.delete(k);
+    }
+    lastThrottledSync.set(slot, nowMs);
+  }
   const p = syncOrder(deps, orderId, source).finally(() => syncsInFlight.delete(slot));
   syncsInFlight.set(slot, p);
   return p;
+}
+
+/**
+ * True when a webhook event was created no later than the order's last declined or refused capture: the approval it
+ * reports was already tried, so capturing again would only retry the same funding source.
+ */
+function predatesLastRefusal(db: Db, orderId: string, eventTime: string | null | undefined): boolean {
+  const eventMs = eventTime ? Date.parse(eventTime) : NaN;
+  if (Number.isNaN(eventMs)) return false;
+  const last = eventsRepo
+    .list(db, orderId)
+    .filter((e) => (e.type === 'capture_declined' || e.type === 'capture_failed') && !(e.detail as { ignored?: boolean } | null)?.ignored)
+    .at(-1);
+  return last !== undefined && eventMs <= Date.parse(last.createdAt);
 }
 
 async function reconcile(deps: OrderDeps, order: Order, pp: PayPalOrder | null, source: EventSource, nowMs: number): Promise<Order> {
