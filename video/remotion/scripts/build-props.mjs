@@ -83,10 +83,11 @@ export async function buildProps({ manifestPath = DEFAULT_MANIFEST, placeholders
         else problems.push(`scene "${scene.id}": clip not found at ${scene.video} (record it, or render with --placeholders)`);
       } else {
         const dur = probeSec(abs);
+        if (dur) out.clipSec = dur; // DemoClip holds the last frame past this
         const avail = dur ? (dur - (scene.videoStartSec || 0)) / (scene.playbackRate || 1) : null;
-        if (avail != null && avail < (scene.durationSec || 0) - 0.05) {
+        if (!scene.beats?.length && avail != null && avail < (scene.durationSec || 0) - 0.05) {
           warnings.push(`scene "${scene.id}": the clip has ${avail.toFixed(2)} s from videoStartSec at playbackRate ` +
-            `${scene.playbackRate || 1}, the scene runs ${scene.durationSec} s (the end shows the background)`);
+            `${scene.playbackRate || 1}, the scene runs ${scene.durationSec} s (its last frame is held)`);
         }
       }
     }

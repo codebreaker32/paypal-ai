@@ -21,6 +21,7 @@ import { Captions } from "./components/Captions.jsx";
 import { Watermark } from "./components/Watermark.jsx";
 import { HookCard, FrameCover, BandOverlay } from "./components/HookCard.jsx";
 import { themeFrom } from "./theme.js";
+import { ensureFigtree } from "./fonts.js";
 
 const PRESENTATIONS = { fade, wipe, slide };
 
@@ -89,6 +90,7 @@ const SceneBody = ({ scene, theme, fps, presenterMode, pipVideo, pipDefaults, pi
 };
 
 export const DemoVideo = (props) => {
+  ensureFigtree(); // once per page; see fonts.js for why not at module level
   const { fps, width, height } = useVideoConfig();
   const theme = themeFrom(props.brand);
   const scenes = props.timeline || [];

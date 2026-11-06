@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
+import { AbsoluteFill, Freeze, OffthreadVideo, staticFile, useCurrentFrame, useVideoConfig, interpolate, Easing } from "remotion";
 import { Callout } from "../components/Callout.jsx";
 import { typeScale } from "../theme.js";
 
@@ -135,16 +135,25 @@ export const DemoClip = ({ scene, theme, fps, boxW, boxH, startFromSec = 0 }) =>
   const mode =
     scene.framing || (compAspect < srcAspect * 0.85 ? "pan" : "cover");
 
+  // Shelfie: when the clip runs out before the scene ends (build-props puts the
+  // clip's length in scene.clipSec), hold its last frame instead of showing the
+  // background.
+  const rate = scene.playbackRate || 1;
+  const lastLocal = scene.clipSec
+    ? Math.max(0, Math.floor(((scene.clipSec - startFromSec) * fps) / rate) - 2)
+    : null;
   const video = (style) => (
-    <OffthreadVideo
-      src={staticFile(scene.video)}
-      startFrom={Math.round(startFromSec * fps)}
-      // The clip was already paced to the narration during capture, so it plays
-      // at natural speed unless the manifest explicitly asks otherwise.
-      playbackRate={scene.playbackRate || 1}
-      muted={scene.muteSource !== false}
-      style={style}
-    />
+    <Freeze frame={lastLocal ?? 0} active={lastLocal != null && frame > lastLocal}>
+      <OffthreadVideo
+        src={staticFile(scene.video)}
+        startFrom={Math.round(startFromSec * fps)}
+        // The clip was already paced to the narration during capture, so it plays
+        // at natural speed unless the manifest explicitly asks otherwise.
+        playbackRate={rate}
+        muted={scene.muteSource !== false}
+        style={style}
+      />
+    </Freeze>
   );
 
   // ---- card: the whole UI, letterboxed into a styled card -------------------

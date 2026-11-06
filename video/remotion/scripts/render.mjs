@@ -62,7 +62,10 @@ try {
     console.log(`  poster (frame ${frame}) -> ${poster}`);
   }
 
-  const srt = await writeSrt({ manifestPath, only });
+  // Only a full render of the real manifest refreshes the committed SRT; a test
+  // cut (--only, --frames, --out or another manifest) writes its SRT beside its MP4.
+  const fullCut = !only && typeof args.frames !== "string" && typeof args.out !== "string" && manifestPath === DEFAULT_MANIFEST;
+  const srt = await writeSrt({ manifestPath, only, out: fullCut ? null : outFile.replace(/\.mp4$/i, ".srt") });
   const dur = probeSec(outFile);
   console.log(`  done: ${outFile} (${dur?.toFixed(2)} s); subtitles: ${srt.files.join(", ")}`);
 } catch (e) {

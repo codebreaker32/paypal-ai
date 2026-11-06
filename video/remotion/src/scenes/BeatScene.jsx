@@ -188,7 +188,7 @@ const BeatShot = ({ beat, scene, theme, fps, presenterMode }) => {
         <DemoClip
           // undefined framing → DemoClip's aspect-aware default (pan for a
           // landscape capture in a portrait comp), not a blind center-crop.
-          scene={{ ...scene, framing: beat.framing }}
+          scene={{ ...scene, framing: beat.framing, playbackRate: beat.playbackRate ?? scene.playbackRate }}
           theme={theme}
           fps={fps}
           startFromSec={beat.videoStartSec ?? beat.atSec}
