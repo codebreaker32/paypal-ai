@@ -9,7 +9,7 @@ interface ShopRow {
   id: string; slug: string; name: string; about: string; kind: ShopKind; fulfillment: ShopFulfillment;
   pickup_notes: string; shipping_fee_cents: number; status: ShopStatus; order_cap_cents: number;
   owner_token_hash: string; menu_photo_paths: string; created_at: string; published_at: string | null;
-  payee_email: string | null;
+  payee_email: string | null; cover_url: string | null;
 }
 
 const toShop = (r: ShopRow): Shop => ({
@@ -17,6 +17,7 @@ const toShop = (r: ShopRow): Shop => ({
   pickupNotes: r.pickup_notes, shippingFeeCents: r.shipping_fee_cents, status: r.status,
   orderCapCents: r.order_cap_cents, menuPhotoPaths: JSON.parse(r.menu_photo_paths) as string[],
   createdAt: r.created_at, publishedAt: r.published_at, payeeEmail: r.payee_email ?? null,
+  coverUrl: r.cover_url ?? null,
 });
 
 export interface CreateShopInput {
@@ -81,12 +82,12 @@ export function verifyOwnerToken(db: Db, shopId: string, token: string | null | 
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt' | 'payeeEmail'>>;
+export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt' | 'payeeEmail' | 'coverUrl'>>;
 
 const COLS: Record<keyof ShopPatch, string> = {
   name: 'name', about: 'about', kind: 'kind', fulfillment: 'fulfillment', pickupNotes: 'pickup_notes',
   shippingFeeCents: 'shipping_fee_cents', status: 'status', orderCapCents: 'order_cap_cents',
-  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at', payeeEmail: 'payee_email',
+  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at', payeeEmail: 'payee_email', coverUrl: 'cover_url',
 };
 
 export function update(db: Db, id: string, patch: ShopPatch): Shop {

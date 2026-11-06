@@ -21,6 +21,8 @@ export interface Shop {
   publishedAt: string | null;
   /** The seller's PayPal email (lower-cased): where buyers' payments go. Only the demo shop may have none (spec §8a). */
   payeeEmail: string | null;
+  /** Cover photo, a site-relative URL (`/demo/...` bundled, `/i/<file>` uploaded); null shows the designed fallback. */
+  coverUrl: string | null;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';
@@ -49,6 +51,8 @@ export interface Item {
   kind: ItemKind;
   status: ItemStatus;
   soldOut: boolean;
+  /** Item photo, a site-relative URL like `Shop.coverUrl`; null shows the designed fallback. */
+  photoUrl: string | null;
   sort: number;
   paypalProductId: string | null;
   publishedAt: string | null;

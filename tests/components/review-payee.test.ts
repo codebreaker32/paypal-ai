@@ -12,7 +12,7 @@ type Props = Parameters<typeof ReviewStep>[0];
 
 const croissant: Props['items'][number] = {
   id: 'itm_1', shopId: 'shp_1', section: 'Pastries', name: 'Butter croissant', description: null, sourceText: 'Butter croissant 4.25',
-  confidence: 'high', kind: 'PHYSICAL', issues: [], issueDetail: null, status: 'draft', soldOut: false, sort: 0,
+  confidence: 'high', kind: 'PHYSICAL', issues: [], issueDetail: null, status: 'draft', soldOut: false, photoUrl: null, sort: 0,
   paypalProductId: null, publishedAt: null, updatedAt: '2026-11-06T09:00:00.000Z',
   variants: [{ id: 'var_1', itemId: 'itm_1', label: null, priceCents: 425, sort: 0 }],
 };

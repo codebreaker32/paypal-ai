@@ -6,7 +6,7 @@ import type { Confidence, DraftItem, IssueCode, ItemKind, ItemStatus, ItemWithVa
 interface ItemRow {
   id: string; shop_id: string; section: string | null; name: string; description: string | null; source_text: string;
   confidence: Confidence; issues_json: string; issue_detail: string | null; kind: ItemKind; status: ItemStatus;
-  sold_out: number; sort: number; paypal_product_id: string | null; published_at: string | null; updated_at: string;
+  sold_out: number; photo_url: string | null; sort: number; paypal_product_id: string | null; published_at: string | null; updated_at: string;
 }
 interface VariantRow { id: string; item_id: string; label: string | null; price_cents: number | null; sort: number }
 
@@ -21,7 +21,7 @@ function withVariants(db: Db, rows: ItemRow[]): ItemWithVariants[] {
   return rows.map((r) => ({
     id: r.id, shopId: r.shop_id, section: r.section, name: r.name, description: r.description, sourceText: r.source_text,
     confidence: r.confidence, issues: JSON.parse(r.issues_json) as IssueCode[], issueDetail: r.issue_detail, kind: r.kind,
-    status: r.status, soldOut: r.sold_out === 1, sort: r.sort, paypalProductId: r.paypal_product_id,
+    status: r.status, soldOut: r.sold_out === 1, photoUrl: r.photo_url ?? null, sort: r.sort, paypalProductId: r.paypal_product_id,
     publishedAt: r.published_at, updatedAt: r.updated_at,
     variants: vs.filter((v) => v.item_id === r.id).map(toVariant),
   }));
@@ -76,11 +76,11 @@ export function byIdForShop(db: Db, shopId: string, itemId: string): ItemWithVar
   return r ? withVariants(db, [r])[0] : null;
 }
 
-export type ItemPatch = Partial<Pick<ItemWithVariants, 'section' | 'name' | 'description' | 'issues' | 'issueDetail' | 'kind' | 'status' | 'soldOut' | 'sort' | 'publishedAt'>>;
+export type ItemPatch = Partial<Pick<ItemWithVariants, 'section' | 'name' | 'description' | 'issues' | 'issueDetail' | 'kind' | 'status' | 'soldOut' | 'photoUrl' | 'sort' | 'publishedAt'>>;
 
 const COLS: Record<keyof ItemPatch, string> = {
   section: 'section', name: 'name', description: 'description', issues: 'issues_json', issueDetail: 'issue_detail',
-  kind: 'kind', status: 'status', soldOut: 'sold_out', sort: 'sort', publishedAt: 'published_at',
+  kind: 'kind', status: 'status', soldOut: 'sold_out', photoUrl: 'photo_url', sort: 'sort', publishedAt: 'published_at',
 };
 
 export function update(db: Db, id: string, patch: ItemPatch): void {

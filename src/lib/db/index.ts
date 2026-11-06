@@ -20,6 +20,8 @@ function addMissingColumns(db: Db): void {
   if (!has('orders', 'client_key')) db.exec('ALTER TABLE orders ADD COLUMN client_key TEXT');
   if (!has('shops', 'payee_email')) db.exec('ALTER TABLE shops ADD COLUMN payee_email TEXT');
   if (!has('orders', 'payee_email')) db.exec('ALTER TABLE orders ADD COLUMN payee_email TEXT');
+  if (!has('items', 'photo_url')) db.exec('ALTER TABLE items ADD COLUMN photo_url TEXT');
+  if (!has('shops', 'cover_url')) db.exec('ALTER TABLE shops ADD COLUMN cover_url TEXT');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

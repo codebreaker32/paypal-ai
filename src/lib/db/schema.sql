@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS shops (
   slug TEXT NOT NULL UNIQUE,
   name TEXT NOT NULL,
   about TEXT NOT NULL DEFAULT '',
+  cover_url TEXT,               -- shop cover photo, site-relative like items.photo_url; null = designed fallback
   kind TEXT NOT NULL DEFAULT 'food' CHECK (kind IN ('food','goods','services')),
   fulfillment TEXT NOT NULL DEFAULT 'pickup' CHECK (fulfillment IN ('pickup','shipping','both')),
   pickup_notes TEXT NOT NULL DEFAULT '',
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS items (
   kind TEXT NOT NULL DEFAULT 'PHYSICAL' CHECK (kind IN ('PHYSICAL','SERVICE')),
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','live','in_person','removed')),
   sold_out INTEGER NOT NULL DEFAULT 0,
+  photo_url TEXT,               -- site-relative: /demo/... (bundled) or /i/<file> (uploaded); null = designed fallback
   sort INTEGER NOT NULL DEFAULT 0,
   paypal_product_id TEXT UNIQUE,
   published_at TEXT,
