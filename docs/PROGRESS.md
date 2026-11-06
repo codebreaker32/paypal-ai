@@ -1,8 +1,19 @@
 # Progress
 
-_Last updated: 2026-11-06 19:25 IST (run 2, session 8)_
+_Last updated: 2026-11-06 20:20 IST (run 3, session 1)_
 
 ## Current phase
+**Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
+
+**Run 3, session 1 (from 20:02 IST).**
+- **done:** the human's decisions recorded; `docs/JUDGING.md` Part C amended ("no initials, emoji or text tiles standing in for images"); the Part A plan `docs/superpowers/plans/2026-11-06-run3-part-a.md` (5 tasks, two waves of workers in worktrees).
+- **done:** Skiper UI checked: its free tier names no licence and its terms forbid redistribution, so no Skiper code is used, only ideas (DECISIONS).
+- **running:** wave 1, worker F (shadcn base under the existing primitives, motion primitives, colour roles) and worker I (Claude picks an item category, 12 drawn illustrations, the shop avatar chain logo → cover → menu photo → illustration, logo upload).
+- **running:** a local Kokoro-82M install in `video/.venv` (gitignored) for Part B's voice-over: there is no `ELEVENLABS_API_KEY`, and demoday's default voice needs a fal.ai account (a sign-up).
+- **Next:** merge wave 1 → wave 2 (buyer surfaces, seller surfaces) → screenshots, recordings, code review, full e2e with the capture gate → judge round 9 → Part B.
+
+**Run 2 (complete, 6 Nov 19:25 IST), summary below.**
+
 **Run 2 is complete (6 Nov 2026, 19:25 IST; re-proven in session 8 after the last judge fix).** Final summary, verified unless marked:
 - **Design reset (human decision):** the rubric is amended (13 banned patterns plus the real-product check); the photo-first Storefront direction won directions round 2 and is carried to every screen, with item photos and a designed fallback, a cover per shop, snap your counter (live Claude), the operations dashboard and a new mark. Judge rounds 7 and 8 found 0 Part C fails; round 8 found no screen with 2 banned patterns and only the order detail with 1, and session 8 cut that line (the AI brief's grey sentence; the heading now reads "AI brief by Claude").
 - **Item 1, a findable door:** counter card with QR, JSON-LD with an `OrderAction`, `<link rel="alternate">`, `/agents.txt`, `/llms.txt`; Claude Code found the door from the shop URL alone and ordered (`docs/judge/evidence/discovery-claude-code.md`).
@@ -255,7 +266,7 @@ Next: judge round 1, the visual-direction round, then the judge loop until the v
 - The Render deploy: `render.yaml` validates against Render's schema, but it has never been deployed (out of scope for this run).
 
 ## Next steps
-None for an agent: every item of the run brief is done and verified or waits on the human (below). If a later run reopens work, start from judge round 8's fixes (`docs/judge/round-8.md`).
+Run 3: see "Current phase" above.
 
 ## Needs from human
 **One checklist, about 20 minutes, before 12 Nov 2026 12:00 PT.** Judge rounds 2–7 held A5 and B4 at 4 for these steps alone, and without steps 1 and 4 the entry fails Stage One. No worker can do them: they need your GitHub, Render, YouTube and Devpost accounts.

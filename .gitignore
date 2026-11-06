@@ -40,3 +40,7 @@ yarn-debug.log*
 yarn-error.log*
 !.env.example
 .claude/worktrees/
+
+# Python venv for the local Kokoro voice-over (run 3, Part B)
+video/.venv/
+video/models/
