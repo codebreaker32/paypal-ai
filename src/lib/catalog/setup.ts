@@ -212,6 +212,8 @@ export interface ReviewShop {
   payeeEmail: string | null;
   /** The shop's cover photo (site-relative), set from the review screen's shop details; absent counts as none. */
   coverUrl?: string | null;
+  /** The shop's logo (a square, site-relative), set beside the cover; absent counts as none. */
+  logoUrl?: string | null;
 }
 
 interface Base {
@@ -270,7 +272,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     shop: {
       id: shop.id, slug: shop.slug, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
       fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind, payeeEmail: shop.payeeEmail,
-      coverUrl: shop.coverUrl,
+      coverUrl: shop.coverUrl, logoUrl: shop.logoUrl,
     },
     items: listed,
     skipped: last.skipped,

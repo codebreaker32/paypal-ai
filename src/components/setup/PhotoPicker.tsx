@@ -11,7 +11,7 @@ import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import type { ItemCategory } from '@/lib/domain/category';
 import { startErrorMessage } from '@/lib/client/api';
 import { checkNewPhotos } from '@/lib/client/photos';
-import { removeCover, removeItemPhoto, uploadCover, uploadItemPhoto } from '@/lib/client/item-photos';
+import { removeCover, removeItemPhoto, removeLogo, uploadCover, uploadItemPhoto, uploadLogo } from '@/lib/client/item-photos';
 
 export const PHOTO_ACCEPT = 'image/jpeg,image/png,image/webp';
 
@@ -287,6 +287,68 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
           </Button>
         </div>
       )}
+      {actions.error && (
+        <p role="alert" className="text-sm font-medium text-danger">
+          {actions.error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+export interface LogoPickerProps {
+  shopId: string;
+  shopName: string;
+  logoUrl: string | null;
+  onChange: (logoUrl: string | null) => void;
+}
+
+/**
+ * The shop's logo, beside the cover picker: a square tile that opens the camera or library, then Replace and Remove.
+ * Stored as the centre square, so any photo works; without one the shop's picture is its cover, a menu photo or a
+ * drawing of what it sells, never its initials.
+ */
+export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerProps) {
+  const actions = usePhotoActions(
+    (file) => uploadLogo(shopId, file),
+    () => removeLogo(shopId),
+    onChange,
+  );
+  const tile = 'relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-(--photo-radius) bg-surface-sunken';
+  return (
+    <div className="flex flex-col gap-2" data-logo-picker>
+      <div className="flex items-center gap-4">
+        {logoUrl ? (
+          <span className={tile}>
+            <img src={logoUrl} alt={`${shopName} logo`} className="size-full object-cover" />
+            {actions.busy && <Busy label="Saving your logo" />}
+          </span>
+        ) : (
+          <FileLabel label="Add a logo" onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(tile, 'group text-ink transition-colors hover:bg-line')}>
+            <Icon icon={ImagePlus} className="transition-transform group-hover:scale-110" />
+            {actions.busy && <Busy label="Saving your logo" />}
+          </FileLabel>
+        )}
+        <div className="flex min-w-0 flex-col gap-1.5">
+          <span className="font-semibold text-ink">Logo</span>
+          <span className="text-sm text-ink-soft">Shown beside your shop’s name. We use the middle square of the photo.</span>
+          {logoUrl && (
+            <div className="flex flex-wrap gap-2">
+              <FileLabel
+                label="Replace the logo"
+                onPick={(f) => void actions.pick(f)}
+                disabled={actions.busy}
+                className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-surface-sunken px-5 font-semibold text-ink hover:bg-line"
+              >
+                <span aria-hidden="true">Replace logo</span>
+              </FileLabel>
+              <Button variant="ghost" disabled={actions.busy} onClick={() => void actions.remove()}>
+                Remove logo
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
       {actions.error && (
         <p role="alert" className="text-sm font-medium text-danger">
           {actions.error}

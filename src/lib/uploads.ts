@@ -19,6 +19,8 @@ export interface PhotoEncoding {
   maxEdge: number;
   format: 'jpeg' | 'webp';
   quality: number;
+  /** Cut the centre square at exactly `maxEdge` px a side (a shop logo), instead of fitting inside it. */
+  square?: boolean;
 }
 const MENU_PHOTO: PhotoEncoding = { maxEdge: 1600, format: 'jpeg', quality: 85 };
 // Formats a phone or a photo picker produces. SVG, PDF and the like are refused.
@@ -71,8 +73,14 @@ function inLine<T>(job: () => Promise<T>): Promise<T> {
  */
 export async function normalizePhoto(input: Buffer, encoding: PhotoEncoding = MENU_PHOTO): Promise<Buffer> {
   if (input.length > MAX_PHOTO_BYTES) throw new UploadError('PHOTO_TOO_LARGE');
-  const { maxEdge, format, quality } = encoding;
-  return inLine(() => decodePhoto(input, maxEdge, (s) => (format === 'webp' ? s.webp({ quality }) : s.jpeg({ quality })).toBuffer()));
+  const { maxEdge, format, quality, square } = encoding;
+  return inLine(() =>
+    decodePhoto(input, maxEdge, (s) => {
+      // A later resize replaces the fit-inside one, keeping the upright rotation before it.
+      const shaped = square ? s.resize({ width: maxEdge, height: maxEdge, fit: 'cover', position: 'centre', withoutEnlargement: false }) : s;
+      return (format === 'webp' ? shaped.webp({ quality }) : shaped.jpeg({ quality })).toBuffer();
+    }),
+  );
 }
 
 /** A decoded photo's pixels, row by row, `channels` bytes each. */

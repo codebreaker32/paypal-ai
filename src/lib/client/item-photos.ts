@@ -35,6 +35,17 @@ export async function removeCover(shopId: string): Promise<void> {
   await call(`/api/shops/${enc(shopId)}/cover`, { method: 'DELETE' });
 }
 
+/** Uploads the shop's logo (stored as a centred square); returns its new URL. */
+export async function uploadLogo(shopId: string, file: Blob): Promise<string> {
+  const { body } = await call<{ logoUrl: string }>(`/api/shops/${enc(shopId)}/logo`, { method: 'POST', body: photoForm(file) });
+  return body.logoUrl;
+}
+
+/** Removes the shop's logo. */
+export async function removeLogo(shopId: string): Promise<void> {
+  await call(`/api/shops/${enc(shopId)}/logo`, { method: 'DELETE' });
+}
+
 /** One proposed item photo from "Snap your counter" (POST /api/shops/[id]/counter). */
 export interface CounterProposal {
   itemId: string;

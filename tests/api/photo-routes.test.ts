@@ -29,6 +29,7 @@ const { MAX_ONE_PHOTO_UPLOAD_BYTES } = await import('@/lib/uploads');
 const { resetRateLimits, SETUP_RATES } = await import('@/lib/rate-limit');
 const itemPhotoRoute = await import('@/app/api/shops/[id]/items/[itemId]/photo/route');
 const coverRoute = await import('@/app/api/shops/[id]/cover/route');
+const logoRoute = await import('@/app/api/shops/[id]/logo/route');
 const fileRoute = await import('@/app/i/[file]/route');
 
 const solid = (width: number, height: number) =>
@@ -217,6 +218,45 @@ describe('photo upload routes', () => {
     const res = await coverRoute.POST(await upload(Buffer.from('nope')), shopCtx(shopId));
     expect(res.status).toBe(415);
     expect(shops.byId(state.db, shopId)!.coverUrl).toBe('/demo/marigold-bakehouse/cover.jpg');
+  });
+
+  it('logo: POST stores a centred 512 px square WebP and replaces (and deletes) the old one; DELETE clears it (204)', async () => {
+    const wide = await solid(2400, 1000).jpeg().toBuffer();
+    const res = await logoRoute.POST(await upload(wide), shopCtx(shopId));
+    expect(res.status).toBe(200);
+    const { logoUrl } = (await res.json()) as { logoUrl: string };
+    expect(logoUrl).toMatch(/^\/i\/img_[a-z2-7]{20}\.webp$/);
+    expect(shops.byId(state.db, shopId)!.logoUrl).toBe(logoUrl);
+    expect(await sharp(fs.readFileSync(stored(logoUrl))).metadata()).toMatchObject({ format: 'webp', width: 512, height: 512 });
+    // The cover is a different picture: a logo never touches it.
+    expect(shops.byId(state.db, shopId)!.coverUrl).toBeNull();
+
+    const small = await solid(200, 300).png().toBuffer();
+    const next = (await (await logoRoute.POST(await upload(small), shopCtx(shopId))).json()) as { logoUrl: string };
+    expect(fs.existsSync(stored(logoUrl))).toBe(false);
+    expect(await sharp(fs.readFileSync(stored(next.logoUrl))).metadata()).toMatchObject({ width: 512, height: 512 });
+
+    const cleared = await logoRoute.DELETE(new Request('http://x', { method: 'DELETE' }), shopCtx(shopId));
+    expect(cleared.status).toBe(204);
+    expect(shops.byId(state.db, shopId)!.logoUrl).toBeNull();
+    expect(fs.existsSync(stored(next.logoUrl))).toBe(false);
+  });
+
+  it('logo: the cover route’s errors (bad image 415, no photo 400, too large 413) and 404 for a browser that does not own the shop', async () => {
+    const bad = await logoRoute.POST(await upload(Buffer.from('nope')), shopCtx(shopId));
+    expect(bad.status).toBe(415);
+    expect(((await bad.json()) as { error: { code: string } }).error.code).toBe('BAD_IMAGE');
+    expect((await logoRoute.POST(await upload(jpeg, 'photos'), shopCtx(shopId))).status).toBe(400);
+    const huge = new Request('http://x', {
+      method: 'POST',
+      headers: { 'content-type': 'multipart/form-data; boundary=x', 'content-length': String(MAX_ONE_PHOTO_UPLOAD_BYTES + 1) },
+      body: 'x',
+    });
+    expect((await logoRoute.POST(huge, shopCtx(shopId))).status).toBe(413);
+    expect(shops.byId(state.db, shopId)!.logoUrl).toBeNull();
+    state.jar.clear();
+    expect((await logoRoute.POST(await upload(jpeg), shopCtx(shopId))).status).toBe(404);
+    expect((await logoRoute.DELETE(new Request('http://x', { method: 'DELETE' }), shopCtx(shopId))).status).toBe(404);
   });
 
   it('GET /i/[file] serves an uploaded photo as WebP, cached for a year', async () => {

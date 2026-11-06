@@ -8,7 +8,7 @@ import type { ReviewShop } from '@/lib/catalog/setup';
 import { parseFeeInput, priceInputValue } from '@/lib/catalog/rules';
 import { isDemoShop, parsePayeeEmail } from '@/lib/domain/payee';
 import type { ShopPatch } from './api';
-import { CoverPicker } from './PhotoPicker';
+import { CoverPicker, LogoPicker } from './PhotoPicker';
 import { PriceInput } from './PriceInput';
 
 const OPTIONS: { value: ShopFulfillment; label: string }[] = [
@@ -46,6 +46,7 @@ export function ShopDetails({
   const [fulfillment, setFulfillment] = useState<ShopFulfillment>(shop.fulfillment);
   const [fee, setFee] = useState(priceInputValue(shop.shippingFeeCents || null));
   const [cover, setCover] = useState(shop.coverUrl ?? null);
+  const [logo, setLogo] = useState(shop.logoUrl ?? null);
   const [feeTouched, setFeeTouched] = useState(false);
 
   const feeCents = parseFeeInput(fee);
@@ -59,6 +60,7 @@ export function ShopDetails({
       </h2>
 
       <CoverPicker shopId={shop.id} shopName={name.trim() || shop.name} coverUrl={cover} onChange={setCover} />
+      <LogoPicker shopId={shop.id} shopName={name.trim() || shop.name} logoUrl={logo} onChange={setLogo} />
 
       <Field label="Shop name" required error={name.trim() === '' ? 'Give your shop a name' : undefined}>
         {(c) => (

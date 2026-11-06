@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
+import { LogoPicker } from '@/components/setup/PhotoPicker';
 import { itemCategory } from '@/lib/domain/category';
 import { FieldError } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
@@ -248,7 +249,17 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           {
             id: 'settings',
             label: 'Settings',
-            content: <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />,
+            content: (
+              <div className="flex flex-col gap-10">
+                <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />
+                <section aria-labelledby="settings-logo-title" className="flex max-w-measure flex-col gap-4 border-t border-line pt-8">
+                  <h2 id="settings-logo-title" className="type-title">
+                    Your logo
+                  </h2>
+                  <LogoPicker shopId={shop.id} shopName={shop.name} logoUrl={logoUrl} onChange={setLogoUrl} />
+                </section>
+              </div>
+            ),
           },
         ]}
       />
