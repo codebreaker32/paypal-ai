@@ -205,3 +205,7 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **shadcn's primitives use lowercase file names and the old capitalised files are deleted, not kept beside them.** Reason: `Button.tsx` next to `button.tsx` breaks a clone on macOS's case-insensitive file system.
 - **The voice-over is Kokoro-82M on the CPU** (`hexgrad/Kokoro-82M`, Apache-2.0, through the `kokoro` Python package in a gitignored `video/.venv`). Reason: `.env` has no `ELEVENLABS_API_KEY`, and demoday's default voice runs on fal.ai, which needs an account (a sign-up). Kokoro returns word timestamps, so captions come from the same run. Smoke test: a 5.3 s line in about 5 s of CPU time.
 - **Part B's tooling (voice adapter, Remotion scaffold, narration, captions) starts during Part A; its clips wait for the final UI** (`docs/superpowers/plans/2026-11-06-run3-part-b.md`). Reason: none of the tooling records the UI, and it takes an hour that would otherwise come after Part A.
+
+## Run 3, session 2 (2026-11-06 IST, from 21:19)
+- **Wave 2's branches were merged as they stood, without restarting their workers.** Reason: both had committed every build step; only their verification steps were left (Lighthouse, their own e2e specs), and one full e2e run on merged main covers every spec at once.
+- **All 10 findings of the Part A `code-review` are fixed in one fixer worktree, while the full e2e runs on main.** Reason: the fixes touch `src/`, and the e2e dev server on main rebuilds on every write, so the fixer can't share the main tree.
