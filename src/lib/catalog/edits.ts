@@ -68,6 +68,7 @@ const ItemUpdateSchema = z
     status: z.enum(['draft', 'in_person', 'removed']).optional(),
     soldOut: z.boolean().optional(),
     resolveIssues: z.boolean().optional(),
+    resolveDuplicate: z.boolean().optional(),
     variants: z.array(VariantSchema).min(1).max(10).optional(),
   })
   .strict();
@@ -99,17 +100,17 @@ export function applyItemUpdates(db: Db, shopId: string, input: ItemUpdatesInput
     const item = items.byIdForShop(db, shopId, u.itemId);
     if (!item) throw new EditError('ITEM_NOT_FOUND', 404, `No item ${u.itemId} in this shop.`);
     checkLiveEdit(item, u);
-    return u;
+    return { u, item };
   });
   db.transaction(() => {
-    for (const u of targets) {
+    for (const { u, item } of targets) {
       items.update(db, u.itemId, {
         name: u.name,
         description: u.description,
         section: u.section,
         status: u.status,
         soldOut: u.soldOut,
-        issues: u.resolveIssues ? [] : undefined,
+        issues: u.resolveIssues ? [] : u.resolveDuplicate ? item.issues.filter((c) => c !== 'DUPLICATE') : undefined,
       });
       if (u.variants) items.setVariants(db, u.itemId, u.variants);
     }

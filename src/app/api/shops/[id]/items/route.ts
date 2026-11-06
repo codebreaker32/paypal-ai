@@ -1,6 +1,7 @@
 // PATCH /api/shops/[id]/items (owner)
 //   { updates: [{ itemId, name?, description?, section?, status?: 'draft'|'in_person'|'removed', soldOut?,
-//                 resolveIssues?: boolean, variants?: [{ label, priceCents }] }] }
+//                 resolveIssues?: boolean, resolveDuplicate?: boolean, variants?: [{ label, priceCents }] }] }
+//   resolveIssues clears every issue; resolveDuplicate clears only DUPLICATE (the item's own question stays).
 //   → 200 { items: ItemWithVariants[] }: the shop's WHOLE menu after the updates, in menu order
 //     (replace your list, or merge by id). All updates apply, or none do.
 //   Prices are integer cents, 0 to 100000. Items already in PayPal accept only soldOut and

@@ -14,6 +14,7 @@ export function applyLocal(item: ItemWithVariants, u: ItemUpdate): ItemWithVaria
   if (u.status !== undefined) next.status = u.status;
   if (u.soldOut !== undefined) next.soldOut = u.soldOut;
   if (u.resolveIssues) next.issues = [];
+  else if (u.resolveDuplicate) next.issues = item.issues.filter((c) => c !== 'DUPLICATE');
   if (u.variants) {
     next.variants = u.variants.map((v, i) => ({ id: `${item.id}-v${i}`, itemId: item.id, label: v.label, priceCents: v.priceCents, sort: i }));
   }
@@ -23,7 +24,25 @@ export function applyLocal(item: ItemWithVariants, u: ItemUpdate): ItemWithVaria
 /** Later edits win; nothing undefined is sent. */
 export function mergeUpdates(a: ItemUpdate | undefined, b: ItemUpdate): ItemUpdate {
   const clean = Object.fromEntries(Object.entries(b).filter(([, v]) => v !== undefined)) as ItemUpdate;
-  return { ...(a ?? {}), ...clean, resolveIssues: a?.resolveIssues || b.resolveIssues || undefined };
+  return {
+    ...(a ?? {}),
+    ...clean,
+    resolveIssues: a?.resolveIssues || b.resolveIssues || undefined,
+    resolveDuplicate: a?.resolveDuplicate || b.resolveDuplicate || undefined,
+  };
+}
+
+/**
+ * What a "Listed twice" card sends: keep one copy (the others are removed) or keep them all. Only the
+ * "listed twice" flag clears, so a kept item's own question (an unusual price, a deal) gets its own
+ * card next. The kept item comes last: the card counts as answered once it is sent.
+ */
+export function duplicateUpdates(items: ItemWithVariants[], kept: ItemWithVariants | 'all'): ItemUpdate[] {
+  if (kept === 'all') return items.map((it) => ({ itemId: it.id, resolveDuplicate: true }));
+  return [
+    ...items.filter((it) => it.id !== kept.id).map((it): ItemUpdate => ({ itemId: it.id, status: 'removed', resolveIssues: true })),
+    { itemId: kept.id, resolveDuplicate: true },
+  ];
 }
 
 export const variantsOf = (it: ItemWithVariants) => it.variants.map((v) => ({ label: v.label, priceCents: v.priceCents }));

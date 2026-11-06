@@ -52,7 +52,10 @@ export interface ItemUpdate {
   section?: string | null;
   status?: 'draft' | 'in_person' | 'removed';
   soldOut?: boolean;
+  /** Clears every issue: the seller answered the item's card. */
   resolveIssues?: boolean;
+  /** Clears only "listed twice": an item's own question (an unusual price, a deal) gets its own card next. */
+  resolveDuplicate?: boolean;
   variants?: { label: string | null; priceCents: number | null }[];
 }
 
