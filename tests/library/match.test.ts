@@ -209,3 +209,9 @@ describe('exampleUrls (what a thumbnail shows when the item has no photo of its 
     expect(Object.fromEntries(map)).toEqual({ a: '/library/croissant-2.webp', b: '/i/library/pexels-123.webp', c: null, d: null, e: null });
   });
 });
+
+describe('bike parts with no tag match', () => {
+  it('keep their drawing: a brake photo is no example of pedals', () => {
+    expect(matchLibraryPhoto({ name: 'Pedals', category: 'bike_part' }, 'services', { library: LIB })).toBeNull();
+  });
+});

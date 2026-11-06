@@ -34,8 +34,11 @@ export interface MatchOptions {
 
 const FOOD: ReadonlySet<ItemCategory> = new Set(['bread', 'pastry', 'cake', 'coffee', 'tea', 'taco', 'burrito', 'drink', 'dessert', 'meal']);
 const NOT_FOOD: ReadonlySet<ItemCategory> = new Set(['bike_part', 'tool']);
-/** With no tag hit, these categories still get a photo of their kind; `meal`, `tool` and `goods` are too broad. */
-const FALLBACK: ReadonlySet<ItemCategory> = new Set(['bread', 'pastry', 'cake', 'coffee', 'tea', 'taco', 'burrito', 'drink', 'dessert', 'bike_part']);
+/**
+ * With no tag hit, these categories still get a photo of their kind; `meal`, `tool` and `goods` are too broad, and so
+ * is `bike_part`: a brake caliper is no example of pedals or a saddle, so an unmatched part keeps its drawing.
+ */
+const FALLBACK: ReadonlySet<ItemCategory> = new Set(['bread', 'pastry', 'cake', 'coffee', 'tea', 'taco', 'burrito', 'drink', 'dessert']);
 /** Categories that look alike: a galette photo may be filed as pastry or dessert; a coffee is never a cake. */
 const FAMILY: Partial<Record<ItemCategory, string>> = {
   pastry: 'sweet', cake: 'sweet', dessert: 'sweet', taco: 'mex', burrito: 'mex', bike_part: 'bike', tool: 'bike',

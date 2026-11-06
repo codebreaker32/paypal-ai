@@ -235,3 +235,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 
 ## Run 3, session 5 (2026-11-07 IST, from 01:24)
 - **Session 4's A3 workers are resumed in their own worktrees, not restarted from scratch.** Reason: the code worker had three tested commits and the photo worker 26 viewed photos with their Pexels metadata; redoing them would cost most of a session.
+
+## Run 3, session 6 (2026-11-07 IST, from 01:36)
+- **Both A3 workers are merged after a full e2e smoke on the code worker's branch (185 passed, 9 skipped, both real captures COMPLETED) and a contact-sheet check of all 167 library photos** (no brands, logos or faces seen). Reason: the photo merge only adds assets, a catalogue and Tía Lupe's demo set; the final full e2e runs again on the final code.
+- **An unmatched bike part keeps its drawing; no category-wide photo fallback for `bike_part`.** Reason: found by a unit test after the merge: with the bike photos in, "Pedals" showed a brake caliper and "Saddle" a wheel. Food categories keep the fallback (any pastry photo is a fair example of a pastry); bike parts look nothing alike, and the brief says a photo must fit the item.
+- **`row-pictures.test.ts` now passes the whole-menu `itemPictures` to the review rows, as `ReviewStep` does, and checks that an example photo is the same on every surface.** Reason: its helpers rendered the rows without `pictures`, so they showed the drawing while the public menu showed the example; the product was right, the test setup was not.
