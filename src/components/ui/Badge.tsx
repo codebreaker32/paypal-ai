@@ -6,12 +6,12 @@ import { cx } from './cx';
 export type BadgeTone = 'neutral' | 'accent' | 'ok' | 'warn' | 'danger' | 'info';
 
 const TONE: Record<BadgeTone, string> = {
-  neutral: 'bg-surface-sunken text-ink-soft border-line-strong',
-  accent: 'bg-accent-soft text-accent-ink border-accent',
-  ok: 'bg-ok-soft text-ok border-current',
-  warn: 'bg-warn-soft text-warn border-current',
-  danger: 'bg-danger-soft text-danger border-current',
-  info: 'bg-info-soft text-info border-current',
+  neutral: 'bg-surface-sunken text-ink-soft',
+  accent: 'bg-accent-soft text-accent-ink',
+  ok: 'bg-ok-soft text-ok',
+  warn: 'bg-warn-soft text-warn',
+  danger: 'bg-danger-soft text-danger',
+  info: 'bg-info-soft text-info',
 };
 
 export interface BadgeProps {
@@ -27,7 +27,7 @@ export function Badge({ tone = 'neutral', icon, className, children }: BadgeProp
   return (
     <span
       className={cx(
-        'inline-flex min-h-(--badge-h) items-center gap-1.5 rounded-(--badge-radius) border px-2 type-meta font-semibold whitespace-nowrap',
+        'inline-flex min-h-(--badge-h) items-center gap-1.5 rounded-(--badge-radius) px-2.5 type-meta font-semibold whitespace-nowrap',
         TONE[tone],
         className,
       )}

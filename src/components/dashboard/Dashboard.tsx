@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CircleCheck, CirclePause, ExternalLink, PencilLine, TriangleAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
-import { Card } from '@/components/ui/Card';
+import { ExternalLink } from 'lucide-react';
+import { monogram } from '@/components/shop/ItemPhoto';
 import { FieldError } from '@/components/ui/Field';
 import { Icon } from '@/components/ui/Icon';
 import { Tabs } from '@/components/ui/Tabs';
@@ -32,12 +31,25 @@ export interface DashboardProps {
   initialTab: DashboardTab;
 }
 
+const STATUS_TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
+
+/** The shop's state as a dot and a word. */
 function ShopStatusBadge({ status, payeeMissing }: { status: ShopStatus; payeeMissing: boolean }) {
   // A shop live from before payees existed takes no orders until it says where to be paid (spec §8a).
-  if (status !== 'draft' && payeeMissing) return <Badge tone="warn" icon={TriangleAlert}>Not taking orders: add your PayPal email</Badge>;
-  if (status === 'live') return <Badge tone="ok" icon={CircleCheck}>Live, taking orders</Badge>;
-  if (status === 'paused') return <Badge tone="warn" icon={CirclePause}>Agent orders paused</Badge>;
-  return <Badge icon={PencilLine}>Not published yet</Badge>;
+  const [tone, text] =
+    status !== 'draft' && payeeMissing
+      ? (['warn', 'Not taking orders: add your PayPal email'] as const)
+      : status === 'live'
+        ? (['ok', 'Live, taking orders'] as const)
+        : status === 'paused'
+          ? (['warn', 'Agent orders paused'] as const)
+          : (['neutral', 'Not published yet'] as const);
+  return (
+    <span className={`inline-flex items-center gap-2 text-sm font-semibold ${STATUS_TONE[tone]}`}>
+      <span aria-hidden="true" className="size-2 rounded-full bg-current" />
+      {text}
+    </span>
+  );
 }
 
 export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReachable, appUrl, initialTab }: DashboardProps) {
@@ -137,47 +149,50 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   };
 
   const toPrepare = orders.filter((o) => o.status === 'paid').length;
+  const photos = new Map(items.map((i) => [i.id, i.photoUrl]));
   const paused = status === 'paused';
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-6 pb-section lg:pt-10">
-      <header className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="flex flex-col gap-2">
-          <h1 className="type-display">{shop.name}</h1>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <ShopStatusBadge status={status} payeeMissing={!canBePaid({ slug: shop.slug, payeeEmail })} />
-            {status !== 'draft' ? (
-              <Link
-                href={`/s/${shop.slug}`}
-                className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink underline underline-offset-4 hover:decoration-ink"
-              >
-                View your shop <Icon icon={ExternalLink} size="sm" />
-              </Link>
-            ) : (
-              <Link
-                href={`/shops/${shop.id}/setup`}
-                className="inline-flex min-h-tap items-center font-semibold text-accent-ink underline underline-offset-4"
-              >
-                Finish setting up
-              </Link>
-            )}
+    <div className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-6 pb-section lg:pt-8">
+      <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-4">
+          <span aria-hidden="true" className="hidden size-14 shrink-0 items-center justify-center rounded-(--photo-radius) bg-accent text-xl font-extrabold text-on-accent sm:inline-flex">
+            {monogram(shop.name)}
+          </span>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="type-display">{shop.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              <ShopStatusBadge status={status} payeeMissing={!canBePaid({ slug: shop.slug, payeeEmail })} />
+              {status !== 'draft' ? (
+                <Link
+                  href={`/s/${shop.slug}`}
+                  className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-ink underline underline-offset-4"
+                >
+                  View your shop <Icon icon={ExternalLink} size="sm" />
+                </Link>
+              ) : (
+                <Link
+                  href={`/shops/${shop.id}/setup`}
+                  className="inline-flex min-h-tap items-center text-sm font-semibold text-ink underline underline-offset-4"
+                >
+                  Finish setting up
+                </Link>
+              )}
+            </div>
           </div>
         </div>
         {status !== 'draft' && (
-          <Card tone="flat" padding="none" className="px-4 py-2 lg:w-104">
+          <div className="flex flex-col sm:items-end">
             <Switch
+              inline
               label="Pause agent orders"
-              description={
-                paused
-                  ? "Assistants can still read your menu but can’t order. Paid orders aren’t affected."
-                  : 'Stops new orders from AI assistants, for example when you are sold out for the day.'
-              }
+              description={paused ? 'Assistants can still read your menu.' : undefined}
               checked={paused}
               busy={pausing}
               onChange={togglePause}
             />
             {pauseError && <FieldError className="pb-2">{pauseError}</FieldError>}
-          </Card>
+          </div>
         )}
       </header>
 
@@ -202,6 +217,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
                 shopId={shop.id}
                 slug={shop.slug}
                 fresh={fresh}
+                photos={photos}
                 paypalReachable={paypalReachable}
                 onOrderChange={onOrderChange}
                 onShowShare={() => selectTab('share')}

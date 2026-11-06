@@ -6,7 +6,7 @@
 /*
  * Shelfie design tokens. Three layers, defined once here and documented in docs/DESIGN.md.
  *
- *   1. Primitives  (:root, raw values)        --paper-50, --tomato-600 ...   never used in components
+ *   1. Primitives  (:root, raw values)        --grey-50, --pom-600 ...      never used in components
  *   2. Semantic    (@theme, Tailwind utilities) bg-surface, text-ink, bg-accent, text-ok ...
  *   3. Component   (:root, per component)      --button-primary-bg, --card-radius ...
  *
@@ -14,46 +14,57 @@
  */
 
 /* ───────────── 1. Primitives ───────────── */
-/* Direction A, "Menu board": newsprint and receipt paper, blackboard ink, one marigold accent. */
+/* Direction "Storefront": a white store page, near-black ink, one pomegranate accent, food photos as the colour. */
 :root {
-  /* Paper: newsprint page, receipt-white slips, wells, rules */
-  --paper-0: #fffefa;
-  --paper-50: #f1eee6;
-  --paper-100: #e7e2d6;
-  --paper-200: #dad3c3;
-  --paper-300: #c4bba7;
-  --paper-500: #7e7563;
-  --paper-rgb: 255 254 250;
+  /* Neutrals: cool greys, never cream */
+  --white: #ffffff;
+  --grey-25: #fafafb;
+  --grey-50: #f4f5f7;
+  --grey-100: #eceef1;
+  --grey-200: #e2e4e8;
+  --grey-300: #d4d6dc;
+  --grey-500: #8a8f98;
+  --white-rgb: 255 255 255;
 
-  /* Ink: blackboard green-black, for text and rules */
-  --ink-900: #1a1f1b;
-  --ink-700: #3b443e;
-  --ink-600: #545d57;
-  --ink-400: #959b92;
-  --ink-rgb: 26 31 27;
+  /* Ink: near-black with a cool cast */
+  --ink-900: #111214;
+  --ink-800: #2a2c31;
+  --ink-700: #3d4148;
+  --ink-600: #5e636c;
+  --ink-400: #a3a7ae;
+  --ink-rgb: 17 18 20;
 
-  /* Marigold: the single brand accent. A fill under ink text, never text itself. */
-  --marigold-50: #fbebcf;
-  --marigold-100: #f7ddb0;
-  --marigold-400: #f0a23a;
-  --marigold-500: #e38d1f;
-  --marigold-600: #cf7a12;
+  /* Pomegranate: the single warm accent (active tab and filter, counts, the logo, price emphasis) */
+  --pom-50: #fdeaf0;
+  --pom-100: #f9d3df;
+  --pom-600: #c21a4b;
+  --pom-700: #a3153f;
+  --pom-800: #861235;
 
-  /* Status hues (text values all pass AA on paper; see docs/DESIGN.md) */
-  --leaf-50: #e2eedf;
-  --leaf-700: #2e6a3d;
-  --rust-50: #fbe3d2;
-  --rust-700: #9c3f0b;
-  --brick-50: #f7deda;
-  --brick-700: #9b1e1b;
-  --slate-50: #e2e8ee;
-  --slate-700: #33506b;
+  /* Status hues (text values pass AA on white and on their soft tint) */
+  --green-50: #e4f3ea;
+  --green-700: #1e7a45;
+  --amber-50: #fff0de;
+  --amber-800: #9a4a00;
+  --red-50: #fde8e6;
+  --red-700: #b42318;
+  --blue-50: #e7eefa;
+  --blue-700: #2457a6;
+
+  /* Photo fallback tiles: one tint per menu section, each with its own ink (7:1 or better) */
+  --tile-rose-bg: #fce7ee;
+  --tile-rose-ink: #8e1a43;
+  --tile-sage-bg: #e3f1e8;
+  --tile-sage-ink: #1f5a37;
+  --tile-sky-bg: #e5eefa;
+  --tile-sky-ink: #1e4c8a;
+  --tile-lilac-bg: #eee9fb;
+  --tile-lilac-ink: #4b3091;
 
   /* PayPal brand blue: PayPal buttons only */
   --paypal-500: #0070ba;
   --paypal-700: #005ea6;
   --paypal-900: #003087;
-  --white: #ffffff;
 
   /* Motion */
   --duration-instant: 90ms;
@@ -72,33 +83,33 @@
   /* Closed palette: Tailwind's default colours are removed so only these exist. */
   --color-*: initial;
 
-  --color-surface: var(--paper-50);
-  --color-surface-raised: var(--paper-0);
-  --color-surface-sunken: var(--paper-100);
-  --color-line: var(--paper-200);
-  --color-line-strong: var(--paper-300);
-  --color-control: var(--paper-500);
+  --color-surface: var(--white);
+  --color-surface-raised: var(--white);
+  --color-surface-sunken: var(--grey-50);
+  --color-line: var(--grey-100);
+  --color-line-strong: var(--grey-300);
+  --color-control: var(--grey-500);
 
   --color-ink: var(--ink-900);
   --color-ink-soft: var(--ink-700);
   --color-ink-muted: var(--ink-600);
   --color-ink-faint: var(--ink-400);
 
-  --color-accent: var(--marigold-400);
-  --color-accent-hover: var(--marigold-500);
-  --color-accent-active: var(--marigold-600);
-  --color-accent-soft: var(--marigold-50);
-  --color-accent-ink: var(--ink-900);
-  --color-on-accent: var(--ink-900);
+  --color-accent: var(--pom-600);
+  --color-accent-hover: var(--pom-700);
+  --color-accent-active: var(--pom-800);
+  --color-accent-soft: var(--pom-50);
+  --color-accent-ink: var(--pom-600);
+  --color-on-accent: var(--white);
 
-  --color-ok: var(--leaf-700);
-  --color-ok-soft: var(--leaf-50);
-  --color-warn: var(--rust-700);
-  --color-warn-soft: var(--rust-50);
-  --color-danger: var(--brick-700);
-  --color-danger-soft: var(--brick-50);
-  --color-info: var(--slate-700);
-  --color-info-soft: var(--slate-50);
+  --color-ok: var(--green-700);
+  --color-ok-soft: var(--green-50);
+  --color-warn: var(--amber-800);
+  --color-warn-soft: var(--amber-50);
+  --color-danger: var(--red-700);
+  --color-danger-soft: var(--red-50);
+  --color-info: var(--blue-700);
+  --color-info-soft: var(--blue-50);
 
   --color-paypal: var(--paypal-500);
   --color-paypal-hover: var(--paypal-700);
@@ -106,8 +117,18 @@
   --color-on-paypal: var(--white);
 
   --color-focus: var(--ink-900);
-  --color-selection: var(--marigold-100);
+  --color-selection: var(--pom-100);
   --color-scrim: rgb(var(--ink-rgb) / 0.5);
+  --color-surface-subtle: var(--grey-25);
+  --color-ink-hover: var(--ink-800);
+  --color-tile-rose: var(--tile-rose-bg);
+  --color-tile-rose-ink: var(--tile-rose-ink);
+  --color-tile-sage: var(--tile-sage-bg);
+  --color-tile-sage-ink: var(--tile-sage-ink);
+  --color-tile-sky: var(--tile-sky-bg);
+  --color-tile-sky-ink: var(--tile-sky-ink);
+  --color-tile-lilac: var(--tile-lilac-bg);
+  --color-tile-lilac-ink: var(--tile-lilac-ink);
 
   /* Type scale: major third from 16 px, rounded to the 2 px grid. Smallest step is 13 px. */
   --text-*: initial;
@@ -132,9 +153,9 @@
   --text-6xl: 4.25rem;
   --text-6xl--line-height: 4.5rem;
 
-  --tracking-display: -0.025em;
-  --tracking-tight: -0.012em;
-  --tracking-receipt: 0.01em;
+  --tracking-display: -0.03em;
+  --tracking-tight: -0.015em;
+  --tracking-receipt: 0em;
 
   /* Spacing: Tailwind's 4 px base (p-1 = 4 px), plus a few named rhythm tokens. */
   --spacing: 0.25rem;
@@ -150,19 +171,20 @@
 
   /* Radius */
   --radius-*: initial;
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.1875rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.25rem;
-  --radius-xl: 0.75rem;
+  --radius-xs: 0.375rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
   --radius-full: 9999px;
 
   /* Elevation: ink-tinted, always an offset and a soft blur */
   --shadow-*: initial;
-  --shadow-xs: 0 1px 0 rgb(var(--ink-rgb) / 0.1);
-  --shadow-sm: 0 1px 1px rgb(var(--ink-rgb) / 0.08), 0 4px 10px -6px rgb(var(--ink-rgb) / 0.22);
-  --shadow-md: 0 1px 2px rgb(var(--ink-rgb) / 0.08), 0 14px 28px -14px rgb(var(--ink-rgb) / 0.32);
-  --shadow-lg: 0 2px 4px rgb(var(--ink-rgb) / 0.08), 0 30px 50px -22px rgb(var(--ink-rgb) / 0.45);
+  --shadow-xs: 0 1px 2px rgb(var(--ink-rgb) / 0.06);
+  --shadow-sm: 0 0 0 1px rgb(var(--ink-rgb) / 0.05), 0 2px 8px -2px rgb(var(--ink-rgb) / 0.1);
+  --shadow-md: 0 0 0 1px rgb(var(--ink-rgb) / 0.05), 0 10px 28px -10px rgb(var(--ink-rgb) / 0.2);
+  --shadow-lg: 0 0 0 1px rgb(var(--ink-rgb) / 0.05), 0 28px 64px -20px rgb(var(--ink-rgb) / 0.35);
 
   /* Motion */
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -211,9 +233,10 @@
 
 /* Fonts come from next/font in layout.tsx; inline so the utility points at the loaded family. */
 @theme inline {
-  --font-display: var(--font-playfair), ui-serif, Georgia, serif;
-  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-display: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
+  /* Code only (the agent-door address and setup snippets), never prices: the system mono, no webfont. */
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 
 /* ───────────── 3. Component tokens ───────────── */
@@ -227,22 +250,22 @@
   --icon-lg: 1.5rem;
   --icon-stroke: 1.75;
 
-  /* Button: a printed label. Marigold fill with an ink edge; ink outline for the rest. */
-  --button-radius: var(--radius-md);
+  /* Button: pills. Primary is the near-black pill (Toast's Pickup toggle); secondary a grey pill; PayPal its own blue. */
+  --button-radius: var(--radius-full);
   --button-h-md: var(--spacing-tap);
-  --button-h-lg: 3.5rem;
-  --button-px-md: 1.125rem;
-  --button-px-lg: 1.625rem;
-  --button-border-w: 1.5px;
-  --button-primary-bg: var(--color-accent);
-  --button-primary-bg-hover: var(--color-accent-hover);
-  --button-primary-bg-active: var(--color-accent-active);
-  --button-primary-fg: var(--color-on-accent);
+  --button-h-lg: 3.25rem;
+  --button-px-md: 1.25rem;
+  --button-px-lg: 1.75rem;
+  --button-border-w: 1px;
+  --button-primary-bg: var(--color-ink);
+  --button-primary-bg-hover: var(--color-ink-hover);
+  --button-primary-bg-active: var(--color-ink-soft);
+  --button-primary-fg: var(--color-surface);
   --button-primary-border: var(--color-ink);
-  --button-secondary-bg: transparent;
-  --button-secondary-bg-hover: var(--color-surface-raised);
+  --button-secondary-bg: var(--color-surface-sunken);
+  --button-secondary-bg-hover: var(--color-line);
   --button-secondary-fg: var(--color-ink);
-  --button-secondary-border: var(--color-ink);
+  --button-secondary-border: transparent;
   --button-ghost-fg: var(--color-ink);
   --button-ghost-bg-hover: var(--color-surface-sunken);
   --button-paypal-bg: var(--color-paypal);
@@ -250,18 +273,19 @@
   --button-paypal-bg-active: var(--color-paypal-active);
   --button-paypal-fg: var(--color-on-paypal);
 
-  /* Card: a slip of receipt paper on the newsprint counter */
+  /* Card: white on white, lifted by a soft shadow, no outline */
   --card-bg: var(--color-surface-raised);
-  --card-border: var(--color-line-strong);
+  --card-border: transparent;
   --card-radius: var(--radius-lg);
   --card-shadow: var(--shadow-sm);
   --card-pad: 1.25rem;
-  --card-pad-lg: 1.75rem;
+  --card-pad-lg: 1.5rem;
 
-  /* Receipt: perforated bottom edge and dashed rules */
-  --perf-r: 0.3125rem;
-  --perf-gap: 0.875rem;
-  
+  /* Photo: item and cover photos */
+  --photo-radius: var(--radius-lg);
+  --cover-radius: var(--radius-xl);
+  --thumb-radius: var(--radius-md);
+
   /* Field */
   --field-bg: var(--color-surface-raised);
   --field-border: var(--color-control);
@@ -269,47 +293,50 @@
   --field-radius: var(--radius-md);
   --field-h: 3rem;
 
-  /* Badge: a rubber stamp, square-cornered with a thin edge */
-  --badge-radius: var(--radius-xs);
+  /* Badge: a soft pill, no outline */
+  --badge-radius: var(--radius-full);
   --badge-h: 1.625rem;
 
   /* Sheet (bottom sheet on phones, dialog from sm up) */
   --sheet-bg: var(--color-surface-raised);
-  --sheet-radius: var(--radius-xl);
+  --sheet-radius: var(--radius-2xl);
   --sheet-shadow: var(--shadow-lg);
   --sheet-max-w: 32rem;
 
   /* Toast */
   --toast-bg: var(--color-ink);
   --toast-fg: var(--color-surface);
-  --toast-radius: var(--radius-md);
+  --toast-radius: var(--radius-lg);
   --toast-shadow: var(--shadow-md);
 
-  /* Tabs */
+  /* Tabs: the active tab carries the accent underline */
   --tabs-indicator: var(--color-ink);
   --tabs-h: var(--spacing-tap);
+
+  /* Segmented filter (dashboard): grey track, white selected segment */
+  --segment-track: var(--color-surface-sunken);
+  --segment-on: var(--color-surface-raised);
 
   /* Skeleton */
   --skeleton-base: var(--color-surface-sunken);
   --skeleton-shine: var(--color-surface-raised);
 
-  /* Highlighter: the marigold swipe behind one phrase per page */
-  --mark-bg: var(--color-accent);
+  /* Retired from direction A, kept as no-ops so older markup stays valid */
+  --mark-bg: transparent;
 }
 
 /* ───────────── Type roles (semantic type utilities) ───────────── */
 /*
- * Playfair Display: high-contrast display serif, the voice of a printed menu. Headings, totals, the wordmark.
- * Schibsted Grotesk: a newspaper grotesk for everything read carefully. IBM Plex Mono: receipt lines and order numbers.
+ * One family, Figtree, from 400 to 800. Display roles are tight and heavy (700 to 800), UI text 400 to 600.
+ * Prices and totals are Figtree with tabular figures: no monospace, no serif.
  */
 @utility font-soft {
   font-variation-settings: normal;
 }
 @utility type-hero {
   font-family: var(--font-display);
-  font-variant-numeric: lining-nums;
   font-size: var(--text-4xl);
-  line-height: 1.06;
+  line-height: 1.05;
   font-weight: 800;
   letter-spacing: var(--tracking-display);
   @media (width >= 64rem) {
@@ -319,43 +346,40 @@
 }
 @utility type-display {
   font-family: var(--font-display);
-  font-variant-numeric: lining-nums;
-  font-size: var(--text-4xl);
-  line-height: var(--text-4xl--line-height);
+  font-size: var(--text-3xl);
+  line-height: var(--text-3xl--line-height);
   font-weight: 800;
   letter-spacing: var(--tracking-display);
   @media (width >= 64rem) {
-    font-size: var(--text-5xl);
-    line-height: var(--text-5xl--line-height);
+    font-size: var(--text-4xl);
+    line-height: var(--text-4xl--line-height);
   }
 }
 @utility type-title {
   font-family: var(--font-display);
-  font-variant-numeric: lining-nums;
-  font-size: var(--text-2xl);
-  line-height: var(--text-2xl--line-height);
-  font-weight: 700;
+  font-size: var(--text-xl);
+  line-height: var(--text-xl--line-height);
+  font-weight: 800;
   letter-spacing: var(--tracking-tight);
   @media (width >= 64rem) {
-    font-size: var(--text-3xl);
-    line-height: var(--text-3xl--line-height);
+    font-size: var(--text-2xl);
+    line-height: var(--text-2xl--line-height);
   }
 }
 @utility type-heading {
   font-family: var(--font-display);
-  font-variant-numeric: lining-nums;
-  font-size: var(--text-xl);
-  line-height: var(--text-xl--line-height);
+  font-size: var(--text-lg);
+  line-height: var(--text-lg--line-height);
   font-weight: 700;
+  letter-spacing: var(--tracking-tight);
 }
-/* Menu-section voice: the italic of the display face. "Breads", "Pastries", "Paid". */
+/* A menu section's own heading ("Breads"): bold sans, upright. */
 @utility type-kicker {
   font-family: var(--font-display);
-  font-variant-numeric: lining-nums;
-  font-style: italic;
-  font-weight: 500;
+  font-weight: 800;
   font-size: var(--text-xl);
   line-height: var(--text-xl--line-height);
+  letter-spacing: var(--tracking-tight);
 }
 @utility type-lead {
   font-size: var(--text-lg);
@@ -374,45 +398,43 @@
   font-size: var(--text-xs);
   line-height: var(--text-xs--line-height);
 }
+/* Money and order numbers: the same face, tabular figures, a touch heavier. */
 @utility type-price {
-  font-family: var(--font-mono);
-  letter-spacing: var(--tracking-receipt);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums lining-nums;
 }
-/* Figures inside running text and headings: tabular, in the surrounding face (not the receipt mono). */
 @utility type-figures {
   font-variant-numeric: tabular-nums lining-nums;
 }
-/* Receipt lines: monospace, as printed by a till. */
+/* Line items and totals: tabular figures in the UI face. */
 @utility type-receipt {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: var(--text-sm);
   line-height: 1.375rem;
-  letter-spacing: var(--tracking-receipt);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* ───────────── Paper utilities ───────────── */
-/* A receipt torn off the till: half-circle bites along the bottom edge. Shadows go on a parent (drop-shadow). */
+/* ───────────── Layout utilities ───────────── */
+/* Direction A's perforated receipt edge, dashed till rule, highlighter and masked drop shadow are retired. The names stay
+   so older markup keeps compiling: `rule-dashed` is now a plain light divider, the others do nothing. */
 @utility perforated {
-  padding-bottom: calc(var(--perf-r) * 2 + 0.75rem);
-  mask: radial-gradient(circle at 50% 100%, transparent var(--perf-r), var(--ink-900) calc(var(--perf-r) + 0.5px))
-    bottom / var(--perf-gap) 100% repeat-x;
+  padding-bottom: 1.25rem;
 }
-/* Dashed till rule between receipt sections. */
 @utility rule-dashed {
-  border-top: 1.5px dashed var(--color-line-strong);
+  border-top: 1px solid var(--color-line);
 }
-/* Marigold highlighter swipe behind a phrase; the text stays ink (7.7:1). */
 @utility mark-highlight {
-  background-image: linear-gradient(transparent 58%, var(--mark-bg) 58%, var(--mark-bg) 92%, transparent 92%);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  padding-inline: 0.06em;
+  background: none;
 }
-/* Drop shadow that follows a masked (perforated) shape. */
 @utility paper-drop {
-  filter: drop-shadow(0 1px 1px rgb(var(--ink-rgb) / 0.1)) drop-shadow(0 8px 14px rgb(var(--ink-rgb) / 0.12));
+  filter: none;
+}
+/* Hide a horizontal scroller's bar (section tabs), keep it scrollable. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* ───────────── Base ───────────── */
@@ -449,8 +471,8 @@
   }
   a {
     text-underline-offset: 0.24em;
-    text-decoration-thickness: 2px;
-    text-decoration-color: var(--color-accent-hover);
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: currentColor;
   }
   :focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);

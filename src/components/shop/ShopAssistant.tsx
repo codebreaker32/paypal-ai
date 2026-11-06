@@ -25,6 +25,8 @@ export interface ShopAssistantProps {
   starters: string[];
   /** `?assistant=1`: open the console on load. */
   initiallyOpen: boolean;
+  /** Full-width cover above the page grid (null when the shop has no photos). */
+  cover?: ReactNode;
   intro: ReactNode;
   menu: ReactNode;
   door: ReactNode;
@@ -34,11 +36,11 @@ export interface ShopAssistantProps {
 
 const ORDER = {
   title: 'Order with an assistant',
-  pitch: 'An AI assistant reads the menu, checks the order with you, and hands payment to PayPal. You see every step.',
+  pitch: 'Tell an assistant what you’d like. It checks the order with you and hands payment to PayPal.',
 };
 const ASK = {
   title: 'Ask the assistant',
-  pitch: 'This shop isn’t taking orders right now. An AI assistant can still answer questions about the menu.',
+  pitch: 'Not taking orders right now. An assistant can still answer questions about the menu.',
 };
 
 /**
@@ -46,7 +48,7 @@ const ASK = {
  * doesn't take orders). The console opens as a bottom sheet on
  * phones and as a side panel next to the menu from 1024 px, so the menu and the conversation stay side by side.
  */
-export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, menu, door, takesOrders }: ShopAssistantProps) {
+export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, intro, menu, door, takesOrders }: ShopAssistantProps) {
   const { title, pitch } = takesOrders ? ORDER : ASK;
   const api = useBuyerConsole(slug);
   const [open, setOpen] = useState(initiallyOpen);
@@ -81,69 +83,71 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, intro, 
   const conversation = <ConsoleConversation api={api} shopName={shopName} starters={starters} />;
 
   return (
-    <div className="mx-auto grid w-full max-w-page items-start gap-10 px-gutter pt-8 pb-section lg:grid-cols-12 lg:gap-12 lg:pt-12">
-      <div className="flex min-w-0 flex-col gap-10 lg:col-span-7">
-        {intro}
-        <div className="flex flex-col gap-2 lg:hidden">
-          <Button size="lg" icon={Bot} fullWidth onClick={show}>
-            {title}
-          </Button>
-          <p className="type-meta text-ink-muted">{pitch}</p>
+    <>
+      {cover}
+      <div className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-32 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
+        <div className="flex min-w-0 flex-col gap-8 lg:col-span-8">
+          {intro}
+          {menu}
+          {door}
         </div>
-        {menu}
-        {door}
+
+        <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-4 lg:block">
+          {panelOpen ? (
+            // Fits the first screen under the header (and stays in view, sticky, as the menu scrolls).
+            <Card padding="none" className="flex h-[min(52rem,calc(100dvh-8.5rem))] min-h-96 flex-col overflow-hidden shadow-md">
+              <div className="flex items-center gap-3 border-b border-line px-5 py-3">
+                <span aria-hidden="true" className="inline-flex size-9 items-center justify-center rounded-full bg-ink text-surface">
+                  <Icon icon={Bot} size="sm" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="type-heading leading-6">{title}</h2>
+                  <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={hide}
+                  className="-mr-2 inline-flex size-(--spacing-tap) items-center justify-center rounded-full text-ink-soft hover:bg-surface-sunken hover:text-ink"
+                >
+                  <Icon icon={X} label="Close the assistant" />
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{conversation}</div>
+              <div className="border-t border-line px-5 py-4">
+                <ConsoleComposer api={api} inputRef={inputRef} />
+              </div>
+            </Card>
+          ) : (
+            <Card className="flex flex-col gap-4 shadow-md" padding="lg">
+              <h2 className="type-title">{title}</h2>
+              <p className="text-ink-soft">{pitch}</p>
+              <Button ref={openerRef} size="lg" icon={Bot} fullWidth onClick={show}>
+                {title}
+              </Button>
+              <p className="type-meta text-ink-muted">
+                Or connect your own assistant to the{' '}
+                <a href="#agent-door" className="font-semibold text-ink underline">
+                  agent door
+                </a>
+                .
+              </p>
+            </Card>
+          )}
+        </aside>
       </div>
 
-      <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-5 lg:block">
-        {panelOpen ? (
-          // Fits the first screen under the header (and stays in view, sticky, as the menu scrolls).
-          <Card padding="none" className="flex h-[min(52rem,calc(100dvh-8.5rem))] min-h-96 flex-col overflow-hidden">
-            <div className="flex items-start gap-3 border-b border-line px-5 pt-4 pb-3">
-              <div className="flex-1 pt-1.5">
-                <h2 className="type-heading">{title}</h2>
-                <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
-              </div>
-              <button
-                type="button"
-                onClick={hide}
-                className="-mr-2 inline-flex size-(--spacing-tap) items-center justify-center rounded-full text-ink-soft hover:bg-surface-sunken hover:text-ink"
-              >
-                <Icon icon={X} label="Close the assistant" />
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{conversation}</div>
-            <div className="border-t border-line px-5 py-4">
-              <ConsoleComposer api={api} inputRef={inputRef} />
-            </div>
-          </Card>
-        ) : (
-          <Card className="flex flex-col gap-4" padding="lg">
-            <h2 className="type-heading">{title}</h2>
-            <p className="text-ink-soft">{pitch}</p>
-            <Button ref={openerRef} size="lg" icon={Bot} fullWidth onClick={show}>
-              {title}
-            </Button>
-            <p className="type-meta text-ink-muted">
-              Or connect your own assistant to the{' '}
-              <a href="#agent-door" className="font-semibold text-accent-ink underline">
-                agent door
-              </a>
-              .
-            </p>
-          </Card>
-        )}
-      </aside>
+      {/* Phones: the order bar stays at the bottom of the screen. */}
+      <div className="fixed inset-x-0 bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] lg:hidden">
+        <Button size="lg" icon={Bot} fullWidth onClick={show}>
+          {title}
+        </Button>
+      </div>
 
       {isDesktop === false && (
-        <Sheet
-          open={open}
-          onClose={hide}
-          title={title}
-          footer={<ConsoleComposer api={api} />}
-        >
+        <Sheet open={open} onClose={hide} title={title} footer={<ConsoleComposer api={api} />}>
           {conversation}
         </Sheet>
       )}
-    </div>
+    </>
   );
 }

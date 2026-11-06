@@ -167,6 +167,7 @@ test.beforeAll(async () => {
   const paypal = createFakePayPal();
   const seeded = await seedDemoShop({ db, paypal, uploadsDir: getConfig().uploadsDir, reset: true });
   demo = fixtureFromShop(seeded.shop, seeded.ownerToken!);
+  demoPhotos(seeded.shop.id);
   seedDemoOrders(demo);
   empty = createFixtureShop('Tía Lupe Tacos');
 
@@ -190,6 +191,22 @@ test.beforeAll(async () => {
   briefShop = createFixtureShop('Marigold Bakehouse');
   seedSellerPaidOrders(briefShop);
 });
+
+/**
+ * FIXTURE: the demo shop's photos, if the seed hasn't set them. Each item gets `/demo/<slug>/<item-name-slug>.jpg` and the
+ * shop `/demo/<slug>/cover.jpg`, whenever that file is in public/. Sample-menu shops stay photo-less (the fallback).
+ */
+function demoPhotos(shopId: string) {
+  const db = getDb();
+  const dir = path.resolve(__dirname, '..', 'public', 'demo', SLUG);
+  const slugify = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const shop = shopsRepo.byId(db, shopId)!;
+  if (!shop.coverUrl && fs.existsSync(path.join(dir, 'cover.jpg'))) shopsRepo.update(db, shopId, { coverUrl: `/demo/${SLUG}/cover.jpg` });
+  for (const item of itemsRepo.listWithVariants(db, shopId)) {
+    const file = `${slugify(item.name)}.jpg`;
+    if (!item.photoUrl && fs.existsSync(path.join(dir, file))) itemsRepo.update(db, item.id, { photoUrl: `/demo/${SLUG}/${file}` });
+  }
+}
 
 /**
  * Orders paid into the seller's own PayPal account (spec §8a), on the second Marigold Bakehouse (a seller's shop, paid
@@ -464,6 +481,15 @@ const SCREENS: Screen[] = [
     run: async (page) => {
       await page.goto(`/s/${SLUG}`);
       await expect(page.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' })).toBeVisible();
+    },
+  },
+  {
+    // A shop published from the Marigold sample menu: no photos, so every item shows the designed fallback.
+    name: 'shop-no-photos',
+    run: async (page) => {
+      const shop = shopsRepo.byId(getDb(), setups.live.shopId)!;
+      await page.goto(`/s/${shop.slug}`);
+      await expect(page.getByRole('heading', { level: 1, name: shop.name })).toBeVisible();
     },
   },
   {

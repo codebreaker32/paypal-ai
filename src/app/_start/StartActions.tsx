@@ -134,7 +134,7 @@ export function StartActions() {
                   height={96}
                   unoptimized
                   onError={() => remove(p.key, 'bad_file')}
-                  className="h-24 w-18 rounded-md border border-line-strong object-cover shadow-xs"
+                  className="h-24 w-18 rounded-md object-cover shadow-(--card-shadow)"
                 />
                 {!uploading && (
                   <button
@@ -143,7 +143,7 @@ export function StartActions() {
                     aria-label={`Remove page ${i + 1}`}
                     className="absolute -top-3 -right-3 inline-flex size-tap items-center justify-center rounded-full"
                   >
-                    <span className="inline-flex size-7 items-center justify-center rounded-full border border-line-strong bg-surface-raised text-ink shadow-xs">
+                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-surface-raised text-ink shadow-(--card-shadow)">
                       <Icon icon={X} size="sm" />
                     </span>
                   </button>
@@ -204,10 +204,10 @@ export function StartActions() {
 
       {/* Secondary: a sample menu, for anyone without a price list at hand */}
       <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
-        <h2 id={samplesLabelId} className="type-label text-ink">
-          Try a sample menu
+        <h2 id={samplesLabelId} className="type-label text-ink-muted">
+          Or try a sample menu
         </h2>
-        <ul className="grid grid-cols-3 gap-3">
+        <ul className="flex flex-wrap gap-2">
           {SAMPLE_MENUS.map((s) => {
             const loading = busy?.kind === 'sample' && busy.id === s.id;
             return (
@@ -218,32 +218,32 @@ export function StartActions() {
                   disabled={busy !== null}
                   aria-busy={loading || undefined}
                   className={cx(
-                    'group flex w-full flex-col gap-2 rounded-md p-1 -m-1 text-left',
+                    'group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left hover:bg-line',
                     'disabled:cursor-not-allowed',
                     busy !== null && !loading && 'opacity-50',
                   )}
                 >
-                  <span className="relative block overflow-hidden rounded-md border border-line-strong bg-surface-sunken">
+                  <span className="relative block size-9 shrink-0 overflow-hidden rounded-full bg-surface">
                     <Image
                       src={s.image}
                       alt=""
                       width={240}
                       height={180}
-                      sizes="(min-width: 1024px) 160px, 30vw"
-                      className="aspect-[4/3] w-full object-cover transition-transform duration-(--duration-base) group-enabled:group-hover:scale-[1.03]"
+                      sizes="36px"
+                      className="size-full object-cover"
                     />
                     {loading && (
                       <span className="absolute inset-0 flex items-center justify-center bg-surface/80">
-                        <Icon icon={Loader2} size="lg" className="animate-spin text-ink" />
+                        <Icon icon={Loader2} size="sm" className="animate-spin text-ink" />
                       </span>
                     )}
                   </span>
                   <span className="flex flex-col">
                     <span className="sr-only">Try the sample menu from </span>
-                    <span className="text-sm leading-5 font-semibold text-ink group-enabled:group-hover:underline">
+                    <span className="text-sm leading-5 font-semibold text-ink">
                       {s.name}
                     </span>
-                    <span className="type-meta text-ink-muted">{loading ? 'Opening…' : s.kind}</span>
+                    {loading && <span className="type-meta text-ink-muted">Opening…</span>}
                   </span>
                 </button>
               </li>
@@ -256,7 +256,7 @@ export function StartActions() {
       {/* Tertiary: see what a finished shop looks like */}
       <Link
         href={LIVE_SHOP_HREF}
-        className="-my-2 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-accent-ink underline decoration-accent hover:decoration-ink"
+        className="-my-2 inline-flex min-h-tap items-center gap-1.5 self-start text-sm font-semibold text-ink-soft underline underline-offset-4 hover:text-ink"
       >
         See a live shop
         <Icon icon={ArrowRight} size="sm" />
