@@ -9,6 +9,7 @@ import {
   initialConsoleState,
   refsToCheck,
   restoreConsoleState,
+  turnStartIndex,
   type ConsoleState,
   type Entry,
 } from '@/components/shop/console-state';
@@ -119,6 +120,20 @@ const askStatus = (s: ConsoleState, id: string, result: Record<string, unknown>,
     { type: 'tool_result', id, ok, result, ms: 300 },
     { type: 'done' },
   );
+
+describe('turnStartIndex', () => {
+  const e = (kind: Entry['kind'], key: number) => ({ kind, key }) as unknown as Entry;
+  it('points at the first reply entry after the latest message (the Activity card)', () => {
+    expect(turnStartIndex([e('user', 1), e('activity', 2), e('assistant', 3), e('user', 4), e('activity', 5), e('approval', 6)])).toBe(4);
+  });
+  it('points at the message itself while the reply has not started', () => {
+    expect(turnStartIndex([e('user', 1), e('assistant', 2), e('user', 3)])).toBe(2);
+  });
+  it('is -1 for an empty conversation and 0 when there is no message', () => {
+    expect(turnStartIndex([])).toBe(-1);
+    expect(turnStartIndex([e('assistant', 1)])).toBe(0);
+  });
+});
 
 describe('approval cards', () => {
   it('offer PayPal only while the order waits for approval; otherwise say what happened and link the receipt', () => {

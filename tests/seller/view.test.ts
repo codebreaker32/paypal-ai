@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Order, OrderEventRow } from '@/lib/domain/types';
-import { agentLabel, buyerLabel, groupOrders, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
+import { agentLabel, buyerLabel, groupOrders, groupTotalCents, itemSummary, mergePolledOrders, timelineEntries, whereLabel } from '@/lib/seller/view';
 
 const base: Order = {
   id: 'ord_1', number: 'SHF-AAAAAA', shopId: 'shp_1', status: 'paid', fulfillment: 'shipping', buyerName: 'Dana', buyerNote: null,
@@ -31,6 +31,12 @@ describe('seller view helpers', () => {
     expect(g.toPrepare.map((x) => x.id)).toEqual(['a']);
     expect(g.waiting.map((x) => x.id)).toEqual(['b', 'c', 'd']);
     expect(g.done.map((x) => x.id)).toEqual(['e', 'f', 'g', 'h']);
+  });
+
+  it('adds up the order totals in a group, in cents, for its header', () => {
+    expect(groupTotalCents([o({ totalCents: 2700 }), o({ totalCents: 1650 })])).toBe(4350);
+    expect(groupTotalCents([o({ totalCents: 2700 }), o({ totalCents: 2700 }), o({ totalCents: 2900 })])).toBe(8300);
+    expect(groupTotalCents([])).toBe(0);
   });
 
   it('summarises items with quantities and options', () => {

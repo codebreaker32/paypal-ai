@@ -4,12 +4,24 @@ import { Bot, ChevronDown, CloudOff, Inbox } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
+import { formatUSD } from '@/lib/domain/money';
 import type { Order } from '@/lib/domain/types';
-import { groupOrders } from '@/lib/seller/view';
+import { groupOrders, groupTotalCents } from '@/lib/seller/view';
 import { OrderCard } from './OrderCard';
 
 function Count({ n }: { n: number }) {
   return <span className="type-receipt rounded-xs border border-line-strong px-1.5 text-sm font-medium text-ink-soft">{n}</span>;
+}
+
+/** The group's money, right-aligned on its header row like a till subtotal: "Paid $43.50". */
+function Subtotal({ orders, label, as: Tag = 'p' }: { orders: Order[]; label: string; as?: 'p' | 'span' }) {
+  if (orders.length === 0) return null;
+  return (
+    <Tag className="ml-auto flex items-baseline gap-2 whitespace-nowrap">
+      <span className="type-meta font-semibold text-ink-muted">{label}</span>
+      <span className="type-price text-lg leading-7 font-semibold">{formatUSD(groupTotalCents(orders))}</span>
+    </Tag>
+  );
 }
 
 export function PayPalBanner() {
@@ -81,9 +93,12 @@ export function OrdersPanel({
       ) : (
         <>
           <section aria-labelledby="group-prepare" className="flex flex-col gap-3">
-            <h2 id="group-prepare" className="type-heading flex items-center gap-2">
-              To prepare <Count n={g.toPrepare.length} />
-            </h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+              <h2 id="group-prepare" className="type-heading flex items-center gap-2">
+                To prepare <Count n={g.toPrepare.length} />
+              </h2>
+              <Subtotal orders={g.toPrepare} label="Paid" />
+            </div>
             {g.toPrepare.length > 0 ? (
               <ul className="paper-drop grid gap-4 lg:grid-cols-2">{g.toPrepare.map(card)}</ul>
             ) : (
@@ -93,11 +108,12 @@ export function OrdersPanel({
 
           {g.waiting.length > 0 && (
             <details className="group" data-group="waiting">
-              <summary className="flex min-h-tap list-none items-center rounded-md [&::-webkit-details-marker]:hidden">
+              <summary className="flex min-h-tap list-none flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md [&::-webkit-details-marker]:hidden">
                 <h2 className="type-heading flex items-center gap-2">
                   Waiting for payment <Count n={g.waiting.length} />
                   <Icon icon={ChevronDown} className="text-ink-muted transition-transform duration-(--duration-base) group-open:rotate-180" />
                 </h2>
+                <Subtotal orders={g.waiting} label="Not charged yet" as="span" />
               </summary>
               <div className="mt-1 flex flex-col gap-3">
                 <p className="type-meta text-ink-muted">

@@ -5,6 +5,7 @@ import { CircleAlert, CircleCheck, Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { ApiError, publish, type PublishEvent } from './api';
+import { publishCounts } from './review-model';
 
 export interface PublishRow {
   itemId: string;
@@ -61,19 +62,18 @@ export function usePublish(shopId: string) {
 /** "Adding to PayPal… 6/10", a progress bar, and one line per item with its result. */
 export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'idle' }> }) {
   const rows = run.rows;
-  const total = rows.length;
-  const finished = rows.filter((r) => r.state !== 'pending').length;
+  const { total, added, failed, finished, addedShare, finishedShare } = publishCounts(rows);
   const label =
     run.phase === 'running'
       ? total
         ? `Adding to PayPal… ${finished}/${total}`
         : 'Connecting to PayPal…'
-      : run.phase === 'done' && run.failed === 0
+      : run.phase === 'done' && failed === 0
         ? total
           ? `All ${total} ${total === 1 ? 'item is' : 'items are'} in PayPal`
           : 'Your items are in PayPal'
         : run.phase === 'done'
-          ? `${run.published} of ${total} added to PayPal`
+          ? `${added} of ${total} added to PayPal`
           : 'Publishing stopped';
 
   return (
@@ -82,20 +82,31 @@ export function PublishProgress({ run }: { run: Exclude<PublishRun, { phase: 'id
         <p className="type-label type-figures" role="status" aria-live="polite">
           {label}
         </p>
+        {/* The bar fills with the items PayPal took; the ones it refused show as their own (danger) part after them,
+            so "7 of 9 added" never looks complete. Two full-width layers scaled from the left: only transform animates. */}
         <div
           role="progressbar"
           aria-label="Items added to PayPal"
           aria-valuemin={0}
           aria-valuemax={total || 1}
-          aria-valuenow={finished}
-          className="h-2 overflow-hidden rounded-full bg-surface-sunken"
+          aria-valuenow={added}
+          aria-valuetext={failed ? `${added} of ${total} added, ${failed} not added` : `${added} of ${total} added`}
+          className="relative h-2 overflow-hidden rounded-full bg-surface-sunken"
         >
+          {failed > 0 && (
+            <div
+              data-part="failed"
+              className="absolute inset-0 origin-left bg-danger transition-transform duration-(--duration-base) motion-reduce:transition-none"
+              style={{ transform: `scaleX(${finishedShare})` }}
+            />
+          )}
           <div
+            data-part="added"
             className={cx(
-              'h-full w-full origin-left rounded-full transition-transform duration-(--duration-base)',
-              run.phase === 'done' && run.failed === 0 ? 'bg-ok' : 'bg-accent',
+              'absolute inset-0 origin-left transition-transform duration-(--duration-base) motion-reduce:transition-none',
+              run.phase === 'running' ? 'bg-accent' : 'bg-ok',
             )}
-            style={{ transform: `scaleX(${total ? finished / total : 0})` }}
+            style={{ transform: `scaleX(${addedShare})` }}
           />
         </div>
       </div>

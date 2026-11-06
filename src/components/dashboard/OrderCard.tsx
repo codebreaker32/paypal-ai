@@ -78,22 +78,29 @@ export function OrderCard({
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
-      {/* Phone: number and meta on their own lines, the badge below them. Wider: badge to the right. */}
+      {/* Phone: the number with its total beside it (money before the brief), meta below, then the badge.
+          Wider: badge to the right, and the total only on the footer line. */}
       <div className="flex flex-col items-start gap-2 sm:flex-row sm:justify-between sm:gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <h3 className="type-receipt text-base font-semibold whitespace-nowrap">
-            <Link
-              href={href}
-              data-stretched-link
-              className={cx(
-                'underline-offset-4 hover:underline focus-visible:outline-none',
-                'after:absolute after:inset-0 after:content-[""]',
-                'focus-visible:after:outline-2 focus-visible:after:-outline-offset-4 focus-visible:after:outline-focus',
-              )}
-            >
-              {order.number}
-            </Link>
-          </h3>
+        <div className="flex w-full min-w-0 flex-col gap-0.5 sm:w-auto">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="type-receipt text-base font-semibold whitespace-nowrap">
+              <Link
+                href={href}
+                data-stretched-link
+                className={cx(
+                  'underline-offset-4 hover:underline focus-visible:outline-none',
+                  'after:absolute after:inset-0 after:content-[""]',
+                  'focus-visible:after:outline-2 focus-visible:after:-outline-offset-4 focus-visible:after:outline-focus',
+                )}
+              >
+                {order.number}
+              </Link>
+            </h3>
+            {/* Repeats the footer's Total for the eye; screen readers hear it once, on the footer line. */}
+            <span aria-hidden="true" className={cx('type-receipt text-lg leading-6 font-semibold whitespace-nowrap sm:hidden', muted && 'text-ink-muted line-through decoration-1')}>
+              {formatUSD(order.totalCents)}
+            </span>
+          </div>
           <p className="type-meta text-ink-muted">
             {buyerLabel(order)} · via {agentLabel(order.agentName)} · <LocalTime iso={order.paidAt ?? order.createdAt} />
           </p>

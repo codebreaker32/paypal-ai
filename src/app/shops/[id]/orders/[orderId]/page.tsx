@@ -310,16 +310,23 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
         Orders
       </Link>
 
-      <header className="flex flex-col gap-3 border-b-2 border-ink pb-5">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-          <h1 className="type-display">
-            Order <span className="type-price font-semibold tracking-tight">{order.number}</span>
-          </h1>
-          <OrderStatusBadge order={order} />
+      {/* Phone: number, status, who placed it, then the total as a till line. Wider: the total is the right-hand block. */}
+      <header className="flex flex-col gap-4 border-b-2 border-ink pb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            {/* The reference never breaks; if the line is too narrow, it wraps after "Order". */}
+            <h1 className="type-display">
+              Order <span className="type-price font-semibold tracking-tight whitespace-nowrap">{order.number}</span>
+            </h1>
+            <OrderStatusBadge order={order} />
+          </div>
+          <p className="text-ink-soft">
+            Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} />
+          </p>
         </div>
-        <p className="text-ink-soft">
-          <span className="type-price text-lg font-semibold text-ink">{formatUSD(order.totalCents)}</span> · placed by {agentLabel(order.agentName)} ·{' '}
-          <LocalTime iso={order.createdAt} />
+        <p className="rule-dashed flex items-baseline justify-between gap-4 pt-3 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1 sm:border-t-0 sm:pt-0">
+          <span className="type-label text-ink-muted">Total</span>
+          <span className="type-price text-3xl leading-none font-semibold sm:text-4xl">{formatUSD(order.totalCents)}</span>
         </p>
       </header>
 

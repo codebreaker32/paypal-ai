@@ -27,6 +27,7 @@ import {
   initialConsoleState,
   refsToCheck,
   restoreConsoleState,
+  turnStartIndex,
   type ApprovalCardView,
   type ConsoleState,
   type Entry,
@@ -290,15 +291,32 @@ export interface ConsoleConversationProps {
 export function ConsoleConversation({ api, shopName, starters }: ConsoleConversationProps) {
   const { state, send, reset } = api;
   const end = useRef<HTMLDivElement>(null);
+  const log = useRef<HTMLDivElement>(null);
   const last = state.entries.at(-1);
   const calling = last?.kind === 'activity' && last.calls.some((c) => c.status === 'running');
   // Offer the status question only while an order may still change; a full conversation offers a new one.
   const waitingOnPayPal = refsToCheck(state).length > 0;
   const full = last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
 
+  // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
+  // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
+  const anchor = turnStartIndex(state.entries);
   useEffect(() => {
-    end.current?.scrollIntoView({ block: 'nearest' });
-  }, [state.entries, state.busy]);
+    const endEl = end.current;
+    if (!endEl) return;
+    const scroller = scrollParentOf(endEl);
+    if (!scroller) {
+      endEl.scrollIntoView({ block: 'nearest' });
+      return;
+    }
+    const box = scroller.getBoundingClientRect();
+    const toEnd = scroller.scrollTop + endEl.getBoundingClientRect().bottom - box.bottom + parseFloat(getComputedStyle(scroller).paddingBottom);
+    const start = anchor >= 0 ? log.current?.children[anchor] : undefined;
+    const toStart = start ? scroller.scrollTop + start.getBoundingClientRect().top - box.top - parseFloat(getComputedStyle(scroller).paddingTop) : Infinity;
+    const target = Math.min(toEnd, toStart);
+    // Only ever move down: a buyer who scrolled further on keeps their place.
+    if (target > scroller.scrollTop) scroller.scrollTop = target;
+  }, [state.entries, state.busy, anchor]);
 
   if (!state.entries.length) {
     return (
@@ -314,7 +332,7 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="log" aria-label="Conversation" className="flex flex-col gap-4">
+      <div ref={log} role="log" aria-label="Conversation" className="flex flex-col gap-4">
         {state.entries.map((entry) => (
           <EntryView key={entry.key} entry={entry} shopName={shopName} />
         ))}
@@ -346,6 +364,15 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
       <div ref={end} />
     </div>
   );
+}
+
+/** The nearest ancestor that scrolls vertically: the sheet's body on phones, the side panel's log on desktop. */
+function scrollParentOf(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const { overflowY } = getComputedStyle(p);
+    if (overflowY === 'auto' || overflowY === 'scroll') return p;
+  }
+  return null;
 }
 
 /** The message box. Enter sends. Typing ahead is fine while the assistant works; sending waits. */
