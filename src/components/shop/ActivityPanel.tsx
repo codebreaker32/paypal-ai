@@ -15,7 +15,7 @@ function Json({ label, children }: { label: string; children: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="type-meta font-semibold text-ink-soft">{label}</span>
-      <pre className="rounded-sm bg-surface-sunken p-2.5 font-mono text-xs leading-5 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]">
+      <pre className="rounded-sm bg-surface p-2.5 font-mono text-xs leading-5 whitespace-pre-wrap text-ink [overflow-wrap:anywhere]">
         {children}
       </pre>
     </div>
@@ -28,7 +28,7 @@ function CallRow({ call }: { call: ToolCall }) {
   return (
     <li>
       <details className="group">
-        <summary className="flex min-h-tap list-none items-start gap-2.5 rounded-sm px-3 py-2.5 hover:bg-surface-sunken [&::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-tap list-none items-start gap-2.5 rounded-sm px-3 py-2.5 hover:bg-line [&::-webkit-details-marker]:hidden">
           <Icon icon={status.icon} size="sm" label={status.label} className={cx('mt-0.5', status.className)} />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2">
@@ -60,8 +60,8 @@ function CallRow({ call }: { call: ToolCall }) {
 export function ActivityPanel({ calls }: { calls: ToolCall[] }) {
   const running = calls.some((c) => c.status === 'running');
   return (
-    <div role="group" aria-label="Activity" className="rounded-md border border-line-strong bg-surface">
-      <div className="flex items-center gap-2 border-b border-line px-3 py-2 type-meta text-ink-muted">
+    <div role="group" aria-label="Activity" className="rounded-(--card-radius) bg-surface-sunken">
+      <div className="flex items-center gap-2 px-3 pt-2.5 type-meta text-ink-muted">
         <Icon icon={DoorOpen} size="sm" />
         <span className="font-semibold text-ink-soft">Activity</span>
         <span>

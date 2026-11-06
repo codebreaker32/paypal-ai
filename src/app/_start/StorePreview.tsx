@@ -60,14 +60,13 @@ export function StorePreview() {
         </div>
       </div>
 
-      {/* The assistant's order, floating beside the phone */}
-      <div className="relative z-10 mx-auto -mt-24 w-[18rem] rounded-(--radius-xl) bg-surface p-4 shadow-lg sm:absolute sm:right-0 sm:bottom-10 sm:mt-0 sm:w-[16.5rem] lg:-right-6">
+      {/* The assistant's order, floating beside the phone, above its order bar (which stays in view) */}
+      <div className="relative z-10 mx-auto -mt-4 w-[18.5rem] rounded-(--radius-xl) bg-surface p-4 shadow-lg sm:absolute sm:right-0 sm:bottom-28 sm:mt-0 sm:w-[18rem] lg:-right-8">
         <div className="flex items-center gap-2">
-          <span className="inline-flex size-7 items-center justify-center rounded-full bg-ink text-surface">
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
             <Icon icon={Bot} size="sm" />
           </span>
-          <p className="text-sm font-bold text-ink">Order ready</p>
-          <span className="ml-auto text-xs font-semibold text-ok">● Checked with you</span>
+          <p className="text-sm font-bold whitespace-nowrap text-ink">Ready to pay</p>
         </div>
         <ul className="mt-3 flex flex-col gap-1 text-sm text-ink tabular-nums">
           {LINES.map((l) => (

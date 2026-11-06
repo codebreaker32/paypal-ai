@@ -6,7 +6,7 @@ import {
   CircleAlert,
   CircleCheck,
   CircleX,
-  CornerDownLeft,
+
   Hourglass,
   Loader2,
   RotateCcw,
@@ -198,7 +198,7 @@ function UserBubble({ text }: { text: string }) {
 function AssistantSays({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full border border-ink bg-accent text-ink">
+      <span className="mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-ink text-surface">
         <Icon icon={Bot} size="sm" label="Assistant" />
       </span>
       <RichText text={text} className="min-w-0 flex-1 pt-1 text-sm leading-6 [overflow-wrap:anywhere]" />
@@ -222,8 +222,7 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
   const view = approvalCard(entry);
   const settled = view.approve ? null : SETTLED[view.label];
   return (
-    <div className="paper-drop">
-    <div className="perforated flex flex-col gap-3 border border-line-strong bg-surface-raised px-4 pt-4">
+    <div className="flex flex-col gap-3 rounded-(--card-radius) bg-surface-sunken p-4">
       <div className="flex items-baseline justify-between gap-3">
         <span className="flex min-w-0 flex-col">
           <span className="font-display text-lg leading-6 font-bold">{shopName}</span>
@@ -250,7 +249,6 @@ function ApprovalCard({ entry, shopName }: { entry: Extract<Entry, { kind: 'appr
           {settled!.note && <p className="type-meta text-ink-muted">{settled!.note}</p>}
         </>
       )}
-    </div>
     </div>
   );
 }
@@ -279,9 +277,8 @@ function Starters({ prompts, onPick, disabled }: { prompts: string[]; onPick: (p
             type="button"
             disabled={disabled}
             onClick={() => onPick(p)}
-            className="flex min-h-tap w-full items-center gap-2.5 rounded-md border border-line-strong bg-surface-raised px-3.5 py-2.5 text-left text-sm font-medium text-ink transition-colors hover:border-control hover:bg-surface-sunken disabled:opacity-50"
+            className="flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink transition-colors hover:bg-line disabled:opacity-50"
           >
-            <Icon icon={CornerDownLeft} size="sm" className="text-ink-muted" />
             <span className="flex-1">{p}</span>
           </button>
         </li>
@@ -333,9 +330,8 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   if (!state.entries.length) {
     return (
       <div className="flex flex-col gap-4">
-        <p className="text-sm leading-6 text-ink-soft">
-          Ask in your own words. This assistant is Claude, and it orders from {shopName} through the shop’s agent door,
-          the same one any AI assistant can use. Every step it takes shows up here, and you approve payment on PayPal.
+        <p className="text-base leading-6 text-ink">
+          Hi! I’m Claude. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.
         </p>
         <Starters prompts={starters} onPick={send} />
       </div>

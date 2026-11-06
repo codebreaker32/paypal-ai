@@ -62,32 +62,24 @@ export function OrderCard({
   const muted = MUTED.has(order.status);
   const ships = order.fulfillment === 'shipping';
   const first = order.lines[0];
-  const more = order.lines.reduce((n, l) => n + l.qty, 0);
 
   return (
     <li
       data-order={order.number}
       className={cx(
-        'relative grid grid-cols-[3.5rem_1fr_auto] gap-x-4 gap-y-2 px-4 py-4 transition-colors hover:bg-surface-subtle sm:px-5',
-        'lg:grid-cols-[3.5rem_13rem_minmax(0,1fr)_5.5rem_10rem_10.5rem] lg:items-center',
+        'relative grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-4 transition-colors hover:bg-surface-subtle sm:px-5',
+        'lg:grid-cols-[3.5rem_14rem_minmax(0,1fr)_7rem_11rem_10.5rem] lg:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
-      <span className="relative row-span-2 lg:row-span-1">
-        <ItemPhoto
-          name={first?.name ?? order.number}
-          photoUrl={first ? (photos?.get(first.itemId) ?? null) : null}
-          size="sm"
-          decorative
-          dim={muted}
-          className="size-14 rounded-(--thumb-radius)"
-        />
-        {more > 1 && (
-          <span className="absolute -right-1.5 -bottom-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-ink px-1 text-[0.6875rem] font-bold text-surface tabular-nums ring-2 ring-surface">
-            {more}
-          </span>
-        )}
-      </span>
+      <ItemPhoto
+        name={first?.name ?? order.number}
+        photoUrl={first ? (photos?.get(first.itemId) ?? null) : null}
+        size="sm"
+        decorative
+        dim={muted}
+        className="row-span-2 size-14 self-start rounded-(--thumb-radius) lg:row-span-1 lg:self-center"
+      />
 
       <div className="flex min-w-0 flex-col">
         <h3 className="type-price font-bold whitespace-nowrap">
@@ -103,15 +95,21 @@ export function OrderCard({
             {order.number}
           </Link>
         </h3>
-        <p className="truncate text-sm text-ink-muted">
-          {buyerLabel(order)} · via {agentLabel(order.agentName)} · <LocalTime iso={order.paidAt ?? order.createdAt} />
+        {/* The buyer's name gives way last: "via ..." truncates first. */}
+        <p className="flex min-w-0 gap-1 text-sm text-ink-muted">
+          <span className="max-w-full shrink-0 truncate font-medium text-ink-soft">{buyerLabel(order)}</span>
+          <span className="min-w-0 truncate"> · via {agentLabel(order.agentName)}</span>
         </p>
       </div>
 
-      <p className={cx('type-price text-right font-bold whitespace-nowrap lg:order-4', muted && 'text-ink-muted line-through decoration-1')}>
-        <span className="sr-only">Total </span>
-        {formatUSD(order.totalCents)}
-      </p>
+      {/* The total with its time under it, in a column of its own: the time is never truncated. */}
+      <div className="flex flex-col items-end text-right lg:order-4">
+        <p className={cx('type-price font-bold whitespace-nowrap', muted && 'text-ink-muted line-through decoration-1')}>
+          <span className="sr-only">Total </span>
+          {formatUSD(order.totalCents)}
+        </p>
+        <LocalTime iso={order.paidAt ?? order.createdAt} className="type-meta whitespace-nowrap text-ink-muted" />
+      </div>
 
       <div className={cx('col-span-2 flex min-w-0 flex-col gap-1 lg:col-span-1 lg:order-3', muted && 'text-ink-muted')}>
         <p className="text-sm">

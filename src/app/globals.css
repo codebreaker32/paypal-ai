@@ -447,6 +447,11 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-variant-numeric: lining-nums;
+    /* Figtree is a variable font. With hinting on (Chrome on Linux and Windows at 1x), glyph advances snap to whole
+       pixels and the overhanging letters (f, t, T) open gaps: "shelf ie", "bef ore", "nut s". Geometric precision turns
+       hinting off and positions glyphs at subpixel offsets, so the spacing is the font's own. */
+    text-rendering: geometricPrecision;
+    font-kerning: normal;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
     scrollbar-color: var(--color-line-strong) transparent;

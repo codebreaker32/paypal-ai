@@ -108,7 +108,7 @@ export function OrdersPanel({
                   aria-pressed={filter === id}
                   onClick={() => setFilter(id)}
                   className={cx(
-                    'inline-flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors',
+                    'inline-flex min-h-tap items-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors',
                     filter === id ? 'bg-(--segment-on) text-ink shadow-(--card-shadow)' : 'text-ink-soft hover:text-ink',
                   )}
                 >

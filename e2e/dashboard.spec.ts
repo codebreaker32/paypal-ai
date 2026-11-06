@@ -305,7 +305,7 @@ test.describe('order detail', () => {
     });
     expect(o.payeeEmail).toBe(FIXTURE_PAYEE);
     await page.goto(detail(scratch, o.id));
-    await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('Add it to this payment in your PayPal account too.');
+    await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('Add it in your PayPal account too.');
     await page.getByLabel('Tracking number').fill('9400 1118 9922 3100 0000 77');
     // The real route: no PayPal call is made for this order, so nothing here is mocked.
     await page.getByRole('button', { name: 'Save tracking' }).click();

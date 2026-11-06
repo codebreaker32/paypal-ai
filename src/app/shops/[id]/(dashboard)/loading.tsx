@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/Skeleton';
 
 export default function DashboardLoading() {
   return (
-    <div aria-busy="true" className="mx-auto flex w-full max-w-page flex-col gap-6 px-gutter pt-4 pb-section lg:pt-8">
+    <div aria-busy="true" className="mx-auto flex w-full max-w-wide flex-col gap-6 px-gutter pt-6 pb-section lg:pt-8">
       <span role="status" className="sr-only">Loading your orders</span>
       <div className="flex flex-col gap-3">
         <Skeleton className="h-8 w-56" />

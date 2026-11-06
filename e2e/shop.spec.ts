@@ -203,6 +203,8 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByText('Sat & Sun pickup · 14 Alder St · order by Fri 6pm')).toBeVisible();
       await expect(page.getByText(/\$8\.00 flat/)).toBeVisible();
       await expect(page.getByRole('img', { name: /price list Marigold Bakehouse was made from/ })).toBeVisible();
+      // The agent door is folded behind one disclosure at the foot of the page.
+      await page.locator('#agent-door summary').click();
       await expect(page.locator('#agent-door code').first()).toHaveText(/\/s\/marigold-bakehouse\/mcp$/);
       await page.getByRole('tab', { name: 'Claude Code' }).click();
       await expect(page.getByText(/claude mcp add --transport http marigold-bakehouse /)).toBeVisible();

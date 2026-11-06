@@ -2,10 +2,9 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, CircleCheck, Mail, MapPin, Settings, Store, TriangleAlert } from 'lucide-react';
+import { ArrowLeft, CircleCheck, Mail, Settings, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/Badge';
 import { ButtonLink } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
 import { Icon } from '@/components/ui/Icon';
 import { cx } from '@/components/ui/cx';
 import { BriefCard } from '@/components/dashboard/BriefCard';
@@ -14,7 +13,7 @@ import { withFallbackBrief } from '@/lib/ai/template';
 import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
 import { LocalTime } from '@/components/dashboard/LocalTime';
 import { TrackingForm } from '@/components/dashboard/TrackingForm';
-import { OrderStatusBadge, OrderStatusText } from '@/components/dashboard/status';
+import { OrderStatusText } from '@/components/dashboard/status';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
@@ -33,6 +32,9 @@ export async function generateMetadata({ params }: PageProps<'/shops/[id]/orders
   const order = shop ? ordersRepo.byId(getDb(), orderId) : null;
   return { title: order && order.shopId === shop?.id ? `Order ${order.number} · Shelfie` : 'Order · Shelfie', robots: { index: false } };
 }
+
+/** The page's sections sit on the white page, divided by a rule: no outlined cards. */
+const SECTION = 'flex flex-col gap-3 border-t border-line pt-5';
 
 function SectionTitle({ id, children }: { id: string; children: React.ReactNode }) {
   return (
@@ -63,8 +65,8 @@ function ActionCard({
           <SectionTitle id="action-title">Add tracking</SectionTitle>
           <p className="text-ink-soft">
             {sellerPaid
-              ? 'Ship it to the address from PayPal, then add the tracking number here so the buyer’s assistant can read it back. Add it to this payment in your PayPal account too.'
-              : 'Ship it to the address from PayPal, then add the tracking number. It goes to PayPal for the buyer, and their assistant can read it back.'}
+              ? 'Ship it, then add tracking here for the buyer’s assistant. Add it in your PayPal account too.'
+              : 'Ship it, then add tracking. It goes to PayPal for the buyer.'}
           </p>
           <TrackingForm shopId={shop.id} orderId={order.id} atPayPal={!sellerPaid} />
         </>
@@ -128,9 +130,9 @@ function ActionCard({
     );
   })();
   return (
-    <Card as="section" id="tracking" aria-labelledby="action-title" padding="lg" className={cx('flex scroll-mt-4 flex-col gap-3', className)}>
+    <section id="tracking" aria-labelledby="action-title" className={cx(SECTION, 'scroll-mt-4', className)}>
       {body}
-    </Card>
+    </section>
   );
 }
 
@@ -138,40 +140,39 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
   const a = order.shipTo;
   const paid = order.status === 'paid' || order.status === 'fulfilled';
   return (
-    <Card as="section" aria-labelledby="buyer-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
+    <section aria-labelledby="buyer-title" className={cx(SECTION, 'gap-4', className)}>
       <SectionTitle id="buyer-title">Buyer</SectionTitle>
       {order.payerName || order.payerEmail ? (
         <div className="flex flex-col gap-1">
           {order.payerName && <p className="font-semibold">{order.payerName}</p>}
           {order.payerEmail && (
-            <a href={`mailto:${order.payerEmail}`} className="inline-flex min-h-tap items-center gap-1.5 self-start text-accent-ink underline underline-offset-4 [overflow-wrap:anywhere]">
+            <a href={`mailto:${order.payerEmail}`} className="inline-flex min-h-tap items-center gap-1.5 self-start text-ink underline underline-offset-4 [overflow-wrap:anywhere]">
               <Icon icon={Mail} size="sm" />
               {order.payerEmail}
             </a>
           )}
-          <p className="type-meta text-ink-muted">From PayPal</p>
         </div>
       ) : (
         <p className="text-ink-soft">PayPal shares the buyer’s name{order.fulfillment === 'shipping' ? ' and address' : ''} once they approve.</p>
       )}
       {order.buyerName && order.buyerName !== order.payerName && (
-        <p className="type-meta text-ink-muted">
-          Name given to the assistant: <span className="font-semibold text-ink-soft">{order.buyerName}</span>
+        <p className="text-sm text-ink-soft">
+          Told the assistant <span className="font-semibold text-ink">{order.buyerName}</span>
         </p>
       )}
 
-      <div className="rule-dashed flex flex-col gap-1.5 pt-4">
+      <div className="flex flex-col gap-1.5">
         {order.fulfillment === 'pickup' ? (
           <>
-            <h3 className="flex items-center gap-1.5 type-label">
-              <Icon icon={Store} size="sm" /> Pickup
+            <h3 className="type-label text-ink-muted">
+              Pickup
             </h3>
             <p className="text-ink-soft">{shop.pickupNotes || 'The buyer collects from you.'}</p>
           </>
         ) : (
           <>
-            <h3 className="flex items-center gap-1.5 type-label">
-              <Icon icon={MapPin} size="sm" /> Ship to
+            <h3 className="type-label text-ink-muted">
+              Ship to
             </h3>
             {a && (a.line1 || a.city) ? (
               <>
@@ -184,7 +185,6 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
                   </span>
                   {a.countryCode && <span className="block">{a.countryCode}</span>}
                 </address>
-                <p className="type-meta text-ink-muted">From PayPal</p>
               </>
             ) : paid ? (
               <p className="flex items-start gap-2 font-medium text-warn">
@@ -197,20 +197,19 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
           </>
         )}
       </div>
-    </Card>
+    </section>
   );
 }
 
 function ItemsCard({ order, photos, className }: { order: Order; photos: ReadonlyMap<string, string | null>; className?: string }) {
   return (
-    <div className={className}>
-    <Card as="section" aria-labelledby="items-title" padding="lg" className="flex flex-col gap-4">
+    <section aria-labelledby="items-title" className={cx(SECTION, 'gap-4', className)}>
       <SectionTitle id="items-title">Items</SectionTitle>
       <dl className="type-receipt flex flex-col gap-3 text-base">
         {order.lines.map((l, i) => (
           <div key={i} className="flex items-center justify-between gap-4">
             <dt className="flex min-w-0 flex-1 items-center gap-3">
-              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId) ?? null} size="sm" decorative className="size-11 shrink-0 rounded-(--thumb-radius)" />
+              <ItemPhoto name={lineName(l)} photoUrl={photos.get(l.itemId) ?? null} size="sm" decorative eager className="size-11 shrink-0 rounded-(--thumb-radius)" />
               <span className="flex min-w-0 flex-col">
                 <span>
                   <span className="font-semibold">{l.qty} ×</span> {lineName(l)}
@@ -236,9 +235,7 @@ function ItemsCard({ order, photos, className }: { order: Order; photos: Readonl
           <dd>{formatUSD(order.totalCents)}</dd>
         </div>
       </dl>
-      <p className="type-meta text-ink-muted">Prices come from your menu. The assistant could only pick items and quantities.</p>
-    </Card>
-    </div>
+    </section>
   );
 }
 
@@ -252,7 +249,7 @@ const DOT: Record<TimelineEntry['tone'], string> = {
 
 function TimelineCard({ entries, className }: { entries: TimelineEntry[]; className?: string }) {
   return (
-    <Card as="section" aria-labelledby="timeline-title" padding="lg" className={cx('flex flex-col gap-4', className)}>
+    <section aria-labelledby="timeline-title" className={cx(SECTION, 'gap-4', className)}>
       <SectionTitle id="timeline-title">What happened</SectionTitle>
       <ol className="flex flex-col">
         {entries.map((e, i) => (
@@ -266,7 +263,7 @@ function TimelineCard({ entries, className }: { entries: TimelineEntry[]; classN
           </li>
         ))}
       </ol>
-    </Card>
+    </section>
   );
 }
 
@@ -290,7 +287,7 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
     </div>
   );
   return (
-    <Card as="section" aria-labelledby="paypal-title" padding="lg" className={cx('flex flex-col gap-3', className)}>
+    <section aria-labelledby="paypal-title" className={cx(SECTION, className)}>
       <SectionTitle id="paypal-title">PayPal</SectionTitle>
       <dl className="flex flex-col gap-2">
         {/* The account this order pays: the email it was created with (a later Settings change doesn't move it). */}
@@ -303,16 +300,17 @@ function PayPalCard({ shop, order, className }: { shop: Shop; order: Order; clas
         {row('Order ID', order.paypalOrderId, 'PayPal order ID', '')}
         {row('Transaction ID', order.captureId, 'PayPal transaction ID', 'Created when the payment is received')}
       </dl>
-      <p className="type-meta text-ink-muted">{words.note}</p>
-    </Card>
+      {/* Only when the money isn't in the seller's own account: that is the one place they would look and not find it. */}
+      {order.payeeEmail === null && <p className="type-meta text-ink-muted">{words.note}</p>}
+    </section>
   );
 }
 
 /** Desktop only: the shop's orders beside the open one (list + detail), the open one marked. */
 function OrderList({ shopId, orders, current, photos }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, string | null> }) {
   return (
-    <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto rounded-(--card-radius) bg-(--card-bg) shadow-(--card-shadow) lg:block">
-      <ul className="divide-y divide-line">
+    <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 lg:block">
+      <ul className="flex flex-col gap-0.5">
         {orders.map((o) => {
           const first = o.lines[0];
           const here = o.id === current;
@@ -321,7 +319,7 @@ function OrderList({ shopId, orders, current, photos }: { shopId: string; orders
               <Link
                 href={`/shops/${shopId}/orders/${o.id}`}
                 aria-current={here ? 'page' : undefined}
-                className={cx('flex items-center gap-3 px-4 py-3 no-underline hover:bg-surface-subtle', here && 'bg-accent-soft hover:bg-accent-soft')}
+                className={cx('flex items-center gap-3 rounded-(--thumb-radius) px-3 py-2.5 no-underline hover:bg-surface-sunken', here && 'bg-surface-sunken')}
               >
                 <ItemPhoto name={first?.name ?? o.number} photoUrl={first ? (photos.get(first.itemId) ?? null) : null} size="sm" decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
                 <span className="flex min-w-0 flex-1 flex-col">
@@ -379,7 +377,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
             <h1 className="type-display">
               Order <span className="type-price font-semibold tracking-tight whitespace-nowrap">{order.number}</span>
             </h1>
-            <OrderStatusBadge order={order} />
+            <OrderStatusText order={order} className="text-base" />
           </div>
           <p className="text-ink-soft">
             Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} />
