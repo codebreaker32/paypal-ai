@@ -34,7 +34,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="brief-title" className="flex items-center gap-2 type-label text-ink-muted">
           <Icon icon={brief && order.briefSource === 'template' ? Info : Sparkles} size="sm" />
-          {brief && order.briefSource === 'template' ? 'Order summary' : 'AI brief'}
+          {brief && order.briefSource === 'template' ? 'Order summary' : 'AI brief by Claude'}
         </h2>
         {brief && order.briefSource === 'template' && <Badge>Basic summary</Badge>}
       </div>
@@ -58,10 +58,8 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
           <p className="type-heading" data-testid="brief-headline">
             {brief.headline}
           </p>
-          {order.briefSource === 'template' ? (
+          {order.briefSource === 'template' && (
             <p className="type-meta -mt-2 text-ink-muted">The AI brief wasn’t available, so this is a plain summary.</p>
-          ) : (
-            <p className="type-meta -mt-2 text-ink-muted">Claude, from PayPal’s record. Check before acting.</p>
           )}
 
           {brief.flags.length > 0 && (
