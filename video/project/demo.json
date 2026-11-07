@@ -426,7 +426,21 @@
           }
         },
         {
-          "at": "it places",
+          "at": "They confirm",
+          "videoStartSec": 26.4,
+          "playbackRate": 0.5,
+          "focus": {
+            "x": 1320,
+            "y": 605,
+            "w": 372,
+            "h": 130,
+            "zoom": 1.3,
+            "label": "They confirm the order",
+            "delaySec": 0.1
+          }
+        },
+        {
+          "at": "the order",
           "videoStartSec": 34.5,
           "focus": {
             "x": 1268,
