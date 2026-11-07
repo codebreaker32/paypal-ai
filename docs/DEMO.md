@@ -3,7 +3,7 @@
 _Re-time against the running app before recording. No third-party logos or copyrighted music. Every number said on camera comes from `docs/EVIDENCE.md` or a verified run in `docs/PROGRESS.md`. Rosa is the owner persona of the seeded demo shop, Marigold Bakehouse. Raw screen clips of each shot (1920x1080, 30 fps) are listed in `video/clips/README.md`; record them with `npm run clips`._
 
 ## The one idea to land
-PayPal's agent checkout reaches merchants who already have a website store. Rosa has a sheet of paper. Shelfie turns that sheet into a PayPal shop with an **agent door** that any AI assistant can find and order through, and the money goes straight into **Rosa's own PayPal account** through PayPal Orders v2.
+Shelfie is for sellers with a paper menu and no website: one photo, and AI shoppers can order and pay. Rosa has a sheet of paper. Shelfie turns that sheet into a PayPal shop with an **agent door** (a special address AI assistants use to read the menu and order), and the money goes straight into **Rosa's own PayPal account** through PayPal Orders v2. The video (run 4) is `video/project/demo.json`: greeting, cold open on the paid AI order, the problem and the positioning line, then three chapters (Snap your price list → AI shoppers can order → Paid on PayPal), a close and a spoken thank-you. Never compare Shelfie with other products or companies, in the video or the text. The shot table below is the original shot list the clips were recorded from.
 
 ## Setup before recording
 - `.env` filled: the PayPal sandbox app, `ANTHROPIC_API_KEY`, `PAYPAL_SANDBOX_SELLER_EMAIL` (a US sandbox Business account: Rosa's PayPal) and `PAYPAL_SANDBOX_BUYER_EMAIL` / `_PASSWORD` (a US sandbox Personal account: the buyer).
@@ -37,7 +37,7 @@ PayPal's agent checkout reaches merchants who already have a website store. Rosa
 ## Facts we may say (from `docs/EVIDENCE.md` and verified runs)
 - PayPal's agent checkout "is limited to Store Sync customers today", for merchants "using their existing website storefronts" (PayPal Developer blog, Sep 2026).
 - 47% of US accommodation and food-service employer firms reported having no website (Census ASE, data year 2016).
-- A Virginia home baker took orders by "text messages and Facebook messages and Instagram DMs ... And then tracking them on a spreadsheet" (Radio IQ, Jul 2026). This fits as on-screen text over the opening shot.
+- A Virginia home baker took orders through text and social-media messages, "and then tracking them on a spreadsheet" (Radio IQ, Jul 2026).
 - Photo to live shop took 8 to 14 s of machine time over 6 measured runs (reading 6.5 to 9.4 s, publishing 1.5 to 3.7 s). This doesn't include the seller's own review time.
 - Claude Code, given only the shop URL, found the door and ordered in 22.9 s (`docs/judge/evidence/discovery-claude-code.md`).
 - Payments go to the seller's own PayPal account, verified in the sandbox with a US buyer paying a US seller by PayPal login (`docs/PROGRESS.md`).

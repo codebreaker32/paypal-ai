@@ -2,7 +2,9 @@
 
 <img src="public/brand/lockup.svg" alt="Shelfie" width="240">
 
-**Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop with an "agent door": a link any AI assistant can use to browse your menu and order, with the buyer approving payment on PayPal.**
+**Shelfie is for sellers with a paper menu and no website: one photo of the price list, and AI shoppers can order from them and pay with PayPal, straight into the seller's own account.**
+
+Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop with an "agent door": a special address any AI assistant can use to read your menu and order, with the buyer approving payment on PayPal.
 
 Built for the PayPal AI Hackathon. PayPal **sandbox** only. Licensed MIT ([LICENSE](LICENSE)).
 

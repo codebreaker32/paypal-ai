@@ -13,12 +13,14 @@ A ready-to-paste draft for the Devpost form. Every fact comes from `docs/EVIDENC
 Shelfie
 
 ## Elevator pitch (200 characters max)
-Snap a photo of your price list. Shelfie turns it into a PayPal shop with an agent door any AI assistant can find and order through, paid into your own PayPal account.
+Shelfie is for sellers with a paper menu and no website: one photo of the price list, and AI shoppers can order from them and pay with PayPal, straight into the seller's own account.
 
 ## About the project
 
 ### Inspiration
-AI assistants have started shopping for people, and PayPal is making merchants reachable by them. But PayPal's agent checkout "is limited to Store Sync customers today", for merchants "using their existing website storefronts" (PayPal Developer blog, Sep 2026). Many small sellers don't have one. In Census data, 47% of US accommodation and food-service employer firms reported having no website (data year 2016). A home baker told Radio IQ she took orders by "text messages and Facebook messages and Instagram DMs ... And then tracking them on a spreadsheet." Those sellers already have the most important asset, a price list. It's on paper.
+AI assistants have started shopping for people, and PayPal is making merchants reachable by them. But PayPal's agent checkout "is limited to Store Sync customers today", for merchants "using their existing website storefronts" (PayPal Developer blog, Sep 2026). Many small sellers don't have one. In Census data, 47% of US accommodation and food-service employer firms reported having no website (data year 2016). A home baker told Radio IQ she took orders through text and social-media messages, "and then tracking them on a spreadsheet." Those sellers already have the most important asset, a price list. It's on paper.
+
+**Who it's for:** Shelfie is for sellers with a paper menu and no website: one photo of the price list, and AI shoppers can order from them and pay with PayPal, straight into the seller's own account. Before Shelfie, an AI assistant had no way to buy from them at all.
 
 ### What it does
 - **Snap.** The seller photographs a chalkboard, whiteboard or printed price list (1 to 4 photos), or tries a sample menu.
