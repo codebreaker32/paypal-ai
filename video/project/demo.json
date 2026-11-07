@@ -245,22 +245,22 @@
           "at": "Rosa adds",
           "videoStartSec": 20.6,
           "focus": {
-            "x": 740,
-            "y": 880,
-            "w": 440,
-            "h": 90,
+            "x": 735,
+            "y": 640,
+            "w": 455,
+            "h": 110,
             "zoom": 1.3,
             "label": "Her PayPal email: the money goes to her"
           }
         },
         {
           "at": "Then every",
-          "videoStartSec": 29.4,
+          "videoStartSec": 27.0,
           "focus": {
-            "x": 745,
-            "y": 310,
-            "w": 432,
-            "h": 60,
+            "x": 735,
+            "y": 185,
+            "w": 455,
+            "h": 265,
             "zoom": 1.3,
             "label": "Every item added to PayPal's catalog"
           }
@@ -427,9 +427,9 @@
           "at": "it places",
           "videoStartSec": 34.5,
           "focus": {
-            "x": 1180,
+            "x": 1268,
             "y": 390,
-            "w": 440,
+            "w": 424,
             "h": 250,
             "zoom": 1.3,
             "label": "Order placed · Approve on PayPal"
