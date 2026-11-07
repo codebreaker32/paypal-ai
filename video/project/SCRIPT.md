@@ -2,7 +2,7 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:38.6** (158.60 s): 137.64 s of narration (333 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:38.6** (158.63 s): 137.69 s of narration (333 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
@@ -14,12 +14,12 @@ _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not ed
 | review | 2 | 0:53.9 | 14.73 | 16.17 |
 | door | 3 | 1:10.0 | 12.15 | 13.40 |
 | discovery | 3 | 1:23.4 | 12.20 | 14.23 |
-| console | 3 | 1:37.7 | 12.17 | 13.63 |
+| console | 3 | 1:37.7 | 12.22 | 13.67 |
 | paypal | 4 | 1:51.3 | 6.90 | 8.53 |
-| dashboard | 4 | 1:59.8 | 11.08 | 12.53 |
+| dashboard | 4 | 1:59.9 | 11.08 | 12.53 |
 | tamper | 4 | 2:12.4 | 3.03 | 4.47 |
-| close | 5 | 2:16.4 | 16.04 | 18.00 |
-| end | 6 | 2:33.9 | 2.01 | 4.67 |
+| close | 5 | 2:16.5 | 16.04 | 18.00 |
+| end | 6 | 2:34.0 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -81,11 +81,11 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 > Here's Claude Code, an AI assistant, given only the shop's web address. It finds the agent door by itself, orders two almond croissants, and gets back a PayPal link.
 
-### console (12.17 s voice, 13.62 s scene)
+### console (12.22 s voice, 13.68 s scene)
 
 **Screen:** Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.
 
-> Shoppers without an assistant can use the one on the shop page. This buyer has a nut allergy. It warns that the almond croissants contain nuts, then places the order.
+> Another shopper uses the assistant on the shop page. She has a nut allergy. It warns her that the almond croissants contain nuts. She confirms, and it places the order.
 
 ## Beat 4: The buyer approves on PayPal
 

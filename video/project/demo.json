@@ -270,10 +270,10 @@
           "video": "clips/06-console-order.mp4",
           "videoStartSec": 0.3,
           "focus": {
-            "x": 60,
-            "y": 20,
-            "w": 1150,
-            "h": 400,
+            "x": 220,
+            "y": 110,
+            "w": 1500,
+            "h": 600,
             "zoom": 1.0,
             "label": "Live shop, with photos",
             "delaySec": 0.6
@@ -384,7 +384,7 @@
       "kind": "demo",
       "beat": 3,
       "video": "clips/06-console-order.mp4",
-      "narration": "Shoppers without an assistant can use the one on the shop page. This buyer has a nut allergy. It warns that the almond croissants contain nuts, then places the order.",
+      "narration": "Another shopper uses the assistant on the shop page. She has a nut allergy. It warns her that the almond croissants contain nuts. She confirms, and it places the order.",
       "audio": "audio/console.mp3",
       "words": "audio/console.words.json",
       "screen": "Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.",
@@ -401,7 +401,7 @@
           "playbackRate": 2.0
         },
         {
-          "at": "This buyer",
+          "at": "She has",
           "videoStartSec": 13.6,
           "focus": {
             "x": 1250,
@@ -424,7 +424,7 @@
           }
         },
         {
-          "at": "then places",
+          "at": "it places",
           "videoStartSec": 34.5,
           "focus": {
             "x": 1180,
@@ -436,8 +436,8 @@
           }
         }
       ],
-      "narrationSec": 12.173,
-      "durationSec": 13.623
+      "narrationSec": 12.225,
+      "durationSec": 13.675
     },
     {
       "id": "paypal",
@@ -530,7 +530,7 @@
         },
         {
           "at": "It flags",
-          "videoStartSec": 14.5,
+          "videoStartSec": 14.0,
           "focus": {
             "x": 600,
             "y": 556,
@@ -538,7 +538,8 @@
             "h": 122,
             "zoom": 1.35,
             "label": "Brief flags the nut allergy"
-          }
+          },
+          "playbackRate": 0.25
         }
       ],
       "narrationSec": 11.076,
