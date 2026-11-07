@@ -1,79 +1,89 @@
 {
-  "text": "Shelfie starts with one photo. Rosa snaps her price list, and Claude reads it.",
+  "text": "Step one. Rosa snaps her price list. Claude, an AI model, reads every item and price.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "a256a88375ff927d",
+  "cacheKey": "31d0f87cc609c174",
   "timestamps": [
     {
-      "text": "Shelfie",
+      "text": "Step",
       "startSec": 0.325,
-      "endSec": 0.725
+      "endSec": 0.6
     },
     {
-      "text": "starts",
-      "startSec": 0.725,
-      "endSec": 1.038
-    },
-    {
-      "text": "with",
-      "startSec": 1.038,
-      "endSec": 1.2
-    },
-    {
-      "text": "one",
-      "startSec": 1.2,
-      "endSec": 1.438
-    },
-    {
-      "text": "photo.",
-      "startSec": 1.438,
-      "endSec": 2.362
+      "text": "one.",
+      "startSec": 0.6,
+      "endSec": 1.212
     },
     {
       "text": "Rosa",
-      "startSec": 2.362,
-      "endSec": 2.75
+      "startSec": 1.212,
+      "endSec": 1.6
     },
     {
       "text": "snaps",
-      "startSec": 2.75,
-      "endSec": 3.087
+      "startSec": 1.6,
+      "endSec": 1.938
     },
     {
       "text": "her",
-      "startSec": 3.087,
-      "endSec": 3.2
+      "startSec": 1.938,
+      "endSec": 2.05
     },
     {
       "text": "price",
-      "startSec": 3.2,
-      "endSec": 3.525
+      "startSec": 2.05,
+      "endSec": 2.375
     },
     {
-      "text": "list,",
-      "startSec": 3.525,
-      "endSec": 3.95
+      "text": "list.",
+      "startSec": 2.375,
+      "endSec": 3.112
     },
     {
-      "text": "and",
-      "startSec": 3.95,
-      "endSec": 4.075
+      "text": "Claude,",
+      "startSec": 3.112,
+      "endSec": 3.612
     },
     {
-      "text": "Claude",
-      "startSec": 4.075,
-      "endSec": 4.375
+      "text": "an",
+      "startSec": 3.612,
+      "endSec": 3.75
+    },
+    {
+      "text": "AI",
+      "startSec": 3.75,
+      "endSec": 4.175
+    },
+    {
+      "text": "model,",
+      "startSec": 4.175,
+      "endSec": 4.675
     },
     {
       "text": "reads",
-      "startSec": 4.375,
-      "endSec": 4.65
+      "startSec": 4.675,
+      "endSec": 5.013
     },
     {
-      "text": "it.",
-      "startSec": 4.65,
-      "endSec": 5.2
+      "text": "every",
+      "startSec": 5.013,
+      "endSec": 5.35
+    },
+    {
+      "text": "item",
+      "startSec": 5.35,
+      "endSec": 5.662
+    },
+    {
+      "text": "and",
+      "startSec": 5.662,
+      "endSec": 5.775
+    },
+    {
+      "text": "price.",
+      "startSec": 5.775,
+      "endSec": 6.7
     }
   ]
 }

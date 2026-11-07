@@ -1,0 +1,99 @@
+{
+  "text": "It works in three steps. Snap your price list. AI shoppers order. And Rosa gets paid on PayPal.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "850135e712e70cb3",
+  "timestamps": [
+    {
+      "text": "It",
+      "startSec": 0.3,
+      "endSec": 0.425
+    },
+    {
+      "text": "works",
+      "startSec": 0.425,
+      "endSec": 0.725
+    },
+    {
+      "text": "in",
+      "startSec": 0.725,
+      "endSec": 0.887
+    },
+    {
+      "text": "three",
+      "startSec": 0.887,
+      "endSec": 1.15
+    },
+    {
+      "text": "steps.",
+      "startSec": 1.15,
+      "endSec": 1.9
+    },
+    {
+      "text": "Snap",
+      "startSec": 1.9,
+      "endSec": 2.237
+    },
+    {
+      "text": "your",
+      "startSec": 2.237,
+      "endSec": 2.35
+    },
+    {
+      "text": "price",
+      "startSec": 2.35,
+      "endSec": 2.675
+    },
+    {
+      "text": "list.",
+      "startSec": 2.675,
+      "endSec": 3.337
+    },
+    {
+      "text": "AI",
+      "startSec": 3.337,
+      "endSec": 3.9
+    },
+    {
+      "text": "shoppers",
+      "startSec": 3.9,
+      "endSec": 4.35
+    },
+    {
+      "text": "order.",
+      "startSec": 4.35,
+      "endSec": 5.075
+    },
+    {
+      "text": "And",
+      "startSec": 5.075,
+      "endSec": 5.263
+    },
+    {
+      "text": "Rosa",
+      "startSec": 5.263,
+      "endSec": 5.7
+    },
+    {
+      "text": "gets",
+      "startSec": 5.7,
+      "endSec": 5.963
+    },
+    {
+      "text": "paid",
+      "startSec": 5.963,
+      "endSec": 6.312
+    },
+    {
+      "text": "on",
+      "startSec": 6.312,
+      "endSec": 6.425
+    },
+    {
+      "text": "PayPal.",
+      "startSec": 6.425,
+      "endSec": 7.525
+    }
+  ]
+}

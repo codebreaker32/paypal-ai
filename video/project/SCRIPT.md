@@ -1,118 +1,116 @@
 # Shelfie demo video: script
 
-_Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 1). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
+_Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:45.3** (165.27 s): 140.30 s of narration (389 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 1 transition(s).
+**Runtime 2:34.3** (154.30 s): 132.94 s of narration (325 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 4 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
-| problem | 1 | 0:00.0 | 26.38 | 27.43 |
-| snap | 2 | 0:27.4 | 5.33 | 7.27 |
-| review | 2 | 0:34.7 | 18.23 | 19.67 |
-| counter | 2 | 0:54.4 | 10.42 | 11.87 |
-| card | 2 | 1:06.2 | 7.78 | 8.23 |
-| discovery | 3 | 1:14.5 | 11.65 | 14.60 |
-| console | 4 | 1:29.1 | 13.92 | 16.87 |
-| paypal | 4 | 1:45.9 | 9.09 | 11.53 |
-| tamper | 4 | 1:57.5 | 4.68 | 6.13 |
-| dashboard | 5 | 2:03.6 | 14.37 | 15.83 |
-| tracking | 5 | 2:19.4 | 3.92 | 6.37 |
-| close | 6 | 2:25.8 | 14.52 | 15.97 |
-| end | 6 | 2:41.3 | - | 4.00 |
+| cold | 1 | 0:00.0 | 9.48 | 10.73 |
+| problem | 1 | 0:10.7 | 20.66 | 22.30 |
+| roadmap | 1 | 0:32.6 | 7.65 | 9.50 |
+| snap | 2 | 0:41.7 | 6.84 | 8.50 |
+| review | 2 | 0:50.2 | 14.73 | 16.17 |
+| door | 3 | 1:06.4 | 12.15 | 13.40 |
+| discovery | 3 | 1:19.8 | 12.20 | 14.23 |
+| console | 3 | 1:34.0 | 12.17 | 13.63 |
+| paypal | 4 | 1:47.7 | 6.90 | 8.53 |
+| dashboard | 4 | 1:56.2 | 11.08 | 12.53 |
+| tamper | 4 | 2:08.7 | 3.03 | 4.47 |
+| close | 5 | 2:12.8 | 16.04 | 18.00 |
+| end | 6 | 2:30.3 | - | 4.00 |
 
 ## Beat 1: The problem: who it's for and why now
 
-### problem (26.38 s voice, 27.43 s scene)
+### cold (9.48 s voice, 10.73 s scene)
 
-**Screen:** Clip 01: the handwritten Marigold menu on a counter, zooming in slowly.
+**Screen:** Cold open: the paper menu, then Rosa's dashboard as a paid order from an AI assistant lands (toast, row in To prepare, Paid).
 
-> AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.
+> Rosa's bakery has no website, just a paper menu. An AI assistant just ordered from it, and Rosa got paid with PayPal.
 
-On-screen text: "PayPal's agent checkout “is limited to Store Sync customers today”, for merchants “using their existing website storefronts”." (PayPal Developer blog, Sep 2026)
+### problem (20.66 s voice, 22.31 s scene)
 
-On-screen text: "“Text messages and Facebook messages and Instagram DMs … And then tracking them on a spreadsheet.”" (A home baker in Virginia, Radio IQ, Jul 2026)
+**Screen:** The handwritten Marigold menu, zooming in slowly; the one statistic, sourced; then the positioning line as a statement card.
 
-On-screen text: "47% of US accommodation and food-service employer firms reported having no website (data year 2016)." (US Census Bureau, Annual Survey of Entrepreneurs, data year 2016)
+> AI assistants are starting to shop for people. But they can only buy from shops with a website store. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.
+
+On-screen text: "47% of US accommodation and food-service businesses with employees had no website." (US Census Bureau, Annual Survey of Entrepreneurs (data year 2016))
+
+On-screen text: "Shelfie is for sellers with a paper menu and no website." (undefined)
+
+### roadmap (7.65 s voice, 9.50 s scene)
+
+**Screen:** Roadmap card: the Shelfie lockup and three numbered steps, each appearing as it is spoken.
+
+> It works in three steps. Snap your price list. AI shoppers order. And Rosa gets paid on PayPal.
 
 ## Beat 2: Snap a paper menu; the shop goes live with photos
 
-### snap (5.33 s voice, 7.28 s scene)
+### snap (6.84 s voice, 8.49 s scene)
 
-**Screen:** Clip 02: phone, Snap your price list, the Marigold photo, Reading your menu, then Check your menu (cut on the result).
+**Screen:** Phone: the Marigold photo picked, Read my menu, Reading your menu (Claude is reading every line), Check your menu: 10 items, 4 need you.
 
-> Shelfie starts with one photo. Rosa snaps her price list, and Claude reads it.
+> Step one. Rosa snaps her price list. Claude, an AI model, reads every item and price.
 
-### review (18.23 s voice, 19.68 s scene)
+### review (14.73 s voice, 16.18 s scene)
 
-**Screen:** Clip 03: the review questions (“2 for $7”, set $3.50 each), Looks right, Your PayPal email (drawn as dots), Publish, Adding to PayPal, Your shop is live.
+**Screen:** Phone: the “2 for $7” question (Looks right), the PayPal email (drawn as dots), Publish, Your menu is in PayPal; then the live shop page with its photos.
 
-> Shelfie only asks about what it isn't sure of, like a price written as two for seven dollars. Rosa adds her PayPal email, so buyers pay her directly. Every item becomes a product in PayPal's catalog. In our tests, photo to live shop took 8 to 14 seconds of machine time.
-
-### counter (10.42 s voice, 11.87 s scene)
-
-**Screen:** Clip 03b: laptop, Menu tab: the croissant rows with their example photos and "Example photo, replace with yours", then Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in with her own.
-
-> Items she hasn't photographed show an example photo, labelled as one. Then one more photo, of her display case: Claude finds each item in it, and crops her own.
-
-### card (7.78 s voice, 8.23 s scene)
-
-**Screen:** Clip 04: Share tab, Print counter card, the card with the QR code and the agent door.
-
-> The shop gets an agent door, and a card for the counter. Regulars scan it, or give the shop's link to their own assistant.
+> It only asks about what it wasn't sure of, like two for seven dollars. Rosa adds her PayPal email, so the money goes to her. Then every item goes into PayPal's catalog. Her shop is live, with photos.
 
 ## Beat 3: Claude Code, given only the shop's URL, finds the agent door and orders
 
-### discovery (11.65 s voice, 14.60 s scene)
+### door (12.15 s voice, 13.40 s scene)
 
-**Screen:** Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door in its <head>, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.
+**Screen:** Laptop: the dashboard's Share tab: Your agent door, Give it to any AI assistant to order from you, the door's address.
 
-> This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.
+> Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.
+
+### discovery (12.20 s voice, 14.25 s scene)
+
+**Screen:** Terminal (sped up): Claude Code in an empty folder with only the shop URL; it finds the <link rel=alternate> “Agent door (MCP)” in the page, calls list_products and create_order, and prints the PayPal link.
+
+> Here's Claude Code, an AI assistant, given only the shop's web address. It finds the agent door by itself, orders two almond croissants, and gets back a PayPal link.
+
+### console (12.17 s voice, 13.62 s scene)
+
+**Screen:** Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.
+
+> Shoppers without an assistant can use the one on the shop page. This buyer has a nut allergy. It warns that the almond croissants contain nuts, then places the order.
 
 ## Beat 4: The buyer approves on PayPal
 
-### console (13.92 s voice, 16.87 s scene)
+### paypal (6.90 s voice, 8.55 s scene)
 
-**Screen:** Clip 06: the shop page, Order with an assistant, the nut-allergy request, the Activity panel, the warning that almond croissants contain nuts, the confirmation, create_order, Approve on PayPal.
+**Screen:** PayPal's own checkout page ($27.00, Complete Purchase), then Shelfie's receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).
 
-> Buyers without an assistant get one right on the shop page. This buyer wants almond croissants, and mentions a nut allergy. The assistant warns that they contain nuts. The buyer confirms, and it places the order.
+> Step three. The buyer approves on PayPal. The money goes straight into Rosa's own PayPal account.
 
-### paypal (9.09 s voice, 11.54 s scene)
+### dashboard (11.08 s voice, 12.53 s scene)
 
-**Screen:** Clip 06b (after the login, which is cut): PayPal's review page with the total, Complete Purchase, the receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).
+**Screen:** Laptop: Rosa's dashboard, the paid order in To prepare with its AI brief; the order page: AI brief by Claude, the nut-allergy warning.
 
-> The buyer logs in to PayPal and approves. Shelfie captures the payment, and the money lands in Rosa's own PayPal account, not ours.
+> Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy, so she can check before she ships.
 
-### tamper (4.68 s voice, 6.13 s scene)
+### tamper (3.03 s voice, 4.48 s scene)
 
-**Screen:** Clip 07: terminal, create_order with a price of 0.01 is refused: INVALID_ARGUMENTS, prices are set by the shop.
+**Screen:** Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.
 
-> And agents can't set prices. The server checks that, not the model.
+> And an AI can't change the prices.
 
 ## Beat 5: The seller's dashboard: paid, the AI brief, tracking
 
-### dashboard (14.37 s voice, 15.82 s scene)
+### close (16.04 s voice, 17.99 s scene)
 
-**Screen:** Clip 08: the dashboard the seller left open while the buyer paid: the toast New paid order and the row's glow as the order lands in To prepare, with its AI brief and the nut-allergy warning; the order page with the AI brief by Claude, Paid to (masked), the PayPal order and transaction ids, the timeline.
+**Screen:** Summary card: who it's for, what PayPal does, what AI does, each row appearing as it is spoken.
 
-> Rosa's dashboard shows the order as paid. A Claude agent reads PayPal's record of the order through the PayPal Agent Toolkit, and writes her a brief. It catches the nut allergy, so she can check with the buyer before shipping.
-
-### tracking (3.92 s voice, 6.37 s scene)
-
-**Screen:** Clip 09: Add tracking, USPS and a number, Saved; then in the console, Where's my order?, get_order_status, the tracking number.
-
-> She adds tracking, and the buyer's assistant reads it back.
+> Shelfie is for sellers with a paper menu and no website. PayPal runs their catalog and checkout, and pays them directly. AI reads the menu, lets assistants order, and writes the brief. For Rosa, paper is now enough.
 
 ## Beat 6: Why it matters, and close
-
-### close (14.52 s voice, 15.97 s scene)
-
-**Screen:** Clip 10: the architecture card: photo, Claude vision, PayPal catalog, agent door found from the shop page, PayPal Orders v2 paid to the seller, capture, Agent Toolkit brief.
-
-> Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.
 
 ### end (4 s, no voice)
 
 **Screen:** End card: the Shelfie mark, name and line. No narration.
 
-Card: **Shelfie**, "Your price list, open to AI shoppers.", "Built with PayPal Orders v2, the PayPal Agent Toolkit and Claude"
+Card: **Shelfie**, "Your price list, open to AI shoppers.", "Built with PayPal (catalog, checkout, Agent Toolkit) and Claude"
 

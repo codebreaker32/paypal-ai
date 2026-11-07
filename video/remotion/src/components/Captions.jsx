@@ -397,8 +397,9 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement }) => 
   const s = typeScale(width, height);
   const active = groupPhrases(words).find((p) => t >= p.showSec && t < p.hideSec);
   if (!active) return null;
-  const safeY = Math.round(height * 0.06);
-  const pos = scenePlacement === "top" ? { top: safeY } : { bottom: safeY };
+  // Large and on a solid ink box, low in the frame (the footage's key UI is
+  // zoomed toward the middle); "top" sits just under the chapter bar.
+  const pos = scenePlacement === "top" ? { top: Math.round(104 * s) } : { bottom: Math.round(30 * s) };
   return (
     <div
       style={{
@@ -412,14 +413,14 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement }) => 
     >
       <div
         style={{
-          background: "rgba(17,18,20,0.92)",
+          background: "#111214",
           color: "#ffffff",
-          borderRadius: Math.round(12 * s),
-          padding: `${Math.round(12 * s)}px ${Math.round(28 * s)}px ${Math.round(14 * s)}px`,
-          font: `600 ${Math.round(42 * s)}px/1.3 ${theme.font}`,
+          borderRadius: Math.round(14 * s),
+          padding: `${Math.round(14 * s)}px ${Math.round(34 * s)}px ${Math.round(16 * s)}px`,
+          font: `600 ${Math.round(50 * s)}px/1.25 ${theme.font}`,
           letterSpacing: "-0.005em",
           textAlign: "center",
-          maxWidth: Math.round(1240 * s),
+          maxWidth: Math.round(1560 * s),
           textRendering: "geometricPrecision",
         }}
       >

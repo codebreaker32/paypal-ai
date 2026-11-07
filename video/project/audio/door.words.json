@@ -1,0 +1,149 @@
+{
+  "text": "Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "280d5266913f0778",
+  "timestamps": [
+    {
+      "text": "Step",
+      "startSec": 0.325,
+      "endSec": 0.662
+    },
+    {
+      "text": "two.",
+      "startSec": 0.662,
+      "endSec": 1.337
+    },
+    {
+      "text": "Every",
+      "startSec": 1.337,
+      "endSec": 1.7
+    },
+    {
+      "text": "shop",
+      "startSec": 1.7,
+      "endSec": 2.05
+    },
+    {
+      "text": "gets",
+      "startSec": 2.05,
+      "endSec": 2.263
+    },
+    {
+      "text": "an",
+      "startSec": 2.263,
+      "endSec": 2.388
+    },
+    {
+      "text": "agent",
+      "startSec": 2.388,
+      "endSec": 2.775
+    },
+    {
+      "text": "door:",
+      "startSec": 2.775,
+      "endSec": 3.612
+    },
+    {
+      "text": "a",
+      "startSec": 3.612,
+      "endSec": 3.737
+    },
+    {
+      "text": "special",
+      "startSec": 3.737,
+      "endSec": 4.2
+    },
+    {
+      "text": "address",
+      "startSec": 4.2,
+      "endSec": 4.675
+    },
+    {
+      "text": "that",
+      "startSec": 4.675,
+      "endSec": 4.875
+    },
+    {
+      "text": "AI",
+      "startSec": 4.875,
+      "endSec": 5.35
+    },
+    {
+      "text": "assistants",
+      "startSec": 5.35,
+      "endSec": 6.0
+    },
+    {
+      "text": "use",
+      "startSec": 6.0,
+      "endSec": 6.275
+    },
+    {
+      "text": "to",
+      "startSec": 6.275,
+      "endSec": 6.4
+    },
+    {
+      "text": "read",
+      "startSec": 6.4,
+      "endSec": 6.65
+    },
+    {
+      "text": "the",
+      "startSec": 6.65,
+      "endSec": 6.787
+    },
+    {
+      "text": "menu",
+      "startSec": 6.787,
+      "endSec": 7.263
+    },
+    {
+      "text": "and",
+      "startSec": 7.263,
+      "endSec": 7.4
+    },
+    {
+      "text": "order.",
+      "startSec": 7.4,
+      "endSec": 8.4
+    },
+    {
+      "text": "It's",
+      "startSec": 8.4,
+      "endSec": 8.65
+    },
+    {
+      "text": "built",
+      "startSec": 8.65,
+      "endSec": 8.95
+    },
+    {
+      "text": "on",
+      "startSec": 8.95,
+      "endSec": 9.2
+    },
+    {
+      "text": "MCP,",
+      "startSec": 9.2,
+      "endSec": 10.4
+    },
+    {
+      "text": "an",
+      "startSec": 10.4,
+      "endSec": 10.562
+    },
+    {
+      "text": "open",
+      "startSec": 10.562,
+      "endSec": 10.975
+    },
+    {
+      "text": "standard.",
+      "startSec": 10.975,
+      "endSec": 12.0
+    }
+  ]
+}

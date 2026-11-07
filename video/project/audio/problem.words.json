@@ -1,389 +1,274 @@
 {
-  "text": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.",
+  "text": "AI assistants are starting to shop for people. But they can only buy from shops with a website store. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "14ca1d219b8bc3bc",
+  "cacheKey": "6f48bf8ba4662d65",
   "timestamps": [
     {
       "text": "AI",
-      "startSec": 0.325,
-      "endSec": 0.7
+      "startSec": 0.375,
+      "endSec": 0.825
     },
     {
       "text": "assistants",
-      "startSec": 0.7,
-      "endSec": 1.163
+      "startSec": 0.825,
+      "endSec": 1.425
     },
     {
-      "text": "have",
-      "startSec": 1.163,
-      "endSec": 1.275
+      "text": "are",
+      "startSec": 1.425,
+      "endSec": 1.525
     },
     {
-      "text": "started",
-      "startSec": 1.275,
-      "endSec": 1.688
+      "text": "starting",
+      "startSec": 1.525,
+      "endSec": 1.95
     },
     {
-      "text": "shopping",
-      "startSec": 1.688,
-      "endSec": 2.075
+      "text": "to",
+      "startSec": 1.95,
+      "endSec": 2.087
+    },
+    {
+      "text": "shop",
+      "startSec": 2.087,
+      "endSec": 2.375
     },
     {
       "text": "for",
-      "startSec": 2.075,
-      "endSec": 2.2
+      "startSec": 2.375,
+      "endSec": 2.5
     },
     {
       "text": "people.",
-      "startSec": 2.2,
-      "endSec": 3.0
+      "startSec": 2.5,
+      "endSec": 3.4
     },
     {
       "text": "But",
-      "startSec": 3.0,
-      "endSec": 3.15
+      "startSec": 3.4,
+      "endSec": 3.538
     },
     {
-      "text": "PayPal's",
-      "startSec": 3.15,
-      "endSec": 3.688
+      "text": "they",
+      "startSec": 3.538,
+      "endSec": 3.675
     },
     {
-      "text": "agent",
-      "startSec": 3.688,
-      "endSec": 4.037
+      "text": "can",
+      "startSec": 3.675,
+      "endSec": 3.862
     },
     {
-      "text": "checkout",
-      "startSec": 4.037,
-      "endSec": 4.475
+      "text": "only",
+      "startSec": 3.862,
+      "endSec": 4.175
     },
     {
-      "text": "is",
-      "startSec": 4.475,
-      "endSec": 4.625
+      "text": "buy",
+      "startSec": 4.175,
+      "endSec": 4.45
     },
     {
-      "text": "built",
-      "startSec": 4.625,
-      "endSec": 4.875
+      "text": "from",
+      "startSec": 4.45,
+      "endSec": 4.688
     },
     {
-      "text": "for",
-      "startSec": 4.875,
-      "endSec": 5.0
-    },
-    {
-      "text": "merchants",
-      "startSec": 5.0,
-      "endSec": 5.463
+      "text": "shops",
+      "startSec": 4.688,
+      "endSec": 5.125
     },
     {
       "text": "with",
-      "startSec": 5.463,
-      "endSec": 5.588
+      "startSec": 5.125,
+      "endSec": 5.263
     },
     {
       "text": "a",
-      "startSec": 5.588,
-      "endSec": 5.675
+      "startSec": 5.263,
+      "endSec": 5.35
     },
     {
       "text": "website",
-      "startSec": 5.675,
-      "endSec": 6.1
+      "startSec": 5.35,
+      "endSec": 5.8
     },
     {
       "text": "store.",
-      "startSec": 6.1,
-      "endSec": 6.888
-    },
-    {
-      "text": "Rosa",
-      "startSec": 6.888,
-      "endSec": 7.275
-    },
-    {
-      "text": "bakes",
-      "startSec": 7.275,
-      "endSec": 7.537
-    },
-    {
-      "text": "from",
-      "startSec": 7.537,
-      "endSec": 7.662
-    },
-    {
-      "text": "her",
-      "startSec": 7.662,
-      "endSec": 7.775
-    },
-    {
-      "text": "kitchen.",
-      "startSec": 7.775,
-      "endSec": 8.613
-    },
-    {
-      "text": "She",
-      "startSec": 8.613,
-      "endSec": 8.738
-    },
-    {
-      "text": "has",
-      "startSec": 8.738,
-      "endSec": 8.925
-    },
-    {
-      "text": "no",
-      "startSec": 8.925,
-      "endSec": 9.1
-    },
-    {
-      "text": "website,",
-      "startSec": 9.1,
-      "endSec": 9.75
-    },
-    {
-      "text": "just",
-      "startSec": 9.75,
-      "endSec": 9.975
-    },
-    {
-      "text": "this",
-      "startSec": 9.975,
-      "endSec": 10.162
-    },
-    {
-      "text": "sheet",
-      "startSec": 10.162,
-      "endSec": 10.338
-    },
-    {
-      "text": "of",
-      "startSec": 10.338,
-      "endSec": 10.425
-    },
-    {
-      "text": "paper.",
-      "startSec": 10.425,
-      "endSec": 11.363
-    },
-    {
-      "text": "One",
-      "startSec": 11.363,
-      "endSec": 11.6
-    },
-    {
-      "text": "home",
-      "startSec": 11.6,
-      "endSec": 11.85
-    },
-    {
-      "text": "baker",
-      "startSec": 11.85,
-      "endSec": 12.188
-    },
-    {
-      "text": "in",
-      "startSec": 12.188,
-      "endSec": 12.275
-    },
-    {
-      "text": "Virginia",
-      "startSec": 12.275,
-      "endSec": 12.8
-    },
-    {
-      "text": "took",
-      "startSec": 12.8,
-      "endSec": 13.0
-    },
-    {
-      "text": "orders",
-      "startSec": 13.0,
-      "endSec": 13.4
-    },
-    {
-      "text": "in",
-      "startSec": 13.4,
-      "endSec": 13.55
-    },
-    {
-      "text": "texts",
-      "startSec": 13.55,
-      "endSec": 13.975
-    },
-    {
-      "text": "and",
-      "startSec": 13.975,
-      "endSec": 14.1
-    },
-    {
-      "text": "DMs,",
-      "startSec": 14.1,
-      "endSec": 14.925
-    },
-    {
-      "text": "then",
-      "startSec": 14.925,
-      "endSec": 15.1
-    },
-    {
-      "text": "tracked",
-      "startSec": 15.1,
-      "endSec": 15.412
-    },
-    {
-      "text": "them",
-      "startSec": 15.412,
-      "endSec": 15.537
-    },
-    {
-      "text": "on",
-      "startSec": 15.537,
-      "endSec": 15.637
-    },
-    {
-      "text": "a",
-      "startSec": 15.637,
-      "endSec": 15.7
-    },
-    {
-      "text": "spreadsheet.",
-      "startSec": 15.7,
-      "endSec": 16.812
+      "startSec": 5.8,
+      "endSec": 6.775
     },
     {
       "text": "In",
-      "startSec": 16.812,
-      "endSec": 16.938
+      "startSec": 6.775,
+      "endSec": 6.95
     },
     {
-      "text": "a",
-      "startSec": 16.938,
-      "endSec": 17.0
-    },
-    {
-      "text": "2016",
-      "startSec": 17.0,
-      "endSec": 17.75
-    },
-    {
-      "text": "Census",
-      "startSec": 17.75,
-      "endSec": 18.188
-    },
-    {
-      "text": "survey,",
-      "startSec": 18.188,
-      "endSec": 18.962
-    },
-    {
-      "text": "nearly",
-      "startSec": 18.962,
-      "endSec": 19.337
-    },
-    {
-      "text": "half",
-      "startSec": 19.337,
-      "endSec": 19.637
-    },
-    {
-      "text": "of",
-      "startSec": 19.637,
-      "endSec": 19.788
+      "text": "one",
+      "startSec": 6.95,
+      "endSec": 7.188
     },
     {
       "text": "US",
-      "startSec": 19.788,
-      "endSec": 20.212
+      "startSec": 7.188,
+      "endSec": 7.575
     },
     {
-      "text": "food",
-      "startSec": 20.212,
-      "endSec": 20.663
+      "text": "survey,",
+      "startSec": 7.575,
+      "endSec": 8.375
     },
     {
-      "text": "and",
-      "startSec": 20.663,
-      "endSec": 20.8
+      "text": "nearly",
+      "startSec": 8.375,
+      "endSec": 8.787
     },
     {
-      "text": "lodging",
-      "startSec": 20.8,
-      "endSec": 21.15
-    },
-    {
-      "text": "employer",
-      "startSec": 21.15,
-      "endSec": 21.65
-    },
-    {
-      "text": "firms",
-      "startSec": 21.65,
-      "endSec": 22.05
-    },
-    {
-      "text": "had",
-      "startSec": 22.05,
-      "endSec": 22.25
-    },
-    {
-      "text": "no",
-      "startSec": 22.25,
-      "endSec": 22.425
-    },
-    {
-      "text": "website.",
-      "startSec": 22.425,
-      "endSec": 23.413
-    },
-    {
-      "text": "An",
-      "startSec": 23.413,
-      "endSec": 23.55
-    },
-    {
-      "text": "assistant",
-      "startSec": 23.55,
-      "endSec": 24.163
-    },
-    {
-      "text": "can't",
-      "startSec": 24.163,
-      "endSec": 24.512
-    },
-    {
-      "text": "order",
-      "startSec": 24.512,
-      "endSec": 24.875
-    },
-    {
-      "text": "from",
-      "startSec": 24.875,
-      "endSec": 25.012
-    },
-    {
-      "text": "a",
-      "startSec": 25.012,
-      "endSec": 25.113
-    },
-    {
-      "text": "sheet",
-      "startSec": 25.113,
-      "endSec": 25.312
+      "text": "half",
+      "startSec": 8.787,
+      "endSec": 9.037
     },
     {
       "text": "of",
-      "startSec": 25.312,
-      "endSec": 25.4
+      "startSec": 9.037,
+      "endSec": 9.162
     },
     {
-      "text": "paper.",
-      "startSec": 25.4,
-      "endSec": 26.25
+      "text": "food",
+      "startSec": 9.162,
+      "endSec": 9.488
+    },
+    {
+      "text": "and",
+      "startSec": 9.488,
+      "endSec": 9.6
+    },
+    {
+      "text": "lodging",
+      "startSec": 9.6,
+      "endSec": 9.925
+    },
+    {
+      "text": "businesses",
+      "startSec": 9.925,
+      "endSec": 10.588
+    },
+    {
+      "text": "had",
+      "startSec": 10.588,
+      "endSec": 10.825
+    },
+    {
+      "text": "no",
+      "startSec": 10.825,
+      "endSec": 11.0
+    },
+    {
+      "text": "website.",
+      "startSec": 11.0,
+      "endSec": 12.225
+    },
+    {
+      "text": "Shelfie",
+      "startSec": 12.225,
+      "endSec": 12.838
+    },
+    {
+      "text": "is",
+      "startSec": 12.838,
+      "endSec": 13.0
+    },
+    {
+      "text": "for",
+      "startSec": 13.0,
+      "endSec": 13.175
+    },
+    {
+      "text": "sellers",
+      "startSec": 13.175,
+      "endSec": 13.65
+    },
+    {
+      "text": "with",
+      "startSec": 13.65,
+      "endSec": 13.787
+    },
+    {
+      "text": "a",
+      "startSec": 13.787,
+      "endSec": 13.85
+    },
+    {
+      "text": "paper",
+      "startSec": 13.85,
+      "endSec": 14.25
+    },
+    {
+      "text": "menu",
+      "startSec": 14.25,
+      "endSec": 14.812
+    },
+    {
+      "text": "and",
+      "startSec": 14.812,
+      "endSec": 15.0
+    },
+    {
+      "text": "no",
+      "startSec": 15.0,
+      "endSec": 15.175
+    },
+    {
+      "text": "website.",
+      "startSec": 15.175,
+      "endSec": 16.325
+    },
+    {
+      "text": "One",
+      "startSec": 16.325,
+      "endSec": 16.637
+    },
+    {
+      "text": "photo,",
+      "startSec": 16.637,
+      "endSec": 17.562
+    },
+    {
+      "text": "and",
+      "startSec": 17.562,
+      "endSec": 17.75
+    },
+    {
+      "text": "AI",
+      "startSec": 17.75,
+      "endSec": 18.3
+    },
+    {
+      "text": "shoppers",
+      "startSec": 18.3,
+      "endSec": 18.8
+    },
+    {
+      "text": "can",
+      "startSec": 18.8,
+      "endSec": 19.025
+    },
+    {
+      "text": "order",
+      "startSec": 19.025,
+      "endSec": 19.425
+    },
+    {
+      "text": "and",
+      "startSec": 19.425,
+      "endSec": 19.587
+    },
+    {
+      "text": "pay.",
+      "startSec": 19.587,
+      "endSec": 20.525
     }
   ]
 }

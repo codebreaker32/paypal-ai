@@ -1,0 +1,119 @@
+{
+  "text": "Rosa's bakery has no website, just a paper menu. An AI assistant just ordered from it, and Rosa got paid with PayPal.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "a65acbb54202f007",
+  "timestamps": [
+    {
+      "text": "Rosa's",
+      "startSec": 0.375,
+      "endSec": 0.825
+    },
+    {
+      "text": "bakery",
+      "startSec": 0.825,
+      "endSec": 1.35
+    },
+    {
+      "text": "has",
+      "startSec": 1.35,
+      "endSec": 1.562
+    },
+    {
+      "text": "no",
+      "startSec": 1.562,
+      "endSec": 1.75
+    },
+    {
+      "text": "website,",
+      "startSec": 1.75,
+      "endSec": 2.475
+    },
+    {
+      "text": "just",
+      "startSec": 2.475,
+      "endSec": 2.688
+    },
+    {
+      "text": "a",
+      "startSec": 2.688,
+      "endSec": 2.75
+    },
+    {
+      "text": "paper",
+      "startSec": 2.75,
+      "endSec": 3.15
+    },
+    {
+      "text": "menu.",
+      "startSec": 3.15,
+      "endSec": 4.237
+    },
+    {
+      "text": "An",
+      "startSec": 4.237,
+      "endSec": 4.425
+    },
+    {
+      "text": "AI",
+      "startSec": 4.425,
+      "endSec": 4.925
+    },
+    {
+      "text": "assistant",
+      "startSec": 4.925,
+      "endSec": 5.525
+    },
+    {
+      "text": "just",
+      "startSec": 5.525,
+      "endSec": 5.8
+    },
+    {
+      "text": "ordered",
+      "startSec": 5.8,
+      "endSec": 6.2
+    },
+    {
+      "text": "from",
+      "startSec": 6.2,
+      "endSec": 6.4
+    },
+    {
+      "text": "it,",
+      "startSec": 6.4,
+      "endSec": 6.912
+    },
+    {
+      "text": "and",
+      "startSec": 6.912,
+      "endSec": 7.062
+    },
+    {
+      "text": "Rosa",
+      "startSec": 7.062,
+      "endSec": 7.5
+    },
+    {
+      "text": "got",
+      "startSec": 7.5,
+      "endSec": 7.737
+    },
+    {
+      "text": "paid",
+      "startSec": 7.737,
+      "endSec": 8.088
+    },
+    {
+      "text": "with",
+      "startSec": 8.088,
+      "endSec": 8.25
+    },
+    {
+      "text": "PayPal.",
+      "startSec": 8.25,
+      "endSec": 9.35
+    }
+  ]
+}

@@ -4,7 +4,7 @@
   "product": {
     "name": "Shelfie",
     "tagline": "Your price list, open to AI shoppers.",
-    "audience": "Small sellers with a paper price list and no website, such as home bakers",
+    "audience": "Sellers with a paper menu and no website, such as home bakers",
     "valueProps": [
       "A photo of a paper price list becomes a PayPal catalog and a live shop",
       "Any AI assistant finds the shop's agent door from its web address and orders through it",
@@ -33,7 +33,7 @@
     "model": "hexgrad/Kokoro-82M",
     "voice": "af_heart",
     "lang": "a",
-    "speed": 1
+    "speed": 0.88
   },
   "presenter": {
     "mode": "none"
@@ -49,383 +49,538 @@
     "breathSec": 0.45
   },
   "zoomToClick": false,
-  "intro": {
-    "lockup": "assets/lockup.svg",
-    "holdSec": 2.0,
-    "outSec": 0.5
-  },
   "timeline": [
+    {
+      "id": "cold",
+      "kind": "demo",
+      "beat": 1,
+      "video": "clips/08-dashboard-brief.mp4",
+      "narration": "Rosa's bakery has no website, just a paper menu. An AI assistant just ordered from it, and Rosa got paid with PayPal.",
+      "audio": "audio/cold.mp3",
+      "words": "audio/cold.words.json",
+      "screen": "Cold open: the paper menu, then Rosa's dashboard as a paid order from an AI assistant lands (toast, row in To prepare, Paid).",
+      "holdSec": 0.8,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "video": "clips/01-menu-photo.mp4",
+          "videoStartSec": 6
+        },
+        {
+          "at": "An AI assistant",
+          "shot": "screen",
+          "videoStartSec": 1.4,
+          "focus": {
+            "x": 84,
+            "y": 526,
+            "w": 1752,
+            "h": 184,
+            "zoom": 1.0,
+            "label": "Ordered by an AI assistant · Paid with PayPal",
+            "delaySec": 1.8
+          }
+        }
+      ],
+      "narrationSec": 9.482,
+      "durationSec": 10.732
+    },
     {
       "id": "problem",
       "kind": "demo",
       "beat": 1,
-      "screen": "Clip 01: the handwritten Marigold menu on a counter, zooming in slowly.",
       "video": "clips/01-menu-photo.mp4",
-      "narration": "AI assistants have started shopping for people. But PayPal's agent checkout is built for merchants with a website store. Rosa bakes from her kitchen. She has no website, just this sheet of paper. One home baker in Virginia took orders in texts and DMs, then tracked them on a spreadsheet. In a 2016 Census survey, nearly half of US food and lodging employer firms had no website. An assistant can't order from a sheet of paper.",
-      "onScreen": [
-        {
-          "from": "But PayPal's",
-          "to": "She has no website",
-          "text": "PayPal's agent checkout “is limited to Store Sync customers today”, for merchants “using their existing website storefronts”.",
-          "source": "PayPal Developer blog, Sep 2026"
-        },
-        {
-          "from": "One home baker",
-          "to": "In a 2016",
-          "extraSec": 0,
-          "text": "“Text messages and Facebook messages and Instagram DMs … And then tracking them on a spreadsheet.”",
-          "source": "A home baker in Virginia, Radio IQ, Jul 2026"
-        },
-        {
-          "from": "In a 2016",
-          "to": "An assistant",
-          "extraSec": 0.8,
-          "text": "47% of US accommodation and food-service employer firms reported having no website (data year 2016).",
-          "source": "US Census Bureau, Annual Survey of Entrepreneurs, data year 2016"
-        }
-      ],
-      "holdSec": 0.6,
+      "narration": "AI assistants are starting to shop for people. But they can only buy from shops with a website store. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.",
       "audio": "audio/problem.mp3",
       "words": "audio/problem.words.json",
-      "narrationSec": 26.384,
-      "durationSec": 27.434,
-      "playbackRate": 1
+      "screen": "The handwritten Marigold menu, zooming in slowly; the one statistic, sourced; then the positioning line as a statement card.",
+      "holdSec": 0.8,
+      "videoStartSec": 4,
+      "onScreen": [
+        {
+          "from": "In one US",
+          "to": "Shelfie is for",
+          "extraSec": 0,
+          "text": "47% of US accommodation and food-service businesses with employees had no website.",
+          "source": "US Census Bureau, Annual Survey of Entrepreneurs (data year 2016)"
+        },
+        {
+          "variant": "statement",
+          "from": "Shelfie is for",
+          "text": "Shelfie is for sellers with a paper menu and no website.",
+          "sub": "One photo, and AI shoppers can order and pay."
+        }
+      ],
+      "narrationSec": 20.663,
+      "durationSec": 22.313
+    },
+    {
+      "id": "roadmap",
+      "kind": "roadmap",
+      "beat": 1,
+      "narration": "It works in three steps. Snap your price list. AI shoppers order. And Rosa gets paid on PayPal.",
+      "audio": "audio/roadmap.mp3",
+      "words": "audio/roadmap.words.json",
+      "holdSec": 1.0,
+      "screen": "Roadmap card: the Shelfie lockup and three numbered steps, each appearing as it is spoken.",
+      "steps": [
+        {
+          "n": 1,
+          "title": "Snap your price list",
+          "from": "Snap your"
+        },
+        {
+          "n": 2,
+          "title": "AI shoppers can order",
+          "from": "AI shoppers"
+        },
+        {
+          "n": 3,
+          "title": "Paid on PayPal",
+          "from": "And Rosa"
+        }
+      ],
+      "narrationSec": 7.654,
+      "durationSec": 9.504
     },
     {
       "id": "snap",
       "kind": "demo",
       "beat": 2,
-      "screen": "Clip 02: phone, Snap your price list, the Marigold photo, Reading your menu, then Check your menu (cut on the result).",
       "video": "clips/02-snap-reading.mp4",
-      "narration": "Shelfie starts with one photo. Rosa snaps her price list, and Claude reads it.",
-      "holdSec": 1.5,
+      "narration": "Step one. Rosa snaps her price list. Claude, an AI model, reads every item and price.",
       "audio": "audio/snap.mp3",
       "words": "audio/snap.words.json",
-      "narrationSec": 5.329,
-      "durationSec": 7.279,
-      "captionPlacement": "top",
+      "screen": "Phone: the Marigold photo picked, Read my menu, Reading your menu (Claude is reading every line), Check your menu: 10 items, 4 need you.",
+      "chapter": {
+        "step": 1,
+        "of": 3,
+        "title": "Snap your price list"
+      },
+      "holdSec": 1.2,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 0.2
+          "videoStartSec": 3.6,
+          "focus": {
+            "x": 720,
+            "y": 220,
+            "w": 480,
+            "h": 420,
+            "zoom": 1.35,
+            "label": "One photo of the paper menu"
+          }
         },
         {
-          "atSec": 6.0,
-          "shot": "screen",
-          "videoStartSec": 24.4
+          "at": "Claude, an",
+          "videoStartSec": 7.0,
+          "focus": {
+            "x": 720,
+            "y": 150,
+            "w": 480,
+            "h": 300,
+            "zoom": 1.35,
+            "label": "Claude reads the menu"
+          }
+        },
+        {
+          "at": "every item",
+          "videoStartSec": 24.6,
+          "focus": {
+            "x": 720,
+            "y": 180,
+            "w": 480,
+            "h": 110,
+            "zoom": 1.3,
+            "label": "10 items read, 4 to check"
+          }
         }
-      ]
+      ],
+      "narrationSec": 6.844,
+      "durationSec": 8.494
     },
     {
       "id": "review",
       "kind": "demo",
       "beat": 2,
-      "screen": "Clip 03: the review questions (“2 for $7”, set $3.50 each), Looks right, Your PayPal email (drawn as dots), Publish, Adding to PayPal, Your shop is live.",
       "video": "clips/03-review-publish.mp4",
-      "narration": "Shelfie only asks about what it isn't sure of, like a price written as two for seven dollars. Rosa adds her PayPal email, so buyers pay her directly. Every item becomes a product in PayPal's catalog. In our tests, photo to live shop took 8 to 14 seconds of machine time.",
-      "holdSec": 1,
+      "narration": "It only asks about what it wasn't sure of, like two for seven dollars. Rosa adds her PayPal email, so the money goes to her. Then every item goes into PayPal's catalog. Her shop is live, with photos.",
       "audio": "audio/review.mp3",
       "words": "audio/review.words.json",
-      "narrationSec": 18.233,
-      "durationSec": 19.683,
-      "captionPlacement": "top",
+      "screen": "Phone: the “2 for $7” question (Looks right), the PayPal email (drawn as dots), Publish, Your menu is in PayPal; then the live shop page with its photos.",
+      "chapter": {
+        "step": 1,
+        "of": 3,
+        "title": "Snap your price list"
+      },
+      "holdSec": 1.0,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 0.3
+          "videoStartSec": 4.6,
+          "focus": {
+            "x": 745,
+            "y": 175,
+            "w": 432,
+            "h": 320,
+            "zoom": 1.4,
+            "label": "It only asks what it isn't sure of"
+          }
         },
         {
-          "atSec": 2.5,
-          "shot": "screen",
-          "videoStartSec": 4.8
+          "at": "Rosa adds",
+          "videoStartSec": 20.6,
+          "focus": {
+            "x": 740,
+            "y": 880,
+            "w": 440,
+            "h": 90,
+            "zoom": 1.3,
+            "label": "Her PayPal email: the money goes to her"
+          }
         },
         {
-          "atSec": 5.6,
-          "shot": "screen",
-          "videoStartSec": 21.1
+          "at": "Then every",
+          "videoStartSec": 29.4,
+          "focus": {
+            "x": 745,
+            "y": 310,
+            "w": 432,
+            "h": 60,
+            "zoom": 1.3,
+            "label": "Every item added to PayPal's catalog"
+          }
         },
         {
-          "atSec": 9.6,
-          "shot": "screen",
-          "videoStartSec": 25.2,
-          "playbackRate": 1.5
-        },
-        {
-          "atSec": 13.3,
-          "shot": "screen",
-          "videoStartSec": 30.5
+          "at": "Her shop",
+          "video": "clips/06-console-order.mp4",
+          "videoStartSec": 0.3,
+          "focus": {
+            "x": 60,
+            "y": 20,
+            "w": 1150,
+            "h": 400,
+            "zoom": 1.0,
+            "label": "Live shop, with photos",
+            "delaySec": 0.6
+          }
         }
-      ]
+      ],
+      "narrationSec": 14.733,
+      "durationSec": 16.183
     },
     {
-      "id": "counter",
+      "id": "door",
       "kind": "demo",
-      "beat": 2,
-      "screen": "Clip 03b: laptop, Menu tab: the croissant rows with their example photos and \"Example photo, replace with yours\", then Snap your counter, the display-case photo, Finding your items, the two croissant crops, Use on each, the thumbnails fill in with her own.",
-      "video": "clips/03b-snap-counter.mp4",
-      "narration": "Items she hasn't photographed show an example photo, labelled as one. Then one more photo, of her display case: Claude finds each item in it, and crops her own.",
-      "holdSec": 1,
-      "audio": "audio/counter.mp3",
-      "words": "audio/counter.words.json",
-      "narrationSec": 10.423,
-      "durationSec": 11.873,
-      "beats": [
-        {
-          "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 4.0
-        },
-        {
-          "atSec": 4.7,
-          "shot": "screen",
-          "videoStartSec": 8.6
-        },
-        {
-          "atSec": 7.4,
-          "shot": "screen",
-          "videoStartSec": 13.0
-        },
-        {
-          "atSec": 9.0,
-          "shot": "screen",
-          "videoStartSec": 16.8
-        },
-        {
-          "atSec": 10.0,
-          "shot": "screen",
-          "videoStartSec": 22.1
-        }
-      ]
-    },
-    {
-      "id": "card",
-      "kind": "demo",
-      "beat": 2,
-      "screen": "Clip 04: Share tab, Print counter card, the card with the QR code and the agent door.",
+      "beat": 3,
       "video": "clips/04-counter-card.mp4",
-      "narration": "The shop gets an agent door, and a card for the counter. Regulars scan it, or give the shop's link to their own assistant.",
-      "audio": "audio/card.mp3",
-      "words": "audio/card.words.json",
-      "narrationSec": 7.784,
-      "durationSec": 8.234,
-      "captionPlacement": "top",
+      "narration": "Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.",
+      "audio": "audio/door.mp3",
+      "words": "audio/door.words.json",
+      "screen": "Laptop: the dashboard's Share tab: Your agent door, Give it to any AI assistant to order from you, the door's address.",
+      "chapter": {
+        "step": 2,
+        "of": 3,
+        "title": "AI shoppers can order"
+      },
+      "holdSec": 0.8,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 3.0
-        },
-        {
-          "atSec": 2.2,
-          "shot": "screen",
-          "videoStartSec": 5.9
+          "videoStartSec": 3.0,
+          "focus": {
+            "x": 70,
+            "y": 440,
+            "w": 1240,
+            "h": 180,
+            "zoom": 1.35,
+            "label": "The agent door: where AI assistants order",
+            "delaySec": 1.2
+          }
         }
-      ]
+      ],
+      "narrationSec": 12.147,
+      "durationSec": 13.397
     },
     {
       "id": "discovery",
       "kind": "demo",
       "beat": 3,
-      "screen": "Clip 05 (sped up about 2x): Claude Code in an empty folder, given only the shop URL; it fetches the page, finds the agent door in its <head>, calls get_shop_info, list_products, create_order, and prints a PayPal approval link.",
       "video": "clips/05-claude-code-discovery.mp4",
-      "narration": "This is Claude Code, given nothing but the shop's web address. The shop tells it where the agent door is. It reads the menu, places the order, and hands back a PayPal approval link.",
-      "holdSec": 2.5,
+      "narration": "Here's Claude Code, an AI assistant, given only the shop's web address. It finds the agent door by itself, orders two almond croissants, and gets back a PayPal link.",
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
-      "narrationSec": 11.651,
-      "durationSec": 14.601,
-      "captionPlacement": "bottom",
+      "screen": "Terminal (sped up): Claude Code in an empty folder with only the shop URL; it finds the <link rel=alternate> “Agent door (MCP)” in the page, calls list_products and create_order, and prints the PayPal link.",
+      "chapter": {
+        "step": 2,
+        "of": 3,
+        "title": "AI shoppers can order"
+      },
+      "holdSec": 1.6,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 3.4,
+          "videoStartSec": 13.5,
+          "focus": {
+            "x": 30,
+            "y": 70,
+            "w": 1860,
+            "h": 160,
+            "zoom": 1.0,
+            "label": "Given only the shop's web address",
+            "delaySec": 0.3
+          }
+        },
+        {
+          "at": "It finds",
+          "videoStartSec": 30.5,
+          "focus": {
+            "x": 30,
+            "y": 615,
+            "w": 1860,
+            "h": 95,
+            "zoom": 1.0,
+            "label": "Finds the agent door on the page"
+          }
+        },
+        {
+          "at": "orders two",
+          "videoStartSec": 47.0,
           "playbackRate": 2.5
         },
         {
-          "atSec": 3.8,
-          "shot": "screen",
-          "videoStartSec": 17.0
-        },
-        {
-          "atSec": 5.2,
-          "shot": "screen",
-          "videoStartSec": 30.3
-        },
-        {
-          "atSec": 6.7,
-          "shot": "screen",
-          "videoStartSec": 35.0,
-          "playbackRate": 2.5
-        },
-        {
-          "atSec": 8.5,
-          "shot": "screen",
-          "videoStartSec": 45.0
-        },
-        {
-          "atSec": 9.9,
-          "shot": "screen",
-          "videoStartSec": 52.3
+          "at": "and gets back",
+          "videoStartSec": 56.0,
+          "focus": {
+            "x": 30,
+            "y": 555,
+            "w": 1860,
+            "h": 135,
+            "zoom": 1.0,
+            "label": "Order placed · PayPal link to pay"
+          }
         }
-      ]
+      ],
+      "narrationSec": 12.199,
+      "durationSec": 14.249
     },
     {
       "id": "console",
       "kind": "demo",
-      "beat": 4,
-      "screen": "Clip 06: the shop page, Order with an assistant, the nut-allergy request, the Activity panel, the warning that almond croissants contain nuts, the confirmation, create_order, Approve on PayPal.",
+      "beat": 3,
       "video": "clips/06-console-order.mp4",
-      "narration": "Buyers without an assistant get one right on the shop page. This buyer wants almond croissants, and mentions a nut allergy. The assistant warns that they contain nuts. The buyer confirms, and it places the order.",
-      "holdSec": 2.5,
+      "narration": "Shoppers without an assistant can use the one on the shop page. This buyer has a nut allergy. It warns that the almond croissants contain nuts, then places the order.",
       "audio": "audio/console.mp3",
       "words": "audio/console.words.json",
-      "narrationSec": 13.923,
-      "durationSec": 16.873,
-      "captionPlacement": "top",
+      "screen": "Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.",
+      "chapter": {
+        "step": 2,
+        "of": 3,
+        "title": "AI shoppers can order"
+      },
+      "holdSec": 1.0,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 0.8
-        },
-        {
-          "atSec": 3.6,
-          "shot": "screen",
-          "videoStartSec": 4.3,
+          "videoStartSec": 2.6,
           "playbackRate": 2.0
         },
         {
-          "atSec": 6.2,
-          "shot": "screen",
-          "videoStartSec": 12.5
+          "at": "This buyer",
+          "videoStartSec": 13.6,
+          "focus": {
+            "x": 1250,
+            "y": 10,
+            "w": 470,
+            "h": 940,
+            "zoom": 1.0
+          }
         },
         {
-          "atSec": 10.4,
-          "shot": "screen",
-          "videoStartSec": 22.5,
-          "playbackRate": 2.0
+          "at": "It warns",
+          "videoStartSec": 15.0,
+          "focus": {
+            "x": 1300,
+            "y": 415,
+            "w": 390,
+            "h": 230,
+            "zoom": 1.3,
+            "label": "Warns: contains nuts"
+          }
         },
         {
-          "atSec": 12.0,
-          "shot": "screen",
-          "videoStartSec": 28.2
+          "at": "then places",
+          "videoStartSec": 34.5,
+          "focus": {
+            "x": 1180,
+            "y": 390,
+            "w": 440,
+            "h": 250,
+            "zoom": 1.3,
+            "label": "Order placed · Approve on PayPal"
+          }
         }
-      ]
+      ],
+      "narrationSec": 12.173,
+      "durationSec": 13.623
     },
     {
       "id": "paypal",
       "kind": "demo",
       "beat": 4,
-      "screen": "Clip 06b (after the login, which is cut): PayPal's review page with the total, Complete Purchase, the receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).",
       "video": "clips/06b-paypal-complete.mp4",
-      "narration": "The buyer logs in to PayPal and approves. Shelfie captures the payment, and the money lands in Rosa's own PayPal account, not ours.",
-      "holdSec": 2,
+      "narration": "Step three. The buyer approves on PayPal. The money goes straight into Rosa's own PayPal account.",
       "audio": "audio/paypal.mp3",
       "words": "audio/paypal.words.json",
-      "narrationSec": 9.091,
-      "durationSec": 11.541,
-      "captionPlacement": "top",
+      "screen": "PayPal's own checkout page ($27.00, Complete Purchase), then Shelfie's receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).",
+      "chapter": {
+        "step": 3,
+        "of": 3,
+        "title": "Paid on PayPal"
+      },
+      "holdSec": 1.2,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 1.5
+          "videoStartSec": 1.5,
+          "focus": {
+            "x": 600,
+            "y": 940,
+            "w": 720,
+            "h": 76,
+            "zoom": 1.0,
+            "label": "The buyer approves on PayPal",
+            "delaySec": 0.6
+          }
         },
         {
-          "atSec": 2.6,
-          "shot": "screen",
-          "videoStartSec": 13.5
+          "at": "approves on",
+          "videoStartSec": 3.0
         },
         {
-          "atSec": 9.6,
-          "shot": "screen",
-          "videoStartSec": 16.0
+          "at": "The money",
+          "videoStartSec": 15.6,
+          "focus": {
+            "x": 1196,
+            "y": 566,
+            "w": 440,
+            "h": 62,
+            "zoom": 1.35,
+            "label": "Paid to Rosa's own PayPal account"
+          }
         }
-      ]
+      ],
+      "narrationSec": 6.896,
+      "durationSec": 8.546
+    },
+    {
+      "id": "dashboard",
+      "kind": "demo",
+      "beat": 4,
+      "video": "clips/08-dashboard-brief.mp4",
+      "narration": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy, so she can check before she ships.",
+      "audio": "audio/dashboard.mp3",
+      "words": "audio/dashboard.words.json",
+      "screen": "Laptop: Rosa's dashboard, the paid order in To prepare with its AI brief; the order page: AI brief by Claude, the nut-allergy warning.",
+      "chapter": {
+        "step": 3,
+        "of": 3,
+        "title": "Paid on PayPal"
+      },
+      "holdSec": 1.0,
+      "beats": [
+        {
+          "atSec": 0,
+          "videoStartSec": 3.6,
+          "focus": {
+            "x": 84,
+            "y": 526,
+            "w": 1752,
+            "h": 184,
+            "zoom": 1.0,
+            "label": "Paid"
+          }
+        },
+        {
+          "at": "Claude reads",
+          "videoStartSec": 13.2,
+          "focus": {
+            "x": 570,
+            "y": 405,
+            "w": 732,
+            "h": 140,
+            "zoom": 1.3,
+            "label": "Claude writes Rosa a brief"
+          }
+        },
+        {
+          "at": "It flags",
+          "videoStartSec": 14.5,
+          "focus": {
+            "x": 600,
+            "y": 556,
+            "w": 670,
+            "h": 122,
+            "zoom": 1.35,
+            "label": "Brief flags the nut allergy"
+          }
+        }
+      ],
+      "narrationSec": 11.076,
+      "durationSec": 12.526
     },
     {
       "id": "tamper",
       "kind": "demo",
       "beat": 4,
-      "screen": "Clip 07: terminal, create_order with a price of 0.01 is refused: INVALID_ARGUMENTS, prices are set by the shop.",
       "video": "clips/07-price-tamper.mp4",
-      "narration": "And agents can't set prices. The server checks that, not the model.",
-      "holdSec": 1,
+      "narration": "And an AI can't change the prices.",
       "audio": "audio/tamper.mp3",
       "words": "audio/tamper.words.json",
-      "narrationSec": 4.676,
-      "durationSec": 6.126,
+      "screen": "Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.",
+      "chapter": {
+        "step": 3,
+        "of": 3,
+        "title": "Paid on PayPal"
+      },
+      "holdSec": 0.6,
       "beats": [
         {
           "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 1.6,
-          "playbackRate": 2.5
-        },
-        {
-          "atSec": 2.6,
-          "shot": "screen",
           "videoStartSec": 12.1
         }
-      ]
-    },
-    {
-      "id": "dashboard",
-      "kind": "demo",
-      "beat": 5,
-      "screen": "Clip 08: the dashboard the seller left open while the buyer paid: the toast New paid order and the row's glow as the order lands in To prepare, with its AI brief and the nut-allergy warning; the order page with the AI brief by Claude, Paid to (masked), the PayPal order and transaction ids, the timeline.",
-      "video": "clips/08-dashboard-brief.mp4",
-      "narration": "Rosa's dashboard shows the order as paid. A Claude agent reads PayPal's record of the order through the PayPal Agent Toolkit, and writes her a brief. It catches the nut allergy, so she can check with the buyer before shipping.",
-      "holdSec": 1,
-      "audio": "audio/dashboard.mp3",
-      "words": "audio/dashboard.words.json",
-      "narrationSec": 14.367,
-      "durationSec": 15.817,
-      "captionPlacement": "top",
-      "videoStartSec": 1.6
-    },
-    {
-      "id": "tracking",
-      "kind": "demo",
-      "beat": 5,
-      "screen": "Clip 09: Add tracking, USPS and a number, Saved; then in the console, Where's my order?, get_order_status, the tracking number.",
-      "video": "clips/09-tracking.mp4",
-      "narration": "She adds tracking, and the buyer's assistant reads it back.",
-      "holdSec": 2,
-      "audio": "audio/tracking.mp3",
-      "words": "audio/tracking.words.json",
-      "narrationSec": 3.918,
-      "durationSec": 6.368,
-      "captionPlacement": "top",
-      "beats": [
-        {
-          "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 8.6
-        },
-        {
-          "atSec": 1.6,
-          "shot": "screen",
-          "videoStartSec": 19.5,
-          "playbackRate": 2.0
-        }
-      ]
+      ],
+      "narrationSec": 3.03,
+      "durationSec": 4.48
     },
     {
       "id": "close",
-      "kind": "demo",
-      "beat": 6,
-      "screen": "Clip 10: the architecture card: photo, Claude vision, PayPal catalog, agent door found from the shop page, PayPal Orders v2 paid to the seller, capture, Agent Toolkit brief.",
-      "video": "clips/10-architecture.mp4",
-      "narration": "Shelfie turns a photo of a price list into prepaid orders, from any AI assistant, paid into the seller's own PayPal account. It's for the sellers agent commerce hasn't reached yet. For Rosa, a sheet of paper is now enough.",
-      "holdSec": 0.5,
+      "kind": "summary",
+      "beat": 5,
+      "narration": "Shelfie is for sellers with a paper menu and no website. PayPal runs their catalog and checkout, and pays them directly. AI reads the menu, lets assistants order, and writes the brief. For Rosa, paper is now enough.",
       "audio": "audio/close.mp3",
       "words": "audio/close.words.json",
-      "narrationSec": 14.524,
-      "durationSec": 15.974
+      "holdSec": 1.0,
+      "screen": "Summary card: who it's for, what PayPal does, what AI does, each row appearing as it is spoken.",
+      "rows": [
+        {
+          "label": "Who it's for",
+          "text": "Sellers with a paper menu and no website",
+          "from": "Shelfie is for"
+        },
+        {
+          "label": "PayPal",
+          "text": "Catalog, checkout, and the money straight to the seller",
+          "from": "PayPal runs"
+        },
+        {
+          "label": "AI (Claude)",
+          "text": "Reads the menu, lets assistants order, writes the brief",
+          "from": "AI reads"
+        }
+      ],
+      "narrationSec": 16.039,
+      "durationSec": 17.989
     },
     {
       "id": "end",
@@ -435,14 +590,30 @@
       "note": "End card: the Shelfie mark, name and line. No narration.",
       "title": "Shelfie",
       "subtitle": "Your price list, open to AI shoppers.",
-      "cta": "Built with PayPal Orders v2, the PayPal Agent Toolkit and Claude"
+      "cta": "Built with PayPal (catalog, checkout, Agent Toolkit) and Claude"
     }
   ],
   "transitions": [
+    {
+      "after": "problem",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "roadmap",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "tamper",
+      "type": "fade",
+      "ms": 400
+    },
     {
       "after": "close",
       "type": "fade",
       "ms": 500
     }
-  ]
+  ],
+  "positioning": "Shelfie is for sellers with a paper menu and no website: one photo, and AI shoppers can order and pay."
 }

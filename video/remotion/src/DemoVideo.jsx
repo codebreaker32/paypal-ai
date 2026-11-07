@@ -16,6 +16,8 @@ import { MORPH_DEFAULT_MS, FACE_BAND } from "./lib/layouts.js";
 import { BRollClip } from "./scenes/BRollClip.jsx";
 import { Card } from "./scenes/Card.jsx";
 import { Placeholder } from "./scenes/Placeholder.jsx";
+import { RoadmapCard, SummaryCard } from "./scenes/StepCards.jsx";
+import { ChapterBar, UnderChapterBar } from "./components/ChapterBar.jsx";
 import { OnScreenText } from "./components/OnScreenText.jsx";
 import { Captions } from "./components/Captions.jsx";
 import { Watermark } from "./components/Watermark.jsx";
@@ -46,7 +48,19 @@ export function totalFrames(props, fps) {
   return Math.max(1, sum - overlap);
 }
 
-const SceneBody = ({ scene, theme, fps, presenterMode, pipVideo, pipDefaults, pipTake, split, morphMs }) => {
+// Shelfie: the three steps keep a chapter bar on screen, with the footage scaled under it.
+const SceneBody = (props) => {
+  const body = <SceneBodyInner {...props} />;
+  if (!props.scene.chapter) return body;
+  return (
+    <AbsoluteFill>
+      <UnderChapterBar theme={props.theme}>{body}</UnderChapterBar>
+      <ChapterBar chapter={props.scene.chapter} theme={props.theme} />
+    </AbsoluteFill>
+  );
+};
+
+const SceneBodyInner = ({ scene, theme, fps, presenterMode, pipVideo, pipDefaults, pipTake, split, morphMs }) => {
   // Shelfie: a scene whose clip is not recorded yet (render --placeholders).
   if (scene.placeholder) return <Placeholder scene={scene} theme={theme} />;
   switch (scene.kind) {
@@ -80,6 +94,10 @@ const SceneBody = ({ scene, theme, fps, presenterMode, pipVideo, pipDefaults, pi
       return presenterMode === "none" || !scene.video
         ? <Card scene={{ ...scene, title: scene.title || scene.cta || "" }} theme={theme} />
         : <PresenterFull scene={scene} theme={theme} />;
+    case "roadmap":
+      return <RoadmapCard scene={scene} theme={theme} />;
+    case "summary":
+      return <SummaryCard scene={scene} theme={theme} />;
     case "broll":
       return <BRollClip scene={scene} theme={theme} />;
     case "card":

@@ -4,6 +4,7 @@ import { DemoClip } from "./DemoClip.jsx";
 import { SplitScene, BottomZone, resolveBottom, SPLIT_DEFAULT_PCT } from "./SplitScene.jsx";
 import { Card } from "./Card.jsx";
 import { typeScale } from "../theme.js";
+import { FocusLayer } from "../components/Focus.jsx";
 
 /**
  * Beats: one narrated scene, many shots. The voice flows continuously while the
@@ -183,17 +184,26 @@ const BeatShot = ({ beat, scene, theme, fps, presenterMode }) => {
     case "card":
       return <Card scene={{ ...scene, ...beat }} theme={theme} />;
     case "screen":
-    default:
-      return (
+    default: {
+      // Shelfie: a beat may play another clip (beat.video, its length in beat.clipSec)
+      // and zoom to the part of the screen that matters (beat.focus).
+      const clip = (
         <DemoClip
           // undefined framing → DemoClip's aspect-aware default (pan for a
           // landscape capture in a portrait comp), not a blind center-crop.
-          scene={{ ...scene, framing: beat.framing, playbackRate: beat.playbackRate ?? scene.playbackRate }}
+          scene={{
+            ...scene,
+            framing: beat.framing,
+            playbackRate: beat.playbackRate ?? scene.playbackRate,
+            ...(beat.video ? { video: beat.video, clipSec: beat.clipSec } : null),
+          }}
           theme={theme}
           fps={fps}
           startFromSec={beat.videoStartSec ?? beat.atSec}
         />
       );
+      return beat.focus ? <FocusLayer focus={beat.focus} theme={theme}>{clip}</FocusLayer> : clip;
+    }
   }
 };
 

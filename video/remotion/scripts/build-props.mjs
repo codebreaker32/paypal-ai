@@ -137,6 +137,36 @@ export async function buildProps({ manifestPath = DEFAULT_MANIFEST, placeholders
         return r;
       });
     }
+    // Shelfie: a beat may start on a spoken phrase (`at`) and play another clip (`video`).
+    if (scene.beats?.length) {
+      out.beats = scene.beats.map((b, i) => {
+        const r = { ...b };
+        if (b.at != null) {
+          r.atSec = findPhrase(words, b.at);
+          if (r.atSec == null) problems.push(`scene "${scene.id}" beats[${i}]: phrase "${b.at}" not found in its narration`);
+          else r.atSec = Math.max(0, r.atSec - (b.leadSec ?? 0.15));
+        }
+        if (b.video) {
+          linkRecordedClip(projectDir, b.video);
+          const abs = path.join(projectDir, b.video);
+          if (!existsSync(abs)) problems.push(`scene "${scene.id}" beats[${i}]: clip not found at ${b.video}`);
+          else r.clipSec = probeSec(abs);
+        }
+        return r;
+      });
+    }
+    // Shelfie: roadmap steps and summary rows appear on a spoken phrase.
+    for (const key of ["steps", "rows"]) {
+      if (!scene[key]?.length) continue;
+      out[key] = scene[key].map((it, i) => {
+        const r = { ...it };
+        if (it.from != null) {
+          r.fromSec = findPhrase(words, it.from);
+          if (r.fromSec == null) problems.push(`scene "${scene.id}" ${key}[${i}]: phrase not found in its narration`);
+        }
+        return r;
+      });
+    }
     if (!out.durationSec) problems.push(`scene "${scene.id}": no durationSec (run the voice step)`);
     timeline.push(out);
   }
