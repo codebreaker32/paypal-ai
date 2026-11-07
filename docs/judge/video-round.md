@@ -1,5 +1,7 @@
 # Judge round: the demo video
 
+> **Superseded (7 Nov 2026, run 4):** this round judged the first cut, now `video/out/shelfie-demo-v1.mp4`. The clearer cut is judged in [`video-round-2.md`](video-round-2.md) (A5 5, ship), with first-viewer clarity tests in [`video-clarity-1.md`](video-clarity-1.md) and [`video-clarity-2.md`](video-clarity-2.md). All three fixes below were done in the v1 cut.
+
 **Artifact:** `video/out/shelfie-demo.mp4` (render of 7 Nov 2026), with `video/project/SCRIPT.md`, `video/shelfie-demo.srt` (byte-identical to `video/out/shelfie-demo.srt`) and `video/project/demo.json`. The judge did not read PROGRESS, DECISIONS or commit messages. It used the coordinator's `video-frames-check.md` only as a list of claims to check.
 
 ## My own checks
