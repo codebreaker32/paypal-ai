@@ -1,8 +1,14 @@
 # Progress
 
-_Last updated: 2026-11-07 03:20 IST (run 3, session 6: run complete)_
+_Last updated: 2026-11-07 12:10 IST (run 4, session 3)_
 
 ## Current phase
+**Run 4 (7 Nov 2026): a clearer demo video (human request).** Only the video and the positioning text change; no product code.
+- **Session 2:** rewrote `video/project/demo.json` (cold open on the paid AI order, one sourced Census statistic, the positioning card, a 3-step roadmap, "Step N of 3" chapter bars, focus boxes with labels, plain words: "agent door" explained once, MCP said once, no "capture"), re-voiced at about 147 words a minute (Kokoro af_heart 0.88), new Remotion pieces (`ChapterBar`, `Focus`, `OnScreenText`, roadmap and summary cards). Not rendered.
+- **Session 3 (from 11:40 IST):** spoken greeting card ("Hi there! Welcome to Shelfie.") and "Thanks for watching!" on the end card; README and SUBMISSION lead with the positioning line, no other companies named. **Render 1: 2:38.7. Clarity test 1: pass, 6/6** (`docs/judge/video-clarity-1.md`); its five fixes (door scene on the Share tab, "Another shopper", "She confirms", two focus boxes) are in, render 2 running. The old cut is kept as `video/out/shelfie-demo-v1.mp4` (+ `.srt`).
+- **Next:** render 2 → frames every 2 s (secrets) → clarity test 2 → video judge round (A5, Part C) → fixes → SCORES, video-round → completion marker.
+
+## Run 3 (complete)
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
 
 **Run 3 is complete (07 Nov 2026, 03:20 IST).** Parts A (image-first and lively), A2 (the Awning logo), A3 (real example photos) and B (the demo video) are done and verified; what is left needs the human (the checklist below: make the repo public, upload the video, fill SUBMISSION, optionally deploy).
