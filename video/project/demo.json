@@ -566,7 +566,7 @@
       "kind": "demo",
       "beat": 4,
       "video": "clips/07-price-tamper.mp4",
-      "narration": "And an AI can't change the prices.",
+      "narration": "One more thing: if an AI tries to set its own price, the shop refuses.",
       "audio": "audio/tamper.mp3",
       "words": "audio/tamper.words.json",
       "screen": "Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.",
@@ -575,7 +575,7 @@
         "of": 3,
         "title": "Paid on PayPal"
       },
-      "holdSec": 2.1,
+      "holdSec": 1.4,
       "beats": [
         {
           "atSec": 0,
@@ -591,8 +591,8 @@
           }
         }
       ],
-      "narrationSec": 3.03,
-      "durationSec": 5.98
+      "narrationSec": 5.721,
+      "durationSec": 7.971
     },
     {
       "id": "close",

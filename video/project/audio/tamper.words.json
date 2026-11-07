@@ -1,44 +1,84 @@
 {
-  "text": "And an AI can't change the prices.",
+  "text": "One more thing: if an AI tries to set its own price, the shop refuses.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "8bb54c820b3909ff",
+  "cacheKey": "e5dc7dae8161bf64",
   "timestamps": [
     {
-      "text": "And",
-      "startSec": 0.3,
-      "endSec": 0.438
-    },
-    {
-      "text": "an",
-      "startSec": 0.438,
+      "text": "One",
+      "startSec": 0.35,
       "endSec": 0.575
     },
     {
-      "text": "AI",
+      "text": "more",
       "startSec": 0.575,
-      "endSec": 1.113
+      "endSec": 0.812
     },
     {
-      "text": "can't",
-      "startSec": 1.113,
-      "endSec": 1.413
+      "text": "thing:",
+      "startSec": 0.812,
+      "endSec": 1.587
     },
     {
-      "text": "change",
-      "startSec": 1.413,
-      "endSec": 1.738
+      "text": "if",
+      "startSec": 1.587,
+      "endSec": 1.712
+    },
+    {
+      "text": "an",
+      "startSec": 1.712,
+      "endSec": 1.875
+    },
+    {
+      "text": "AI",
+      "startSec": 1.875,
+      "endSec": 2.35
+    },
+    {
+      "text": "tries",
+      "startSec": 2.35,
+      "endSec": 2.675
+    },
+    {
+      "text": "to",
+      "startSec": 2.675,
+      "endSec": 2.8
+    },
+    {
+      "text": "set",
+      "startSec": 2.8,
+      "endSec": 2.987
+    },
+    {
+      "text": "its",
+      "startSec": 2.987,
+      "endSec": 3.125
+    },
+    {
+      "text": "own",
+      "startSec": 3.125,
+      "endSec": 3.35
+    },
+    {
+      "text": "price,",
+      "startSec": 3.35,
+      "endSec": 4.0
     },
     {
       "text": "the",
-      "startSec": 1.738,
-      "endSec": 1.825
+      "startSec": 4.0,
+      "endSec": 4.138
     },
     {
-      "text": "prices.",
-      "startSec": 1.825,
-      "endSec": 2.9
+      "text": "shop",
+      "startSec": 4.138,
+      "endSec": 4.412
+    },
+    {
+      "text": "refuses.",
+      "startSec": 4.412,
+      "endSec": 5.575
     }
   ]
 }

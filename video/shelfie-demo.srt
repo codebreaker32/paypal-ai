@@ -191,37 +191,41 @@ PayPal and writes her a brief.
 It flags the nut allergy.
 
 49
-00:02:10,353 --> 00:02:13,533
-And an AI can't change the prices.
+00:02:10,403 --> 00:02:12,853
+One more thing: if an AI tries to
 
 50
-00:02:15,995 --> 00:02:17,332
-Shelfie is for sellers with
+00:02:12,853 --> 00:02:16,208
+set its own price, the shop refuses.
 
 51
-00:02:17,332 --> 00:02:19,808
-a paper menu and no website.
+00:02:17,995 --> 00:02:19,332
+Shelfie is for sellers with
 
 52
-00:02:19,808 --> 00:02:22,395
-PayPal runs their catalog and checkout,
+00:02:19,332 --> 00:02:21,808
+a paper menu and no website.
 
 53
-00:02:22,395 --> 00:02:24,320
-and pays them directly.
+00:02:21,808 --> 00:02:24,395
+PayPal runs their catalog and checkout,
 
 54
-00:02:24,320 --> 00:02:27,370
-AI reads the menu, lets assistants order,
+00:02:24,395 --> 00:02:26,320
+and pays them directly.
 
 55
-00:02:27,370 --> 00:02:28,907
-and writes the brief.
+00:02:26,320 --> 00:02:29,370
+AI reads the menu, lets assistants order,
 
 56
-00:02:28,907 --> 00:02:32,100
-For Rosa, paper is now enough.
+00:02:29,370 --> 00:02:30,907
+and writes the brief.
 
 57
-00:02:33,495 --> 00:02:35,575
+00:02:30,907 --> 00:02:34,100
+For Rosa, paper is now enough.
+
+58
+00:02:35,495 --> 00:02:37,575
 Thanks for watching!

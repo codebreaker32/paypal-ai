@@ -2,7 +2,7 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:37.9** (157.87 s): 135.44 s of narration (326 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:39.9** (159.87 s): 138.13 s of narration (334 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
@@ -17,9 +17,9 @@ _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not ed
 | console | 3 | 1:37.7 | 12.22 | 13.67 |
 | paypal | 4 | 1:51.3 | 6.90 | 8.53 |
 | dashboard | 4 | 1:59.9 | 8.83 | 10.27 |
-| tamper | 4 | 2:10.1 | 3.03 | 5.97 |
-| close | 5 | 2:15.7 | 16.04 | 18.00 |
-| end | 6 | 2:33.2 | 2.01 | 4.67 |
+| tamper | 4 | 2:10.1 | 5.72 | 7.97 |
+| close | 5 | 2:17.7 | 16.04 | 18.00 |
+| end | 6 | 2:35.2 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -101,11 +101,11 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 > Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.
 
-### tamper (3.03 s voice, 5.98 s scene)
+### tamper (5.72 s voice, 7.97 s scene)
 
 **Screen:** Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.
 
-> And an AI can't change the prices.
+> One more thing: if an AI tries to set its own price, the shop refuses.
 
 ## Beat 5: The seller's dashboard: paid, the AI brief, tracking
 
