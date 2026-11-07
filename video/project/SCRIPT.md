@@ -2,25 +2,34 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:34.3** (154.30 s): 132.94 s of narration (325 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 4 transition(s).
+**Runtime 2:38.6** (158.60 s): 137.64 s of narration (333 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
-| cold | 1 | 0:00.0 | 9.48 | 10.73 |
-| problem | 1 | 0:10.7 | 20.66 | 22.30 |
-| roadmap | 1 | 0:32.6 | 7.65 | 9.50 |
-| snap | 2 | 0:41.7 | 6.84 | 8.50 |
-| review | 2 | 0:50.2 | 14.73 | 16.17 |
-| door | 3 | 1:06.4 | 12.15 | 13.40 |
-| discovery | 3 | 1:19.8 | 12.20 | 14.23 |
-| console | 3 | 1:34.0 | 12.17 | 13.63 |
-| paypal | 4 | 1:47.7 | 6.90 | 8.53 |
-| dashboard | 4 | 1:56.2 | 11.08 | 12.53 |
-| tamper | 4 | 2:08.7 | 3.03 | 4.47 |
-| close | 5 | 2:12.8 | 16.04 | 18.00 |
-| end | 6 | 2:30.3 | - | 4.00 |
+| greeting | 1 | 0:00.0 | 2.69 | 4.03 |
+| cold | 1 | 0:03.6 | 9.48 | 10.73 |
+| problem | 1 | 0:14.4 | 20.66 | 22.30 |
+| roadmap | 1 | 0:36.3 | 7.65 | 9.50 |
+| snap | 2 | 0:45.4 | 6.84 | 8.50 |
+| review | 2 | 0:53.9 | 14.73 | 16.17 |
+| door | 3 | 1:10.0 | 12.15 | 13.40 |
+| discovery | 3 | 1:23.4 | 12.20 | 14.23 |
+| console | 3 | 1:37.7 | 12.17 | 13.63 |
+| paypal | 4 | 1:51.3 | 6.90 | 8.53 |
+| dashboard | 4 | 1:59.8 | 11.08 | 12.53 |
+| tamper | 4 | 2:12.4 | 3.03 | 4.47 |
+| close | 5 | 2:16.4 | 16.04 | 18.00 |
+| end | 6 | 2:33.9 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
+
+### greeting (2.69 s voice, 4.04 s scene)
+
+**Screen:** Greeting card: the Shelfie lockup and "Hi there! Welcome to Shelfie."
+
+> Hi there! Welcome to Shelfie.
+
+Card: **Shelfie**, "Hi there! Welcome to Shelfie."
 
 ### cold (9.48 s voice, 10.73 s scene)
 
@@ -108,9 +117,11 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 ## Beat 6: Why it matters, and close
 
-### end (4 s, no voice)
+### end (2.01 s voice, 4.66 s scene)
 
-**Screen:** End card: the Shelfie mark, name and line. No narration.
+**Screen:** End card: the Shelfie mark, name and line, with a spoken thank-you.
 
-Card: **Shelfie**, "Your price list, open to AI shoppers.", "Built with PayPal (catalog, checkout, Agent Toolkit) and Claude"
+> Thanks for watching!
+
+Card: **Shelfie**, "Your price list, open to AI shoppers.", "Built with PayPal and Claude"
 

@@ -1,0 +1,34 @@
+{
+  "text": "Hi there! Welcome to Shelfie.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "fe272c1644ee5307",
+  "timestamps": [
+    {
+      "text": "Hi",
+      "startSec": 0.325,
+      "endSec": 0.525
+    },
+    {
+      "text": "there!",
+      "startSec": 0.525,
+      "endSec": 0.938
+    },
+    {
+      "text": "Welcome",
+      "startSec": 0.938,
+      "endSec": 1.375
+    },
+    {
+      "text": "to",
+      "startSec": 1.375,
+      "endSec": 1.512
+    },
+    {
+      "text": "Shelfie.",
+      "startSec": 1.512,
+      "endSec": 2.55
+    }
+  ]
+}

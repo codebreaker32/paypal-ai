@@ -51,6 +51,20 @@
   "zoomToClick": false,
   "timeline": [
     {
+      "id": "greeting",
+      "kind": "card",
+      "beat": 1,
+      "title": "Shelfie",
+      "subtitle": "Hi there! Welcome to Shelfie.",
+      "narration": "Hi there! Welcome to Shelfie.",
+      "audio": "audio/greeting.mp3",
+      "words": "audio/greeting.words.json",
+      "holdSec": 0.5,
+      "screen": "Greeting card: the Shelfie lockup and \"Hi there! Welcome to Shelfie.\"",
+      "narrationSec": 2.691,
+      "durationSec": 4.041
+    },
+    {
       "id": "cold",
       "kind": "demo",
       "beat": 1,
@@ -586,14 +600,24 @@
       "id": "end",
       "kind": "card",
       "beat": 6,
-      "durationSec": 4,
-      "note": "End card: the Shelfie mark, name and line. No narration.",
+      "durationSec": 4.661,
+      "note": "End card: the Shelfie mark, name and line, with a spoken thank-you.",
       "title": "Shelfie",
       "subtitle": "Your price list, open to AI shoppers.",
-      "cta": "Built with PayPal (catalog, checkout, Agent Toolkit) and Claude"
+      "cta": "Built with PayPal and Claude",
+      "narration": "Thanks for watching!",
+      "audio": "audio/end.mp3",
+      "words": "audio/end.words.json",
+      "holdSec": 2.2,
+      "narrationSec": 2.011
     }
   ],
   "transitions": [
+    {
+      "after": "greeting",
+      "type": "fade",
+      "ms": 400
+    },
     {
       "after": "problem",
       "type": "fade",

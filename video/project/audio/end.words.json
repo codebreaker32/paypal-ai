@@ -1,0 +1,24 @@
+{
+  "text": "Thanks for watching!",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "dd9ac11c1f7f66f0",
+  "timestamps": [
+    {
+      "text": "Thanks",
+      "startSec": 0.375,
+      "endSec": 0.675
+    },
+    {
+      "text": "for",
+      "startSec": 0.675,
+      "endSec": 0.8
+    },
+    {
+      "text": "watching!",
+      "startSec": 0.8,
+      "endSec": 1.875
+    }
+  ]
+}
