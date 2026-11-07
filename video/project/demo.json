@@ -302,12 +302,13 @@
         {
           "atSec": 0,
           "videoStartSec": 3.0,
+          "playbackRate": 0.15,
           "focus": {
             "x": 70,
-            "y": 440,
+            "y": 368,
             "w": 1240,
-            "h": 180,
-            "zoom": 1.35,
+            "h": 172,
+            "zoom": 1.25,
             "label": "The agent door: where AI assistants order",
             "delaySec": 1.2
           }
