@@ -135,28 +135,28 @@ It finds the agent door by itself,
 orders two almond croissants, and gets back a PayPal link.
 
 35
-00:01:37,937 --> 00:01:39,387
+00:01:37,937 --> 00:01:39,412
 Another shopper uses the
 
 36
-00:01:39,387 --> 00:01:41,437
+00:01:39,412 --> 00:01:41,387
 assistant on the shop page.
 
 37
-00:01:41,437 --> 00:01:43,237
-She has a nut allergy.
+00:01:41,387 --> 00:01:43,137
+They have a nut allergy.
 
 38
-00:01:43,237 --> 00:01:44,624
-It warns her that the almond
+00:01:43,137 --> 00:01:44,675
+It warns them that the almond
 
 39
-00:01:44,624 --> 00:01:46,837
+00:01:44,675 --> 00:01:46,874
 croissants contain nuts.
 
 40
-00:01:46,837 --> 00:01:50,242
-She confirms, and it places the order.
+00:01:46,874 --> 00:01:50,242
+They confirm, and it places the order.
 
 41
 00:01:51,553 --> 00:01:52,428
@@ -175,57 +175,53 @@ The money goes straight into
 Rosa's own PayPal account.
 
 45
-00:02:00,087 --> 00:02:02,812
+00:02:00,087 --> 00:02:02,787
 Her dashboard shows the order as paid.
 
 46
-00:02:02,812 --> 00:02:04,212
+00:02:02,787 --> 00:02:04,112
 Claude reads the order from
 
 47
-00:02:04,212 --> 00:02:06,537
+00:02:04,112 --> 00:02:06,337
 PayPal and writes her a brief.
 
 48
-00:02:06,537 --> 00:02:08,424
-It flags the nut allergy,
+00:02:06,337 --> 00:02:09,067
+It flags the nut allergy.
 
 49
-00:02:08,424 --> 00:02:11,292
-so she can check before she ships.
-
-50
-00:02:12,620 --> 00:02:15,800
+00:02:10,353 --> 00:02:13,533
 And an AI can't change the prices.
 
-51
-00:02:16,762 --> 00:02:18,099
+50
+00:02:15,995 --> 00:02:17,332
 Shelfie is for sellers with
 
-52
-00:02:18,099 --> 00:02:20,575
+51
+00:02:17,332 --> 00:02:19,808
 a paper menu and no website.
 
-53
-00:02:20,575 --> 00:02:23,162
+52
+00:02:19,808 --> 00:02:22,395
 PayPal runs their catalog and checkout,
 
-54
-00:02:23,162 --> 00:02:25,087
+53
+00:02:22,395 --> 00:02:24,320
 and pays them directly.
 
-55
-00:02:25,087 --> 00:02:28,137
+54
+00:02:24,320 --> 00:02:27,370
 AI reads the menu, lets assistants order,
 
-56
-00:02:28,137 --> 00:02:29,674
+55
+00:02:27,370 --> 00:02:28,907
 and writes the brief.
 
-57
-00:02:29,674 --> 00:02:32,867
+56
+00:02:28,907 --> 00:02:32,100
 For Rosa, paper is now enough.
 
-58
-00:02:34,262 --> 00:02:36,342
+57
+00:02:33,495 --> 00:02:35,575
 Thanks for watching!

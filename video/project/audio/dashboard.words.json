@@ -1,9 +1,9 @@
 {
-  "text": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy, so she can check before she ships.",
+  "text": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "98f7dd57a2e7aab6",
+  "cacheKey": "85399fb8a4ebcbba",
   "timestamps": [
     {
       "text": "Her",
@@ -38,122 +38,87 @@
     {
       "text": "paid.",
       "startSec": 2.062,
-      "endSec": 3.025
+      "endSec": 3.0
     },
     {
       "text": "Claude",
-      "startSec": 3.025,
-      "endSec": 3.438
+      "startSec": 3.0,
+      "endSec": 3.375
     },
     {
       "text": "reads",
-      "startSec": 3.438,
-      "endSec": 3.775
+      "startSec": 3.375,
+      "endSec": 3.688
     },
     {
       "text": "the",
-      "startSec": 3.775,
-      "endSec": 3.9
+      "startSec": 3.688,
+      "endSec": 3.8
     },
     {
       "text": "order",
-      "startSec": 3.9,
-      "endSec": 4.25
+      "startSec": 3.8,
+      "endSec": 4.15
     },
     {
       "text": "from",
-      "startSec": 4.25,
-      "endSec": 4.425
+      "startSec": 4.15,
+      "endSec": 4.325
     },
     {
       "text": "PayPal",
-      "startSec": 4.425,
-      "endSec": 5.138
+      "startSec": 4.325,
+      "endSec": 5.037
     },
     {
       "text": "and",
-      "startSec": 5.138,
-      "endSec": 5.275
+      "startSec": 5.037,
+      "endSec": 5.175
     },
     {
       "text": "writes",
-      "startSec": 5.275,
-      "endSec": 5.562
+      "startSec": 5.175,
+      "endSec": 5.438
     },
     {
       "text": "her",
-      "startSec": 5.562,
-      "endSec": 5.675
+      "startSec": 5.438,
+      "endSec": 5.55
     },
     {
       "text": "a",
-      "startSec": 5.675,
-      "endSec": 5.75
+      "startSec": 5.55,
+      "endSec": 5.625
     },
     {
       "text": "brief.",
-      "startSec": 5.75,
-      "endSec": 6.75
+      "startSec": 5.625,
+      "endSec": 6.55
     },
     {
       "text": "It",
-      "startSec": 6.75,
-      "endSec": 6.963
+      "startSec": 6.55,
+      "endSec": 6.775
     },
     {
       "text": "flags",
-      "startSec": 6.963,
-      "endSec": 7.45
+      "startSec": 6.775,
+      "endSec": 7.3
     },
     {
       "text": "the",
-      "startSec": 7.45,
-      "endSec": 7.575
+      "startSec": 7.3,
+      "endSec": 7.425
     },
     {
       "text": "nut",
-      "startSec": 7.575,
-      "endSec": 7.775
+      "startSec": 7.425,
+      "endSec": 7.625
     },
     {
-      "text": "allergy,",
-      "startSec": 7.775,
-      "endSec": 8.637
-    },
-    {
-      "text": "so",
-      "startSec": 8.637,
-      "endSec": 8.838
-    },
-    {
-      "text": "she",
-      "startSec": 8.838,
-      "endSec": 9.0
-    },
-    {
-      "text": "can",
-      "startSec": 9.0,
-      "endSec": 9.2
-    },
-    {
-      "text": "check",
-      "startSec": 9.2,
-      "endSec": 9.5
-    },
-    {
-      "text": "before",
-      "startSec": 9.5,
-      "endSec": 9.875
-    },
-    {
-      "text": "she",
-      "startSec": 9.875,
-      "endSec": 10.05
-    },
-    {
-      "text": "ships.",
-      "startSec": 10.05,
-      "endSec": 10.925
+      "text": "allergy.",
+      "startSec": 7.625,
+      "endSec": 8.7
     }
   ]
 }

@@ -239,7 +239,8 @@
             "h": 320,
             "zoom": 1.4,
             "label": "It only asks what it isn't sure of"
-          }
+          },
+          "playbackRate": 0.75
         },
         {
           "at": "Rosa adds",
@@ -277,7 +278,8 @@
             "zoom": 1.0,
             "label": "Live shop, with photos",
             "delaySec": 0.6
-          }
+          },
+          "playbackRate": 0.5
         }
       ],
       "narrationSec": 14.733,
@@ -384,7 +386,7 @@
       "kind": "demo",
       "beat": 3,
       "video": "clips/06-console-order.mp4",
-      "narration": "Another shopper uses the assistant on the shop page. She has a nut allergy. It warns her that the almond croissants contain nuts. She confirms, and it places the order.",
+      "narration": "Another shopper uses the assistant on the shop page. They have a nut allergy. It warns them that the almond croissants contain nuts. They confirm, and it places the order.",
       "audio": "audio/console.mp3",
       "words": "audio/console.words.json",
       "screen": "Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.",
@@ -401,7 +403,7 @@
           "playbackRate": 2.0
         },
         {
-          "at": "She has",
+          "at": "They have",
           "videoStartSec": 13.6,
           "focus": {
             "x": 1250,
@@ -493,7 +495,7 @@
       "kind": "demo",
       "beat": 4,
       "video": "clips/08-dashboard-brief.mp4",
-      "narration": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy, so she can check before she ships.",
+      "narration": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.",
       "audio": "audio/dashboard.mp3",
       "words": "audio/dashboard.words.json",
       "screen": "Laptop: Rosa's dashboard, the paid order in To prepare with its AI brief; the order page: AI brief by Claude, the nut-allergy warning.",
@@ -542,8 +544,8 @@
           "playbackRate": 0.25
         }
       ],
-      "narrationSec": 11.076,
-      "durationSec": 12.526
+      "narrationSec": 8.829,
+      "durationSec": 10.279
     },
     {
       "id": "tamper",
@@ -559,15 +561,24 @@
         "of": 3,
         "title": "Paid on PayPal"
       },
-      "holdSec": 0.6,
+      "holdSec": 2.1,
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 12.1
+          "videoStartSec": 12.1,
+          "focus": {
+            "x": 95,
+            "y": 516,
+            "w": 1075,
+            "h": 44,
+            "zoom": 1.5,
+            "label": "Refused: prices are set by the shop",
+            "delaySec": 0.3
+          }
         }
       ],
       "narrationSec": 3.03,
-      "durationSec": 4.48
+      "durationSec": 5.98
     },
     {
       "id": "close",

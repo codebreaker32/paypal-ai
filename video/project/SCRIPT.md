@@ -2,7 +2,7 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:38.6** (158.63 s): 137.69 s of narration (333 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:37.9** (157.87 s): 135.44 s of narration (326 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
@@ -16,10 +16,10 @@ _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not ed
 | discovery | 3 | 1:23.4 | 12.20 | 14.23 |
 | console | 3 | 1:37.7 | 12.22 | 13.67 |
 | paypal | 4 | 1:51.3 | 6.90 | 8.53 |
-| dashboard | 4 | 1:59.9 | 11.08 | 12.53 |
-| tamper | 4 | 2:12.4 | 3.03 | 4.47 |
-| close | 5 | 2:16.5 | 16.04 | 18.00 |
-| end | 6 | 2:34.0 | 2.01 | 4.67 |
+| dashboard | 4 | 1:59.9 | 8.83 | 10.27 |
+| tamper | 4 | 2:10.1 | 3.03 | 5.97 |
+| close | 5 | 2:15.7 | 16.04 | 18.00 |
+| end | 6 | 2:33.2 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -85,7 +85,7 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 **Screen:** Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.
 
-> Another shopper uses the assistant on the shop page. She has a nut allergy. It warns her that the almond croissants contain nuts. She confirms, and it places the order.
+> Another shopper uses the assistant on the shop page. They have a nut allergy. It warns them that the almond croissants contain nuts. They confirm, and it places the order.
 
 ## Beat 4: The buyer approves on PayPal
 
@@ -95,13 +95,13 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 > Step three. The buyer approves on PayPal. The money goes straight into Rosa's own PayPal account.
 
-### dashboard (11.08 s voice, 12.53 s scene)
+### dashboard (8.83 s voice, 10.28 s scene)
 
 **Screen:** Laptop: Rosa's dashboard, the paid order in To prepare with its AI brief; the order page: AI brief by Claude, the nut-allergy warning.
 
-> Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy, so she can check before she ships.
+> Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.
 
-### tamper (3.03 s voice, 4.48 s scene)
+### tamper (3.03 s voice, 5.98 s scene)
 
 **Screen:** Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.
 
