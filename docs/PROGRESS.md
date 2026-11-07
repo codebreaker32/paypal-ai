@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-07 13:15 IST (run 4 complete)_
+_Last updated: 2026-11-07 12:46 IST (run 4 complete)_
 
 ## Current phase
 **Run 4 (7 Nov 2026): a clearer demo video (human request).** Only the video and the positioning text change; no product code.
@@ -8,7 +8,7 @@ _Last updated: 2026-11-07 13:15 IST (run 4 complete)_
 - **Session 3 (from 11:40 IST):** spoken greeting card ("Hi there! Welcome to Shelfie.") and "Thanks for watching!" on the end card; README and SUBMISSION lead with the positioning line, no other companies named (the Radio IQ quote paraphrased without social-network names). Five renders, each checked by a first-time viewer with no context: **clarity tests 1–5, all 6/6** (`docs/judge/video-clarity-*.md`), and **video judge round 2: A5 5/5, 0 Part C fails, ship** (`docs/judge/video-round-2.md`), all three of its fixes taken.
 - **The video (verified):** `~/paypal-ai/video/out/shelfie-demo.mp4`, **159.90 s (2:39.9)**, 1920x1080 H.264 30 fps, AAC at -14.0 LUFS / -1.0 dBTP, no black frames, captions burned in (about 60 px on an ink box); poster `video/out/poster.png`; SRT `video/shelfie-demo.srt` (committed) and `video/out/shelfie-demo.srt`. The old 2:45.3 cut is kept as `video/out/shelfie-demo-v1.mp4` (+ `.srt`). Not uploaded (the run forbids it).
 - **What changed from v1:** 13 → 14 scenes, but simpler: greeting → cold open on the paid AI order (payoff by 0:14) → the problem in plain words with one sourced Census statistic → the positioning card ("Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.") → a 3-step roadmap, then "Step N of 3" chapter bars → Step 1 snap (Claude reads, one question, PayPal email, PayPal catalog, live shop) → Step 2 (the agent door explained in plain words on the Share tab, MCP said once; Claude Code orders from only the URL; a second shopper's in-page assistant warns about nuts) → Step 3 (approve on PayPal, paid to Rosa's own account, dashboard, Claude's brief flags the allergy, an AI can't change prices) → close (who / PayPal / AI) → "Thanks for watching!". Focus boxes with labels on every key moment; narration about 140–145 words a minute (v1 166); no "capture", "machine time", "Agent Toolkit" or competitor names; tracking and the counter crop cut.
-- **Run 4 is complete (13:15 IST):** the final cut (render 5) passes the clarity test 6/6 (five renders, five tests, `docs/judge/video-clarity-1.md` … `-5.md`) and the video judge round 2 (A5 5, 0 Part C fails, ship) with all three of its fixes taken. Positioning line in README and SUBMISSION. What is left is the human's checklist at the end (upload the video, make the repo public, submit).
+- **Run 4 is complete (12:46 IST):** the final cut (render 5) passes the clarity test 6/6 (five renders, five tests, `docs/judge/video-clarity-1.md` … `-5.md`) and the video judge round 2 (A5 5, 0 Part C fails, ship) with all three of its fixes taken. Positioning line in README and SUBMISSION. What is left is the human's checklist at the end (upload the video, make the repo public, submit).
 
 ## Run 3 (complete)
 **Run 3 (from 6 Nov 2026, 20:02 IST): Part A "image-first and lively", then Part B "the demo video".** The human's feedback on the redesign (DECISIONS "Run 3, session 1"): images everywhere instead of text stand-ins, a lively site, then the video.
