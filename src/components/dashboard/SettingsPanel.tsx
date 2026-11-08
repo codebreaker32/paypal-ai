@@ -143,7 +143,7 @@ export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, .
         <PayeeForm {...payee} />
       </SettingsSection>
       <SettingsSection title="Your logo">
-        <LogoPicker shopId={payee.shopId} shopName={shopName} logoUrl={logoUrl} onChange={onLogoChange} />
+        <LogoPicker shopId={payee.shopId} shopName={shopName} logoUrl={logoUrl} onChange={onLogoChange} titled={false} />
       </SettingsSection>
       <SettingsSection title="Sign-in">
         {accountEmail ? (

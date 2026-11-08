@@ -144,7 +144,8 @@ export function LiveStep(p: LiveProps) {
           </>
         }
         actions={
-          <ButtonLink href={`/s/${p.slug}`} variant="secondary" icon={ExternalLink}>
+          // Below xl the compact preview right under this header carries the same link, so one is enough.
+          <ButtonLink href={`/s/${p.slug}`} variant="secondary" icon={ExternalLink} className="max-xl:hidden">
             Open your shop
           </ButtonLink>
         }
@@ -177,7 +178,7 @@ export function LiveStep(p: LiveProps) {
             What to do next
           </h2>
           <PanelList>
-            <PanelRow action={<ButtonLink href={`/s/${p.slug}?assistant=1`} className={ROW_ACTION}>Watch an AI order from you</ButtonLink>}>
+            <PanelRow action={<ButtonLink href={`/s/${p.slug}?assistant=1`} variant="primary" className={ROW_ACTION}>Watch an AI order from you</ButtonLink>}>
               <RowHeading>Try your shop</RowHeading>
             </PanelRow>
             <PanelRow action={<CopyButton text={p.agentDoorUrl} what="Agent door link" label="Copy agent door link" className={ROW_ACTION} />}>

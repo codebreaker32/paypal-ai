@@ -106,7 +106,7 @@ export function SharePanel({ shopId, status, shopUrl, doorUrl, slug, qr }: Share
           aria-label={`QR code that opens ${asTyped(shopUrl)}`}
           data-testid="share-qr"
           className="size-40 [&>svg]:block [&>svg]:size-full"
-          dangerouslySetInnerHTML={{ __html: qr }}
+          dangerouslySetInnerHTML={{ __html: qr.replace('<svg ', '<svg aria-hidden="true" ') }}
         />
         <ButtonLink href={`/shops/${shopId}/card`} variant="secondary" icon={Printer} fullWidth>
           Print counter card

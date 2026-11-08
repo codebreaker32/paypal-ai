@@ -318,6 +318,8 @@ export interface LogoPickerProps {
   shopName: string;
   logoUrl: string | null;
   onChange: (logoUrl: string | null) => void;
+  /** Off where a heading beside it already says "Your logo" (Settings). */
+  titled?: boolean;
 }
 
 /**
@@ -325,7 +327,7 @@ export interface LogoPickerProps {
  * Stored as the centre square, so any photo works; without one the shop's picture is its cover, a menu photo or a
  * drawing of what it sells, never its initials.
  */
-export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerProps) {
+export function LogoPicker({ shopId, shopName, logoUrl, onChange, titled = true }: LogoPickerProps) {
   const actions = usePhotoActions(
     (file) => uploadLogo(shopId, file),
     () => removeLogo(shopId),
@@ -347,7 +349,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
           </FileLabel>
         )}
         <div className="flex min-w-0 flex-col gap-1.5">
-          <span className="font-semibold text-ink">Logo</span>
+          {titled && <span className="font-semibold text-ink">Logo</span>}
           <span className="text-sm text-ink-soft">Shown beside your shop’s name. We use the middle square of the photo.</span>
           {logoUrl && (
             <div className="flex flex-wrap gap-2">

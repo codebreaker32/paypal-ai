@@ -2,9 +2,10 @@
 // slot, skip link and landmarks. Run: E2E_PORT=3221 npx playwright test e2e/app-shell.spec.ts
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE, a11y, appNav } from './helpers';
-import { createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
+import { createFixtureShop, fixtureFromShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
+import * as shopsRepo from '@/lib/db/repos/shops';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
@@ -225,5 +226,121 @@ test.describe('banners', () => {
     await expect(page.getByRole('status').filter({ hasText: 'Agent orders paused.' })).toHaveCount(0);
     await banner.getByRole('link', { name: 'Add email' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+  });
+});
+
+test.describe('Live, Share, Settings', () => {
+  const noSideways = async (page: Page) => {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  };
+
+  for (const [name, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
+    test.describe(`at ${name}`, () => {
+      test.use({ viewport });
+
+      test('Live: in the shell, no slide leftovers, one primary button, a real shop preview', async ({ page, context }) => {
+        const live = createFixtureShop('Live Screen Bakery');
+        await signInAsOwner(context, live, BASE);
+        await page.goto(`/shops/${live.shop.id}/setup`);
+        await hideDevBadge(page);
+        await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
+        await expect(appNav(page).getByRole('link', { name: 'Orders' })).toBeVisible();
+        const html = await page.content();
+        expect(html).not.toContain('/claim/');
+        expect(html).not.toContain('Open your dashboard');
+        expect(html).not.toContain('See it work');
+        await expect(page.locator('#app-content [data-variant="primary"]:visible')).toHaveCount(1);
+        await expect(page.getByRole('link', { name: 'Watch an AI order from you' })).toHaveAttribute('data-variant', 'primary');
+        const preview = page.getByTestId('live-preview');
+        await expect(preview).toContainText('Live Screen Bakery');
+        await expect(preview.getByRole('link', { name: 'Open your shop' })).toBeVisible();
+        await noSideways(page);
+        await a11y(page);
+      });
+
+      test('Share: exact rows, a QR in the Counter card region, a primary copy', async ({ page, context }) => {
+        const pub = createFixtureShop('Share Screen Bakery');
+        await signInAsOwner(context, pub, BASE);
+        await page.goto(`/shops/${pub.shop.id}?tab=share`);
+        await hideDevBadge(page);
+        await expect(page.getByTestId('share-door-url')).toHaveText(new RegExp(`/s/${pub.shop.slug}/mcp$`));
+        await expect(page.getByTestId('share-shop-url')).toHaveText(new RegExp(`/s/${pub.shop.slug}$`));
+        await expect(page.getByRole('button', { name: 'Copy agent door link' })).toHaveAttribute('data-variant', 'primary');
+        const region = page.getByRole('region', { name: 'Counter card' });
+        await expect(region.getByRole('img')).toBeVisible();
+        await expect(region.getByRole('link', { name: 'Print counter card' })).toBeVisible();
+        await noSideways(page);
+        await a11y(page);
+      });
+
+      test('Share on a draft: no address, no QR, the way to publish', async ({ page, context }) => {
+        const made = shopsRepo.create(getDb(), { name: 'Draft Share Bakery', payeeEmail: 'owner@example.com', about: '', fulfillment: 'both', shippingFeeCents: 800, pickupNotes: '' });
+        const draft = fixtureFromShop(made.shop, made.ownerToken);
+        await signInAsOwner(context, draft, BASE);
+        await page.goto(`/shops/${draft.shop.id}?tab=share`);
+        await expect(page.getByText('Your shop gets its web address when you publish.')).toBeVisible();
+        await expect(page.locator('#app-content').getByRole('link', { name: 'Finish setting up' })).toBeVisible();
+        expect(await page.content()).not.toContain(draft.shop.slug);
+        await expect(page.getByTestId('share-door-url')).toHaveCount(0);
+        await a11y(page);
+      });
+
+      test('Settings: exact copy, no second Pause, sign-in row', async ({ page }) => {
+        await page.goto(`/shops/${shop.shop.id}?tab=settings`);
+        await hideDevBadge(page);
+        await expect(page.getByText('Buyers pay straight into the PayPal account with this email.')).toBeVisible();
+        await expect(page.getByRole('heading', { name: 'Your logo' })).toBeVisible();
+        await expect(page.locator('#app-content').getByRole('link', { name: 'Log in' })).toBeVisible();
+        await expect(page.locator('#app-content').getByText('Pause agent orders')).toHaveCount(0);
+        if (name === '1440') {
+          const h = (await page.getByRole('heading', { name: 'Where you get paid' }).boundingBox())!;
+          const form = (await page.getByTestId('payee-form').boundingBox())!;
+          const content = (await page.locator('#app-content').evaluate((el) => { const s = getComputedStyle(el); return el.getBoundingClientRect().left + parseFloat(s.paddingLeft); }));
+          expect(h.x + h.width).toBeLessThanOrEqual(form.x);
+          expect(Math.abs(h.y - form.y)).toBeLessThanOrEqual(8);
+          expect(form.x - content).toBeGreaterThanOrEqual(240);
+        }
+        await noSideways(page);
+        await a11y(page);
+      });
+
+      test('a long shop name clamps in the shell and wraps on Live', async ({ page, context }) => {
+        const longShop = createFixtureShop('The Extraordinarily Long Named Neighbourhood Sourdough and Pastry Cooperative of East Austin');
+        await signInAsOwner(context, longShop, BASE);
+        await page.goto(`/shops/${longShop.shop.id}/setup`);
+        await hideDevBadge(page);
+        if (name === '1440') {
+          const label = page.getByTestId('shop-switcher').locator('[title]').first();
+          const box = (await label.boundingBox())!;
+          expect(box.height).toBeLessThanOrEqual(44); // two lines of 20
+        } else {
+          const bar = page.getByTestId('shop-switcher-bar');
+          const box = (await bar.boundingBox())!;
+          expect(box.height).toBeLessThanOrEqual(50);
+        }
+        await noSideways(page);
+      });
+    });
+  }
+
+  test('Live, Share and Settings have no sideways scroll at 1024', async ({ page, context }) => {
+    await page.setViewportSize({ width: 1024, height: 800 });
+    const s = createFixtureShop('Wide Check Bakery');
+    await signInAsOwner(context, s, BASE);
+    for (const url of [`/shops/${s.shop.id}/setup`, `/shops/${s.shop.id}?tab=share`, `/shops/${s.shop.id}?tab=settings`]) {
+      await page.goto(url);
+      await noSideways(page);
+    }
+  });
+
+  test('a non-owner gets a real 404 with the public header', async ({ page }) => {
+    const other = createFixtureShop('Someone Else Bakery');
+    const res = await page.request.get(`/shops/${other.shop.id}`);
+    expect(res.status()).toBe(404);
+    await page.context().clearCookies();
+    const nav = await page.goto(`/shops/${other.shop.id}`);
+    expect(nav?.status()).toBe(404);
+    await expect(page.locator('[data-site-chrome]').first()).toBeVisible();
+    await expect(page.locator('[data-app-shell]')).toHaveCount(0);
   });
 });
