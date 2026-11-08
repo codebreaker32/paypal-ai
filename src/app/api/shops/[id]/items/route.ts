@@ -11,10 +11,13 @@
 import { getDb } from '@/lib/db';
 import { addItem, applyItemUpdates, parseItemUpdates, parseNewItem } from '@/lib/catalog/edits';
 import { errorResponse, notFound, ownedShop, readJson } from '@/lib/catalog/http';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
 export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]/items'>): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id } = await ctx.params;
   if (!(await ownedShop(id))) return notFound();
   try {
@@ -26,6 +29,8 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]/ite
 }
 
 export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/items'>): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id } = await ctx.params;
   const shop = await ownedShop(id);
   if (!shop) return notFound();

@@ -1,5 +1,6 @@
-// GET /claim/<token>: the owner link from the "Your shop is live" screen. Opening it on another
-// phone makes that browser an owner too (sets the owner cookie) and lands on the dashboard.
+// GET /claim/<token>: the owner link of an unattached shop (the seed and the test harness). Opening it on another
+// phone makes that browser an owner too (sets the owner cookie) and lands on the dashboard. A shop with an account has
+// no owner link: its token never opens it (SR15), so it answers like an unknown link.
 import { setOwnerCookie } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
@@ -9,7 +10,7 @@ export const runtime = 'nodejs';
 export async function GET(_req: Request, ctx: RouteContext<'/claim/[token]'>): Promise<Response> {
   const { token } = await ctx.params;
   const shop = token.length >= 20 && token.length <= 100 ? shops.byOwnerToken(getDb(), token) : null;
-  if (!shop) {
+  if (!shop || shop.accountId) {
     return new Response("This owner link doesn’t match any shop. Check that you copied all of it.", {
       status: 404,
       headers: { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' },

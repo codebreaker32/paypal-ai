@@ -15,6 +15,7 @@ import { errorResponse, notFound, ownedShop } from '@/lib/catalog/http';
 import { jsonError } from '@/lib/http/json-error';
 import type { OrderDeps } from '@/lib/orders/service';
 import { getOrderDeps } from '@/lib/services';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 export const maxDuration = 120;
@@ -22,7 +23,9 @@ export const maxDuration = 120;
 // One publish run per shop at a time (a double tap would otherwise race itself; harmless, but noisy).
 const running = new Set<string>();
 
-export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/publish'>): Promise<Response> {
+export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/publish'>): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id } = await ctx.params;
   const owned = await ownedShop(id);
   if (!owned) return notFound();

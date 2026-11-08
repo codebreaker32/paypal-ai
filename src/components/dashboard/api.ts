@@ -5,6 +5,9 @@ import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types'
 
 export { ApiError };
 
+/** A poll answered 404: the session ended or the shop went away, so the page itself should decide what to show. */
+export const isGone = (err: unknown): boolean => err instanceof ApiError && err.status === 404;
+
 /** The dashboard and the order detail re-read SQLite this often. */
 export const POLL_MS = 5000;
 

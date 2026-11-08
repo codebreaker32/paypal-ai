@@ -17,6 +17,8 @@ export interface Config {
   buyerPassword: string | null;
   /** PAYPAL_SANDBOX_SELLER_EMAIL: `npm run seed` pays the demo shop to this sandbox seller (else the platform account). */
   sellerEmail: string | null;
+  /** SUPPORT_EMAIL: shown as the contact on Help; unset, Help points at GitHub Issues. */
+  supportEmail: string | null;
 }
 
 const opt = (name: string): string | null => {
@@ -48,5 +50,6 @@ export function getConfig(): Config {
     buyerEmail: opt('PAYPAL_SANDBOX_BUYER_EMAIL'),
     buyerPassword: opt('PAYPAL_SANDBOX_BUYER_PASSWORD'),
     sellerEmail: opt('PAYPAL_SANDBOX_SELLER_EMAIL'),
+    supportEmail: opt('SUPPORT_EMAIL'),
   };
 }

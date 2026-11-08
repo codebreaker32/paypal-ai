@@ -2,8 +2,7 @@
 // The step comes from the database on every request, so a refresh always lands on the right one.
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
-import { getOwnedShop, ownerCookieName } from '@/lib/auth/owner';
+import { ownerCookieName, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as extractions from '@/lib/db/repos/extractions';
@@ -21,14 +20,14 @@ export const metadata: Metadata = {
 
 export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup'>) {
   const { id } = await params;
-  const shop = await getOwnedShop(id);
-  if (!shop) notFound();
+  const shop = await requireOwner(id);
   const db = getDb();
   const view = loadSetupView(db, shop);
 
   if (view.step === 'live') {
     const appUrl = getConfig().appUrl;
-    const token = (await cookies()).get(ownerCookieName(id))?.value;
+    // An account-owned shop has no owner link (SR15, SR24), whatever cookie this browser still holds.
+    const token = shop.accountId ? undefined : (await cookies()).get(ownerCookieName(id))?.value;
     const all = items.listWithVariants(db, id);
     return (
       <LiveStep

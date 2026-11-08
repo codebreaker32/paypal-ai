@@ -9,6 +9,7 @@ import { allowSetup } from '@/lib/rate-limit';
 import { readOnePhoto } from '@/lib/uploads';
 import { errorResponse, notFound, ownedShop } from './http';
 import { clearShopImage, setShopImage, type ShopImage } from './photos';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -16,6 +17,8 @@ export function shopImageRoutes(image: ShopImage, opts: { onDelete: () => Respon
   const where = `/api/shops/[id]/${image}`;
 
   async function POST(req: Request, ctx: Ctx): Promise<Response> {
+    const refused = assertSameOrigin(req);
+    if (refused) return refused;
     const { id } = await ctx.params;
     const shop = await ownedShop(id);
     if (!shop) return notFound();
@@ -30,7 +33,9 @@ export function shopImageRoutes(image: ShopImage, opts: { onDelete: () => Respon
     }
   }
 
-  async function DELETE(_req: Request, ctx: Ctx): Promise<Response> {
+  async function DELETE(req: Request, ctx: Ctx): Promise<Response> {
+    const refused = assertSameOrigin(req);
+    if (refused) return refused;
     const { id } = await ctx.params;
     const shop = await ownedShop(id);
     if (!shop) return notFound();

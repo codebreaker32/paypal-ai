@@ -9,7 +9,7 @@ interface ShopRow {
   id: string; slug: string; name: string; about: string; kind: ShopKind; fulfillment: ShopFulfillment;
   pickup_notes: string; shipping_fee_cents: number; status: ShopStatus; order_cap_cents: number;
   owner_token_hash: string; menu_photo_paths: string; created_at: string; published_at: string | null;
-  payee_email: string | null; cover_url: string | null; logo_url: string | null;
+  payee_email: string | null; cover_url: string | null; logo_url: string | null; account_id: string | null;
 }
 
 const toShop = (r: ShopRow): Shop => ({
@@ -17,7 +17,7 @@ const toShop = (r: ShopRow): Shop => ({
   pickupNotes: r.pickup_notes, shippingFeeCents: r.shipping_fee_cents, status: r.status,
   orderCapCents: r.order_cap_cents, menuPhotoPaths: JSON.parse(r.menu_photo_paths) as string[],
   createdAt: r.created_at, publishedAt: r.published_at, payeeEmail: r.payee_email ?? null,
-  coverUrl: r.cover_url ?? null, logoUrl: r.logo_url ?? null,
+  coverUrl: r.cover_url ?? null, logoUrl: r.logo_url ?? null, accountId: r.account_id ?? null,
 });
 
 export interface CreateShopInput {
@@ -29,6 +29,8 @@ export interface CreateShopInput {
   shippingFeeCents?: number;
   menuPhotoPaths?: string[];
   payeeEmail?: string | null;
+  /** The owning account; absent or null leaves the shop unattached (reached by its owner link). */
+  accountId?: string | null;
 }
 
 /** A slug from `name` that no other shop uses (`exceptId`'s own slug doesn't count as taken). */
@@ -47,13 +49,14 @@ export function create(db: Db, input: CreateShopInput): { shop: Shop; ownerToken
   const token = ownerToken();
   const id = newId('shp');
   db.prepare(
-    `INSERT INTO shops (id, slug, name, about, kind, fulfillment, pickup_notes, shipping_fee_cents, owner_token_hash, menu_photo_paths, created_at, payee_email)
-     VALUES (@id, @slug, @name, @about, @kind, @fulfillment, @pickupNotes, @shippingFeeCents, @hash, @photos, @createdAt, @payeeEmail)`,
+    `INSERT INTO shops (id, slug, name, about, kind, fulfillment, pickup_notes, shipping_fee_cents, owner_token_hash, menu_photo_paths, created_at, payee_email, account_id)
+     VALUES (@id, @slug, @name, @about, @kind, @fulfillment, @pickupNotes, @shippingFeeCents, @hash, @photos, @createdAt, @payeeEmail, @accountId)`,
   ).run({
     id, slug: uniqueSlug(db, input.name), name: input.name, about: input.about ?? '', kind: input.kind ?? 'food',
     fulfillment: input.fulfillment ?? 'pickup', pickupNotes: input.pickupNotes ?? '',
     shippingFeeCents: input.shippingFeeCents ?? 0, hash: hashToken(token),
     photos: JSON.stringify(input.menuPhotoPaths ?? []), createdAt: now(), payeeEmail: input.payeeEmail ?? null,
+    accountId: input.accountId ?? null,
   });
   return { shop: byId(db, id)!, ownerToken: token };
 }
@@ -66,6 +69,12 @@ export function byId(db: Db, id: string): Shop | null {
 export function bySlug(db: Db, slug: string): Shop | null {
   const r = db.prepare('SELECT * FROM shops WHERE slug = ?').get(slug) as ShopRow | undefined;
   return r ? toShop(r) : null;
+}
+
+/** The account's shops, newest first. */
+export function listByAccount(db: Db, accountId: string): Shop[] {
+  const rows = db.prepare('SELECT * FROM shops WHERE account_id = ? ORDER BY created_at DESC, rowid DESC').all(accountId) as ShopRow[];
+  return rows.map(toShop);
 }
 
 export function byOwnerToken(db: Db, token: string): Shop | null {

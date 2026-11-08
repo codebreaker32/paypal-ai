@@ -26,6 +26,8 @@ export interface Shop {
   coverUrl: string | null;
   /** The shop's logo, a site-relative URL to a square WebP; null: the avatar uses the cover, a menu photo or a drawing. */
   logoUrl: string | null;
+  /** The account that owns the shop; null for an unattached shop (the seed and the harness), reached by its owner link. */
+  accountId: string | null;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';

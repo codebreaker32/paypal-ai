@@ -15,6 +15,7 @@ import { parseStoredReading, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, SAMPLES, recordedReading, samplePhotoPath, type SampleId } from '@/lib/ai/samples';
 import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from '@/lib/uploads';
 import { startLiveExamples } from '@/lib/library/pexels';
+import { EditError } from './edits';
 
 /** Shown until the menu (or the seller) gives the shop a name. */
 export const PLACEHOLDER_NAME = 'My shop';
@@ -34,29 +35,49 @@ export interface CreatedShop {
   ownerToken: string;
 }
 
-/** A shop starts with a throwaway slug; publishShop gives it the real one from its final name. */
+export const MAX_SHOPS_PER_ACCOUNT = 25;
+
+/** Throws SHOP_LIMIT (a 409 through errorResponse) when the account is full. A null account (a guest shop) has no cap. */
+export function assertUnderShopLimit(db: Db, accountId: string | null): void {
+  if (accountId && shops.listByAccount(db, accountId).length >= MAX_SHOPS_PER_ACCOUNT) {
+    throw new EditError('SHOP_LIMIT', 409, `One account can have up to ${MAX_SHOPS_PER_ACCOUNT} shops.`);
+  }
+}
+
+/**
+ * A shop starts with a throwaway slug; publishShop gives it the real one from its final name. The count and the insert
+ * are one synchronous transaction: the caller's early check ran before the awaits that read and decode the photos, so a
+ * burst of requests all passed it (SR17).
+ */
 async function createDraftShop(
   db: Db,
   name: string,
   savePhotos: (shopId: string) => Promise<string[]>,
+  accountId: string | null,
 ): Promise<CreatedShop> {
-  const { shop, ownerToken } = shops.create(db, { name: `draft ${newId('shp', 8).slice(4)}` });
+  const { shop, ownerToken } = db.transaction(() => {
+    assertUnderShopLimit(db, accountId);
+    return shops.create(db, { name: `draft ${newId('shp', 8).slice(4)}`, accountId });
+  })();
   const menuPhotoPaths = await savePhotos(shop.id);
   return { shop: shops.update(db, shop.id, { name, menuPhotoPaths }), ownerToken };
 }
 
 /** `photos` are raw uploads; each is normalised (and rejected if it isn't a photo) before the shop exists. */
-export async function createShopFromPhotos(db: Db, photos: Buffer[]): Promise<CreatedShop> {
+export async function createShopFromPhotos(db: Db, photos: Buffer[], accountId: string | null = null): Promise<CreatedShop> {
   const jpegs = await Promise.all(photos.map((p) => normalizePhoto(p)));
-  return createDraftShop(db, PLACEHOLDER_NAME, (id) =>
-    Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
+  return createDraftShop(
+    db,
+    PLACEHOLDER_NAME,
+    (id) => Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
+    accountId,
   );
 }
 
 /** The sample's photo is copied into the shop's folder; its file name remembers which sample it was. */
-export async function createShopFromSample(db: Db, sample: SampleId): Promise<CreatedShop> {
+export async function createShopFromSample(db: Db, sample: SampleId, accountId: string | null = null): Promise<CreatedShop> {
   const jpeg = await normalizePhoto(await fs.readFile(samplePhotoPath(sample)));
-  return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)]);
+  return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)], accountId);
 }
 
 /**
