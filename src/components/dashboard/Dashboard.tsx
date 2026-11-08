@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/app/PageHeader';
 import { switchSection } from '@/components/app/SectionLink';
-import { patchShell, useShellValues, type ShellValues } from '@/components/app/shell-store';
+import { patchShell, shellSnapshot, useShellValues, type ShellValues } from '@/components/app/shell-store';
 import { itemPictures, pictureSource } from '@/lib/library/picture';
 import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
@@ -158,14 +158,17 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
 
   const togglePause = async (paused: boolean) => {
     const before = status;
+    const wanted = paused ? 'paused' : 'live';
     setPausing(true);
     setPauseError(null);
-    patchShell(shop.id, { status: paused ? 'paused' : 'live' });
+    patchShell(shop.id, { status: wanted });
+    // A slow answer must not undo what came after it: the banner's Resume can change the status while this is in flight.
+    const stillWanted = () => shellSnapshot(shop.id, serverShell).status === wanted;
     try {
-      const { shop: saved } = await setShopStatus(shop.id, paused ? 'paused' : 'live');
-      patchShell(shop.id, { status: saved.status });
+      const { shop: saved } = await setShopStatus(shop.id, wanted);
+      if (stillWanted()) patchShell(shop.id, { status: saved.status });
     } catch (e) {
-      patchShell(shop.id, { status: before });
+      if (stillWanted()) patchShell(shop.id, { status: before });
       setPauseError(e instanceof Error ? e.message : "Couldn’t save. Try again.");
     } finally {
       setPausing(false);

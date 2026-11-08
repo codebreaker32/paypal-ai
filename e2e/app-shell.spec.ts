@@ -216,6 +216,32 @@ test.describe('banners', () => {
     await expect(banner).toBeHidden();
   });
 
+  test('a slow pause answer arriving after Resume does not bring the banner back', async ({ page, context }) => {
+    const s = createFixtureShop('Slow Pause Bakery');
+    await signInAsOwner(context, s, BASE);
+    await page.goto(`/shops/${s.shop.id}`);
+    let held = false;
+    let released = () => {};
+    const answered = new Promise<void>((resolve) => { released = resolve; });
+    await page.route(`**/api/shops/${s.shop.id}`, async (route) => {
+      if (route.request().method() === 'PATCH' && !held) {
+        held = true;
+        const res = await route.fetch();
+        await new Promise((r) => setTimeout(r, 1500));
+        await route.fulfill({ response: res });
+        released();
+      } else {
+        await route.continue();
+      }
+    });
+    await page.getByRole('switch', { name: 'Pause agent orders' }).click();
+    const banner = page.getByRole('status').filter({ hasText: 'Agent orders paused.' });
+    await banner.getByRole('button', { name: 'Resume' }).click();
+    await answered;
+    await page.waitForTimeout(400); // the late answer has had its chance to bring the banner back
+    await expect(banner).toBeHidden();
+  });
+
   test('one banner at a time: a missing payee outranks paused', async ({ page, context }) => {
     const noPayee = createFixtureShop('No Payee Bakery', { payeeEmail: null });
     await signInAsOwner(context, noPayee, BASE);
@@ -232,6 +258,7 @@ test.describe('banners', () => {
 test.describe('Live, Share, Settings', () => {
   const noSideways = async (page: Page) => {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await expect(page.locator('h1')).toHaveCSS('font-size', '24px');
   };
 
   for (const [name, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {

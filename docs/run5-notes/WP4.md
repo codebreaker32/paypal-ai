@@ -51,6 +51,7 @@ Edited tests (selectors and copy targets only):
 - **Settings, payee note:** `Your shop can’t take orders until you add your PayPal email.` now shows only on a draft. A live or paused shop already has the shell's banner saying the same thing directly above it. Both notes moved inside the form, so the form's top lines up with its heading (acceptance 19).
 - **Settings, `LogoPicker` has `titled={false}`**, since the section heading already says "Your logo".
 - **Pause:** the duplicate was already gone from Settings when this step started.
+- **Pause race (found by a flaky e2e):** a slow pause answer arriving after the banner's Resume brought the banner back, though the server had ended on live. `togglePause` now ignores its own answer once the status has moved on. Regression: `e2e/app-shell.spec.ts`, "a slow pause answer".
 - **Sign-in row:** `/login` and `/account` arrive with WP5/6. `currentShellAccount()` is still null here, so only `Log in` shows.
 - **Seen, not changed (WP1's primitive):** labelled `CopyButton`s sit about 1-2 px higher than a `ButtonLink` beside them (`Copy` next to `Open` on Share).
 
