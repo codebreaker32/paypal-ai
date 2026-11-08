@@ -3,6 +3,8 @@
 // so no Claude or PayPal calls happen here.
 //
 // Run: E2E_PORT=3211 npx playwright test e2e/assistant-layout.spec.ts
+// Titles carry the brief's acceptance numbers: `--grep "A6"` runs the tests for item 6. Items 9 and 16 fake the visual
+// viewport and the stream, as the brief allows; everything else is measured in the browser.
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -12,7 +14,7 @@ import * as itemsRepo from '../src/lib/db/repos/items';
 import * as shopsRepo from '../src/lib/db/repos/shops';
 import { createFakePayPal } from '../src/lib/paypal/fake';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
-import { settle } from './helpers';
+import { a11y, settle, smallTargets } from './helpers';
 
 const SLUG = DEMO_SHOP.slug;
 const TITLE = 'Order with an assistant';
@@ -84,6 +86,22 @@ const box = async (locator: Locator) => {
   return b!;
 };
 
+/** The composer, its box and its button: each fully inside the viewport. */
+async function expectComposerInside(page: Page, region: Locator): Promise<void> {
+  const { w, h } = await innerSize(page);
+  for (const part of [
+    region.locator('[data-assistant-footer] form'),
+    region.getByRole('textbox', { name: 'Message to the assistant' }),
+    region.getByRole('button', { name: 'Send' }),
+  ]) {
+    const b = await box(part);
+    expect(b.x).toBeGreaterThanOrEqual(0);
+    expect(b.y).toBeGreaterThanOrEqual(0);
+    expect(b.x + b.width).toBeLessThanOrEqual(w);
+    expect(b.y + b.height).toBeLessThanOrEqual(h);
+  }
+}
+
 const innerSize = (page: Page) => page.evaluate(() => ({ w: window.innerWidth, h: window.innerHeight, sw: document.documentElement.scrollWidth }));
 
 async function expectDocked(page: Page): Promise<void> {
@@ -104,16 +122,33 @@ async function expectDocked(page: Page): Promise<void> {
     const part = page.locator(name).first();
     if (await part.count()) expect((await box(part)).x + (await box(part)).width).toBeLessThanOrEqual(b.x + 1);
   }
+
+  await expectComposerInside(page, aside);
+  // A3 as written: all of them exist, and none reaches past the panel's left edge.
+  for (const tag of ['main', 'header', 'footer']) {
+    const parts = await page.locator(tag).all();
+    expect(parts.length, tag).toBeGreaterThan(0);
+    for (const part of parts) {
+      const p = await box(part);
+      expect(p.x + p.width, tag).toBeLessThanOrEqual(b.x + EPSILON);
+    }
+  }
 }
+
+/** Layout rounds to 1/64 px at fractional widths (30vw at 1366 is 409.8), so "at or left of" gets that much room. */
+const EPSILON = 1 / 32;
 
 test.describe('docked from 1024 px', () => {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }]) {
-    test(`${viewport.width}x${viewport.height}: edge to edge at any scroll`, async ({ page }) => {
+    test(`A1 A2 A3: ${viewport.width}x${viewport.height}: edge to edge at any scroll`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.goto(`/s/${SLUG}?assistant=1`);
       await settle(page);
       for (const to of [0, 0.5, 1]) {
-        await page.evaluate((f) => window.scrollTo(0, (document.documentElement.scrollHeight - window.innerHeight) * f), to);
+        await page.evaluate((f) => window.scrollTo({ top: (document.documentElement.scrollHeight - window.innerHeight) * f, behavior: 'instant' }), to);
+        const { y, end } = await page.evaluate(() => ({ y: window.scrollY, end: document.documentElement.scrollHeight - window.innerHeight }));
+        expect(end).toBeGreaterThan(100);
+        expect(Math.abs(y - end * to)).toBeLessThanOrEqual(2);
         await expectDocked(page);
       }
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -132,7 +167,7 @@ test.describe('docked from 1024 px', () => {
   });
 
   for (const width of [1440, 1920]) {
-    test(`${width}: the logo stays within 8 px between closed and open`, async ({ page }) => {
+    test(`A4: ${width}: the logo stays within 8 px between closed and open`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
       await page.goto(`/s/${SLUG}`);
       await settle(page);
@@ -145,7 +180,7 @@ test.describe('docked from 1024 px', () => {
     });
   }
 
-  test('1440: after a replayed order, the payment check and Start over sit outside the scroller', async ({ page }) => {
+  test('A10: 1440: after a replayed order, the payment check and Start over sit outside the scroller', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`/s/${SLUG}?assistant=1`);
     await settle(page);
@@ -165,13 +200,20 @@ async function expectFooterActions(page: Page, region: Locator): Promise<void> {
     const { h } = await innerSize(page);
     expect(b.y + b.height).toBeLessThanOrEqual(h);
     await expect(region.locator('.overflow-y-auto').getByRole('button', { name })).toHaveCount(0);
+    // Fully on screen, and below the scroller rather than over it.
+    const { w } = await innerSize(page);
+    expect(b.x).toBeGreaterThanOrEqual(0);
+    expect(b.y).toBeGreaterThanOrEqual(0);
+    expect(b.x + b.width).toBeLessThanOrEqual(w);
+    const scroller = await box(region.locator('.overflow-y-auto').first());
+    expect(b.y).toBeGreaterThanOrEqual(scroller.y + scroller.height);
   }
 }
 
 test.describe('phone: bottom sheet', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('390x844: y 12 to 844 for empty and full conversation; focus on the heading', async ({ page }) => {
+  test('A6 A10 A13: 390x844: y 12 to 844 for empty and full conversation; focus on the heading', async ({ page }) => {
     await page.goto(`/s/${SLUG}`);
     await settle(page);
     await replayTurns(page);
@@ -191,7 +233,7 @@ test.describe('phone: bottom sheet', () => {
     await expectFooterActions(page, dialog);
   });
 
-  test('390x480: the composer stays inside the screen', async ({ page }) => {
+  test('A8: 390x480: the composer stays inside the screen', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 480 });
     await page.goto(`/s/${SLUG}`);
     await settle(page);
@@ -200,10 +242,11 @@ test.describe('phone: bottom sheet', () => {
     await expect(dialog).toBeVisible();
     const send = await box(dialog.getByRole('button', { name: 'Send' }));
     expect(send.y + send.height).toBeLessThanOrEqual(480);
+    await expectComposerInside(page, dialog);
   });
 });
 
-test('768x1024: full-height side sheet at the right edge', async ({ page }) => {
+test('A7: 768x1024: full-height side sheet at the right edge', async ({ page }) => {
   await page.setViewportSize({ width: 768, height: 1024 });
   await page.goto(`/s/${SLUG}`);
   await settle(page);
@@ -218,7 +261,7 @@ test('768x1024: full-height side sheet at the right edge', async ({ page }) => {
   expect(b.x + b.width).toBe(768);
 });
 
-test('reduced motion: the dock and sheet sit still', async ({ page }) => {
+test('A18: reduced motion: the dock and sheet sit still', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/s/${SLUG}?assistant=1`);
   await settle(page);
@@ -238,7 +281,7 @@ test.describe('entry points: one order button, no side card', () => {
     await page.waitForTimeout(350);
   };
 
-  test('1440, closed: no side card, and exactly one button at the top, mid page and the end', async ({ page }) => {
+  test('A5: 1440, closed: no side card, and exactly one button at the top, mid page and the end', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`/s/${SLUG}`);
     await settle(page);
@@ -332,21 +375,21 @@ async function say(region: Locator, text: string): Promise<void> {
   await expect(region.getByRole('log').getByText(text)).toBeVisible();
 }
 
+/** A deep-linked conversation with one finished turn long enough to scroll. */
+async function longConversation(page: Page, surface = 'dialog') {
+  await streamByHand(page);
+  await page.goto(`/s/${SLUG}?assistant=1`);
+  await settle(page);
+  const region = surface === 'dialog' ? page.getByRole('dialog') : page.locator(surface);
+  await say(region, 'first');
+  for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+  await finish(page);
+  await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+  return { region, scroller: region.locator('.overflow-y-auto').first() };
+}
+
 test.describe('message scrolling', () => {
   test.use({ viewport: { width: 390, height: 560 } });
-
-  /** A first turn long enough to scroll, then a second message with its reply started. */
-  async function longConversation(page: Page) {
-    await streamByHand(page);
-    await page.goto(`/s/${SLUG}?assistant=1`);
-    await settle(page);
-    const region = page.getByRole('dialog');
-    await say(region, 'first');
-    for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
-    await finish(page);
-    await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
-    return { region, scroller: region.locator('.overflow-y-auto').first() };
-  }
 
   test('a new message scrolls to it, even after the buyer scrolled away', async ({ page }) => {
     const { region, scroller } = await longConversation(page);
@@ -373,7 +416,7 @@ test.describe('message scrolling', () => {
     expect(s.top).toBeLessThan(s.end);
   });
 
-  test('a buyer who scrolled up during a stream keeps their place', async ({ page }) => {
+  test('A16: a buyer who scrolled up during a stream keeps their place', async ({ page }) => {
     const { region, scroller } = await longConversation(page);
     await say(region, 'second question');
     await emit(page, { type: 'text', text: PARAGRAPH });
@@ -399,7 +442,7 @@ test.describe('message scrolling', () => {
   });
 
   for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 390, height: 560 }]) {
-    test(`${viewport.width}x${viewport.height}: the approval link is fully inside the log on arrival`, async ({ page }) => {
+    test(`A11: ${viewport.width}x${viewport.height}: the approval link is fully inside the log on arrival`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await replayTurns(page);
       await page.goto(`/s/${SLUG}?assistant=1`);
@@ -414,7 +457,7 @@ test.describe('message scrolling', () => {
     });
   }
 
-  test('wheel over the log at its end leaves the page where it was', async ({ page }) => {
+  test('A16: wheel over the log at its end leaves the page where it was', async ({ page }) => {
     const { scroller } = await longConversation(page);
     await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
     const before = await page.evaluate(() => window.scrollY);
@@ -437,7 +480,7 @@ test.describe('keyboard', () => {
     expect(content).not.toContain('viewport-fit');
   });
 
-  test('a visual viewport of 500 px: the dialog shrinks to 488 and the composer stays above it', async ({ page }) => {
+  test('A9: a visual viewport of 500 px: the dialog shrinks to 488 and the composer stays above it', async ({ page }) => {
     await page.addInitScript(() => {
       const fake = new EventTarget() as EventTarget & { height: number; offsetTop: number; scale: number; width: number };
       fake.height = window.innerHeight;
@@ -467,7 +510,7 @@ test.describe('keyboard', () => {
 test.describe('1440: the page holds still as the dock opens and closes', () => {
   test.use({ viewport: { width: 1440, height: 900 } });
 
-  test('a section in view stays within 8 px', async ({ page }) => {
+  test('A15: a section in view stays within 8 px', async ({ page }) => {
     await page.goto(`/s/${SLUG}`);
     await settle(page);
     // Stands in for the menu re-flowing beside the dock: the page above the anchor changes height as it opens. No browser
@@ -496,7 +539,7 @@ test.describe('focus', () => {
   test.describe('1440', () => {
     test.use({ viewport: { width: 1440, height: 900 } });
 
-    test('a click docks and focuses the message box, the caret at the end; Esc inside closes and focus returns to a button that shows', async ({ page }) => {
+    test('A13: a click docks and focuses the message box, the caret at the end; Esc inside closes and focus returns to a button that shows', async ({ page }) => {
       await page.goto(`/s/${SLUG}`);
       await settle(page);
       const hero = page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) });
@@ -548,10 +591,11 @@ test.describe('focus', () => {
   test.describe('phone', () => {
     test.use({ viewport: { width: 390, height: 844 } });
 
-    test('modal: the heading, never the message box; closing puts focus on the opener and the page stays put', async ({ page }) => {
+    test('A12 A13: modal: the heading, never the message box; closing puts focus on the opener and the page stays put', async ({ page }) => {
       await page.goto(`/s/${SLUG}`);
       await settle(page);
       await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
+      expect(await page.evaluate(() => window.scrollY)).toBe(500);
       const bar = page.locator('[data-order-bar] button');
       await bar.click();
       await expect(heading(page)).toBeFocused();
@@ -575,7 +619,7 @@ test.describe('back and deep link', () => {
     test.use({ viewport: { width: 390, height: 844 } });
     const bar = (page: Page) => page.locator('[data-order-bar] button');
 
-    test('tap open, then Back: the sheet closes, the URL is clean and the page did not reload', async ({ page }) => {
+    test('A14: tap open, then Back: the sheet closes, the URL is clean and the page did not reload', async ({ page }) => {
       await page.goto(`/s/${SLUG}`);
       await settle(page);
       await setMarker(page);
@@ -636,7 +680,7 @@ test.describe('back and deep link', () => {
       expect(hasParam(page)).toBe(false);
     });
 
-    test('deep link, then X: closed by replaceState, history.length unchanged, focus on the order bar', async ({ page }) => {
+    test('A14: deep link, then X: closed by replaceState, history.length unchanged, focus on the order bar', async ({ page }) => {
       await page.goto(`/s/${SLUG}?assistant=1`);
       await settle(page);
       await expect(page.getByRole('dialog')).toBeVisible();
@@ -676,5 +720,212 @@ test.describe('back and deep link', () => {
       expect(hasParam(page)).toBe(false);
       expect(await length(page)).toBe(before);
     });
+  });
+});
+
+test('A6: 390x844: the same box while thinking and with a long reply', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await streamByHand(page);
+  await page.goto(`/s/${SLUG}`);
+  await settle(page);
+  await page.locator('[data-order-bar] button').click();
+  const dialog = page.getByRole('dialog', { name: TITLE });
+  await expect(dialog).toBeVisible();
+  const empty = await box(dialog);
+  expect(Math.abs(empty.y - 12)).toBeLessThanOrEqual(1);
+  expect(empty.y + empty.height).toBe(844);
+
+  await say(dialog, 'hello');
+  await expect(dialog.getByRole('status').getByText('Thinking')).toBeVisible();
+  const thinking = await box(dialog);
+  expect(thinking).toEqual(empty);
+
+  for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+  await finish(page);
+  await expect(dialog.getByRole('button', { name: 'Start over' })).toBeVisible();
+  const scroller = dialog.locator('.overflow-y-auto').first();
+  const s = await logState(scroller);
+  expect(s.end).toBeGreaterThan(0);
+  expect(await box(dialog)).toEqual(empty);
+});
+
+test.describe('A13: Esc closes and focus returns to the opener', () => {
+  test('phone: Esc on the sheet returns focus to the order bar', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const bar = page.locator('[data-order-bar] button');
+    await bar.click();
+    await expect(page.getByRole('heading', { name: TITLE, level: 2 })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(bar).toBeFocused();
+  });
+
+  test('768: the side sheet takes focus on its heading; Esc returns it to the order bar', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const bar = page.locator('[data-order-bar] button');
+    await bar.click();
+    await expect(page.getByRole('heading', { name: TITLE, level: 2 })).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(bar).toBeFocused();
+  });
+});
+
+test('A15: 1440: "Pastries" holds still as the dock opens and closes, with nothing forced', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/s/${SLUG}`);
+  await settle(page);
+  const pastries = page.getByRole('heading', { name: 'Pastries' });
+  await pastries.evaluate((el) => window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 300, behavior: 'instant' }));
+  await page.waitForTimeout(350);
+  const before = (await box(pastries)).y;
+  expect(Math.abs(before - 300)).toBeLessThanOrEqual(2);
+
+  await page.getByRole('button', { name: TITLE }).filter({ visible: true }).first().click();
+  await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+  await page.waitForTimeout(100);
+  expect(Math.abs((await box(pastries)).y - before)).toBeLessThanOrEqual(8);
+
+  await page.getByRole('button', { name: 'Close the assistant' }).click();
+  await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+  await page.waitForTimeout(100);
+  expect(Math.abs((await box(pastries)).y - before)).toBeLessThanOrEqual(8);
+});
+
+test.describe('A16: the page never moves for the log, measured with a real wheel', () => {
+  /** A wheel over the log. The first one proves the browser is delivering wheels to it. */
+  async function wheelAtEnd(page: Page, scroller: Locator) {
+    const b = await box(scroller);
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    const end = (await logState(scroller)).end;
+    expect(end).toBeGreaterThan(200);
+    await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
+    await page.mouse.wheel(0, -120);
+    await expect.poll(async () => (await logState(scroller)).top).toBeLessThan(end - 1);
+    await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
+    await page.waitForTimeout(100);
+    const before = await page.evaluate(() => window.scrollY);
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+    expect((await logState(scroller)).top).toBeGreaterThanOrEqual(end - 1);
+    return before;
+  }
+
+  test('1440, docked with the page mid-way (no scroll lock): the page stays', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const { scroller } = await longConversation(page, '[data-assistant-dock]');
+    await page.evaluate(() => window.scrollTo({ top: 600, behavior: 'instant' }));
+    expect(await wheelAtEnd(page, scroller)).toBe(600);
+  });
+
+  test('390x844, sheet over a page at 500: the page stays', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await streamByHand(page);
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
+    await page.locator('[data-order-bar] button').click();
+    const region = page.getByRole('dialog');
+    await expect(region).toBeVisible();
+    await say(region, 'first');
+    for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+    await finish(page);
+    await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+    expect(await wheelAtEnd(page, region.locator('.overflow-y-auto').first())).toBe(500);
+  });
+
+  test('1440: wheeling up during a stream keeps the buyer where they went', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const { region, scroller } = await longConversation(page, '[data-assistant-dock]');
+    await say(region, 'second question');
+    await emit(page, { type: 'text', text: PARAGRAPH });
+    await page.waitForTimeout(100);
+    const b = await box(scroller);
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    const start = (await logState(scroller)).top;
+    await page.mouse.wheel(0, -400);
+    await expect.poll(async () => (await logState(scroller)).top).toBeLessThan(start - 200);
+    await page.waitForTimeout(150);
+    const before = (await logState(scroller)).top;
+    for (let i = 0; i < 4; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+    await page.waitForTimeout(300);
+    expect((await logState(scroller)).top).toBe(before);
+  });
+});
+
+test.describe('A17: accessibility, empty and in conversation', () => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    test(`${viewport.width}: axe and target size`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await replayTurns(page);
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const docked = viewport.width >= 1024;
+      await page.getByRole('button', { name: TITLE }).filter({ visible: true }).first().click();
+      const scope = docked ? '[data-assistant-dock]' : 'dialog[open]';
+      const region = page.locator(scope);
+      await expect(region).toBeVisible();
+
+      await a11y(page);
+      expect(await smallTargets(page, scope)).toEqual([]);
+
+      await orderThrough(region);
+      await page.waitForTimeout(350);
+      await a11y(page);
+      expect(await smallTargets(page, scope)).toEqual([]);
+    });
+  }
+});
+
+test.describe('A18: reduced motion, measured the moment each surface opens', () => {
+  const measure = (region: Locator) =>
+    region.evaluate(async (el) => {
+      await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
+      return { transform: getComputedStyle(el).transform, running: el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length };
+    });
+
+  for (const { width, height, surface } of [
+    { width: 1440, height: 900, surface: '[data-assistant-dock]' },
+    { width: 768, height: 1024, surface: 'dialog.assistant-sheet' },
+    { width: 390, height: 844, surface: 'dialog.assistant-sheet' },
+  ]) {
+    test(`${width}: no transform and no running animation`, async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await page.setViewportSize({ width, height });
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(true);
+      await page.getByRole('button', { name: TITLE }).filter({ visible: true }).first().click();
+      const region = page.locator(surface);
+      await expect(region).toBeVisible();
+      expect(await measure(region)).toEqual({ transform: 'none', running: 0 });
+    });
+  }
+
+  test('motion on, the control: the same surface does slide in, and ends at 12 px', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
+    await page.evaluate(() => {
+      const w = window as unknown as { __sheetTransitions: string[] };
+      w.__sheetTransitions = [];
+      document.addEventListener('transitionrun', (e) => {
+        if ((e.target as Element).matches('dialog.assistant-sheet')) w.__sheetTransitions.push((e as TransitionEvent).propertyName);
+      });
+    });
+    await page.locator('[data-order-bar] button').click();
+    const dialog = page.locator('dialog.assistant-sheet');
+    await expect(dialog).toBeVisible();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __sheetTransitions: string[] }).__sheetTransitions)).toContain('transform');
+    await expect.poll(() => dialog.evaluate((el) => el.getAnimations().filter((a) => a.playState === 'running').length)).toBe(0);
+    const b = await box(dialog);
+    expect(Math.abs(b.y - 12)).toBeLessThanOrEqual(1);
+    expect(b.y + b.height).toBe(844);
   });
 });
