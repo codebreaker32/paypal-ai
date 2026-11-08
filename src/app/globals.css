@@ -442,6 +442,8 @@
 /* ───────────── Seller app shell ───────────── */
 :root {
   --app-sidebar-w:15rem; --app-topbar-h:3.5rem; --app-tabbar-h:3.5rem;
+  /* PanelList rows (ui/panel.tsx). */
+  --row-pad-x:1.25rem; --row-pad-y:1rem; --row-min-h:4.5rem;
 }
 @utility type-page { font-family:var(--font-display); font-size:var(--text-2xl); line-height:var(--text-2xl--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
 @utility type-section { font-family:var(--font-display); font-size:var(--text-base); line-height:var(--text-base--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
