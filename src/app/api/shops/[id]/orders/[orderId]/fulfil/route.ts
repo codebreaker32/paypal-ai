@@ -4,10 +4,13 @@ import { getOrderDeps } from '@/lib/services';
 import { markPickedUp, SellerActionError } from '@/lib/seller/actions';
 import { jsonError } from '@/lib/http/json-error';
 import { json } from '@/lib/seller/http';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
-export async function POST(_req: Request, ctx: RouteContext<'/api/shops/[id]/orders/[orderId]/fulfil'>): Promise<Response> {
+export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/orders/[orderId]/fulfil'>): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id, orderId } = await ctx.params;
   const shop = await getOwnedShop(id);
   if (!shop) return jsonError(404, 'NOT_FOUND', 'Shop not found.');

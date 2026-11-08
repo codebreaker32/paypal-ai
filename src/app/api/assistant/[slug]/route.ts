@@ -8,6 +8,7 @@ import { clientIp } from '@/lib/http/client-ip';
 import { jsonError } from '@/lib/http/json-error';
 import { BodyTooLargeError, MAX_JSON_BODY_BYTES, bodyTooLarge, readJsonLimited } from '@/lib/http/read-body';
 import { allow } from '@/lib/rate-limit';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
@@ -22,6 +23,8 @@ const Body = z
   .strict();
 
 export async function POST(req: Request, ctx: { params: Promise<{ slug: string }> }): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { slug } = await ctx.params;
 
   let raw: unknown;

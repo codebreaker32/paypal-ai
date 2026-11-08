@@ -171,6 +171,21 @@ describe('POST /api/shops', () => {
     });
   });
 
+  it('refuses a cross-site POST before anything happens (SR2)', async () => {
+    let read = false;
+    const req = new Request('http://localhost/api/shops', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://evil.example' },
+      body: unreadBody(() => (read = true)),
+      duplex: 'half',
+    } as RequestInit);
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+    expect(await errorCode(res)).toBe('BAD_ORIGIN');
+    expect(read).toBe(false);
+    expect(shopCount()).toBe(0);
+  });
+
   it('with guests allowed and no session, stays as it was: an owner cookie and no account', async () => {
     const res = await POST(postSample());
     expect(res.status).toBe(201);
@@ -332,6 +347,17 @@ describe('PATCH /api/shops/[id]: the PayPal email (SR18)', () => {
     expect((await patch(shop.id, { payeeEmail: NEW })).status).toBe(200);
     expect(email(shop.id)).toBe(NEW);
     expect(changes(shop.id)).toHaveLength(1);
+  });
+
+  it('refuses a cross-site PATCH before anything happens (SR2)', async () => {
+    const id = accountShop('draft');
+    const res = await PATCH(
+      new Request('http://localhost/x', { method: 'PATCH', headers: { origin: 'https://evil.example' }, body: JSON.stringify({ payeeEmail: NEW }) }),
+      ctx(id),
+    );
+    expect(res.status).toBe(403);
+    expect(await errorCode(res)).toBe('BAD_ORIGIN');
+    expect(email(id)).toBe(OLD);
   });
 
   it('another account gets 404, not a password prompt', async () => {

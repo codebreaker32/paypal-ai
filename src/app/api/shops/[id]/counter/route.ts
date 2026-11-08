@@ -11,12 +11,15 @@ import { clientIp } from '@/lib/http/client-ip';
 import { jsonError } from '@/lib/http/json-error';
 import { allowSetup } from '@/lib/rate-limit';
 import { UploadError, readOnePhoto } from '@/lib/uploads';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
 type Ctx = { params: Promise<{ id: string }> };
 
 export async function POST(req: Request, ctx: Ctx): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id } = await ctx.params;
   const shop = await ownedShop(id);
   if (!shop) return notFound();

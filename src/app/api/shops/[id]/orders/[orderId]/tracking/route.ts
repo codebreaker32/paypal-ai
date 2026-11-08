@@ -6,10 +6,13 @@ import { getOrderDeps } from '@/lib/services';
 import { addTracking, parseTrackingInput, SellerActionError } from '@/lib/seller/actions';
 import { jsonError } from '@/lib/http/json-error';
 import { json, readJson } from '@/lib/seller/http';
+import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/orders/[orderId]/tracking'>): Promise<Response> {
+  const refused = assertSameOrigin(req);
+  if (refused) return refused;
   const { id, orderId } = await ctx.params;
   const shop = await getOwnedShop(id);
   if (!shop) return jsonError(404, 'NOT_FOUND', 'Shop not found.');
