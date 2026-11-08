@@ -324,10 +324,12 @@ export interface ConsoleConversationProps {
   api: BuyerConsoleApi;
   shopName: string;
   starters: string[];
+  /** False for a shop that isn't taking orders: the greeting then offers only questions. */
+  takesOrders: boolean;
 }
 
 /** The chat: an empty state with starter prompts, the turns with their Activity, approval cards, and a status line. */
-export function ConsoleConversation({ api, shopName, starters }: ConsoleConversationProps) {
+export function ConsoleConversation({ api, shopName, starters, takesOrders }: ConsoleConversationProps) {
   const { state, send, reset } = api;
   const end = useRef<HTMLDivElement>(null);
   const log = useRef<HTMLDivElement>(null);
@@ -367,7 +369,11 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
     return (
       <div className="flex flex-col gap-4">
         <p className="text-base leading-6 text-ink">
-          Hi! I’m Claude. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.
+          {takesOrders ? (
+            <>Hi! I’m Claude. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.</>
+          ) : (
+            <>Hi! I’m Claude. {shopName} isn’t taking orders right now, but I can answer questions about the menu.</>
+          )}
         </p>
         <Starters prompts={starters} onPick={send} />
       </div>

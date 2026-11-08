@@ -16,6 +16,8 @@ export interface AssistantShellProps {
   shopName: string;
   starters: string[];
   inputRef?: RefObject<HTMLInputElement | null>;
+  /** False for a shop that isn't taking orders: the console greets with questions only. */
+  takesOrders: boolean;
   onClose: () => void;
 }
 
@@ -23,7 +25,7 @@ export interface AssistantShellProps {
  * The assistant's one layout, for all three forms (dock, side sheet, bottom sheet): a header, a scroller that keeps its
  * content at the bottom, and a footer that never moves. The conversation is the only part that scrolls.
  */
-export function AssistantShell({ api, title, titleId, titleRef, shopName, starters, inputRef, onClose }: AssistantShellProps) {
+export function AssistantShell({ api, title, titleId, titleRef, shopName, starters, inputRef, takesOrders, onClose }: AssistantShellProps) {
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,1fr)_auto]">
       {/* A div, not <header>: it would be a landmark inside the dialog. */}
@@ -42,7 +44,7 @@ export function AssistantShell({ api, title, titleId, titleRef, shopName, starte
 
       <div className="overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-gutter:stable]">
         <div className="flex min-h-full flex-col justify-end">
-          <ConsoleConversation api={api} shopName={shopName} starters={starters} />
+          <ConsoleConversation api={api} shopName={shopName} starters={starters} takesOrders={takesOrders} />
         </div>
       </div>
 

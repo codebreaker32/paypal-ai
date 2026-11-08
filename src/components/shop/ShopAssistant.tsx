@@ -83,7 +83,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     wasOpen.current = open;
   }, [open, isDesktop]);
 
-  const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} onClose={hide} />;
+  const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
 
   return (
     <>
