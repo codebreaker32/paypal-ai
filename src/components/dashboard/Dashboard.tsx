@@ -194,7 +194,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           status !== 'draft' ? (
             <div className="flex flex-col items-end">
               <Switch inline label="Pause agent orders" checked={paused} busy={pausing} failed={!!pauseError} onChange={togglePause} />
-              {pauseError && <FieldError className="pb-2">{pauseError}</FieldError>}
+              {pauseError && <FieldError className="max-w-56 pb-2 text-right">{pauseError}</FieldError>}
             </div>
           ) : undefined
         }

@@ -1,11 +1,12 @@
 'use client';
 
 import type { ItemPicture } from '@/lib/domain/category';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
+import { PANEL_HEAD, Panel, PanelList, PanelTitle, PanelValue } from '@/components/ui/panel';
 import { CountUp } from '@/components/motion/count-up';
 import type { Order, ShopKind } from '@/lib/domain/types';
 import { groupOrders, groupTotalCents } from '@/lib/seller/view';
@@ -13,34 +14,29 @@ import { OrderCard } from './OrderCard';
 
 type Filter = 'all' | 'prepare' | 'waiting' | 'done';
 
-function Count({ n }: { n: number }) {
-  return <span className="type-figures font-semibold text-ink-muted">{n}</span>;
-}
-
-/** The group's money, right-aligned on its header row: "$43.50". */
-function Subtotal({ orders, label, as: Tag = 'p' }: { orders: Order[]; label: string; as?: 'p' | 'span' }) {
-  if (orders.length === 0) return null;
+/** The group's money, on its title row: "Paid $43.50". The word is hidden on a phone so the row stays on one line. */
+function Subtotal({ orders, label }: { orders: Order[]; label: string }) {
   return (
-    <Tag className="ml-auto flex items-baseline gap-2 whitespace-nowrap">
-      <span className="type-meta text-ink-muted">{label}</span>
+    <>
+      <span className="type-meta text-ink-muted max-sm:sr-only">{label}</span>
       <CountUp cents={groupTotalCents(orders)} className="type-price font-bold" />
-    </Tag>
+    </>
   );
 }
 
 function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => void }) {
   return (
-    <div className="flex flex-col items-start gap-4 rounded-(--card-radius) bg-surface-sunken px-6 py-10 sm:items-center sm:text-center">
-      <h2 className="type-title">No orders yet</h2>
-      <p className="max-w-measure text-ink-soft">Orders from AI assistants land here, ready to prepare once the buyer pays on PayPal.</p>
-      <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
+    <div className="flex max-w-measure flex-col items-start gap-3">
+      <h2 className="type-section">No orders yet</h2>
+      <p className="text-ink-soft">Orders from AI assistants land here, ready to prepare once the buyer pays on PayPal.</p>
+      <div className="mt-1 flex w-full flex-col gap-1 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
         <ButtonLink href={`/s/${slug}?assistant=1`} variant="primary" fullWidth className="sm:w-auto">
           Watch an AI order from you
         </ButtonLink>
         <button
           type="button"
           onClick={onShowShare}
-          className="press-text inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink"
+          className="press-text inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink sm:px-0"
         >
           Share your agent door
         </button>
@@ -48,8 +44,6 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
     </div>
   );
 }
-
-const ROWS = 'divide-y divide-line overflow-hidden rounded-(--card-radius) bg-(--card-bg) shadow-(--card-shadow)';
 
 /** The selected segment's fill, on a pseudo-element so it fades and scales in behind the label. */
 const SEGMENT_THUMB =
@@ -82,22 +76,21 @@ export function OrdersPanel({
   const g = groupOrders(orders);
   const row = (o: Order) => <OrderCard key={o.id} order={o} shopId={shopId} photos={photos} shopKind={shopKind} fresh={fresh.has(o.id)} justPaid={justPaid?.has(o.id)} onChange={onOrderChange} />;
   const show = (f: Filter) => filter === 'all' || filter === f;
-  const segments: [Filter, string, number][] = [
+  const segments: [Filter, ReactNode, number][] = [
     ['all', 'All', orders.length],
     ['prepare', 'To prepare', g.toPrepare.length],
-    ['waiting', 'Waiting for payment', g.waiting.length],
+    ['waiting', <>Waiting<span className="max-sm:sr-only"> for payment</span></>, g.waiting.length],
     ['done', 'Done', g.done.length],
   ];
 
   return (
     <div className="flex flex-col gap-6">
-
       {orders.length === 0 ? (
         <EmptyState slug={slug} onShowShare={onShowShare} />
       ) : (
         <>
           <div role="group" aria-label="Show orders" className="no-scrollbar -mx-gutter overflow-x-auto px-gutter sm:mx-0 sm:px-0">
-            <div className="inline-flex gap-1 rounded-full bg-(--segment-track) p-1">
+            <div className="flex w-full gap-1 rounded-full bg-(--segment-track) p-1 sm:inline-flex sm:w-auto">
               {segments.map(([id, label, n]) => (
                 <button
                   key={id}
@@ -105,12 +98,12 @@ export function OrdersPanel({
                   aria-pressed={filter === id}
                   onClick={() => setFilter(id)}
                   className={cx(
-                    'press relative isolate inline-flex min-h-tap items-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap',
+                    'press relative isolate inline-flex min-h-tap flex-auto items-center justify-center gap-1.5 rounded-full px-2 text-sm font-semibold whitespace-nowrap sm:flex-initial sm:gap-2 sm:px-4',
                     SEGMENT_THUMB,
                     filter === id ? 'text-ink before:scale-100 before:opacity-100' : 'text-ink-soft hover:text-ink',
                   )}
                 >
-                  {label}
+                  <span>{label}</span>
                   <span className={cx('type-figures', filter === id && id === 'prepare' && n > 0 ? 'text-accent-ink' : 'text-ink-muted')}>{n}</span>
                 </button>
               ))}
@@ -118,43 +111,33 @@ export function OrdersPanel({
           </div>
 
           {show('prepare') && (
-            <section aria-labelledby="group-prepare" className="flex flex-col gap-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <h2 id="group-prepare" className="type-heading flex items-center gap-2">
-                  To prepare <Count n={g.toPrepare.length} />
-                </h2>
-                <Subtotal orders={g.toPrepare} label="Paid" />
-              </div>
-              {g.toPrepare.length > 0 ? (
-                <ul className={ROWS}>{g.toPrepare.map(row)}</ul>
-              ) : (
-                <p className="text-ink-muted">Nothing to prepare right now.</p>
-              )}
-            </section>
+            <Panel heading="To prepare" count={g.toPrepare.length} value={g.toPrepare.length > 0 ? <Subtotal orders={g.toPrepare} label="Paid" /> : undefined}>
+              {g.toPrepare.length > 0 ? <PanelList>{g.toPrepare.map(row)}</PanelList> : <p className="text-ink-muted">Nothing to prepare right now.</p>}
+            </Panel>
           )}
 
           {show('waiting') && g.waiting.length > 0 && (
             <details className="group" data-group="waiting" open={filter === 'waiting' || undefined}>
-              <summary className="group/summary press-text flex min-h-tap list-none flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md [&::-webkit-details-marker]:hidden">
-                <h2 className="type-heading flex items-center gap-2">
-                  Waiting for payment <Count n={g.waiting.length} />
-                  <Icon icon={ChevronDown} className="text-ink-muted transition-[rotate,color] duration-(--duration-base) group-open:rotate-180 group-hover/summary:text-ink" />
-                </h2>
+              <summary className={cx(PANEL_HEAD, 'group/summary press-text min-h-tap list-none rounded-md [&::-webkit-details-marker]:hidden')}>
+                <PanelTitle
+                  heading="Waiting for payment"
+                  count={g.waiting.length}
+                  after={<Icon icon={ChevronDown} className="text-ink-muted transition-[rotate,color] duration-(--duration-base) group-open:rotate-180 group-hover/summary:text-ink" />}
+                />
                 {/* Not "not charged": a payment-pending order is approved and its capture is clearing at PayPal. */}
-                <Subtotal orders={g.waiting} label="Not paid yet" as="span" />
+                <PanelValue as="span">
+                  <Subtotal orders={g.waiting} label="Not paid yet" />
+                </PanelValue>
               </summary>
-              <ul className={cx(ROWS, 'mt-3')}>{g.waiting.map(row)}</ul>
+              <PanelList className="mt-3">{g.waiting.map(row)}</PanelList>
             </details>
           )}
           {filter === 'waiting' && g.waiting.length === 0 && <p className="text-ink-muted">Nothing waiting for payment.</p>}
 
           {show('done') && g.done.length > 0 && (
-            <section aria-labelledby="group-done" className="flex flex-col gap-3">
-              <h2 id="group-done" className="type-heading flex items-center gap-2">
-                Done <Count n={g.done.length} />
-              </h2>
-              <ul className={ROWS}>{g.done.map(row)}</ul>
-            </section>
+            <Panel heading="Done" count={g.done.length}>
+              <PanelList>{g.done.map(row)}</PanelList>
+            </Panel>
           )}
           {filter === 'done' && g.done.length === 0 && <p className="text-ink-muted">Nothing done yet.</p>}
         </>

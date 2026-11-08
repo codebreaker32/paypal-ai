@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
 import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { Pressable } from '@/components/motion/pressable';
+import { PANEL_ROW } from '@/components/ui/panel';
 import { kindDefault, linePicture, type ItemPicture } from '@/lib/domain/category';
 import { formatUSD } from '@/lib/domain/money';
 import type { Order, ShopKind } from '@/lib/domain/types';
@@ -79,9 +80,11 @@ export function OrderCard({
       data-order={order.number}
       data-just-paid={justPaid || undefined}
       className={cx(
-        'isolate grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-4 sm:px-5',
+        'isolate grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2',
+        PANEL_ROW,
         'hover:bg-surface-subtle',
-        'lg:grid-cols-[3.5rem_14rem_minmax(0,1fr)_7rem_11rem_10.5rem] lg:items-center',
+        // The one-line layout needs the list's real width (the sidebar takes 15rem), so it is a container query, not `lg`.
+        '@[60rem]:grid-cols-[3.5rem_12rem_minmax(0,1fr)_7rem_10rem_10.5rem] @[60rem]:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
@@ -93,7 +96,7 @@ export function OrderCard({
         decorative
         eager
         dim={muted}
-        className="row-span-2 size-14 self-start rounded-(--thumb-radius) lg:row-span-1 lg:self-center"
+        className="row-span-2 size-14 self-start rounded-(--thumb-radius) @[60rem]:row-span-1 @[60rem]:self-center"
       />
 
       <div className="flex min-w-0 flex-col">
@@ -118,7 +121,7 @@ export function OrderCard({
       </div>
 
       {/* The total with its time under it, in a column of its own: the time is never truncated. */}
-      <div className="flex flex-col items-end text-right lg:order-4">
+      <div className="flex flex-col items-end text-right @[60rem]:order-4">
         <p className={cx('type-price font-bold whitespace-nowrap', muted && 'text-ink-muted line-through decoration-1')}>
           <span className="sr-only">Total </span>
           {formatUSD(order.totalCents)}
@@ -126,7 +129,7 @@ export function OrderCard({
         <LocalTime iso={order.paidAt ?? order.createdAt} className="type-meta whitespace-nowrap text-ink-muted" />
       </div>
 
-      <div className={cx('col-span-2 flex min-w-0 flex-col gap-1 lg:col-span-1 lg:order-3', muted && 'text-ink-muted')}>
+      <div className={cx('col-span-2 flex min-w-0 flex-col gap-1 @[60rem]:col-span-1 @[60rem]:order-3', muted && 'text-ink-muted')}>
         <p className="text-sm">
           {itemSummary(order.lines)}
           <span className="text-ink-muted"> · {whereLabel(order)}</span>
@@ -139,17 +142,19 @@ export function OrderCard({
         )}
       </div>
 
-      <OrderStatusText order={order} className="col-start-2 lg:order-5 lg:col-start-auto" />
-
-      <div className="relative z-10 col-span-3 lg:order-6 lg:col-span-1 lg:justify-self-end">
-        {order.status === 'paid' &&
-          (ships ? (
-            <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck} fullWidth className="lg:w-auto">
-              Add tracking
-            </ButtonLink>
-          ) : (
-            <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} />
-          ))}
+      {/* On a phone the status and the action share one line, so the row stays short. */}
+      <div className="col-span-2 col-start-2 flex flex-wrap items-center justify-between gap-2 @[60rem]:contents">
+        <OrderStatusText order={order} className="@[60rem]:order-5" />
+        <div className="relative z-10 @[60rem]:order-6 @[60rem]:justify-self-end">
+          {order.status === 'paid' &&
+            (ships ? (
+              <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck}>
+                Add tracking
+              </ButtonLink>
+            ) : (
+              <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} compact />
+            ))}
+        </div>
       </div>
     </Pressable>
   );
