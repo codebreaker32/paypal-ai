@@ -1,5 +1,6 @@
-// Password storage with node:crypto scrypt (SR5) behind a process-wide gate (SR7). A hash costs about 100 ms and 32 MB,
-// so the gate keeps a burst of logins from starving the server. Passwords are never logged.
+// Password storage with node:crypto scrypt (SR5) behind a process-wide gate (SR7). A hash costs about a third of a
+// second and 32 MB, so the gate keeps a burst of logins from starving the server. Passwords are never logged.
+// hashPassword, verifyPassword and dummyVerify reject with HashBusyError when the gate is full: answer with busyResponse().
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import { jsonError } from '@/lib/http/json-error';
 
