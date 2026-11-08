@@ -211,7 +211,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, exam
               onPick={async (f) => {
                 if (await actions.pick(f)) setOpen(false);
               }}
-              className={buttonClasses({ variant: 'primary' })}
+              className={buttonClasses({ variant: 'primary', className: 'border-0' })}
             >
               <Icon icon={ImagePlus} />
               <span aria-hidden="true">Replace photo</span>
@@ -294,7 +294,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
             label="Replace cover"
             onPick={(f) => void actions.pick(f)}
             disabled={actions.busy}
-            className={buttonClasses({ variant: 'secondary' })}
+            className={buttonClasses({ variant: 'secondary', className: 'border-0' })}
           >
             <span aria-hidden="true">Replace cover</span>
           </FileLabel>

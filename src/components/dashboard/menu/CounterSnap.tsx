@@ -118,7 +118,7 @@ export function CounterSnap({
 
   return (
     <>
-      <label className={buttonClasses({ variant: 'primary', className: 'cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus' })}>
+      <label className={buttonClasses({ variant: 'primary', className: 'cursor-pointer border-0 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus' })}>
         <input
           ref={input}
           type="file"
