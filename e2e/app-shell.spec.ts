@@ -540,7 +540,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
           'nav[aria-label="Shop sections"]:visible, [data-testid="shop-switcher"]:visible, [data-testid="shop-switcher-bar"]:visible, a[href="#app-content"]:visible, [data-site-chrome]:visible',
         ),
       ).toHaveCount(0);
-      await expect(page.getByText('Payments run in the PayPal sandbox')).toBeHidden();
+      await expect(page.getByText('Payments run in the PayPal sandbox').locator('visible=true')).toHaveCount(0);
       await expect(page.getByRole('link', { name: 'Back to Share' })).toBeHidden();
       await expect(page.getByRole('img').first()).toBeVisible();
     });
