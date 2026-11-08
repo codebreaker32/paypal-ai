@@ -1,3 +1,113 @@
+# WP5 accounts backend: summary for the coordinator
+
+Written at the regression sweep, 2026-11-08 16:31 IST, after all of WP5 was committed. This section is the whole picture; the
+two worker sections below keep the detail (choices the brief left open, and what WP6 needs).
+
+## What was built
+
+API and data only. No screen changes, and guests stay allowed until WP7.
+
+- **Schema:** `accounts`, `sessions`, `payee_changes`, and `shops.account_id` with its index in `addMissingColumns`. No backfill.
+- **Passwords:** scrypt with a global hash gate (2 running, 8 queued, then 503 `BUSY`), 15 to 128 characters, a 286-entry
+  blocklist, rehash on login.
+- **Recovery key:** 100 bits, shown once, hash stored, swapped atomically on use.
+- **Sessions:** 32 random bytes in the cookie, SHA-256 in the database, fixed 30 days. `currentAccount`, `requireAccount`,
+  `landingPath`, `safeNext`.
+- **Authorization:** `getOwnedShop` and `requireOwner` (an owner token never opens an account-owned shop), `listOwnedShops`
+  limited to unattached shops, and `claim/[token]` answers 404 for an account-owned shop.
+- **Routes:** `api/auth/{signup,login,logout,recover}`, `api/account/recovery-key`, `POST /api/shops` with accounts (401
+  `LOGIN_REQUIRED` when guests are off, 409 `SHOP_LIMIT` for a 26th shop), and the password check and `payee_changes` record on a PayPal
+  email change.
+- **Abuse limits:** per-key rate-limit windows with `peek` and `recordHit`, the SR11 limits, IPv6 buckets by /64.
+- **Origin check:** `assertSameOrigin` first in every state-changing handler except `paypal/webhook`. No proxy or middleware.
+- **Small pieces:** `client/auth.ts`, `TEST_MODE_LINE`, `TERMS_VERSION`, `supportEmail`, and a dashboard poll that reloads the
+  page on a 404.
+
+## Deviations from the brief, with reasons
+
+1. **`guestShopsAllowed()` is false on Render, not a flat true.** SR20 has to pass in WP5, and it says the guest flag is ignored on
+   Render. Nothing deploys between WP5 and WP7.
+2. **Three small modules the brief does not name.** `auth/password-policy.ts` lets a browser form import the length rules without pulling
+   in `node:crypto`. `auth/http.ts` holds the no-store responses and `checkCurrentPassword`, shared by the payee change and the
+   recovery key. `db/repos/payee-changes.ts` is the repo for the brief's `payee_changes` table.
+3. **"Every Security requirement except SR19 passes here" cannot be met by WP5 alone.** The brief's own table assigns SR22 to
+   WP6 AC 8 and SR24 to WP4 AC 15, and the first half of SR21 is the login and logout forms, which WP6 builds. All three need
+   screens. See "Not verified" below.
+4. **`api/assistant/[slug]` POST has the origin check, though the brief's table lists `/api/assistant/*` as "Public, unchanged".**
+   SR2 says every POST under `src/app/api/**` except `paypal/webhook`, and it is the stricter rule. Only the in-app buyer console
+   calls that route; external agents use `s/[slug]/mcp`, which is not under `api/`.
+5. **SR13's "Login replaces any existing session" means this browser's session only.** Other devices stay logged in, because the
+   brief wants a phone at the counter to stay logged in and S1's `Log out of other devices` needs several sessions.
+
+## Edited tests
+
+None. `git diff --name-status 75153e1..HEAD -- tests e2e` shows only added files (24), and `tests/auth/owner.test.ts` is
+unchanged and passing.
+
+## Verified at the sweep
+
+The sweep found no regressions and changed no code or tests.
+
+| Check | Result |
+|---|---|
+| `npm test` | 116 files, 1499 tests, all pass |
+| `npm run typecheck` | clean |
+| `npm run lint` | clean |
+| `e2e/start.spec.ts`, `e2e/dashboard.spec.ts` | 30 passed, 1 skipped (`Other carrier asks for the carrier name`, a skip that predates this run) |
+| `e2e/auth-api.spec.ts`, `e2e/large-upload.spec.ts` | 2 passed |
+
+Security requirements, each checked against the test that names it:
+
+| Requirement | Evidence |
+|---|---|
+| SR1 | `tests/http/same-origin.test.ts`, `tests/api/large-upload.test.ts`, `e2e/large-upload.spec.ts` (14 MB through a real server) |
+| SR2, SR16 | `tests/auth/route-guard.test.ts` (AST, per exported handler; exempts only `paypal/webhook`) |
+| SR3 | `tests/http/same-origin.test.ts` |
+| SR4 | `tests/auth/next-path.test.ts` |
+| SR5, SR6, SR7 | `tests/auth/password.test.ts`; 503 and `Retry-After` in `tests/api/auth-routes.test.ts` |
+| SR8, SR9 | `tests/api/auth-routes.test.ts`, and `tests/api/shops-accounts.test.ts` for the password check |
+| SR10 | `tests/http/rate-limit.test.ts` (the 15-minute caller over 10,000 keys), `tests/http/client-ip-ipv6.test.ts` |
+| SR11 | `tests/auth/limits.test.ts`, `tests/api/auth-routes.test.ts` |
+| SR12 | `tests/auth/recovery.test.ts`, `tests/api/auth-routes.test.ts` |
+| SR13, SR14 | `tests/auth/session.test.ts`, `tests/api/auth-routes.test.ts`; SR13 also `e2e/auth-api.spec.ts` |
+| SR15 | `tests/auth/account-owner.test.ts` |
+| SR17, SR18 | `tests/api/shops-accounts.test.ts`; SR17 also `e2e/auth-api.spec.ts` |
+| SR20 | `tests/auth/guest.test.ts`, `tests/auth/limits.test.ts` |
+| SR23 | `tests/auth/no-logging.test.ts`, `tests/auth/no-logging-routes.test.ts`, the no-store header in `tests/api/auth-routes.test.ts` |
+| SR25 | `tests/auth/removal-guard.test.ts` |
+
+Other WP5 acceptance items:
+
+- A migrated old database gains `shops.account_id` and its index, and its shops stay unattached (`tests/db/accounts-schema.test.ts`).
+- Existing shops keep working through owner cookies, and an account's session does not open them
+  (`tests/auth/account-owner.test.ts`).
+- Another account gets 404 on an owner page and an owner API route; these tests exercise one of each, and the per-handler
+  guarantee is the SR16 AST guard (`tests/auth/account-owner.test.ts`, `tests/api/shops-accounts.test.ts`).
+- A valid session opens its own shop with no owner cookie (`tests/auth/account-owner.test.ts`).
+- The login gate's 401 is tested with `guestShopsAllowed` stubbed false (`tests/api/shops-accounts.test.ts`).
+
+## Not verified
+
+- **SR19:** not in WP5 (S1). No code and no test yet. The brief says delete cannot ship without it.
+- **SR21, first half:** `window.location.replace` appears only in a comment in `client/auth.ts` until WP6's forms exist. The second
+  half (`requireOwner` stays in every page) is covered by SR16.
+- **SR22:** needs WP6's banner (WP6 AC 8).
+- **SR24:** needs WP4's HTML (WP4 AC 15). The API side holds: `POST /api/shops` returns no owner link with a session (SR17), and the
+  claim route is a 404 for an account-owned shop (`tests/auth/account-owner.test.ts`).
+- **The surface table's page rows** (`/shops`, `/shops/new`, `/account`, `/login`, `/signup`, `/recover`): those pages do not
+  exist yet. `requireAccount` and `landingPath` are unit-tested, but no page calls `requireAccount`.
+- **Guests off for real:** exercised only with `guestShopsAllowed` stubbed false. The flip is WP7.
+- **`__Host-` cookie and `secure`, and the Render-only switches:** unit-tested only, because localhost is plain http.
+- **Not run in this sweep:** the full e2e (the coordinator's), `e2e/setup.spec.ts` (it passed in the routes worker's earlier run),
+  `npm run build`, `npm run test:sandbox`, `npm run test:ai`.
+
+## Expected until WP6 and WP7 merge
+
+- `requireOwner`'s redirect to `/login?next=…` and the `next` values the auth routes return (`/shops/new`, `/shops`) lead to a 404,
+  because those pages are WP6's.
+- Settings cannot change the PayPal email on a published account-owned shop until WP6 sends `currentPassword` (403 `PASSWORD_REQUIRED`).
+  No such shop can be made through the UI before WP6.
+
 # WP5 core modules: notes for the coordinator
 
 Scope of this worker: schema, repos, password, recovery, sessions, origin check, next path, rate limits, and the small
