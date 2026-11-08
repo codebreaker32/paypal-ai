@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
 import { AssistantShell } from './AssistantShell';
@@ -9,6 +10,8 @@ import { OrderCtaContext, orderCtaShown } from './OrderCta';
 import { useKeyboardViewport } from './use-keyboard-viewport';
 
 const DESKTOP = '(min-width: 1024px)';
+/** Headings or tiles ending above this line are under the sticky tabs: not on screen for `keepPlace`. */
+const SITE_TOP_PX = 72;
 const subscribe = (cb: () => void) => {
   const m = window.matchMedia(DESKTOP);
   m.addEventListener('change', cb);
@@ -42,6 +45,25 @@ const setAssistantParam = (on: boolean) => {
 };
 
 /**
+ * Docking narrows the page and re-flows the menu, so a change of `open` runs through this from 1024 px: the first
+ * heading or tile still on screen stays where it was.
+ */
+function keepPlace(change: () => void): void {
+  if (!window.matchMedia(DESKTOP).matches) return change();
+  const anchor = Array.from(document.querySelectorAll('main h3, main li')).find((el) => el.getBoundingClientRect().bottom > SITE_TOP_PX);
+  const before = anchor?.getBoundingClientRect().top;
+  // The browser's own scroll anchoring would correct the same shift a second time.
+  const root = document.documentElement.style;
+  root.overflowAnchor = 'none';
+  flushSync(change);
+  if (anchor?.isConnected && before !== undefined) {
+    const delta = anchor.getBoundingClientRect().top - before;
+    if (delta) window.scrollBy({ top: delta, behavior: 'instant' });
+  }
+  requestAnimationFrame(() => root.removeProperty('overflow-anchor'));
+}
+
+/**
  * The shop page layout and its one primary action, **Order with an assistant** (**Ask the assistant** while the shop
  * doesn't take orders). The console opens in one `AssistantShell`: a bottom sheet on phones, a side sheet from 640 px
  * and a dock from 1024 px, so the menu and the conversation stay side by side.
@@ -65,11 +87,11 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const shown = orderCtaShown({ docked: panelOpen, heroInView });
 
   const show = useCallback(() => {
-    setOpen(true);
+    keepPlace(() => setOpen(true));
     setAssistantParam(true);
   }, []);
   const hide = useCallback(() => {
-    setOpen(false);
+    keepPlace(() => setOpen(false));
     setAssistantParam(false);
   }, []);
 

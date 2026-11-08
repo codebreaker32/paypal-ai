@@ -463,3 +463,28 @@ test.describe('keyboard', () => {
     await expect.poll(async () => (await box(dialog)).height).toBe(832);
   });
 });
+
+test.describe('1440: the page holds still as the dock opens and closes', () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test('a section in view stays within 8 px', async ({ page }) => {
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    // Stands in for the menu re-flowing beside the dock: the page above the anchor changes height as it opens. No browser
+    // scroll anchoring, as in Safari, so the page's own correction is what's measured.
+    await page.addStyleTag({ content: 'html { overflow-anchor: none; } main h3 { transition: none !important; } html:has([data-assistant-dock]) main h3:first-of-type { padding-top: 120px; }' });
+    const section = page.locator('main h3').nth(1);
+    await section.evaluate((el) => window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 300, behavior: 'instant' }));
+    await page.waitForTimeout(250);
+    const anchor = page.locator('main h3, main li').filter({ visible: true });
+    const firstOnScreen = await anchor.evaluateAll((els) => els.findIndex((el) => el.getBoundingClientRect().bottom > 72));
+    const watched = anchor.nth(firstOnScreen);
+    const before = (await box(watched)).y;
+    await page.getByRole('button', { name: new RegExp(TITLE) }).filter({ visible: true }).first().click();
+    await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+    expect(Math.abs((await box(watched)).y - before)).toBeLessThanOrEqual(8);
+    await page.getByRole('button', { name: 'Close the assistant' }).click();
+    await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+    expect(Math.abs((await box(watched)).y - before)).toBeLessThanOrEqual(8);
+  });
+});

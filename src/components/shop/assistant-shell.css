@@ -40,6 +40,11 @@
   .assistant-sheet [data-assistant-subtitle] { display: none; }
 }
 @media print { html:has([data-assistant-dock]) body { padding: 0; } .assistant-dock { display: none; } }
+/* The global reduced-motion rule gives every element a 0.01 ms transition, which delays the dock's layout change by a
+   frame or two; keepPlace reads that layout straight after the change, so these two must not transition at all. */
+@media (prefers-reduced-motion: reduce) {
+  body, [data-page-frame] { transition: none !important; }
+}
 
 /* The compact order button (OrderCta.tsx) fades in after the hero scrolls out. Visibility flips at once on the way in,
    so the button can take focus on the same frame, and only after the fade on the way out. */
