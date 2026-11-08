@@ -5,13 +5,16 @@ import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet } from '@/components/ui/sheet';
 import { AssistantShell } from './AssistantShell';
-import { useBuyerConsole } from './BuyerConsole';
+import { afterHistoryMove, isOwnEntry, withOwnMark, withoutOwnMark } from './assistant-history';
+import { useBuyerConsole, type BuyerConsoleApi } from './BuyerConsole';
 import { OrderCtaContext, orderCtaShown } from './OrderCta';
 import { useKeyboardViewport } from './use-keyboard-viewport';
 
 const DESKTOP = '(min-width: 1024px)';
 /** Headings or tiles ending above this line are under the sticky tabs: not on screen for `keepPlace`. */
 const SITE_TOP_PX = 72;
+/** Scrolled less than this, the site header is still in view: the top of the page is what the buyer is looking at. */
+const AT_TOP_PX = 72;
 const subscribe = (cb: () => void) => {
   const m = window.matchMedia(DESKTOP);
   m.addEventListener('change', cb);
@@ -44,7 +47,10 @@ const setAssistantParam = (on: boolean, method: 'pushState' | 'replaceState' = '
   const url = new URL(window.location.href);
   if (on) url.searchParams.set('assistant', '1');
   else url.searchParams.delete('assistant');
-  window.history[method](window.history.state, '', url);
+  const state = method === 'pushState' ? withOwnMark(window.history.state) : withoutOwnMark(window.history.state);
+  // The browser's own method, not Next's patch of it: on a section tab's entry (no state) the patch would write a state
+  // that makes Next reload the page when the buyer comes back to that entry.
+  History.prototype[method].call(window.history, state, '', url);
 };
 
 const focusAtEnd = (input: HTMLInputElement | null) => {
@@ -60,6 +66,8 @@ const canTakeFocus = (el: HTMLElement | null): el is HTMLElement => !!el?.isConn
  */
 function keepPlace(change: () => void): void {
   if (!window.matchMedia(DESKTOP).matches) return change();
+  // At the top nothing needs holding: the hero re-flows below the buyer, and scrolling would take the header away.
+  if (window.scrollY < AT_TOP_PX) return flushSync(change);
   const anchor = Array.from(document.querySelectorAll('main h3, main li')).find((el) => el.getBoundingClientRect().bottom > SITE_TOP_PX);
   const before = anchor?.getBoundingClientRect().top;
   // The browser's own scroll anchoring would correct the same shift a second time.
@@ -121,15 +129,21 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
 
   useEffect(() => {
     const onPopState = () => {
+      const step = afterHistoryMove({
+        closing: goingBack.current,
+        docked: window.matchMedia(DESKTOP).matches,
+        inUrl: assistantInUrl(),
+        ownMark: isOwnEntry(window.history.state),
+        open,
+      });
       goingBack.current = false;
-      const inUrl = assistantInUrl();
-      // Forward onto an entry this page pushed: Back from it is safe. Docked never owns an entry.
-      ownEntry.current = inUrl && !window.matchMedia(DESKTOP).matches;
-      keepPlace(() => setOpen(inUrl));
+      ownEntry.current = step.ownEntry;
+      if (step.open !== open) keepPlace(() => setOpen(step.open));
+      if (step.fixUrl) setAssistantParam(step.open);
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, []);
+  }, [open]);
 
   // Docked, opened by the buyer: the cursor goes to the end of the message box; on closing, focus goes back to the
   // opener or, when that is gone, the order button showing now. A `?assistant=1` load moves nothing. Modal forms: `Sheet`.
@@ -144,6 +158,34 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     wasOpen.current = open;
   }, [open, isDesktop, heroInView]);
 
+  // The URL on arrival decides, not `initiallyOpen`: Back from a client-side link restores the page as the server first
+  // sent it, while the param has come and gone without the router knowing. Set `wasOpen` so this moves no focus, as a
+  // `?assistant=1` load moves none. After the effect above, which would overwrite it.
+  useEffect(() => {
+    const inUrl = assistantInUrl();
+    ownEntry.current = inUrl && isOwnEntry(window.history.state);
+    wasOpen.current = inUrl;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the URL is only readable after commit
+    setOpen(inUrl);
+  }, []);
+
+  // A control the buyer just used in the dock can vanish with the state it changes, and focus would fall to `body`,
+  // outside the panel (where Esc no longer reaches it). Sheets keep it: the keyboard stays down, the dialog holds focus.
+  const stayInPanel = () => {
+    if (window.matchMedia(DESKTOP).matches) focusAtEnd(inputRef.current);
+  };
+  const panelApi: BuyerConsoleApi = {
+    ...api,
+    send: (text) => {
+      api.send(text);
+      stayInPanel();
+    },
+    reset: () => {
+      api.reset();
+      stayInPanel();
+    },
+  };
+
   const attachHeroButton = useCallback((el: HTMLButtonElement | null) => {
     heroButton.current = el;
   }, []);
@@ -155,7 +197,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     [title, takesOrders, shown, show, attachHeroButton, attachCompactButton],
   );
 
-  const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
+  const shell = <AssistantShell api={panelApi} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
 
   return (
     <>

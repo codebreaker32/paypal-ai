@@ -145,7 +145,7 @@ async function replayConsole(page: Page, order?: Order): Promise<unknown[]> {
   return bodies;
 }
 
-/** The console: the side panel from 1024 px, the bottom sheet below. */
+/** The console: the dock from 1024 px (an aside), a modal sheet below it (a side sheet from 640 px, a bottom sheet under that). */
 function consoleRegion(page: Page, phone: boolean): Locator {
   return phone ? page.getByRole('dialog', { name: 'Order with an assistant' }) : page.getByRole('complementary', { name: 'Order with an assistant' });
 }

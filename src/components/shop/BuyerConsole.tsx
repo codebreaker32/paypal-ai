@@ -210,7 +210,7 @@ async function* readNdjson(body: ReadableStream<Uint8Array>): AsyncGenerator<Con
 
 function UserBubble({ text }: { text: string }) {
   return (
-    <p className="ml-auto max-w-[85%] rounded-md rounded-br-none bg-ink px-3.5 py-2.5 text-sm leading-5 whitespace-pre-wrap text-surface [overflow-wrap:anywhere]">
+    <p className="ml-auto w-fit max-w-[85%] rounded-md rounded-br-none bg-ink px-3.5 py-2.5 text-sm leading-5 whitespace-pre-wrap text-surface [overflow-wrap:anywhere]">
       {text}
     </p>
   );

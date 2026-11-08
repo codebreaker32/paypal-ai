@@ -938,3 +938,223 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
     expect(b.y + b.height).toBe(844);
   });
 });
+
+// Review round 1: history, focus and the first look at the page.
+test.describe('the URL and the assistant agree after leaving and coming back', () => {
+  const close = (page: Page) => page.getByRole('button', { name: 'Close the assistant' }).click();
+  const hasParam = (page: Page) => new URL(page.url()).searchParams.has('assistant');
+  const setMarker = (page: Page) => page.evaluate(() => void ((window as unknown as { __marker: string }).__marker = 'still here'));
+  const marker = (page: Page) => page.evaluate(() => (window as unknown as { __marker?: string }).__marker);
+  /** A client-side trip away, as the receipt link on the approval card makes, and Back. */
+  const awayAndBack = async (page: Page) => {
+    await page.evaluate(() => (window as unknown as { next: { router: { push(href: string): void } } }).next.router.push('/terms'));
+    await page.waitForURL('**/terms');
+    await page.goBack();
+    await page.waitForURL(`**/s/${SLUG}**`);
+  };
+
+  test.describe('phone', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+    const bar = (page: Page) => page.locator('[data-order-bar] button');
+
+    test('tap open, a client-side trip away, Back: the sheet is open again and one X closes it', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await setMarker(page);
+      await bar(page).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+
+      await awayAndBack(page);
+      expect(await marker(page)).toBe('still here');
+      expect(hasParam(page)).toBe(true);
+      await expect(page.getByRole('dialog')).toBeVisible();
+
+      await close(page);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+      expect(new URL(page.url()).pathname).toBe(`/s/${SLUG}`);
+    });
+
+    test('deep link, X, a client-side trip away, Back: the sheet stays closed', async ({ page }) => {
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await close(page);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+
+      await awayAndBack(page);
+      await settle(page);
+      expect(hasParam(page)).toBe(false);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    });
+  });
+
+  test.describe('1440: docked', () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+    const dock = (page: Page) => page.locator('[data-assistant-dock]');
+    const hero = (page: Page) => page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) });
+    const secondTab = (page: Page) => page.locator('a[href^="#section-"]').nth(1);
+    const activeTag = (page: Page) => page.evaluate(() => document.activeElement?.tagName);
+
+    test('a client-side trip away and Back: the dock is back, and focus has not moved into it', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await hero(page).click();
+      await expect(dock(page)).toBeVisible();
+
+      await awayAndBack(page);
+      await expect(dock(page)).toBeVisible();
+      expect(hasParam(page)).toBe(true);
+      expect(await activeTag(page)).not.toBe('INPUT');
+
+      await close(page);
+      await expect(dock(page)).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+    });
+
+    test('closed, then Back across a section tab: the dock stays closed and the URL says so', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await setMarker(page);
+      await hero(page).click();
+      await expect(dock(page)).toBeVisible();
+      await secondTab(page).click();
+      await close(page);
+      await expect(dock(page)).toHaveCount(0);
+
+      await page.goBack();
+      await expect.poll(() => hasParam(page)).toBe(false);
+      await expect(dock(page)).toHaveCount(0);
+      expect(await activeTag(page)).not.toBe('INPUT');
+      expect(await marker(page)).toBe('still here');
+    });
+
+    test('open, then Back across a section tab: the dock stays open and the URL says so', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await setMarker(page);
+      await secondTab(page).click();
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+      await hero(page).click();
+      await expect(dock(page)).toBeVisible();
+
+      await page.goBack();
+      await expect.poll(() => hasParam(page)).toBe(true);
+      await expect(dock(page)).toBeVisible();
+
+      // Forward onto the entry rewritten above: still the same page, not a reload.
+      await page.goForward();
+      await expect(dock(page)).toBeVisible();
+      expect(await marker(page)).toBe('still here');
+    });
+  });
+
+  test('a tablet crossing 1024 px: X on an entry the page never pushed stays in the shop', async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await setMarker(page);
+    await page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) }).click();
+    await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+    await page.locator('a[href^="#section-"]').nth(1).click();
+    await page.setViewportSize({ width: 768, height: 1024 });
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await close(page);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+
+    await page.goBack();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    await close(page);
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    expect(new URL(page.url()).pathname).toBe(`/s/${SLUG}`);
+    expect(hasParam(page)).toBe(false);
+    expect(await marker(page)).toBe('still here');
+  });
+});
+
+test.describe('1440: a panel button that goes away leaves the keyboard in the panel', () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+  const composer = (region: Locator) => region.getByRole('textbox', { name: 'Message to the assistant' });
+  const open = async (page: Page) => {
+    await page.goto(`/s/${SLUG}?assistant=1`);
+    await settle(page);
+    await replayTurns(page);
+    return page.getByRole('complementary', { name: TITLE });
+  };
+  const escapeCloses = async (page: Page) => {
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+  };
+
+  test('Start over: focus on the message box, and Esc still closes', async ({ page }) => {
+    const region = await open(page);
+    await orderThrough(region);
+    await region.getByRole('button', { name: 'Start over' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(composer(region)).toBeFocused();
+    await escapeCloses(page);
+  });
+
+  test('the payment check: focus on the message box, and Esc still closes', async ({ page }) => {
+    const region = await open(page);
+    await orderThrough(region);
+    await region.getByRole('button', { name: 'Did my payment go through?' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(composer(region)).toBeFocused();
+    await escapeCloses(page);
+  });
+
+  test('a starter: focus on the message box, and Esc still closes', async ({ page }) => {
+    const region = await open(page);
+    await region.locator('.overflow-y-auto button').first().focus();
+    await page.keyboard.press('Enter');
+    await expect(composer(region)).toBeFocused();
+    await escapeCloses(page);
+  });
+});
+
+test.describe('opening the dock at the top of the page', () => {
+  for (const viewport of [{ width: 1024, height: 768 }, { width: 1060, height: 768 }, { width: 1440, height: 900 }]) {
+    test(`${viewport.width}x${viewport.height}: the page stays at the top, by click, and the headers line up`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      await page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) }).click();
+      await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+      await page.evaluate(() => new Promise(requestAnimationFrame));
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+      const panelHeader = await box(page.locator('[data-assistant-header]'));
+      const siteHeader = await box(page.locator('header').first());
+      expect(Math.abs(panelHeader.y + panelHeader.height - (siteHeader.y + siteHeader.height))).toBeLessThanOrEqual(1);
+      await page.getByRole('button', { name: 'Close the assistant' }).click();
+      await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+      expect(await page.evaluate(() => window.scrollY)).toBe(0);
+    });
+  }
+});
+
+test.describe('a buyer message is as wide as its words', () => {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    test(`${viewport.width}: a short reply makes a short bubble at the right`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      await replayTurns(page);
+      const region = viewport.width < 1024 ? page.getByRole('dialog', { name: TITLE }) : page.getByRole('complementary', { name: TITLE });
+      const input = region.getByRole('textbox', { name: 'Message to the assistant' });
+      await input.fill('Yes');
+      await input.press('Enter');
+      const bubble = region.locator('[role="log"] p', { hasText: /^Yes$/ });
+      await expect(bubble).toBeVisible();
+      const { text, right, logRight, width } = await bubble.evaluate((el) => {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const b = el.getBoundingClientRect();
+        return { text: range.getBoundingClientRect().width, width: b.width, right: b.right, logRight: el.closest('[role="log"]')!.getBoundingClientRect().right };
+      });
+      expect(width).toBeLessThanOrEqual(text + 28 + 2);
+      expect(Math.abs(logRight - right)).toBeLessThanOrEqual(1);
+    });
+  }
+});
