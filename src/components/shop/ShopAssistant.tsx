@@ -1,13 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
-import { X } from 'lucide-react';
-import { LogoMark } from '@/components/brand/Logo';
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { IconButton } from '@/components/ui/icon-button';
 import { Sheet } from '@/components/ui/sheet';
-import { ConsoleComposer, ConsoleConversation, useBuyerConsole } from './BuyerConsole';
+import { cn } from '@/lib/utils';
+import { AssistantShell } from './AssistantShell';
+import { useBuyerConsole } from './BuyerConsole';
 
 const DESKTOP = '(min-width: 1024px)';
 const subscribe = (cb: () => void) => {
@@ -46,8 +45,8 @@ const ASK = {
 
 /**
  * The shop page layout and its one primary action, **Order with an assistant** (**Ask the assistant** while the shop
- * doesn't take orders). The console opens as a bottom sheet on
- * phones and as a side panel next to the menu from 1024 px, so the menu and the conversation stay side by side.
+ * doesn't take orders). The console opens in one `AssistantShell`: a bottom sheet on phones, a side sheet from 640 px
+ * and a dock from 1024 px, so the menu and the conversation stay side by side.
  */
 export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, intro, menu, door, takesOrders }: ShopAssistantProps) {
   const { title, pitch } = takesOrders ? ORDER : ASK;
@@ -55,7 +54,10 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const [open, setOpen] = useState(initiallyOpen);
   const isDesktop = useIsDesktop();
   const inputRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
   const openerRef = useRef<HTMLButtonElement>(null);
+  const orderBarRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
   const panelOpen = open && isDesktop !== false;
 
   const setUrl = (on: boolean) => {
@@ -81,36 +83,20 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     wasOpen.current = open;
   }, [open, isDesktop]);
 
-  const conversation = <ConsoleConversation api={api} shopName={shopName} starters={starters} />;
+  const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} onClose={hide} />;
 
   return (
     <>
       {cover}
-      <div className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-10 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
-        <div className="flex min-w-0 flex-col gap-8 lg:col-span-8">
+      <div data-page-frame="" className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-10 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
+        <div className={cn('flex min-w-0 flex-col gap-8', panelOpen ? 'lg:col-span-12' : 'lg:col-span-8')}>
           {intro}
           {menu}
           {door}
         </div>
 
-        <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-4 lg:block">
-          {panelOpen ? (
-            // Fits the first screen under the header (and stays in view, sticky, as the menu scrolls).
-            <Card padding="none" className="flex h-[min(52rem,calc(100dvh-8.5rem))] min-h-96 flex-col overflow-hidden shadow-md">
-              <div className="flex items-center gap-3 border-b border-line px-5 py-3">
-                <LogoMark className="size-9" />
-                <div className="min-w-0 flex-1">
-                  <h2 className="type-heading leading-6">{title}</h2>
-                  <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
-                </div>
-                <IconButton icon={X} label="Close the assistant" iconSize="md" onClick={hide} className="-mr-2" />
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{conversation}</div>
-              <div className="border-t border-line px-5 py-4">
-                <ConsoleComposer api={api} inputRef={inputRef} />
-              </div>
-            </Card>
-          ) : (
+        {!panelOpen && (
+          <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-4 lg:block">
             <Card className="flex flex-col gap-4 shadow-md" padding="lg">
               <h2 className="type-title">{title}</h2>
               <p className="text-ink-soft">{pitch}</p>
@@ -125,22 +111,29 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
                 .
               </p>
             </Card>
-          )}
-        </aside>
+          </aside>
+        )}
       </div>
 
       {/* Phones: the order bar sticks to the bottom of the screen while the page scrolls. */}
       <div data-order-bar className="sticky bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)] lg:hidden">
         {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping (only when the shop takes orders). */}
-        <Button size="lg" fullWidth onClick={show}>
+        <Button ref={orderBarRef} size="lg" fullWidth onClick={show}>
           {title}
           {takesOrders && <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>}
         </Button>
       </div>
 
+      {/* Docked from 1024 px (hidden by CSS below that, so a `?assistant=1` load never flashes a dock on a phone). */}
+      {panelOpen && (
+        <aside data-assistant-dock="" aria-labelledby={titleId} className="assistant-dock">
+          {shell}
+        </aside>
+      )}
+
       {isDesktop === false && (
-        <Sheet open={open} onClose={hide} title={title} footer={<ConsoleComposer api={api} />}>
-          {conversation}
+        <Sheet bare labelledBy={titleId} open={open} onClose={hide} className="assistant-sheet text-ink" initialFocusRef={titleRef} fallbackFocusRef={orderBarRef}>
+          {shell}
         </Sheet>
       )}
     </>

@@ -333,9 +333,7 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   const log = useRef<HTMLDivElement>(null);
   const last = state.entries.at(-1);
   const calling = last?.kind === 'activity' && last.calls.some((c) => c.status === 'running');
-  // Offer the status question only while an order may still change; a full conversation offers a new one.
-  const waitingOnPayPal = refsToCheck(state).length > 0;
-  const full = last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
+  const full = isConversationFull(state);
 
   // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
   // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
@@ -402,22 +400,11 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
           <span className="bc-thinking font-semibold">Thinking…</span>
         </p>
       )}
-      {!state.busy && (
-        <div className="flex flex-wrap items-center gap-2">
-          {waitingOnPayPal && !full && (
-            <Button variant="secondary" onClick={() => send(PAYMENT_CHECK_PROMPT)}>
-              {PAYMENT_CHECK_PROMPT}
-            </Button>
-          )}
-          {full ? (
-            <Button variant="primary" icon={RotateCcw} onClick={reset}>
-              Start a new conversation
-            </Button>
-          ) : (
-            <Button variant="ghost" icon={RotateCcw} onClick={reset}>
-              Start over
-            </Button>
-          )}
+      {!state.busy && full && (
+        <div>
+          <Button variant="primary" icon={RotateCcw} onClick={reset}>
+            Start a new conversation
+          </Button>
         </div>
       )}
       <div ref={end} />
@@ -425,7 +412,34 @@ export function ConsoleConversation({ api, shopName, starters }: ConsoleConversa
   );
 }
 
-/** The nearest ancestor that scrolls vertically: the sheet's body on phones, the side panel's log on desktop. */
+function isConversationFull(state: ConsoleState): boolean {
+  const last = state.entries.at(-1);
+  return last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
+}
+
+/**
+ * The row above the message box: the status question, offered only while an order may still change (a full conversation
+ * offers a new one instead, in the log), and Start over. Outside the scroller, so an approval card never pushes them away.
+ */
+export function ConsoleActions({ api }: { api: BuyerConsoleApi }) {
+  const { state, send, reset } = api;
+  if (state.busy || !state.entries.length || isConversationFull(state)) return null;
+  const waitingOnPayPal = refsToCheck(state).length > 0;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      {waitingOnPayPal && (
+        <Button variant="secondary" onClick={() => send(PAYMENT_CHECK_PROMPT)}>
+          {PAYMENT_CHECK_PROMPT}
+        </Button>
+      )}
+      <Button variant="ghost" icon={RotateCcw} onClick={reset} className="ml-auto">
+        Start over
+      </Button>
+    </div>
+  );
+}
+
+/** The nearest ancestor that scrolls vertically: the assistant shell's scroller. */
 function scrollParentOf(el: HTMLElement): HTMLElement | null {
   for (let p = el.parentElement; p; p = p.parentElement) {
     const { overflowY } = getComputedStyle(p);

@@ -1,0 +1,60 @@
+/*
+ * Sheets enter and leave as CSS transitions: rise from the bottom edge on phones, a short fade and 8 px rise when centred
+ * from 640 px. Where `overlay` isn't supported the sheet simply closes at once. The assistant's sheet has its own motion
+ * (`assistant-shell.css`), so a `bare` Sheet does not get this class.
+ */
+.sheet-motion {
+  transform: translateY(100%);
+  transition:
+    transform var(--duration-base) var(--ease-in),
+    overlay var(--duration-base) allow-discrete,
+    display var(--duration-base) allow-discrete;
+}
+.sheet-motion[open] {
+  transform: none;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-out);
+}
+@starting-style {
+  .sheet-motion[open] {
+    transform: translateY(100%);
+  }
+}
+.sheet-motion::backdrop {
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+.sheet-motion[open]::backdrop {
+  opacity: 1;
+}
+@starting-style {
+  .sheet-motion[open]::backdrop {
+    opacity: 0;
+  }
+}
+@media (min-width: 40rem) {
+  .sheet-motion {
+    opacity: 0;
+    transform: translateY(0.5rem);
+    transition:
+      transform var(--duration-base) var(--ease-in),
+      opacity var(--duration-base) var(--ease-in),
+      overlay var(--duration-base) allow-discrete,
+      display var(--duration-base) allow-discrete;
+  }
+  .sheet-motion[open] {
+    opacity: 1;
+    transform: none;
+  }
+  @starting-style {
+    .sheet-motion[open] {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheet-motion::backdrop {
+    transition: none;
+  }
+}
