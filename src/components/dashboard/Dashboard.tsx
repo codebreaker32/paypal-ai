@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation';
 import { PageHeader } from '@/components/app/PageHeader';
 import { switchSection } from '@/components/app/SectionLink';
 import { patchShell, useShellValues, type ShellValues } from '@/components/app/shell-store';
-import { LogoPicker } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureSource } from '@/lib/library/picture';
 import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
@@ -35,12 +34,16 @@ export interface DashboardProps {
   initialItems: ItemWithVariants[];
   initialPaypalReachable: boolean;
   appUrl: string;
+  /** The counter card's QR code, as SVG markup (null for a draft, which has no address yet). */
+  shareQr: string | null;
+  /** The signed-in account's email, or null with no account (Settings). */
+  accountEmail: string | null;
 }
 
 /** How long a just-arrived row keeps its rise and paid glow (the glow's CSS animation is 2.4 s). */
 const FRESH_MS = 2600;
 
-export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReachable, appUrl }: DashboardProps) {
+export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReachable, appUrl, shareQr, accountEmail }: DashboardProps) {
   const toast = useToast();
   const section = sectionFromTab(useSearchParams().get('tab'));
   const [orders, setOrders] = useState(initialOrders);
@@ -203,7 +206,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
       <PageHeader
         title="Menu"
         description={<span className="type-figures">{menuSummary({ total: listed.length, own: sources.filter((s) => s === 'own').length, examples: sources.filter((s) => s === 'example').length })}</span>}
-        actions={<TextLink href={`/s/${shop.slug}`}>See it on your shop</TextLink>}
+        actions={shop.slug ? <TextLink href={`/s/${shop.slug}`}>See it on your shop</TextLink> : undefined}
       />
     ) : (
       <PageHeader title={sectionLabel(section)} />
@@ -236,17 +239,19 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         {section === 'menu' && (
           <MenuPanel items={items} shopId={shop.id} shopKind={kind} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />
         )}
-        {section === 'share' && <SharePanel shopId={shop.id} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} />}
+        {section === 'share' && <SharePanel shopId={shop.id} status={status} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} qr={shareQr} />}
         {section === 'settings' && (
-          <div className="flex flex-col gap-10">
-            <SettingsPanel shopId={shop.id} payeeEmail={payeeEmail} isDemo={shop.isDemo} onSaved={setPayeeEmail} />
-            <section aria-labelledby="settings-logo-title" className="flex max-w-measure flex-col gap-4 border-t border-line pt-8">
-              <h2 id="settings-logo-title" className="type-section">
-                Your logo
-              </h2>
-              <LogoPicker shopId={shop.id} shopName={shop.name} logoUrl={logoUrl} onChange={setLogoUrl} />
-            </section>
-          </div>
+          <SettingsPanel
+            shopId={shop.id}
+            shopName={shop.name}
+            payeeEmail={payeeEmail}
+            isDemo={shop.isDemo}
+            draft={status === 'draft'}
+            onSaved={setPayeeEmail}
+            logoUrl={logoUrl}
+            onLogoChange={setLogoUrl}
+            accountEmail={accountEmail}
+          />
         )}
       </div>
     </div>

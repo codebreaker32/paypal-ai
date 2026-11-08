@@ -4,6 +4,8 @@ import { withFallbackBrief } from '@/lib/ai/template';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
+import { qrSvg } from '@/lib/discovery/qr';
+import { currentShellAccount } from '@/lib/seller/shell';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
@@ -24,14 +26,21 @@ export default async function DashboardPage({ params }: PageProps<'/shops/[id]'>
   const db = getDb();
   const orders = ordersRepo.listByShop(db, shop.id);
   const items = itemsRepo.listWithVariants(db, shop.id);
+  const appUrl = getConfig().appUrl;
+  // A draft's address is replaced at first publish, so neither it nor a QR code of it reaches the page.
+  const draft = shop.status === 'draft';
+  const slug = draft ? '' : shop.slug;
+  const [shareQr, account] = await Promise.all([draft ? null : qrSvg(`${appUrl}/s/${shop.slug}`), currentShellAccount()]);
 
   return (
     <Dashboard
-      shop={{ id: shop.id, name: shop.name, slug: shop.slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind }}
+      shop={{ id: shop.id, name: shop.name, slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind }}
       initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}
-      appUrl={getConfig().appUrl}
+      appUrl={appUrl}
+      shareQr={shareQr}
+      accountEmail={account?.email ?? null}
     />
   );
 }

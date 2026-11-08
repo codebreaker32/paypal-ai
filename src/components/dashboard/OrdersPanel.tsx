@@ -24,7 +24,19 @@ function Subtotal({ orders, label }: { orders: Order[]; label: string }) {
   );
 }
 
-function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => void }) {
+function EmptyState({ shopId, slug, onShowShare }: { shopId: string; slug: string; onShowShare: () => void }) {
+  if (!slug) {
+    // A draft has no address yet, so there is no shop to try or share.
+    return (
+      <div className="flex max-w-measure flex-col items-start gap-3">
+        <h2 className="type-section">No orders yet</h2>
+        <p className="text-ink-soft">Your shop takes orders once you publish it.</p>
+        <ButtonLink href={`/shops/${shopId}/setup`} variant="primary" fullWidth className="mt-1 sm:w-auto">
+          Finish setting up
+        </ButtonLink>
+      </div>
+    );
+  }
   return (
     <div className="flex max-w-measure flex-col items-start gap-3">
       <h2 className="type-section">No orders yet</h2>
@@ -86,7 +98,7 @@ export function OrdersPanel({
   return (
     <div className="flex flex-col gap-6">
       {orders.length === 0 ? (
-        <EmptyState slug={slug} onShowShare={onShowShare} />
+        <EmptyState shopId={shopId} slug={slug} onShowShare={onShowShare} />
       ) : (
         <>
           <div role="group" aria-label="Show orders" className="no-scrollbar -mx-gutter overflow-x-auto px-gutter sm:mx-0 sm:px-0">
