@@ -78,7 +78,7 @@ test.describe('on a phone', () => {
     await sheet.getByRole('button', { name: 'Skip: Country sourdough loaf' }).click();
     await expect(sheet.locator('[data-proposal="Country sourdough loaf"]')).toHaveCount(0);
     await sheet.getByRole('button', { name: 'Use: Almond croissant' }).click();
-    await expect(sheet.locator('[data-proposal="Almond croissant"]')).toContainText('Added');
+    await expect(sheet.locator('[data-proposal="Almond croissant"]').getByRole('status')).toContainText('Kept');
     await sheet.getByRole('button', { name: 'Done' }).click();
 
     await expect(page.locator('li[data-item="Almond croissant"]').getByRole('img', { name: 'Almond croissant' })).toHaveAttribute('src', /^\/i\//);

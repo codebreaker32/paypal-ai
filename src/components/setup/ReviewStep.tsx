@@ -37,6 +37,9 @@ export interface ReviewProps {
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
+/** How long "Add to menu" says Added before its skipped line leaves the list. */
+const ADDED_HOLD_MS = 700;
+
 function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   const busy = state.status === 'pending' || state.status === 'saving';
   // The status region stays mounted through every state (empty while idle or on an error), so screen readers announce
@@ -157,8 +160,9 @@ export function ReviewStep(props: ReviewProps) {
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
       const item = await addItem(shopId, input);
-      setItems((all) => [...all, item]);
       setAnnounce(`${item.name} added to your menu.`);
+      // The item is what removes its line from "Lines we skipped", so it waits long enough for the button to say Added.
+      setTimeout(() => setItems((all) => [...all, item]), ADDED_HOLD_MS);
     },
     [shopId],
   );
@@ -386,7 +390,7 @@ export function ReviewStep(props: ReviewProps) {
                   <button
                     type="button"
                     onClick={goToPayee}
-                    className="inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
+                    className="press-text inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
                   >
                     {PAYEE_REQUIRED_MESSAGE}
                   </button>
