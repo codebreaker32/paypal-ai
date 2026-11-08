@@ -35,4 +35,4 @@ Checked once in real Chromium with a throwaway spec (not committed): zero `Audio
 
 `e2e/tactile.spec.ts`: 15 of 16 passed in the run with the throwaway spec while other worktrees were busy. The failure was line 214 (held response width); that test then passed 3 of 3 on its own.
 
-Final wiring: `npm test` 1353 passed, typecheck and lint clean. `e2e/sounds.spec.ts` 20 of 20 and `e2e/tactile.spec.ts` 15 of 15, each run once. After those runs one test's path list lost a `/help` entry (no such route in this branch), and that edit was not re-run.
+Final wiring: `npm test` 1353 passed, typecheck and lint clean. `e2e/sounds.spec.ts` 20 of 20 and `e2e/tactile.spec.ts` 15 of 15, each run once. After those runs one test's path list lost a `/help` entry (no such route in this branch), and that test passed again on its own.
