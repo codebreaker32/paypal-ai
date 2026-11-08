@@ -178,7 +178,10 @@ test.describe('Orders and Menu at 390', () => {
         await page.goto(path);
         const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(over, `${width} ${path}`).toBeLessThanOrEqual(0);
+        if (width !== 1024) await a11y(page);
       }
+      await page.goto(`/shops/${shop.shop.id}?tab=menu`);
+      if (width !== 1024) await a11y(page);
     }
     const empty = createFixtureShop('Empty Orders Bakery');
     await signInAsOwner(context, empty, BASE);

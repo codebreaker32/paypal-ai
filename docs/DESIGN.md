@@ -136,6 +136,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
 | `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
 | `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. 28rem wide from `sm` up, so "New paid order SHF-XXXXXX · $27.00" fits one line; the dashboard scrolls a just-paid row clear of it. |
+| `Panel`, `PanelList`, `PanelRow`, `LinkRow` (`panel.tsx`) | The one row system for working screens: a `type-section` heading with an optional count and a right-aligned value, above a white raised list of `li` rows (`--row-pad-x`, `--row-pad-y`, `--row-min-h`). The list is a size container: a row's action sits beside its text from `@xl` (36rem of list width) and drops under it when narrower. `LinkRow` is a whole row that links somewhere. |
 | `Skeleton` | Shaped like the content it replaces, with a shimmer. |
 | `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
 
@@ -188,7 +189,7 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - The shop's picture (`ShopAvatar`), its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.
   - Then the tabs: Orders · Menu · Share · Settings.
   - Orders has a segmented filter (44 px) and groups (To prepare, Waiting for payment, collapsible, and Done), each with its subtotal.
-- **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid. On phones the buyer's name gives way last.
+- **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid; status and action share one line. The six-column layout is a container query on the list (60rem), since the sidebar takes 15rem of the viewport. On phones the buyer's name gives way last.
 - **Order detail:**
   - On desktop, a master list on the left: rows on white with a rule on their right, and the open order on grey.
   - The header shows the number, the status dot and word, who placed it and the big total.

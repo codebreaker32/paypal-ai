@@ -131,7 +131,7 @@ test.describe('counter card', () => {
     await signIn(context, draft.shop.id, draft.ownerToken);
     await page.goto(`/shops/${draft.shop.id}/card`);
     await expect(page.getByText('Your counter card is ready once your shop is live.')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
+    await expect(page.locator('#app-content').getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
     await expect(page.getByTestId('card-qr')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Print card' })).toHaveCount(0);
     expect(await page.content()).not.toContain(draft.shop.slug);

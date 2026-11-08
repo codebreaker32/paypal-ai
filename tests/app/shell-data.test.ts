@@ -26,6 +26,12 @@ describe('loadShellData', () => {
     expect(data.avatar.items.length).toBeGreaterThan(0);
   });
 
+  it('sends no slug for a draft: its address is replaced at first publish', () => {
+    const db = createTestDb();
+    const s = seedShop(db);
+    expect(loadShellData({ ...shops.byId(db, s.shop.id)!, status: 'draft' }, db).slug).toBe('');
+  });
+
   it('flags a live shop with nowhere to be paid', () => {
     const db = createTestDb();
     const s = seedShop(db);

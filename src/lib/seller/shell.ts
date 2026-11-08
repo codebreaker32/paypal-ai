@@ -32,7 +32,8 @@ export function loadShellData(shop: Shop, db: Db = getDb()): ShellData {
   return {
     shopId: shop.id,
     name: shop.name,
-    slug: shop.slug,
+    // A draft's address is replaced at first publish, so it must not reach the page.
+    slug: shop.status === 'draft' ? '' : shop.slug,
     avatar: {
       kind: shop.kind,
       menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner'),
