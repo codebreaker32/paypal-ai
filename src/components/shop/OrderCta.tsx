@@ -48,13 +48,14 @@ export function HeroOrderCta() {
   }, [setHeroInView]);
 
   if (!cta) return null;
+  const { title, takesOrders, shown, onOpen, attachHeroButton } = cta;
   return (
     <div ref={wrapper} data-hero-cta="" className="hidden shrink-0 lg:block">
-      {cta.shown !== null && (
-        <div className={cn('flex flex-col items-end gap-2', cta.shown !== 'hero' && 'invisible')}>
-          <Button ref={cta.attachHeroButton} size="lg" onClick={cta.onOpen}>
-            {cta.title}
-            {cta.takesOrders && <span className="font-medium text-surface/75"> · PayPal</span>}
+      {shown !== null && (
+        <div className={cn('flex flex-col items-end gap-2', shown !== 'hero' && 'invisible')}>
+          <Button ref={attachHeroButton} size="lg" onClick={onOpen}>
+            {title}
+            {takesOrders && <span className="font-medium text-surface/75"> · PayPal</span>}
           </Button>
           <p className="type-meta text-right text-ink-muted">
             Or connect your own assistant to the{' '}
@@ -77,10 +78,11 @@ export function HeroOrderCta() {
 export function CompactOrderCta({ row = false }: { row?: boolean }) {
   const cta = useContext(OrderCtaContext);
   if (!cta || cta.shown === null) return null;
-  const show = cta.shown === 'compact';
+  const { title, shown, onOpen, attachCompactButton } = cta;
+  const show = shown === 'compact';
   const button = (
-    <Button ref={cta.attachCompactButton} size="md" onClick={cta.onOpen} className="shrink-0">
-      {cta.title}
+    <Button ref={attachCompactButton} size="md" onClick={onOpen} className="shrink-0">
+      {title}
     </Button>
   );
   if (!row) {
