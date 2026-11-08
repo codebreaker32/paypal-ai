@@ -261,3 +261,9 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The work packages run as parallel worktree branches and merge in the brief's order (WP1 with WP5, then WP2 with WP4, then WP3 with WP6, then WP7), rather than one at a time.** Reason: the brief's packages sum to about 15 h against a 12-hour cut-off; WP1 and WP5 touch different files, as do WP2/WP4 and WP3/WP6.
 - **Workers run on named worktrees (`.claude/worktrees/wpN`), not per-agent ones.** Reason: build, review and fix steps for one package must share one working copy.
 - **WP2 and WP4 start from `wp1`'s head (`32fd26b`) while WP1's correctness review runs, rather than waiting for its merge.** Reason: both need WP1's Button, IconButton and press classes; WP1 passed its 14 acceptance items and any review fixes will be small, and waiting would cost most of a session.
+
+## Run 5, session 3 (2026-11-08 IST, from 23:21)
+- **Human decision, 8 Nov: a real cart and item sheet (WP3b, must-have, right after WP3), and literal click sounds on every press with an off switch (must-have, promoted from S2).** The addendum `docs/superpowers/specs/2026-11-08-production-pass-addendum.md` overrides the brief wherever they conflict.
+- **"Hour 12" is 08:00 IST on Tue 10 Nov and "hour 16" is 16:00 IST on Tue 10 Nov** (the run was paused on 8 Nov and resumed). Reason: the run instructions restate both after the pause.
+- **The auto-growing composer stays with WP3, not WP2.** Reason: the brief lists it under WP3 and WP2's acceptance does not depend on it; WP2's own notes had named it as still to do.
+- **Session 3 runs four workflows side by side: WP1 review and gate, WP5 security re-check and gate, WP2's remaining behaviours, WP4's remaining screens.** Reason: they are in separate worktrees, and each work package's review, fix and gate has been cut off by the 120-minute session cap when done in sequence.
