@@ -54,8 +54,23 @@ Checked: `npm test`, typecheck, lint, `e2e/assistant-layout.spec.ts`, `e2e/shop.
 | Scroller | Also follows a `ResizeObserver` on the scroller | A closed sheet has no height, so a restored log must go to its end when the sheet opens. The observer also keeps a following buyer at the bottom when the keyboard or the action row changes the scroller's height. |
 | Closing | `history.back()` only while the open assistant owns an entry (`ownEntry`); a `goingBack` guard ignores a second close until `popstate` | A deep-linked or docked assistant has no entry to step back off, and a double tap on the X would otherwise leave the shop. |
 
-## Known failure, not from this task
-
-`e2e/shop.spec.ts:286` (`an agent door link opens the folded door...`) fails at `:295`, and fails the same way at `d587170`, before this task's commits. The first click jumps to the door, so the hero scrolls out and its `agent door` link becomes `invisible`; the second click can never act on it. The fix is a `window.scrollTo(0, 0)` before that click, which goes beyond a selector, route or copy edit, so it is left for the coordinator to decide.
-
 Note for the merge: while the menu grid stays viewport-based, opening the dock moves nothing, so `keepPlace` has no effect until WP3's container-query grid lands. The e2e forces a height change to test it.
+
+## Acceptance e2e task
+
+`e2e/assistant-layout.spec.ts` now covers acceptance 1 to 18; test titles carry the numbers (`--grep "A6"`), 9 and 16 fake the visual viewport and the stream as the brief allows, with real wheel input in 16.
+
+Added: composer box, input and Send inside the viewport (A2, A8); A3 for every `main`, `header` and `footer`; proof each scroll position was reached (A1, A12); the thinking state (A6); Esc on phone and at 768 (A13); `Pastries` with nothing forced (A15); wheel over the log at its end with the page mid-way, docked and on the sheet, each with a control wheel proving the wheel reached the log; wheel up during a stream (A16); axe and `smallTargets` empty and in conversation at 390 and 1440 (A17); reduced motion at each surface, with no running animation anywhere in it, and a motion-on control showing the sheet really transitions (A18).
+
+Existing tests edited: `e2e/assistant-layout.spec.ts`, this package's own: titles prefixed with their acceptance number, assertions added, `longConversation` moved to the file's top level with a surface parameter, and A1's `scrollTo` made `behavior: 'instant'` so the position can be asserted. No assertion removed. `expectDocked`'s `+1` tolerance stays and a stricter check sits beside it (`EPSILON`, 1/32 px, because layout rounds at fractional widths such as 30vw at 1366).
+
+Product fixed because a test found it:
+
+| Where | What | Why |
+|---|---|---|
+| `globals.css` | `::backdrop` added to the reduced-motion rule | `*, ::before, ::after` does not match it, so the sheet's scrim faded for 220 ms under reduced motion. Applies to every sheet. |
+| `OrderCta.tsx` | `invisible` moves from the hero column to its button | The `agent door` link left the page when the hero scrolled out, which failed `e2e/shop.spec.ts:286` (the known failure recorded earlier) and removed it from the tab order. The one-button rule is about buttons, so this is the smallest change; `shop.spec.ts` is unedited. |
+
+A18 measures the surface element with nothing allowed running, and its subtree (where the `::backdrop` scrim shows up) for anything over 1 ms. The subtree limit is there because the reduced-motion rule makes every transition 0.01 ms, and an input's border colour under the pointer was caught in that instant in about 1 run in 7.
+
+Known limits: the brief's "Unverified" list stands (iOS keyboard pinning and scroll lock, Safari `overlay`, Android Back). Chromium only.

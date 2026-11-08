@@ -886,12 +886,16 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
   const measure = (region: Locator) =>
     region.evaluate(async (el) => {
       await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-      const running = el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').map((a) => {
+      // The surface itself must have nothing running at all. Inside it, the reduced-motion rule turns every transition
+      // into a 0.01 ms one, and a colour change (the input's border when the pointer lands on it) can be caught in that
+      // instant; anything longer than 1 ms, the scrim included, is a real animation and fails.
+      const own = el.getAnimations().filter((a) => a.playState === 'running').length;
+      const running = el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running' && Number(a.effect?.getTiming().duration) > 1).map((a) => {
         const effect = a.effect as KeyframeEffect;
         const name = (a as Partial<CSSAnimation>).animationName ?? (a as Partial<CSSTransition>).transitionProperty;
         return `${name} on ${effect.target?.tagName}.${effect.target?.className} (${effect.getTiming().duration} ms, ${effect.getTiming().iterations})`;
       });
-      return { transform: getComputedStyle(el).transform, running };
+      return { transform: getComputedStyle(el).transform, own, running };
     });
 
   for (const { width, height, surface } of [
@@ -908,7 +912,7 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
       await page.getByRole('button', { name: TITLE }).filter({ visible: true }).first().click();
       const region = page.locator(surface);
       await expect(region).toBeVisible();
-      expect(await measure(region)).toEqual({ transform: 'none', running: [] });
+      expect(await measure(region)).toEqual({ transform: 'none', own: 0, running: [] });
     });
   }
 
