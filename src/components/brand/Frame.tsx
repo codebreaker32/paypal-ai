@@ -10,5 +10,9 @@ const WIDE = /^\/shops\/[^/]+(\/orders\/[^/]+)?\/?$/;
 /** The header's and footer's inner container, as wide as the page below it so the logo lines up with the content. */
 export function Frame({ className, children }: { className?: string; children: ReactNode }) {
   const wide = WIDE.test(usePathname() ?? '');
-  return <div className={cx('mx-auto w-full px-gutter', wide ? 'max-w-wide' : 'max-w-page', className)}>{children}</div>;
+  return (
+    <div data-page-frame="" className={cx('mx-auto w-full px-gutter', wide ? 'max-w-wide' : 'max-w-page', className)}>
+      {children}
+    </div>
+  );
 }

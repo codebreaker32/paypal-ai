@@ -72,7 +72,7 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
   const strip = items.filter((i) => i.photoUrl).slice(0, 4);
   if (!shop.coverUrl && strip.length < 2) return null;
   return (
-    <div className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
+    <div data-page-frame="" className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
       <div className="relative h-44 overflow-hidden bg-surface-sunken sm:h-64 sm:rounded-(--cover-radius) lg:h-80">
         {shop.coverUrl ? (
           <img src={shop.coverUrl} {...responsiveImage(shop.coverUrl, COVER_SIZES)} alt="" fetchPriority="high" className="size-full object-cover" />
