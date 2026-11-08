@@ -60,3 +60,13 @@ Edited tests (selectors and copy targets only):
 - `e2e/screenshots.spec.ts`: removed the step that masked the owner link (brief, lines 490-497). It was a page edit, not an assertion, and the `code` element it targeted no longer exists.
 - `e2e/app-shell.spec.ts` (this package's own spec): added Live, Share, Settings, draft Share, long-name, 1024 and non-owner checks.
 - `tests/app/shell-view.test.ts`: added `shopStatusWord` cases. No existing assertion changed.
+
+## Step 5: acceptance e2e
+
+`e2e/app-shell.spec.ts` now covers acceptance 1 to 21 as numbered, with measurements (12 is the unit test `tests/ui/working-screens-type.test.ts`; the recovery-key banner, which needs an account until WP6, is in `tests/app/shell-view.test.ts`).
+
+- **`data-shell-banner`** added to `ShellBanner`, so "only one banner renders" counts the slot, not every `role="status"` on the page (the toast region and live regions use that role too).
+- **Print (10):** the print test itself is `e2e/discovery.spec.ts` "prints the card alone, on one page"; `app-shell.spec.ts` adds that the shell chrome, the skip link and the test-mode lines are hidden under print media at 390 and 1440.
+
+Edited tests (selectors and copy targets only, nothing removed): `e2e/app-shell.spec.ts` only, this package's own spec. Tightened there: the site-chrome check now requires at least one `[data-site-chrome]` element and every one hidden; the door and shop URLs compare exact text rather than a suffix; the filter buttons also stay inside the viewport vertically.
+

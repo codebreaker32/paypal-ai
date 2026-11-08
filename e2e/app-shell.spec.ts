@@ -429,6 +429,7 @@ test.describe('Live, Share, Settings', () => {
         await hideDevBadge(page);
         await expect(page.getByTestId('share-door-url')).toHaveText(`${BASE}/s/${pub.shop.slug}/mcp`);
         await expect(page.getByTestId('share-shop-url')).toHaveText(`${BASE}/s/${pub.shop.slug}`);
+        await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeVisible();
         await expect(page.getByRole('button', { name: 'Copy agent door link' })).toHaveAttribute('data-variant', 'primary');
         const region = page.getByRole('region', { name: 'Counter card' });
         await expect(region.getByRole('img')).toBeVisible();
