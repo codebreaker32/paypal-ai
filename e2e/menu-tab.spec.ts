@@ -27,6 +27,8 @@ test.describe('on a phone', () => {
 
   test('a row takes a photo and removes it; the cover too', async ({ page }) => {
     await page.goto(`/shops/${shop.shop.id}?tab=menu`);
+    // The dev server's badge sits over the phone's tab bar (Orders); it is not in a production build.
+    await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
     const row = page.locator('li[data-item="Almond croissant"]');
     await row.getByLabel('Add a photo of Almond croissant').setInputFiles(path.join(PHOTOS, 'almond-croissant.jpg'));
     await expect(row.getByRole('img', { name: 'Almond croissant' })).toHaveAttribute('src', /^\/i\//);
