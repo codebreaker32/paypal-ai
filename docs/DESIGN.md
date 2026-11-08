@@ -134,7 +134,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | `Badge` | A soft pill with no outline. Tones: neutral, accent, ok, warn, error (`danger`), info, note. Use it sparingly, for one-off facts ("Sent to PayPal", "Allergy"). Never use it for order status in lists. |
 | `Tabs` | WAI-ARIA tabs with an ink underline under the active tab and a pomegranate count pill. |
 | `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
-| `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
+| `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px, entering and leaving by CSS (`ui/sheet.css`: rise on phones; 8 px rise and fade when centred). `bare` drops its box and header for a surface that draws its own (`labelledBy` names it, `initialFocusRef` and `fallbackFocusRef` steer focus): the buyer console. |
 | `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. 28rem wide from `sm` up, so "New paid order SHF-XXXXXX · $27.00" fits one line; the dashboard scrolls a just-paid row clear of it. |
 | `Skeleton` | Shaped like the content it replaces, with a shimmer. |
 | `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
@@ -181,8 +181,8 @@ The shop's logo (a square upload), else its cover cropped square, else the first
 - **Shop page:** a rounded cover with the avatar, the name in `type-hero`, a meta line ("Food · Pickup or shipping · **Paid with PayPal**") and underline section tabs.
   - On desktop, items are 2-column horizontal cards with the photo on the right and a sticky assistant panel. On phones, items are thumbnail rows with a sticky black bar: "Order with an assistant · PayPal".
   - The agent door sits behind one "Connect your own assistant" disclosure at the foot (`#agent-door` opens it).
-- **Buyer console:**
-  - The empty state is a one-sentence greeting and starter prompts as tinted pills.
+- **Buyer console:** one `AssistantShell` (`shop/assistant-shell.css`) attached to a viewport edge in all three forms, a bottom sheet under 640 px (12 px from the top, always the same height), a right side sheet from 640 to 1023, and a full-height dock from 1024 px that narrows the page beside it (no scrim, no scroll lock). Only the conversation scrolls; the header, and the footer with the composer, stay put.
+  - The empty state is a one-sentence greeting and starter prompts as tinted pills, resting directly above the composer.
   - The Activity panel and the approval card are grey wells, not outlined boxes.
 - **Dashboard shell:**
   - The shop's picture (`ShopAvatar`), its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.

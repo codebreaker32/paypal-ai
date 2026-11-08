@@ -432,7 +432,7 @@ export function ConsoleActions({ api }: { api: BuyerConsoleApi }) {
           {PAYMENT_CHECK_PROMPT}
         </Button>
       )}
-      <Button variant="ghost" icon={RotateCcw} onClick={reset} className="ml-auto">
+      <Button variant="ghost" icon={RotateCcw} onClick={reset} className="ml-auto px-3">
         Start over
       </Button>
     </div>
