@@ -14,7 +14,7 @@ Checked: `npm test` (1279), typecheck, lint, `e2e/assistant-layout.spec.ts`, `e2
 |---|---|---|
 | `ui/sheet.css` | New file, not in the brief's list | The "every other sheet" motion needs a home next to `Sheet`; same pattern as `console-motion.css`. A `bare` Sheet does not get it, so the assistant keeps its own motion. |
 | `BuyerConsole.tsx` | New export `ConsoleActions` | Footer row needs the same conditions the log used; they moved with it. `Start a new conversation` (conversation full) stays in the log, as the brief says errors and full stay inline. |
-| `Start over` | `ml-auto px-3` on the ghost | `ml-auto` keeps it at the right edge when the payment button is absent (`justify-between` would drop it left on its own). `px-3` lets both buttons fit one row at dock width; at 390 they still wrap, which the brief allows. |
+| `Start over` | `ml-auto` on the ghost | Keeps it at the right edge when the payment button is absent (`justify-between` would drop it left on its own). The two buttons need about 400 px, so they wrap to two rows at every width today (measured at 1440, 1024 and 390); the brief's `flex-wrap` allows it. |
 | `ShopAssistant.tsx` | Interim: the closed side card stays, the dock only replaces it when open, and the content column spans all 12 tracks while docked | The next task replaces the card and the grid. Without the 12-track span, the content would leave a third of its width empty next to the dock. |
 | `AssistantShell.tsx` | Footer also has `flex flex-col gap-3` | Space between the action row and the composer; the brief's list is otherwise exact. |
 
