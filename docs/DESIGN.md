@@ -179,7 +179,8 @@ The shop's logo (a square upload), else its cover cropped square, else the first
 ## Screens
 
 - **Shop page:** a rounded cover with the avatar, the name in `type-hero`, a meta line ("Food · Pickup or shipping · **Paid with PayPal**") and underline section tabs.
-  - On desktop, items are 2-column horizontal cards with the photo on the right and a sticky assistant panel. On phones, items are thumbnail rows with a sticky black bar: "Order with an assistant · PayPal".
+  - On desktop, items are 2-column horizontal cards with the photo on the right. On phones, items are thumbnail rows with a sticky black bar: "Order with an assistant · PayPal" (`[data-order-bar]`, under 1024 px, centred at `max-w-md` from 640).
+  - **Order button from 1024 px** (`shop/OrderCta.tsx`): `HeroOrderCta` at the right end of the name row, then `CompactOrderCta` fading in at the right end of the sticky section-tabs row once the hero wrapper's IntersectionObserver says it has scrolled out. Exactly one shows; neither while docked. No floating bubble. A shop with fewer than two sections has that sticky row at `lg` only for the button: it takes no space in the page and has no surface until the button shows.
   - The agent door sits behind one "Connect your own assistant" disclosure at the foot (`#agent-door` opens it).
 - **Buyer console:** one `AssistantShell` (`shop/assistant-shell.css`) attached to a viewport edge in all three forms, a bottom sheet under 640 px (12 px from the top, always the same height), a right side sheet from 640 to 1023, and a full-height dock from 1024 px that narrows the page beside it (no scrim, no scroll lock). Only the conversation scrolls; the header, and the footer with the composer, stay put.
   - The empty state is a one-sentence greeting and starter prompts as tinted pills, resting directly above the composer.

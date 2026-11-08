@@ -108,6 +108,13 @@
   --z-toast: 60;
 }
 
+/* From 1024 px the tabs row also holds the 44 px compact order button, so it gets room around it. */
+@media (width >= 64rem) {
+  :root {
+    --shop-tabs-h: 3.5rem;
+  }
+}
+
 /* ───────────── 2. Semantic (Tailwind theme) ───────────── */
 @theme {
   /* Closed palette: Tailwind's default colours are removed so only these exist. */
