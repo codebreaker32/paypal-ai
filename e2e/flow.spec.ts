@@ -75,14 +75,14 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
   await settle(page);
   await expect(page.getByText(new RegExp(`^${count} items are in your PayPal catalog`))).toBeVisible();
   await expect(page.getByText(/^https?:\/\/\S+\/s\/marigold-bakehouse-\d+\/mcp$/)).toBeVisible(); // never the demo shop's slug
-  await expect(page.getByText(/\/claim\/[A-Za-z0-9_-]{40,}$/)).toBeVisible();
+  await expect(page.getByText(/\/claim\/[A-Za-z0-9_-]{40,}$/)).toHaveCount(0); // the owner link no longer shows here
   await expect(appNav(page).getByRole('link', { name: /Orders/ })).toHaveAttribute('href', /\/shops\/shp_/);
   await accessible(page);
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
 
   // The shop page
-  await page.getByRole('link', { name: 'Open your shop' }).click();
+  await page.getByRole('link', { name: 'Open your shop' }).first().click(); // header and preview card both have it
   await page.waitForURL(/\/s\/marigold-bakehouse-\d+$/);
   const slug = new URL(page.url()).pathname.split('/')[2];
   await expect(page.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' })).toBeVisible();

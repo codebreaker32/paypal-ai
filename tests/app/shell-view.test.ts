@@ -1,6 +1,6 @@
 // The seller shell's pure rules: which section a URL means, what each nav link points at, and the one banner it shows.
 import { describe, expect, it } from 'vitest';
-import { activeSection, menuSummary, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
+import { activeSection, shopStatusWord, menuSummary, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
 
 describe('sectionFromTab', () => {
   it('reads the three named sections and treats anything else as Orders', () => {
@@ -71,5 +71,16 @@ describe('menuSummary', () => {
   });
   it('uses the singular for one', () => {
     expect(menuSummary({ total: 1, own: 1, examples: 1 })).toBe('1 item · 1 your photo · 1 example');
+  });
+});
+
+describe('shopStatusWord', () => {
+  it('names the state, and a shop that cannot be paid says so before anything else', () => {
+    expect(shopStatusWord('live', false)).toEqual({ tone: 'ok', word: 'Live' });
+    expect(shopStatusWord('paused', false)).toEqual({ tone: 'warn', word: 'Paused' });
+    expect(shopStatusWord('draft', false)).toEqual({ tone: 'neutral', word: 'Draft' });
+    expect(shopStatusWord('live', true)).toEqual({ tone: 'warn', word: 'Not taking orders' });
+    expect(shopStatusWord('paused', true)).toEqual({ tone: 'warn', word: 'Not taking orders' });
+    expect(shopStatusWord('draft', true)).toEqual({ tone: 'neutral', word: 'Draft' });
   });
 });

@@ -9,21 +9,15 @@ import { Icon } from '@/components/ui/icon';
 import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
 import type { ShopStatus } from '@/lib/domain/types';
 import type { ShellAccount, ShellData } from '@/lib/seller/shell';
+import { shopStatusWord } from '@/lib/seller/shell-view';
 import { AppNav } from './AppNav';
 import { ShellBanner } from './ShellBanner';
 import { seedShell, useShellValues, type ShellValues } from './shell-store';
 
 const STATUS_TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
 
-function statusWord(status: ShopStatus, payeeMissing: boolean) {
-  if (status !== 'draft' && payeeMissing) return ['warn', 'Not taking orders'] as const;
-  if (status === 'live') return ['ok', 'Live'] as const;
-  if (status === 'paused') return ['warn', 'Paused'] as const;
-  return ['neutral', 'Draft'] as const;
-}
-
 function ShopSwitcher({ data, values, account }: { data: ShellData; values: ShellValues; account: ShellAccount | null }) {
-  const [tone, word] = statusWord(values.status, values.payeeMissing);
+  const { tone, word } = shopStatusWord(values.status, values.payeeMissing);
   const body = (
     <>
       <ShopAvatar shop={{ logoUrl: values.logoUrl, coverUrl: values.coverUrl, kind: data.avatar.kind, menuPhotoSrc: data.avatar.menuPhotoSrc }} items={data.avatar.items} size="sm" />

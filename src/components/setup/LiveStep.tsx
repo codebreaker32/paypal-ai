@@ -1,143 +1,157 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useId, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useSyncExternalStore, useState, type ReactNode } from 'react';
 import { m } from 'motion/react';
+import { ExternalLink, Printer, RotateCcw, TriangleAlert } from 'lucide-react';
+import { PageHeader } from '@/components/app/PageHeader';
+import { useShellValues, type ShellValues } from '@/components/app/shell-store';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
+import { ItemPhoto } from '@/components/shop/ItemPhoto';
 import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
-import { ChevronDown, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
+import { PanelList, PanelRow } from '@/components/ui/panel';
 import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
+import { pictureSource } from '@/lib/library/picture';
+import type { LivePreview, LivePreviewRow } from '@/lib/seller/live-preview';
+import { shopStatusWord } from '@/lib/seller/shell-view';
 import { PublishProgress, usePublish } from './Publishing';
 
 export interface LiveProps {
   shopId: string;
   name: string;
   slug: string;
-  status: 'live' | 'paused' | 'draft';
+  /** What the server read; the banner's Resume changes it through the shell's store. */
+  shell: ShellValues;
   shopUrl: string;
   agentDoorUrl: string;
-  /** Null when this browser was given the shop without its owner cookie value (shouldn't happen). */
-  ownerLink: string | null;
   liveCount: number;
   inPersonCount: number;
   pendingCount: number;
   /** Names of the items still waiting for PayPal (a publish that partly failed). */
   pendingNames: string[];
   /** The shop's picture beside its name (`ShopAvatar`): never letters. */
-  avatar?: Pick<ShopAvatarProps, 'shop' | 'items'>;
+  avatar: Pick<ShopAvatarProps, 'shop' | 'items'>;
+  preview: LivePreview;
 }
 
 const subscribeNothing = () => () => {};
 
 /**
- * The one celebratory beat: when the shop goes live in this browser (the step mounts after publishing), its picture
- * and name scale in. A direct load paints at once (server HTML is never hidden). Reduced motion keeps only the fade.
+ * The one celebratory beat: when the shop goes live in this browser (the step mounts after publishing), the preview of
+ * it scales in. A direct load paints at once (server HTML is never hidden). Reduced motion keeps only the fade.
  */
-function LiveBeat({ delay = 0, className, children }: { delay?: number; className?: string; children: ReactNode }) {
+function LiveBeat({ className, children }: { className?: string; children: ReactNode }) {
   const clientMount = useSyncExternalStore(subscribeNothing, () => true, () => false);
-  const [initial] = useState(clientMount ? { opacity: 0, scale: 0.86 } : false);
+  const [initial] = useState(clientMount ? { opacity: 0, scale: 0.94 } : false);
   return (
     <m.div
       data-entrance=""
       className={className}
       initial={initial}
       animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: MOTION_S.slow, delay, ease: EASE_OUT }}
+      transition={{ duration: MOTION_S.slow, ease: EASE_OUT }}
     >
       {children}
     </m.div>
   );
 }
 
-/** A link shown in full (it wraps), with a Copy button that confirms in place. */
-function CopyRow({
-  value,
-  label,
-  copyLabel = 'Copy link',
-  mono,
-  primary,
-}: {
-  value: string;
-  label: string;
-  copyLabel?: string;
-  mono?: boolean;
-  /** The screen's one primary action. */
-  primary?: boolean;
-}) {
-  const id = useId();
+const TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
+
+/* eslint-disable @next/next/no-img-element -- the shop's cover: a site-relative upload or bundled photo of unknown size */
+function PreviewHero({ hero, shopName }: { hero: NonNullable<LivePreview['hero']>; shopName: string }) {
+  if (hero.kind === 'cover') return <img src={hero.src} alt={`${shopName} cover`} className="size-full object-cover" />;
+  return <ItemPhoto name={hero.item.name} {...hero.item.picture} className="size-full" />;
+}
+/* eslint-enable @next/next/no-img-element */
+
+function PreviewRow({ row }: { row: LivePreviewRow }) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <code
-        id={id}
-        className={cx(
-          'flex min-h-(--field-h) flex-1 items-center rounded-(--field-radius) bg-surface-sunken px-3.5 py-2 text-sm [overflow-wrap:anywhere]',
-          mono ? 'font-mono' : 'font-sans',
+    <li className="flex items-center gap-3">
+      <ItemPhoto name={row.name} {...row.picture} decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
+      <span className="min-w-0 flex-1 truncate text-sm font-medium" title={row.name}>
+        {row.name}
+      </span>
+      <span className="type-price shrink-0 text-sm font-semibold">{row.price}</span>
+    </li>
+  );
+}
+
+/** The shop itself, as a card. Below xl it is a compact strip above the rows, without the picture and items. */
+function ShopPreview({ p, status }: { p: LiveProps; status: ReturnType<typeof shopStatusWord> }) {
+  const { hero, rows } = p.preview;
+  const example = hero?.kind === 'item' && pictureSource(hero.item.picture) === 'example';
+  return (
+    <LiveBeat className="order-first min-w-0 origin-center xl:order-none">
+      <Card padding="none" className="overflow-hidden" data-testid="live-preview">
+        {hero && (
+          <div className="relative hidden aspect-video xl:block">
+            <PreviewHero hero={hero} shopName={p.name} />
+            {example && <span className="absolute bottom-2 left-2 rounded-full bg-ink/80 px-2 py-0.5 type-meta font-semibold text-surface">Example photo</span>}
+          </div>
         )}
-      >
-        {value}
-      </code>
-      <CopyButton text={value} what={label} label={copyLabel} primary={primary} size={primary ? 'lg' : 'md'} describedBy={id} />
-    </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-3 p-4 xl:p-5">
+          <ShopAvatar {...p.avatar} size="sm" />
+          <div className="min-w-0 flex-1 basis-0">
+            <p className="font-bold [overflow-wrap:anywhere]">{p.name}</p>
+            <p className={cx('inline-flex items-center gap-1.5 type-meta font-semibold', TONE[status.tone])}>
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
+              {status.word}
+            </p>
+          </div>
+          {rows.length > 0 && <ul className="hidden w-full flex-col gap-3 border-t border-line pt-4 xl:flex">{rows.map((row) => <PreviewRow key={row.id} row={row} />)}</ul>}
+          <TextLink href={`/s/${p.slug}`} className="shrink-0 text-sm">
+            Open your shop <Icon icon={ExternalLink} size="sm" />
+          </TextLink>
+        </div>
+      </Card>
+    </LiveBeat>
   );
 }
 
-/** One link to keep: a heading, at most one line on what it's for, then the link and its Copy button. Divided, not boxed. */
-function LinkSection({ title, className, children }: { title: string; className?: string; children: ReactNode }) {
-  const id = useId();
-  return (
-    <section aria-labelledby={id} className={cx('flex min-w-0 flex-col gap-3 border-t border-line pt-6', className)}>
-      <h2 id={id} className="type-heading">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
+function RowHeading({ children }: { children: ReactNode }) {
+  return <h3 className="type-section">{children}</h3>;
 }
 
-/** "Your shop is live": the links to share, the one thing to try next, and the owner link. */
+const RowUrl = ({ children }: { children: string }) => <p className="text-sm text-ink-soft [overflow-wrap:anywhere]">{children}</p>;
+
+/** The width of a row's action: its own under the text at @xl, the whole row on a narrow list. */
+const ROW_ACTION = 'w-full @xl:w-auto';
+
+/** "Your shop is live": the shop itself beside the few things to do with it now. */
 export function LiveStep(p: LiveProps) {
   const router = useRouter();
   const { run, start } = usePublish(p.shopId);
-  const claudeCommand = `claude mcp add --transport http ${p.slug} ${p.agentDoorUrl}`;
+  const { status, payeeMissing } = useShellValues(p.shopId, p.shell);
   const retry = async () => {
     const r = await start();
     if (r.phase === 'done') router.refresh();
   };
-  const paused = p.status === 'paused';
 
   return (
-    <div className="flex w-full flex-col gap-10">
-      <header className="flex max-w-measure flex-col gap-3">
-        <div className="flex items-center gap-4">
-          {p.avatar && (
-            <LiveBeat className="origin-center">
-              <ShopAvatar {...p.avatar} size="lg" />
-            </LiveBeat>
-          )}
-          <LiveBeat delay={0.08} className="flex min-w-0 origin-left flex-col gap-1">
-            <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-              <span className={cx('inline-flex items-center gap-2 font-semibold', paused ? 'text-warn' : 'text-ok')}>
-                <span aria-hidden="true" className="size-2 rounded-full bg-current" />
-                {paused ? 'Paused' : 'Live'}
-              </span>
-            </p>
-            <p className="type-title [overflow-wrap:anywhere]">{p.name}</p>
-          </LiveBeat>
-        </div>
-        <h1 tabIndex={-1} className="type-page outline-none">{paused ? 'Your shop is paused' : 'Your shop is live'}</h1>
-        <p className="type-lead text-ink-soft">
-          {p.liveCount} {p.liveCount === 1 ? 'item is' : 'items are'} in your PayPal catalog
-          {p.inPersonCount > 0 && <>, plus {p.inPersonCount} to ask about in person</>}. Any AI assistant can order from
-          you now, and buyers pay on PayPal.
-        </p>
-      </header>
+    <div className="flex w-full flex-col">
+      <PageHeader
+        title={status === 'paused' ? 'Your shop is paused' : 'Your shop is live'}
+        description={
+          <>
+            {p.liveCount} {p.liveCount === 1 ? 'item is' : 'items are'} in your PayPal catalog
+            {p.inPersonCount > 0 && <>, plus {p.inPersonCount} to ask about in person</>}.
+          </>
+        }
+        actions={
+          <ButtonLink href={`/s/${p.slug}`} variant="secondary" icon={ExternalLink}>
+            Open your shop
+          </ButtonLink>
+        }
+      />
 
       {p.pendingCount > 0 && (
-        <section aria-labelledby="pending-title" className="flex max-w-measure flex-col gap-4 rounded-(--card-radius) bg-warn-soft p-5">
+        <section aria-labelledby="pending-title" className="mb-6 flex flex-col gap-3 rounded-(--card-radius) bg-warn-soft p-5">
           <h2 id="pending-title" className="flex items-center gap-2 font-semibold text-warn">
             <Icon icon={TriangleAlert} />
             {p.pendingCount} {p.pendingCount === 1 ? 'item hasn’t' : 'items haven’t'} reached PayPal yet
@@ -150,63 +164,48 @@ export function LiveStep(p: LiveProps) {
           ) : (
             <PublishProgress run={run} />
           )}
-          <Button icon={RotateCcw} loading={run.phase === 'running'} loadingLabel="Retrying…" onClick={() => void retry()} className="self-start">
+          <Button variant="secondary" icon={RotateCcw} loading={run.phase === 'running'} loadingLabel="Retrying…" onClick={() => void retry()} className="self-start">
             Retry {p.pendingCount} {p.pendingCount === 1 ? 'item' : 'items'}
           </Button>
         </section>
       )}
 
-      {/* Phones: the agent door (the primary action) first, then the other links, then "See it work".
-          Desktop: the links on the left, "See it work" on the right. grid-cols-1 is minmax(0, 1fr), so a long link wraps. */}
-      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-x-16">
-        <div className="contents lg:col-span-7 lg:flex lg:min-w-0 lg:flex-col lg:gap-8">
-          <LinkSection title="Your agent door" className="border-t-0 pt-0">
-            <p className="text-ink-soft">Give it to any AI assistant to order from you.</p>
-            <CopyRow value={p.agentDoorUrl} label="Agent door link" copyLabel="Copy agent door link" primary />
-          </LinkSection>
-
-          <LinkSection title="Your shop link" className="order-2 lg:order-none">
-            <CopyRow value={p.shopUrl} label="Shop link" />
-            <TextLink href={`/s/${p.slug}`} className="-my-1 self-start">
-              Open your shop <Icon icon={ExternalLink} size="sm" />
-            </TextLink>
-          </LinkSection>
-
-          {p.ownerLink && (
-            <LinkSection title="Your owner link" className="order-2 lg:order-none">
-              <p className="text-ink-soft">Keep it private: anyone with it can run your shop.</p>
-              <CopyRow value={p.ownerLink} label="Owner link" mono />
-            </LinkSection>
-          )}
-
-          <details className="group order-2 rounded-lg bg-surface-sunken lg:order-none">
-            <summary className="group/summary press-text flex min-h-tap list-none items-center gap-3 px-4 py-2.5 font-semibold [&::-webkit-details-marker]:hidden">
-              <span className="flex-1">For developers</span>
-              <Icon icon={ChevronDown} className="text-ink-soft transition-[rotate,color] duration-(--duration-fast) group-open:rotate-180 group-hover/summary:text-ink" />
-            </summary>
-            <div className="flex flex-col gap-3 px-4 pb-4 text-sm text-ink-soft">
-              <p>
-                The agent door is an MCP server (Streamable HTTP, no sign-in) with four tools: <code className="font-mono">get_shop_info</code>,{' '}
-                <code className="font-mono">list_products</code>, <code className="font-mono">create_order</code> and{' '}
-                <code className="font-mono">get_order_status</code>. Prices always come from the shop.
-              </p>
-              <p>Add it to Claude Code:</p>
-              <CopyRow value={claudeCommand} label="Command" copyLabel="Copy command" mono />
-            </div>
-          </details>
-        </div>
-
-        <section aria-labelledby="try-title" className="order-1 flex min-w-0 flex-col gap-4 rounded-(--card-radius) bg-surface-sunken p-6 lg:order-none lg:col-span-5">
-          <h2 id="try-title" className="type-title">
-            See it work
+      {/* Rows first in the markup (left on desktop, read first); the compact preview moves above them on narrow screens. */}
+      <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_22rem] xl:gap-8">
+        <section aria-labelledby="live-next" className="min-w-0">
+          <h2 id="live-next" className="sr-only">
+            What to do next
           </h2>
-          <ButtonLink href={`/s/${p.slug}?assistant=1`} size="lg" variant="secondary" fullWidth className="bg-surface hover:bg-line">
-            Watch an AI order from you
-          </ButtonLink>
-          <ButtonLink href={`/shops/${p.shopId}`} variant="ghost" fullWidth className="hover:bg-line">
-            Open your dashboard
-          </ButtonLink>
+          <PanelList>
+            <PanelRow action={<ButtonLink href={`/s/${p.slug}?assistant=1`} className={ROW_ACTION}>Watch an AI order from you</ButtonLink>}>
+              <RowHeading>Try your shop</RowHeading>
+            </PanelRow>
+            <PanelRow action={<CopyButton text={p.agentDoorUrl} what="Agent door link" label="Copy agent door link" className={ROW_ACTION} />}>
+              <div className="flex flex-col gap-1">
+                <RowHeading>Your agent door</RowHeading>
+                <p className="text-sm text-ink-soft">Give it to any AI assistant to order from you.</p>
+                <RowUrl>{p.agentDoorUrl}</RowUrl>
+              </div>
+            </PanelRow>
+            <PanelRow action={<CopyButton text={p.shopUrl} what="Shop link" label="Copy link" className={ROW_ACTION} />}>
+              <div className="flex flex-col gap-1">
+                <RowHeading>Your shop link</RowHeading>
+                <RowUrl>{p.shopUrl}</RowUrl>
+              </div>
+            </PanelRow>
+            <PanelRow
+              action={
+                <ButtonLink href={`/shops/${p.shopId}/card`} variant="secondary" icon={Printer} className={ROW_ACTION}>
+                  Print counter card
+                </ButtonLink>
+              }
+            >
+              <RowHeading>Counter card</RowHeading>
+            </PanelRow>
+          </PanelList>
         </section>
+
+        <ShopPreview p={p} status={shopStatusWord(status, payeeMissing)} />
       </div>
     </div>
   );

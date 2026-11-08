@@ -30,6 +30,14 @@ export function activeSection(shopId: string, pathname: string, tab: string | nu
   return null;
 }
 
+/** The dot and word beside the shop's name: orders it can't take outrank the rest. */
+export function shopStatusWord(status: ShopStatus, payeeMissing: boolean): { tone: 'ok' | 'warn' | 'neutral'; word: string } {
+  if (status !== 'draft' && payeeMissing) return { tone: 'warn', word: 'Not taking orders' };
+  if (status === 'live') return { tone: 'ok', word: 'Live' };
+  if (status === 'paused') return { tone: 'warn', word: 'Paused' };
+  return { tone: 'neutral', word: 'Draft' };
+}
+
 export type ShellBanner = 'paypal-down' | 'payee-missing' | 'paused' | 'recovery-key';
 
 /** One slot, one banner, in priority order. A draft isn't taking orders yet, so it isn't told to add a payee here. */

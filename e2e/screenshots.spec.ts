@@ -487,14 +487,6 @@ const SCREENS: Screen[] = [
       await signIn(context, setups.live.shopId, setups.live.ownerToken);
       await page.goto(`/shops/${setups.live.shopId}/setup`);
       await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
-      // The owner link holds a throwaway e2e token, but a token on a committed screenshot reads like a leak: draw it
-      // masked, as the demo clips do.
-      await page
-        .locator('code')
-        .filter({ hasText: '/claim/' })
-        .evaluate((el) => {
-          el.textContent = (el.textContent ?? '').replace(/\/claim\/[A-Za-z0-9_-]+/, '/claim/••••••••');
-        });
     },
   },
   // Shop and buyer console
