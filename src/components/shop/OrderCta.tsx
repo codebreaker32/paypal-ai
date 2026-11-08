@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useRef, type RefObject } from 'react';
+import { createContext, useContext, useEffect, useRef, type RefCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import './assistant-shell.css';
@@ -20,8 +20,9 @@ export interface OrderCtaValue {
   shown: OrderCtaShown;
   onOpen: () => void;
   setHeroInView: (inView: boolean) => void;
-  heroButtonRef: RefObject<HTMLButtonElement | null>;
-  compactButtonRef: RefObject<HTMLButtonElement | null>;
+  /** Callback refs: the assistant returns focus to whichever of these is showing. */
+  attachHeroButton: RefCallback<HTMLButtonElement>;
+  attachCompactButton: RefCallback<HTMLButtonElement>;
 }
 
 export const OrderCtaContext = createContext<OrderCtaValue | null>(null);
@@ -51,7 +52,7 @@ export function HeroOrderCta() {
     <div ref={wrapper} data-hero-cta="" className="hidden shrink-0 lg:block">
       {cta.shown !== null && (
         <div className={cn('flex flex-col items-end gap-2', cta.shown !== 'hero' && 'invisible')}>
-          <Button ref={cta.heroButtonRef} size="lg" onClick={cta.onOpen}>
+          <Button ref={cta.attachHeroButton} size="lg" onClick={cta.onOpen}>
             {cta.title}
             {cta.takesOrders && <span className="font-medium text-surface/75"> · PayPal</span>}
           </Button>
@@ -78,7 +79,7 @@ export function CompactOrderCta({ row = false }: { row?: boolean }) {
   if (!cta || cta.shown === null) return null;
   const show = cta.shown === 'compact';
   const button = (
-    <Button ref={cta.compactButtonRef} size="md" onClick={cta.onOpen} className="shrink-0">
+    <Button ref={cta.attachCompactButton} size="md" onClick={cta.onOpen} className="shrink-0">
       {cta.title}
     </Button>
   );

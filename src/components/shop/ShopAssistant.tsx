@@ -52,8 +52,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const isDesktop = useIsDesktop();
   const inputRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const heroButtonRef = useRef<HTMLButtonElement>(null);
-  const compactButtonRef = useRef<HTMLButtonElement>(null);
+  const heroButton = useRef<HTMLButtonElement>(null);
+  const compactButton = useRef<HTMLButtonElement>(null);
   const orderBarRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const panelOpen = open && isDesktop !== false;
@@ -74,13 +74,19 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const wasOpen = useRef(open);
   useEffect(() => {
     if (isDesktop && open && !wasOpen.current) inputRef.current?.focus();
-    if (isDesktop && !open && wasOpen.current) (heroInView ? heroButtonRef : compactButtonRef).current?.focus();
+    if (isDesktop && !open && wasOpen.current) (heroInView ? heroButton : compactButton).current?.focus();
     wasOpen.current = open;
   }, [open, isDesktop, heroInView]);
 
+  const attachHeroButton = useCallback((el: HTMLButtonElement | null) => {
+    heroButton.current = el;
+  }, []);
+  const attachCompactButton = useCallback((el: HTMLButtonElement | null) => {
+    compactButton.current = el;
+  }, []);
   const cta = useMemo(
-    () => ({ title, takesOrders, shown, onOpen: show, setHeroInView, heroButtonRef, compactButtonRef }),
-    [title, takesOrders, shown, show],
+    () => ({ title, takesOrders, shown, onOpen: show, setHeroInView, attachHeroButton, attachCompactButton }),
+    [title, takesOrders, shown, show, attachHeroButton, attachCompactButton],
   );
 
   const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
