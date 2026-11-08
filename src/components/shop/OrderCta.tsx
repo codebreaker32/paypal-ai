@@ -52,8 +52,9 @@ export function HeroOrderCta() {
   return (
     <div ref={wrapper} data-hero-cta="" className="hidden shrink-0 lg:block">
       {shown !== null && (
-        <div className={cn('flex flex-col items-end gap-2', shown !== 'hero' && 'invisible')}>
-          <Button ref={attachHeroButton} size="lg" onClick={onOpen}>
+        <div className="flex flex-col items-end gap-2">
+          {/* Only the button hands over to the compact one: the link below stays reachable once the hero has scrolled out. */}
+          <Button ref={attachHeroButton} size="lg" onClick={onOpen} className={cn(shown !== 'hero' && 'invisible')}>
             {title}
             {takesOrders && <span className="font-medium text-surface/75"> · PayPal</span>}
           </Button>
