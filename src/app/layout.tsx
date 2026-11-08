@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import { Figtree } from 'next/font/google';
 import { SiteFooter } from '@/components/brand/SiteFooter';
 import { SiteHeader } from '@/components/brand/SiteHeader';
 import { MotionProvider } from '@/components/motion/provider';
+import { Tactile } from '@/components/motion/tactile';
 import { ToastProvider } from '@/components/ui/toast';
 import { PWA } from '@/lib/brand/pwa';
 import { getConfig } from '@/lib/config';
@@ -52,6 +53,9 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
             <SiteFooter />
           </ToastProvider>
         </MotionProvider>
+        <Suspense fallback={null}>
+          <Tactile />
+        </Suspense>
       </body>
     </html>
   );

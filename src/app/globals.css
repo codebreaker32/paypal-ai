@@ -313,6 +313,17 @@
   --focus-ring-offset: 2px;
   --focus-ring-color: var(--color-focus);
 
+  /* Press: how a control answers a touch or click (utilities `press*`, timing in lib/feedback/press-machine.ts).
+     In fast, out slow. A component can set --press-local to one of these scales (always a token, so reduced motion holds). */
+  --press-in: 70ms;
+  --press-out: 180ms;
+  --press-scale: 0.96;
+  --press-scale-wide: 0.98;
+  --press-scale-icon: 0.9;
+  --press-scale-surface: 0.985;
+  --press-opacity: 0.6;
+  --pending-delay: 160ms;
+
   --icon-sm: 1rem;
   --icon-md: 1.25rem;
   --icon-lg: 1.5rem;
@@ -334,8 +345,10 @@
   --button-secondary-bg-hover: var(--color-line);
   --button-secondary-fg: var(--color-ink);
   --button-secondary-border: transparent;
+  --button-secondary-bg-active: var(--color-line-strong);
   --button-ghost-fg: var(--color-ink);
   --button-ghost-bg-hover: var(--color-surface-sunken);
+  --button-ghost-bg-active: var(--color-line);
   --button-paypal-bg: var(--color-paypal);
   --button-paypal-bg-hover: var(--color-paypal-hover);
   --button-paypal-bg-active: var(--color-paypal-active);
@@ -505,6 +518,59 @@
   }
 }
 
+/* ───────────── Press ───────────── */
+/*
+ * Tailwind 4's scale-* and translate-* write the CSS `scale` and `translate` properties, which a transition list naming
+ * `transform` does not cover. These lists name them, so a press animates instead of snapping. Use one of these in place
+ * of a transition-* class on the same element, never beside it (both set the transition list).
+ *
+ * `data-pressed` comes from Tactile (components/motion/tactile.tsx): it reaches touch screens, where :active is unreliable,
+ * and holds long enough to be seen. :active still answers before hydration.
+ */
+@utility press {
+  transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+  transition-duration: var(--press-out);
+  transition-timing-function: var(--ease-out);
+  &:is(:active:not(:disabled, [aria-disabled="true"]), [data-pressed]) {
+    scale: var(--press-local, var(--press-scale));
+    user-select: none;
+    transition-duration: var(--press-in);
+  }
+}
+@utility press-icon {
+  transition-property: background-color, border-color, color, box-shadow, opacity, scale;
+  transition-duration: var(--press-out);
+  transition-timing-function: var(--ease-out);
+  &:is(:active:not(:disabled, [aria-disabled="true"]), [data-pressed]) {
+    scale: var(--press-local, var(--press-scale-icon));
+    user-select: none;
+    transition-duration: var(--press-in);
+  }
+}
+/* For text links and tabs: they answer by fading, since a line of text that shrinks looks broken. */
+@utility press-text {
+  transition-property: color, text-decoration-color, opacity;
+  transition-duration: var(--press-out);
+  transition-timing-function: var(--ease-out);
+  &:is(:active:not(:disabled, [aria-disabled="true"]), [data-pressed]) {
+    opacity: var(--press-opacity);
+    user-select: none;
+    transition-duration: var(--press-in);
+  }
+}
+/* For whole rows and cards. Only [data-pressed], never :active: :active also matches a surface when a control inside it
+   is pressed, and that control must not move its row. The doubled attribute keeps the fill above a `hover:bg-*`. */
+@utility press-surface {
+  transition-property: background-color, border-color, color, box-shadow, opacity, scale, translate;
+  transition-duration: var(--press-out);
+  transition-timing-function: var(--ease-out);
+  &[data-pressed][data-pressed] {
+    scale: var(--press-local, var(--press-scale-surface));
+    background-color: var(--press-bg, var(--color-surface-sunken));
+    transition-duration: var(--press-in);
+  }
+}
+
 /* ───────────── Base ───────────── */
 @layer base {
   html {
@@ -551,6 +617,7 @@
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
   }
+  a[href],
   button,
   [role="button"],
   label[for],
@@ -560,6 +627,10 @@
   }
   button:disabled {
     cursor: not-allowed;
+  }
+  /* Any control that has no press* utility still answers a press. */
+  :where(a[href], button, summary, [role="tab"]):not([class*="press"])[data-pressed] {
+    opacity: var(--press-opacity);
   }
   dialog::backdrop {
     background-color: var(--color-scrim);
@@ -580,7 +651,25 @@ html[data-motion-off] [data-entrance] {
   transform: none !important;
 }
 
+/* The link that was just followed: it dims if the next page takes a moment. An animation, not a transition, so the delay
+   holds whatever transition list the control's press utility sets. Unlayered so it applies over any utility. */
+@keyframes navigating-dim {
+  to {
+    opacity: 0.7;
+  }
+}
+[data-navigating] {
+  animation: navigating-dim var(--duration-fast) var(--ease-out) 120ms forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* Nothing moves when pressed; colour and opacity still answer. */
+  :root {
+    --press-scale: 1;
+    --press-scale-wide: 1;
+    --press-scale-icon: 1;
+    --press-scale-surface: 1;
+  }
   *,
   ::before,
   ::after {
