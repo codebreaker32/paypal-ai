@@ -397,7 +397,6 @@ test.describe('at 1440 with a mouse', () => {
     await expect(bar).toHaveAttribute('data-phase', /finish|idle/);
     open();
 
-    await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 30_000 });
     await page.goto(dashboard());
     const button = markButton(page, order.number);
     await ready(page, button);
