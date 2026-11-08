@@ -74,3 +74,25 @@ Product fixed because a test found it:
 A18 measures the surface element with nothing allowed running, and its subtree (where the `::backdrop` scrim shows up) for anything over 1 ms. The subtree limit is there because the reduced-motion rule makes every transition 0.01 ms, and an input's border colour under the pointer was caught in that instant in about 1 run in 7.
 
 Known limits: the brief's "Unverified" list stands (iOS keyboard pinning and scroll lock, Safari `overlay`, Android Back). Chromium only.
+
+## Review round 1
+
+All seven findings were real and are fixed. Tests added: `tests/components/assistant-history.test.ts` (14), and the blocks after the `Review round 1` comment in `e2e/assistant-layout.spec.ts` (each seen failing before its fix).
+
+| Finding | Fix |
+|---|---|
+| Back from a receipt: `?assistant=1` on a closed sheet, X needs two taps | A mount effect sets `open` from the URL, in both directions (a deep link closed with X had the opposite stale state). No focus moves, as for a `?assistant=1` load. |
+| Back or Forward across section tabs toggles the dock | `shop/assistant-history.ts` `afterHistoryMove`: from 1024 px history never opens or closes the dock, and the entry's URL is rewritten to match it. A close already on its way through `history.back()` still closes, which covers a sheet that grew into a dock. |
+| `ownEntry` set on an entry the page never pushed | `pushState` writes a mark into `history.state`; `ownEntry` reads the mark instead of guessing from the URL. |
+| Start over, a starter or the payment check drops focus to `body` | From 1024 px, `send` and `reset` through the panel move focus to the message box. Sheets are left alone so a phone's keyboard does not come up. |
+| `e2e/shop.spec.ts` comment | Updated (comment only). |
+| Opening the dock at the top scrolls the page | `keepPlace` holds nothing while `scrollY` is under 72 px (the site header still in view), so the header stays put. Scrolled further, A15 is unchanged. |
+| Buyer bubbles never shrink | `w-fit` on `UserBubble`. |
+
+| Where | What | Why |
+|---|---|---|
+| `setAssistantParam` | Calls `History.prototype[method]`, not `window.history[method]` | Next's patch turns a `null` state (a section tab's entry) into `{}`, and Next reloads the page on returning to a truthy state without `__NA`. The rewrite above would otherwise cause that reload. On normal entries Next's patch already passes straight through. |
+| Back from a client-side link | Reopens the assistant rather than removing the param | The buyer left from inside it, and the URL says it is open. Either was allowed by the finding. |
+| Limit | Pushing from a section tab's entry on a phone, then Forward back onto it, reloads the page (the sheet reopens from the URL) | Next has no state to give that entry. Same before this change; nothing is lost. |
+
+Existing tests edited: `e2e/shop.spec.ts` (the `consoleRegion` comment, as the brief lists); `e2e/assistant-layout.spec.ts`, this package's own, tests added only.

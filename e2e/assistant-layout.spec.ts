@@ -947,8 +947,8 @@ test.describe('the URL and the assistant agree after leaving and coming back', (
   const marker = (page: Page) => page.evaluate(() => (window as unknown as { __marker?: string }).__marker);
   /** A client-side trip away, as the receipt link on the approval card makes, and Back. */
   const awayAndBack = async (page: Page) => {
-    await page.evaluate(() => (window as unknown as { next: { router: { push(href: string): void } } }).next.router.push('/terms'));
-    await page.waitForURL('**/terms');
+    await page.evaluate(() => (window as unknown as { next: { router: { push(href: string): void } } }).next.router.push('/o/ord_e2e_missing'));
+    await page.waitForURL('**/o/ord_e2e_missing');
     await page.goBack();
     await page.waitForURL(`**/s/${SLUG}**`);
   };
