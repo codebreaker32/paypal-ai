@@ -886,7 +886,12 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
   const measure = (region: Locator) =>
     region.evaluate(async (el) => {
       await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-      return { transform: getComputedStyle(el).transform, running: el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').length };
+      const running = el.getAnimations({ subtree: true }).filter((a) => a.playState === 'running').map((a) => {
+        const effect = a.effect as KeyframeEffect;
+        const name = (a as Partial<CSSAnimation>).animationName ?? (a as Partial<CSSTransition>).transitionProperty;
+        return `${name} on ${effect.target?.tagName}.${effect.target?.className} (${effect.getTiming().duration} ms, ${effect.getTiming().iterations})`;
+      });
+      return { transform: getComputedStyle(el).transform, running };
     });
 
   for (const { width, height, surface } of [
@@ -903,7 +908,7 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
       await page.getByRole('button', { name: TITLE }).filter({ visible: true }).first().click();
       const region = page.locator(surface);
       await expect(region).toBeVisible();
-      expect(await measure(region)).toEqual({ transform: 'none', running: 0 });
+      expect(await measure(region)).toEqual({ transform: 'none', running: [] });
     });
   }
 
