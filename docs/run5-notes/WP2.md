@@ -19,7 +19,7 @@ Checked: `npm test` (1279), typecheck, lint, `e2e/assistant-layout.spec.ts`, `e2
 
 ## For the next task
 
-- Still to do from the WP2 brief: the Message scrolling rules, the keyboard (`use-keyboard-viewport.ts`, `viewport` export), `keepPlace`, the Focus table beyond the phone heading (docked Esc, the fallback order), Back and deep link (`pushState` for modals), and the auto-growing `<textarea>` composer.
+- Still to do from the WP2 brief: only the auto-growing `<textarea>` composer (WP3's).
 - `AssistantShell` already takes `inputRef` and `titleRef`; `Sheet` already has `initialFocusRef` and `fallbackFocusRef` (wired to the `h2` and the order bar button).
 - `[scrollbar-gutter:stable]` reserves about 15 px on the right where scrollbars are classic (desktop Chrome on Linux or Windows), so the log's right edge sits that far inside the footer's. Overlay scrollbars (phones) have no gap. Kept, as the brief specifies the class.
 
@@ -36,3 +36,26 @@ Tests added: `tests/components/order-cta.test.ts`, `tests/components/console-gre
 | `CompactOrderCta row` (one section or none) | A `sticky h-0 -mb-6` anchor with the row absolutely inside it, fading in as a whole | The brief says the row renders only for the button. An in-flow row would leave an empty 56 px band under the hero while the button is hidden, and would shift the page when it appears. |
 | Docked focus on close | The order button showing now (hero if in view, else compact) | The opener is unmounted while docked (neither shows), so the brief's fallback order applies directly. Under 1024 px `Sheet` already falls back to the order bar. |
 | Copy | Greeting uses `’`, as the rest of the page's copy does | Same words as the brief's straight apostrophes. |
+
+## Remaining behaviour task
+
+Built: message scrolling (`shop/console-scroll.ts`, pure rules; `useConversationScroll` in `BuyerConsole.tsx`, replacing the old effect), the keyboard (`viewport` export, `shop/use-keyboard-viewport.ts`), `keepPlace`, the whole Focus table, Back and deep link. The `<textarea>` composer stays WP3's.
+
+Tests added: `tests/components/console-scroll.test.ts`, `tests/components/keyboard-viewport.test.ts`; in `e2e/assistant-layout.spec.ts`, blocks `message scrolling`, `keyboard`, `the page holds still`, `focus`, `back and deep link` (acceptance 9, 11, 12, 13, 14, 15, 16). Existing tests edited: none.
+
+Checked: `npm test`, typecheck, lint, `e2e/assistant-layout.spec.ts`, `e2e/shop.spec.ts`, `e2e/menu-tab.spec.ts`: 76 passed, 1 failed (below).
+
+| Where | What | Why |
+|---|---|---|
+| `Sheet` | New optional `dialogRef` | `useKeyboardViewport(dialogRef, open)` needs the `<dialog>`, and only `Sheet` owns it. The brief's list of `Sheet` additions did not include it. |
+| `shop/console-scroll.ts` | New file, not in the brief's list | The rules are pure, so they can be unit-tested (`scrollCause`, `scrollTarget`, `nearBottom`). |
+| `keepPlace` | Sets `overflow-anchor: none` on the root for the change, removed on the next frame | Chromium's scroll anchoring corrects the same shift, so the brief's `scrollBy` alone corrected it twice. |
+| `assistant-shell.css` | Under reduced motion, `body, [data-page-frame] { transition: none !important }` | `globals.css` gives every element a 0.01 ms transition there, which delays the dock's layout change by a frame or two, so `keepPlace` read a half-applied layout and scrolled the page by 69 px on close. |
+| Scroller | Also follows a `ResizeObserver` on the scroller | A closed sheet has no height, so a restored log must go to its end when the sheet opens. The observer also keeps a following buyer at the bottom when the keyboard or the action row changes the scroller's height. |
+| Closing | `history.back()` only while the open assistant owns an entry (`ownEntry`); a `goingBack` guard ignores a second close until `popstate` | A deep-linked or docked assistant has no entry to step back off, and a double tap on the X would otherwise leave the shop. |
+
+## Known failure, not from this task
+
+`e2e/shop.spec.ts:286` (`an agent door link opens the folded door...`) fails at `:295`, and fails the same way at `d587170`, before this task's commits. The first click jumps to the door, so the hero scrolls out and its `agent door` link becomes `invisible`; the second click can never act on it. The fix is a `window.scrollTo(0, 0)` before that click, which goes beyond a selector, route or copy edit, so it is left for the coordinator to decide.
+
+Note for the merge: while the menu grid stays viewport-based, opening the dock moves nothing, so `keepPlace` has no effect until WP3's container-query grid lands. The e2e forces a height change to test it.
