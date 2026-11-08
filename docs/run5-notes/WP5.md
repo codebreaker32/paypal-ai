@@ -195,3 +195,43 @@ New: `tests/auth/{account-owner,route-guard,removal-guard,no-logging-routes}.tes
 
 - `e2e/large-upload.spec.ts` sends the 14 MB photo through a real server (SR1). `e2e/auth-api.spec.ts` checks cookies, the session-owned shop, logout, the `/login?next=` redirect and recovery through real Next.
 - Targeted e2e run: `start`, `setup`, `dashboard` all pass with the same-origin check in place (32 passed, 1 pre-existing skip).
+
+## Review fixes (14 findings, 2 failed acceptance items)
+
+Each root cause has a failing test first, in `tests/auth/limits-reserve.test.ts`, `tests/api/auth-races.test.ts` and `tests/api/shops-races.test.ts`. The race tests hold a hash open with a deferred promise, so the interleaving is exact.
+
+- **Hash-gate starvation.** `reservePasswordCheck` (in `rate-limit.ts`) counts attempts before the hash: 10 per account and 30 per address per hour, right or wrong, shared by the recovery-key route and the PayPal email change. SR11's 10 failures per account per 15 minutes is unchanged. A refused request does no hash and charges neither bucket.
+- **Failure reservations (SR11).** `reserveLogin`, `reserveRecovery` and `reservePasswordCheck` count the failure before the hash and return a release function. A right answer releases it; so does anything that checked no guess (503 BUSY, a server error, a weak new password in recovery). A lost login race stays counted. `allowLogin`, `recordLoginFailure` and the rest stay exported: `reserve*` is built on them and `tests/auth/limits.test.ts` covers them.
+- **Login race.** `startSessionIfPasswordUnchanged` creates the session in one transaction that re-reads the account and requires the verified hash, else 401 `BAD_CREDENTIALS`.
+- **Rotation and payee change racing recovery.** Both write only if the row still holds the verified password hash. A lost race is 403 `PASSWORD_WRONG`.
+- **Rehash.** `setPasswordHash` writes only if the row still holds the verified hash.
+- **25-shop cap (SR17).** `assertUnderShopLimit` runs in the same transaction as `shops.create` in `createDraftShop`. The route keeps its early call so an over-limit request is not read. A refused request has written nothing to disk.
+- **Stale shop row (SR18).** The PATCH transaction re-reads the shop. When the patch touches `payeeEmail`: the password rule is applied to the fresh row (403 `PASSWORD_REQUIRED`), a moved status or email is refused with 409 `SHOP_CHANGED`, and the password hash must be unchanged. `old_masked` comes from the fresh row. A patch of other fields is not refused because the email moved. A shop deleted while the body was arriving is 404.
+- **Test guards.** See below. `route.tsx` under `api/shops/[id]` is now scanned too.
+
+### Deviations
+
+- `setPasswordHash` and `replaceRecoveryHash` take the verified hash as an **optional** argument, not a required one. `tests/db/accounts-repo.test.ts` calls both with three arguments, and this run may edit tests only for selectors, routes and copy. The three-argument form still writes unconditionally, so it is a foot-gun: both production callers pass the hash. Adding the argument to those two test calls would let the coordinator make it required.
+- New error code `409 SHOP_CHANGED` (`This shop changed while you were saving. Reload the page and try again.`). The brief allows a 409 here; it did not name a code.
+
+### Known limit
+
+If two logins with the same old-format password race on the rehash, one wins the compare-and-set and the other gets 401 until it retries. This can only happen after the scrypt parameters change, and a retry succeeds.
+
+### For the screens (WP6)
+
+- `checkCurrentPassword` now takes the client address as a third argument (`clientIp(req)`), and the caller must write with a compare-and-set on `account.passwordHash`. S1's password routes need both.
+- Settings should treat 409 `SHOP_CHANGED` like any other save error: show the message, and reload to pick up the new email.
+- The current-password attempt limit is 10 per account per hour, so a seller changing many shops' emails in one sitting can hit 429.
+
+### Edited tests (guards only, as the review asked; no assertion removed)
+
+- `tests/auth/route-guard.test.ts`: `handlersIn` takes optional source text so the guard can test itself. It now throws on binding patterns and `export *`. The `routes.POST` regex became a stricter AST check, `assertSameOrigin` must resolve to its real import, and there is a new check for `route.js` and `route.jsx` files.
+- `tests/auth/removal-guard.test.ts`: the mention check also tests each file's path.
+- `tests/http/same-origin.test.ts`: the no-proxy list also names the `.js` files.
+
+Each guard was run against real forbidden files (`api/auth/demo/route.ts`, `api/checkout/route.ts`, `src/proxy.js`, a `route.js`), which it caught; they were then removed.
+
+### Verified
+
+`npm test` (1559 passed), `npm run typecheck`, `npm run lint`, and targeted e2e `auth-api`, `start` and `dashboard` (31 passed, 1 pre-existing skip).
