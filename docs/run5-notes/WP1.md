@@ -26,3 +26,33 @@ Tests added: `tests/ui/press-machine.test.ts`, `tests/ui/route-progress.test.ts`
 - Set `--press-local` only to a token (`var(--press-scale-wide)`), or reduced motion stops applying.
 - Next's `Link` always calls `preventDefault`, so `Tactile` cannot tell whether a link's own handler cancelled the navigation. No link does that today; one that did would show the bar until the 10 s failsafe.
 - `e2e/tactile.spec.ts` is not written. Tactile was checked with a throwaway page and spec (16 passing, removed): mouse, keyboard, touch tap, swipe that scrolls, disabled, right button, stretched link, `label[for]`, unmount mid-press, reduced motion, soft and document navigation, `beginNavigation`, `useAction`.
+
+# WP1 notes (primitives task)
+
+Built: `Button` status layers, `ButtonStatus`, guard and `layerClass` (`ui/button-status.ts`); `ui/{icon-button,text-link,copy-button,paypal-link}.tsx` (`dashboard/CopyButton.tsx` re-exports); `Switch`, `Pressable` and the toast rework. `CopyButton` replaces the copies in `AgentDoor` and `LiveStep`; `PayPalLink` is used in `Receipt` and `BuyerConsole`; the sold-out and pause toasts are gone.
+
+Existing tests edited: none.
+
+Tests added: `tests/ui/button.test.ts`, `tests/ui/primitives.test.ts`, `tests/ui/pausable-timer.test.ts`, `e2e/primitives.spec.ts` (acceptance 9, 10, 11 on the real dashboard).
+
+## Deviations and choices the brief left open
+
+| Where | What | Why |
+|---|---|---|
+| `Button`, no icon and no `loadingLabel` / `successLabel` | The layer is the glyph alone, with the label sr-only (so the name survives) | The layers hold the width, so a spinner beside a bare label would widen every icon-less button at rest. A button with an icon keeps its label beside the spinner, same width as idle. |
+| `Button` `disabled` and `loading` together | `aria-disabled` only, no native `disabled` | "Not native disabled while not idle" means a busy button keeps focus. Native `disabled` stays for idle buttons only. |
+| `CopyButton` | Uses an idle `Button` with its own Copy/Copied layers, not `status="success"` | Success is `aria-disabled` with a progress cursor for 2 s. After a copy nothing is busy, and copying again is fine. |
+| `Switch` | New `failed` prop; the caller still rolls back and renders the `FieldError` | The inline error already sits in different places in `Dashboard` and `MenuRow`. `Switch` only owns the shake (`data-nope`, `animate-nope`). |
+| `press-switch` utility, `--press-flex: 1.18` | Not in the brief's token list | A switch with no `press*` class would get the whole-control dim fallback. A token lets the thumb flex stop under reduced motion. |
+| `globals.css` base rule | `:disabled, [aria-disabled="true"]` re-point the `--button-*-bg-hover/active` tokens at the resting fill | `pointer-events-none` is gone, so an unavailable button can be hovered. A token rule keeps a caller's `hover:bg-line` working, and custom hover variants would have beaten it. |
+| `PayPalLink` | Also resets after 10 s | If the browser never leaves (Stop pressed, a blocked navigation) the money button would say "Opening PayPal…" forever. |
+| `lib/feedback/pausable-timer.ts` | New module, not in the brief's file list | The toast's hover and focus holds are pure timing, so they are tested without a DOM. |
+| Toast card | Its own link and dismiss button carry `press-text` / `press-icon` | Otherwise they get the dim fallback. |
+
+## For the sweep
+
+- `useAction` call sites (`MarkPickedUpButton`, `SettingsPanel`, `ItemLists`, `CounterSnap`) still pass `loading`. Pass `status` and `successLabel` instead. The `PayPal email saved` toast in `SettingsPanel` goes with that change (Toast rule).
+- `OrderCard.tsx:83` still has `transition-[transform,background-color]` and `active:scale-[0.99]`, which fight `press-surface`.
+- `SettingsPanel.tsx:113` makes a Button wide with `className="w-full sm:w-auto"`. Prefer `fullWidth` so it gets the wide press scale.
+- `IconButton` and `TextLink` have no call sites yet except `CopyButton`'s icon-only form.
+
