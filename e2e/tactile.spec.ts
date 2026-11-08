@@ -265,7 +265,8 @@ test.describe('at 1440 with a mouse', () => {
 
     const copied = readings.filter((r) => typeof r.label === 'string' && /copied/i.test(r.label));
     expect(copied.length).toBeGreaterThan(0);
-    expect(copied.every((r) => r.tick === true)).toBe(true);
+    // The tick pops in over 220 ms; after that it is on screen for the rest of the hold.
+    expect(copied.filter((r) => r.t > copied[0].t + 300).every((r) => r.tick === true)).toBe(true);
     const held = copied[copied.length - 1].t - copied[0].t;
     expect(held).toBeGreaterThanOrEqual(1800);
     expect(held).toBeLessThanOrEqual(2300);
@@ -404,11 +405,18 @@ test.describe('at 390 with touch', () => {
 
     const pressed = await watchPressed(page);
     const before = await page.evaluate(() => window.scrollY);
+    // Real touch events through the browser's input pipeline, so it scrolls and cancels the pointer as a finger would.
     const cdp = await context.newCDPSession(page);
-    await cdp.send('Input.synthesizeScrollGesture', { x, y, yDistance: -260, speed: 1200, gestureSourceType: 'touch' });
-    await page.waitForTimeout(250);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    for (let dy = 16; dy <= 260; dy += 16) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - dy }] });
+      await page.waitForTimeout(16);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await page.waitForTimeout(400);
 
-    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(before);
+    const info = await page.evaluate(() => ({ y: window.scrollY, height: document.documentElement.scrollHeight, inner: window.innerHeight }));
+    expect(info.y, JSON.stringify(info)).toBeGreaterThan(before);
     expect(await pressed()).toEqual([]);
   });
 });
