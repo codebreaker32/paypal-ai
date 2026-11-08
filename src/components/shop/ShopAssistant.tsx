@@ -44,6 +44,13 @@ const setAssistantParam = (on: boolean) => {
   window.history.replaceState(window.history.state, '', url);
 };
 
+const focusAtEnd = (input: HTMLInputElement | null) => {
+  input?.focus();
+  input?.setSelectionRange(input.value.length, input.value.length);
+};
+
+const canTakeFocus = (el: HTMLElement | null): el is HTMLElement => !!el?.isConnected && el.getClientRects().length > 0 && getComputedStyle(el).visibility === 'visible';
+
 /**
  * Docking narrows the page and re-flows the menu, so a change of `open` runs through this from 1024 px: the first
  * heading or tile still on screen stays where it was.
@@ -86,7 +93,9 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const [heroInView, setHeroInView] = useState(true);
   const shown = orderCtaShown({ docked: panelOpen, heroInView });
 
+  const opener = useRef<HTMLElement | null>(null);
   const show = useCallback(() => {
+    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     keepPlace(() => setOpen(true));
     setAssistantParam(true);
   }, []);
@@ -95,11 +104,16 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     setAssistantParam(false);
   }, []);
 
-  // Desktop: put the cursor in the message box on opening; on closing, back on the order button that is showing now.
+  // Docked, opened by the buyer: the cursor goes to the end of the message box; on closing, focus goes back to the
+  // opener or, when that is gone, the order button showing now. A `?assistant=1` load moves nothing. Modal forms: `Sheet`.
   const wasOpen = useRef(open);
   useEffect(() => {
-    if (isDesktop && open && !wasOpen.current) inputRef.current?.focus();
-    if (isDesktop && !open && wasOpen.current) (heroInView ? heroButton : compactButton).current?.focus();
+    if (isDesktop && open && !wasOpen.current) focusAtEnd(inputRef.current);
+    if (isDesktop && !open && wasOpen.current) {
+      const back = opener.current;
+      opener.current = null;
+      [back !== document.body ? back : null, heroInView ? heroButton.current : null, compactButton.current, orderBarRef.current].find(canTakeFocus)?.focus();
+    }
     wasOpen.current = open;
   }, [open, isDesktop, heroInView]);
 
@@ -142,7 +156,14 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
 
       {/* Docked from 1024 px (hidden by CSS below that, so a `?assistant=1` load never flashes a dock on a phone). */}
       {panelOpen && (
-        <aside data-assistant-dock="" aria-labelledby={titleId} className="assistant-dock">
+        <aside
+          data-assistant-dock=""
+          aria-labelledby={titleId}
+          className="assistant-dock"
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') hide();
+          }}
+        >
           {shell}
         </aside>
       )}

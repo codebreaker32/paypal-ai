@@ -488,3 +488,78 @@ test.describe('1440: the page holds still as the dock opens and closes', () => {
     expect(Math.abs((await box(watched)).y - before)).toBeLessThanOrEqual(8);
   });
 });
+
+test.describe('focus', () => {
+  const input = (page: Page) => page.getByRole('textbox', { name: 'Message to the assistant' });
+  const heading = (page: Page) => page.getByRole('heading', { name: TITLE, level: 2 });
+
+  test.describe('1440', () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test('a click docks and focuses the message box, the caret at the end; Esc inside closes and focus returns to a button that shows', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const hero = page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) });
+      await hero.click();
+      await expect(input(page)).toBeFocused();
+      await input(page).fill('half a sentence');
+      await expect.poll(() => input(page).evaluate((el: HTMLInputElement) => el.selectionStart)).toBe('half a sentence'.length);
+
+      await page.keyboard.press('Escape');
+      await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+      await expect(hero).toBeFocused();
+    });
+
+    test('docked by keyboard: Enter on the button focuses the message box', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const hero = page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) });
+      await hero.focus();
+      await page.keyboard.press('Enter');
+      await expect(input(page)).toBeFocused();
+    });
+
+    test('no trap while docked: focus can leave, and Esc outside the panel does nothing', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) }).click();
+      await expect(input(page)).toBeFocused();
+      await page.getByRole('link', { name: /Shelfie/i }).first().focus();
+      await page.keyboard.press('Escape');
+      await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+    });
+
+    test('a `?assistant=1` load moves no focus', async ({ page }) => {
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+      expect(await page.evaluate(() => document.activeElement?.tagName)).toBe('BODY');
+    });
+
+    test('deep link then close: focus lands on a button that shows', async ({ page }) => {
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      await page.getByRole('button', { name: 'Close the assistant' }).click();
+      await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+      await expect(page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) })).toBeFocused();
+    });
+  });
+
+  test.describe('phone', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test('modal: the heading, never the message box; closing puts focus on the opener and the page stays put', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await page.evaluate(() => window.scrollTo({ top: 500, behavior: 'instant' }));
+      const bar = page.locator('[data-order-bar] button');
+      await bar.click();
+      await expect(heading(page)).toBeFocused();
+      await expect(input(page)).not.toBeFocused();
+      await page.getByRole('button', { name: 'Close the assistant' }).click();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await expect(bar).toBeFocused();
+      expect(await page.evaluate(() => window.scrollY)).toBe(500);
+    });
+  });
+});
