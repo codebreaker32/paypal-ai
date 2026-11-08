@@ -232,8 +232,10 @@ test.describe('at 1440 with a mouse', () => {
     await page.waitForTimeout(150);
     const { readings, marks } = await stopSampling(page);
 
-    expect(new Set(readings.map((r) => r.status))).toEqual(new Set(['idle', 'loading', 'success']));
-    const widths = readings.map((r) => r.width as number);
+    // The row moves to Done 500 ms into success, so the button can be gone by the time the sampling stops.
+    const present = readings.filter((r) => r.status !== null);
+    expect(new Set(present.map((r) => r.status))).toEqual(new Set(['idle', 'loading', 'success']));
+    const widths = present.map((r) => r.width as number);
     expect(Math.max(...widths) - Math.min(...widths)).toBeLessThan(0.5);
 
     const early = readings.filter((r) => r.t >= marks.click && r.t < marks.click + 100);
