@@ -37,11 +37,14 @@ export interface ShopAssistantProps {
   takesOrders: boolean;
 }
 
-const setAssistantParam = (on: boolean) => {
+const assistantInUrl = () => new URL(window.location.href).searchParams.get('assistant') === '1';
+
+/** Docked and deep-linked states rewrite the current entry; a modal opened by tap adds one, so Back closes it. */
+const setAssistantParam = (on: boolean, method: 'pushState' | 'replaceState' = 'replaceState') => {
   const url = new URL(window.location.href);
   if (on) url.searchParams.set('assistant', '1');
   else url.searchParams.delete('assistant');
-  window.history.replaceState(window.history.state, '', url);
+  window.history[method](window.history.state, '', url);
 };
 
 const focusAtEnd = (input: HTMLInputElement | null) => {
@@ -94,14 +97,38 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const shown = orderCtaShown({ docked: panelOpen, heroInView });
 
   const opener = useRef<HTMLElement | null>(null);
+  /** True while this page's open assistant sits on a history entry of its own, so closing is `history.back()`. */
+  const ownEntry = useRef(false);
+  /** A `history.back()` is on its way: a second close before its `popstate` would leave the shop. */
+  const goingBack = useRef(false);
+
   const show = useCallback(() => {
     opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     keepPlace(() => setOpen(true));
-    setAssistantParam(true);
-  }, []);
+    ownEntry.current = isDesktop === false;
+    setAssistantParam(true, ownEntry.current ? 'pushState' : 'replaceState');
+  }, [isDesktop]);
   const hide = useCallback(() => {
+    if (goingBack.current) return;
+    if (ownEntry.current) {
+      goingBack.current = true;
+      window.history.back();
+      return;
+    }
     keepPlace(() => setOpen(false));
     setAssistantParam(false);
+  }, []);
+
+  useEffect(() => {
+    const onPopState = () => {
+      goingBack.current = false;
+      const inUrl = assistantInUrl();
+      // Forward onto an entry this page pushed: Back from it is safe. Docked never owns an entry.
+      ownEntry.current = inUrl && !window.matchMedia(DESKTOP).matches;
+      keepPlace(() => setOpen(inUrl));
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
   // Docked, opened by the buyer: the cursor goes to the end of the message box; on closing, focus goes back to the

@@ -563,3 +563,118 @@ test.describe('focus', () => {
     });
   });
 });
+
+test.describe('back and deep link', () => {
+  const close = (page: Page) => page.getByRole('button', { name: 'Close the assistant' }).click();
+  const hasParam = (page: Page) => new URL(page.url()).searchParams.has('assistant');
+  const marker = (page: Page) => page.evaluate(() => (window as unknown as { __marker?: string }).__marker);
+  const setMarker = (page: Page) => page.evaluate(() => void ((window as unknown as { __marker: string }).__marker = 'still here'));
+  const length = (page: Page) => page.evaluate(() => history.length);
+
+  test.describe('phone', () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+    const bar = (page: Page) => page.locator('[data-order-bar] button');
+
+    test('tap open, then Back: the sheet closes, the URL is clean and the page did not reload', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await setMarker(page);
+      await bar(page).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      expect(hasParam(page)).toBe(true);
+
+      await page.goBack();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+      expect(await marker(page)).toBe('still here');
+    });
+
+    test('tap open, then the X, Esc and the scrim each close through Back', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const start = await length(page);
+      const closers: ((p: Page) => Promise<unknown>)[] = [
+        close,
+        (p) => p.keyboard.press('Escape'),
+        (p) => p.getByRole('dialog').evaluate((d: HTMLDialogElement) => d.dispatchEvent(new MouseEvent('click', { bubbles: true }))),
+      ];
+      for (const closer of closers) {
+        await bar(page).click();
+        await expect(page.getByRole('dialog')).toBeVisible();
+        expect(hasParam(page)).toBe(true);
+        await closer(page);
+        await expect(page.getByRole('dialog')).toHaveCount(0);
+        expect(hasParam(page)).toBe(false);
+      }
+      // Each open adds one entry, each close steps back off it: the entry above is reused by the next tap.
+      expect(await length(page)).toBe(start + 1);
+    });
+
+    test('a close tapped twice leaves the shop only once closed, never the shop itself', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await setMarker(page);
+      await bar(page).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await page.getByRole('button', { name: 'Close the assistant' }).dblclick();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(new URL(page.url()).pathname).toBe(`/s/${SLUG}`);
+      expect(await marker(page)).toBe('still here');
+    });
+
+    test('Forward reopens, and Back then closes again', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      await bar(page).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await page.goBack();
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      await page.goForward();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      await close(page);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+    });
+
+    test('deep link, then X: closed by replaceState, history.length unchanged, focus on the order bar', async ({ page }) => {
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      await expect(page.getByRole('dialog')).toBeVisible();
+      const before = await length(page);
+      await close(page);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+      expect(await length(page)).toBe(before);
+      await expect(bar(page)).toBeFocused();
+    });
+
+    test('a query the page already had survives opening and closing', async ({ page }) => {
+      await page.goto(`/s/${SLUG}?ref=flyer`);
+      await settle(page);
+      await bar(page).click();
+      await expect(page.getByRole('dialog')).toBeVisible();
+      expect(new URL(page.url()).searchParams.get('ref')).toBe('flyer');
+      await close(page);
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+      expect(new URL(page.url()).searchParams.get('ref')).toBe('flyer');
+    });
+  });
+
+  test.describe('1440: docked', () => {
+    test.use({ viewport: { width: 1440, height: 900 } });
+
+    test('open and close rewrite the current entry only', async ({ page }) => {
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const before = await length(page);
+      await page.locator('[data-hero-cta]').getByRole('button', { name: new RegExp(TITLE) }).click();
+      await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+      expect(hasParam(page)).toBe(true);
+      expect(await length(page)).toBe(before);
+      await close(page);
+      await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+      expect(hasParam(page)).toBe(false);
+      expect(await length(page)).toBe(before);
+    });
+  });
+});
