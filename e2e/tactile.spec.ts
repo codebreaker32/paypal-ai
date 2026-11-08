@@ -347,6 +347,70 @@ test.describe('at 1440 with a mouse', () => {
       .toBe('0');
   });
 
+  test('Enter on a focused file picker presses its label, as Space does', async ({ page }) => {
+    await page.goto(dashboard('?tab=menu'));
+    const input = page.locator('input[type=file][aria-label="Snap your counter"]');
+    const label = page.locator('label:has(input[type=file][aria-label="Snap your counter"])');
+    await input.waitFor({ state: 'attached' });
+    await ready(page, label);
+    const pressed = await watchPressed(page);
+    await input.focus();
+
+    await page.keyboard.down('Enter');
+    await expect(label).toHaveAttribute('data-pressed');
+    await page.keyboard.up('Enter');
+
+    await expect(label).not.toHaveAttribute('data-pressed');
+    expect((await pressed()).map((entry) => entry.on)).toEqual([true, false]);
+  });
+
+  test('the pageshow at the end of the first load leaves a running navigation and a live press alone', async ({ page }) => {
+    const order = paidPickup();
+    const path = `/shops/${shop.shop.id}/orders/${order.id}`;
+    let open: () => void = () => {};
+    const held = new Promise<void>((resolve) => (open = resolve));
+    await page.route(
+      (url) => url.pathname === path,
+      async (route) => {
+        await held;
+        await route.continue();
+      },
+    );
+    await page.goto(dashboard());
+    const row = page.locator(rowSelector(order.number));
+    const link = row.locator('[data-stretched-link]');
+    const bar = page.locator('[data-slot="route-progress"]');
+    await ready(page, link);
+    const pageshow = (persisted: boolean) =>
+      page.evaluate((value) => void window.dispatchEvent(new PageTransitionEvent('pageshow', { persisted: value })), persisted);
+
+    await link.click();
+    await expect(row).toHaveAttribute('data-navigating');
+    await expect(bar).not.toHaveAttribute('data-phase', 'idle');
+    await pageshow(false);
+    await expect(row).toHaveAttribute('data-navigating');
+    await expect(bar).not.toHaveAttribute('data-phase', 'finish');
+
+    // A return from the back/forward cache is the one pageshow that means the page was left: it ends the bar and the mark.
+    await pageshow(true);
+    await expect(row).not.toHaveAttribute('data-navigating');
+    await expect(bar).toHaveAttribute('data-phase', /finish|idle/);
+    open();
+
+    await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 30_000 });
+    await page.goto(dashboard());
+    const button = markButton(page, order.number);
+    await ready(page, button);
+    await button.focus();
+    await page.keyboard.down('Space');
+    await expect(button).toHaveAttribute('data-pressed');
+    await pageshow(false);
+    await expect(button).toHaveAttribute('data-pressed');
+    await pageshow(true);
+    await expect(button).not.toHaveAttribute('data-pressed');
+    await page.keyboard.up('Space');
+  });
+
   test('with reduced motion a pressed Button keeps its scale and still changes colour (13)', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     const order = paidPickup();

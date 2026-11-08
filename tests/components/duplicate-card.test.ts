@@ -1,6 +1,6 @@
 // The "Listed twice" card: answering it settles which copies stay, never an item's own question.
 import { describe, expect, it } from 'vitest';
-import { applyLocal, duplicateUpdates, flaggedCards } from '@/components/setup/review-model';
+import { applyLocal, duplicateUpdates, flaggedCards, withNewItem } from '@/components/setup/review-model';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 
 const SHAKY = 'Hard to read in the photo. Are the name and price right?';
@@ -50,5 +50,18 @@ describe('the "Listed twice" card', () => {
   it('sends the kept item last, so the card counts as answered once everything is queued', () => {
     const [big, small] = giftBoxes();
     expect(duplicateUpdates([big, small], big).map((u) => u.itemId)).toEqual(['b', 'a']);
+  });
+});
+
+describe('adding a skipped line to the list', () => {
+  it('appends a new item', () => {
+    const [a, b] = giftBoxes();
+    expect(withNewItem([a], b).map((i) => i.id)).toEqual(['a', 'b']);
+  });
+
+  it('keeps one row when a server refresh already brought the item', () => {
+    const [a, b] = giftBoxes();
+    const all = [a, b];
+    expect(withNewItem(all, b)).toBe(all);
   });
 });

@@ -312,6 +312,59 @@ test.describe('dashboard', () => {
     await a11y(page);
   });
 
+  test('Settings: an email changed while the button says Saved is saved, not dropped', async ({ page, context }) => {
+    const seller = createFixtureShop('Settings Hold Bakery');
+    await signInAsOwner(context, seller, BASE);
+    await page.clock.install();
+    await page.goto(dashboard(seller, '?tab=settings'));
+    const field = page.getByLabel('Your PayPal email');
+    await expect(field).toHaveValue(FIXTURE_PAYEE);
+    await page.waitForFunction(() => {
+      const bar = document.querySelector('[data-slot="route-progress"]');
+      return !!bar && Object.keys(bar).some((key) => key.startsWith('__reactFiber'));
+    });
+    await page.clock.pauseAt(Date.now() + 60_000); // the Saved hold can't run out while the test edits, however slow the machine
+    const submit = page.locator('form button[type=submit]');
+    const writes: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'PATCH') writes.push(r.postData() ?? '');
+    });
+
+    await field.fill('frist@example.com');
+    await field.press('Enter');
+    await expect(submit).toHaveAttribute('data-status', 'success');
+    await field.fill('first@example.com');
+    await expect(submit).toHaveAttribute('data-status', 'idle'); // no "Saved" beside a value that isn't
+    await field.press('Enter');
+
+    await expect.poll(() => shopsRepo.byId(getDb(), seller.shop.id)!.payeeEmail).toBe('first@example.com');
+    expect(writes).toHaveLength(2);
+    await expect(field).toHaveValue('first@example.com');
+  });
+
+  test('Add tracking on an order row lands on the tracking form, past the loading skeleton', async ({ page, context }) => {
+    await signInAsOwner(context, scratch, BASE);
+    await page.setViewportSize(PHONE);
+    const o = addFixtureOrder(scratch, {
+      status: 'paid', fulfillment: 'shipping', minutesAgo: 2, buyerName: 'Kim', lines: [['Seeded rye', 1]],
+      payer: { name: 'Kim Tran', email: 'kim@example.com' },
+    });
+    await page.goto(dashboard(scratch));
+    const link = page.locator(`[data-order="${o.number}"]`).getByRole('link', { name: 'Add tracking' });
+    await expect(link).toBeVisible();
+    await page.waitForFunction(() => {
+      const bar = document.querySelector('[data-slot="route-progress"]');
+      return !!bar && Object.keys(bar).some((key) => key.startsWith('__reactFiber'));
+    });
+    await link.click();
+    await expect(page).toHaveURL(/#tracking$/, { timeout: 30_000 });
+    const form = page.locator('#tracking');
+    await expect(form).toBeVisible();
+
+    await expect.poll(() => form.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(16);
+    expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+  });
+
   test('empty dashboard points at the assistant demo', async ({ page, context }) => {
     await signInAsOwner(context, empty, BASE);
     await page.goto(dashboard(empty));

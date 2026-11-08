@@ -20,7 +20,7 @@ import { PublishProgress, usePublish } from './Publishing';
 import { PAYEE_FIELD_ID, ShopDetails } from './ShopDetails';
 import { StepHeader } from './StepHeader';
 import { Reveal } from '@/components/motion/reveal';
-import { applyLocal, cardId, flaggedCards, openSkipped } from './review-model';
+import { applyLocal, cardId, flaggedCards, openSkipped, withNewItem } from './review-model';
 import { useAutosave, type SaveState } from './useAutosave';
 import { itemPictures } from '@/lib/library/picture';
 
@@ -162,7 +162,7 @@ export function ReviewStep(props: ReviewProps) {
       const item = await addItem(shopId, input);
       setAnnounce(`${item.name} added to your menu.`);
       // The item is what removes its line from "Lines we skipped", so it waits long enough for the button to say Added.
-      setTimeout(() => setItems((all) => [...all, item]), ADDED_HOLD_MS);
+      setTimeout(() => setItems((all) => withNewItem(all, item)), ADDED_HOLD_MS);
     },
     [shopId],
   );

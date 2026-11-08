@@ -34,6 +34,8 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
   const unchanged = !invalid && next === saved;
 
   const { status, run, error } = useAction(() => setPayeeEmail(shopId, next));
+  // Saved speaks for the value it saved: once the field differs, Save works again and the edit isn't dropped by the hold.
+  const buttonStatus = status === 'success' && !unchanged ? 'idle' : status;
   const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error ? error : undefined;
 
   const save = async (e: FormEvent) => {
@@ -102,7 +104,7 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
           )}
         </Field>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button type="submit" status={status} loadingLabel="Saving…" successLabel="Saved" fullWidth className="sm:w-auto">
+          <Button type="submit" status={buttonStatus} loadingLabel="Saving…" successLabel="Saved" fullWidth className="sm:w-auto">
             Save
           </Button>
           <p role="status" className="flex min-w-0 items-start gap-1.5 font-medium text-ok [overflow-wrap:anywhere]">

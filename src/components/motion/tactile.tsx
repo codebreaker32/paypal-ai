@@ -32,7 +32,7 @@ function controlForKey(target: Element, key: string): Element | null {
   const control = hiddenInput ? target.closest('label') : target;
   if (!control?.matches(CONTROLS)) return null;
   if (key === ' ' && control.matches('a[href]')) return null; // Space scrolls the page; it doesn't follow a link.
-  if (key === 'Enter' && hiddenInput) return null; // Enter on a radio submits its form.
+  if (key === 'Enter' && target.matches('input[type=radio]')) return null; // Enter on a radio submits its form.
   return control;
 }
 
@@ -153,6 +153,8 @@ function listenForPresses(): () => void {
         return;
       }
       case 'pageshow': {
+        // It also fires at the end of the first load, when a tap may already be under way: only a bfcache return ends one.
+        if (!(event as PageTransitionEvent).persisted) return;
         endPress('cancel');
         progress.finish();
         return;
