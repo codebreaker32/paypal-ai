@@ -4,8 +4,10 @@
 // the demo shop). Changing it on an account-owned published or paused shop needs `currentPassword` (SR18): 403
 // PASSWORD_REQUIRED or PASSWORD_WRONG, 429 RATE_LIMITED, 503 BUSY; 409 SHOP_CHANGED if the shop's status or email moved
 // while the request was in flight. Every change on a published shop is recorded, masked, in the same transaction as the
-// update, and the transaction reads the row itself: what was checked earlier may be stale by then.
+// update, and the transaction reads the row and the session itself: what was checked earlier may be stale by then, so a
+// session ended while the body was arriving is 404 and writes nothing.
 import { authFailure, checkCurrentPassword, passwordRequired, passwordWrong } from '@/lib/auth/http';
+import { ownershipCheck } from '@/lib/auth/owner';
 import { applyShopPatch, parseShopPatch, type ShopPatchInput } from '@/lib/catalog/edits';
 import { notFound, ownedShop, readJson } from '@/lib/catalog/http';
 import { getDb } from '@/lib/db';
@@ -41,6 +43,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]'>):
   const { id } = await ctx.params;
   const shop = await ownedShop(id);
   if (!shop) return notFound();
+  const stillOwner = await ownershipCheck(id);
   try {
     const { currentPassword, rest } = takePassword(await readJson(req));
     const patch = parseShopPatch(rest);
@@ -60,6 +63,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]'>):
         if (fresh.status !== shop.status || fresh.payeeEmail !== shop.payeeEmail) return shopChanged();
         if (verifiedHash !== null && accounts.byId(db, shop.accountId!)?.passwordHash !== verifiedHash) return passwordWrong();
       }
+      if (!stillOwner(db, fresh)) return notFound();
       const next = applyShopPatch(db, fresh, patch);
       if (fresh.status !== 'draft' && changesEmail(fresh, patch) && patch.payeeEmail) {
         payeeChanges.record(db, id, fresh.payeeEmail, patch.payeeEmail);

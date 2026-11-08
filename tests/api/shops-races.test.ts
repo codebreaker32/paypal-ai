@@ -38,6 +38,7 @@ const shops = await import('@/lib/db/repos/shops');
 const { hashRecoveryKey } = await import('@/lib/auth/recovery');
 const { verifyPassword } = await import('@/lib/auth/password');
 const { startSession } = await import('@/lib/auth/session');
+const { ownerCookieName } = await import('@/lib/auth/owner');
 const { resetRateLimits } = await import('@/lib/rate-limit');
 const { POST } = await import('@/app/api/shops/route');
 const { PATCH } = await import('@/app/api/shops/[id]/route');
@@ -256,15 +257,78 @@ describe('PATCH /api/shops/[id]: the PayPal email on a stale row (SR18)', () => 
     expect((await pending).status).toBe(404);
   });
 
-  it('after 10 correct changes is 429 and hashes nothing', async () => {
+  it('after 30 correct changes is 429 and hashes nothing', async () => {
     vi.stubEnv('SHELFIE_TEST', '');
     const id = makeShop();
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 30; i++) {
       expect((await patch(id, { payeeEmail: `seller${i}@paypal.example`, currentPassword: PASSWORD })).status).toBe(200);
     }
     verify.mockClear();
     const res = await patch(id, { payeeEmail: NEW, currentPassword: PASSWORD });
     expect(res.status).toBe(429);
     expect(verify).not.toHaveBeenCalled();
+  });
+
+  describe('a session ended while the body was arriving', () => {
+    const endAllSessions = async () => {
+      const recovered = await recoverRoute(
+        new Request('http://localhost/api/auth/recover', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: EMAIL, recoveryKey: KEY, newPassword: NEW_PASSWORD }),
+        }),
+      );
+      expect(recovered.status).toBe(200);
+    };
+
+    it('cannot write a draft: 404 and nothing changes', async () => {
+      const id = makeShop('draft');
+      const gate = deferred();
+      const pending = slowPatch(id, { payeeEmail: NEW, about: 'changed' }, gate.opened);
+      await new Promise((r) => setTimeout(r, 10));
+      await endAllSessions();
+      gate.open();
+
+      const res = await pending;
+      expect(res.status).toBe(404);
+      expect(email(id)).toBe(OLD);
+      expect(shops.byId(state.db, id)!.about).not.toBe('changed');
+    });
+
+    it('cannot pause a live shop: 404 and it stays live', async () => {
+      const id = makeShop();
+      const gate = deferred();
+      const pending = slowPatch(id, { status: 'paused' }, gate.opened);
+      await new Promise((r) => setTimeout(r, 10));
+      await endAllSessions();
+      gate.open();
+
+      expect((await pending).status).toBe(404);
+      expect(shops.byId(state.db, id)!.status).toBe('live');
+    });
+
+    it('cannot write after a logout-style deletion of its own row either', async () => {
+      const id = makeShop('draft');
+      const gate = deferred();
+      const pending = slowPatch(id, { name: 'Changed' }, gate.opened);
+      await new Promise((r) => setTimeout(r, 10));
+      state.db.prepare('DELETE FROM sessions').run();
+      gate.open();
+
+      expect((await pending).status).toBe(404);
+      expect(shops.byId(state.db, id)!.name).toBe('Marigold');
+    });
+
+    it('an unattached shop still saves through its owner cookie', async () => {
+      const { shop, ownerToken } = shops.create(state.db, { name: 'Unattached' });
+      state.jar.set(ownerCookieName(shop.id), ownerToken);
+      const gate = deferred();
+      const pending = slowPatch(shop.id, { name: 'Renamed' }, gate.opened);
+      await new Promise((r) => setTimeout(r, 10));
+      gate.open();
+
+      expect((await pending).status).toBe(200);
+      expect(shops.byId(state.db, shop.id)!.name).toBe('Renamed');
+    });
   });
 });

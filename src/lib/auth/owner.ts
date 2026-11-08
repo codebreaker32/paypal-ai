@@ -3,11 +3,11 @@
 // token and the database stores only its SHA-256 hash.
 import { cookies } from 'next/headers';
 import { notFound, redirect } from 'next/navigation';
-import { getDb } from '@/lib/db';
+import { getDb, type Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
 import { loginPath } from './next-path';
-import { RETURNING_COOKIE, currentAccount } from './session';
+import { RETURNING_COOKIE, accountIdOfSession, currentAccount, sessionCookieName } from './session';
 
 export const OWNER_COOKIE_PREFIX = 'shelfie_owner_';
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -25,6 +25,20 @@ export async function getOwnedShop(shopId: string): Promise<Shop | null> {
   }
   const jar = await cookies();
   return shops.verifyOwnerToken(db, shopId, jar.get(ownerCookieName(shopId))?.value) ? shop : null;
+}
+
+/**
+ * For a handler that writes after waiting on a request body: read this request's cookies before the wait, then run the
+ * returned check inside the write's transaction, because a session can end while the body is still arriving.
+ */
+export async function ownershipCheck(shopId: string): Promise<(db: Db, shop: Shop) => boolean> {
+  const jar = await cookies();
+  const sessionToken = jar.get(sessionCookieName())?.value;
+  const ownerToken = jar.get(ownerCookieName(shopId))?.value;
+  return (db, shop) =>
+    shop.accountId
+      ? sessionToken !== undefined && accountIdOfSession(db, sessionToken) === shop.accountId
+      : shops.verifyOwnerToken(db, shop.id, ownerToken);
 }
 
 /**

@@ -34,6 +34,12 @@ export async function currentAccount(): Promise<accounts.Account | null> {
   const token = jar.get(sessionCookieName())?.value;
   if (!token) return null;
   const db = getDb();
+  const accountId = accountIdOfSession(db, token);
+  return accountId ? accounts.byId(db, accountId) : null;
+}
+
+/** Whose session this token is right now, or null. Synchronous, so a write can ask inside its own transaction. */
+export function accountIdOfSession(db: Db, token: string): string | null {
   const tokenHash = hashToken(token);
   const session = sessions.byTokenHash(db, tokenHash);
   if (!session) return null;
@@ -41,7 +47,7 @@ export async function currentAccount(): Promise<accounts.Account | null> {
     sessions.deleteByTokenHash(db, tokenHash);
     return null;
   }
-  return accounts.byId(db, session.accountId);
+  return session.accountId;
 }
 
 /** For `/shops`, `/account` and the like: the account, or a redirect to log in and come back to `next`. */
