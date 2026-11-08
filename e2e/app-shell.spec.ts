@@ -1,9 +1,11 @@
 // The seller app shell (spec WP4): sidebar and tab bar, section switching without a server round trip, the one banner
 // slot, skip link and landmarks. Run: E2E_PORT=3221 npx playwright test e2e/app-shell.spec.ts
+import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE, a11y, appNav } from './helpers';
-import { createFixtureShop, fixtureFromShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
+import { addFixtureOrder, createFixtureShop, fixtureFromShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
 import { getDb } from '@/lib/db';
+import * as eventsRepo from '@/lib/db/repos/events';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 
@@ -11,8 +13,44 @@ const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
 const hideDevBadge = (page: Page) => page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
 
+const SAMPLE_LOGO = path.resolve(__dirname, '..', 'public', 'samples', 'coffee-and-plant.jpg');
+const shellBanner = (page: Page) => page.locator('[data-shell-banner]');
+type Marked = { __marker?: number };
+
 let shop: FixtureShop;
 let orderId: string;
+
+/** Every screen the shell wraps, for the checks that apply to all of them (acceptance 3, 13, 21). */
+const shellScreens = () =>
+  [
+    ['Orders', `/shops/${shop.shop.id}`],
+    ['Menu', `/shops/${shop.shop.id}?tab=menu`],
+    ['Share', `/shops/${shop.shop.id}?tab=share`],
+    ['Settings', `/shops/${shop.shop.id}?tab=settings`],
+    ['Order detail', `/shops/${shop.shop.id}/orders/${orderId}`],
+    ['Counter card', `/shops/${shop.shop.id}/card`],
+    ['Live', `/shops/${shop.shop.id}/setup`],
+  ] as const;
+
+/** Acceptance 18: a grey panel holding only a heading and buttons is the "slide" look this package removes. */
+async function headingAndButtonsOnGrey(page: Page) {
+  return page.evaluate(() => {
+    const probe = document.createElement('div');
+    probe.className = 'bg-surface-sunken';
+    document.body.append(probe);
+    const sunken = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return Array.from(document.querySelectorAll<HTMLElement>('#app-content *'))
+      .filter((el) => getComputedStyle(el).backgroundColor === sunken)
+      .filter((el) => el.querySelector('h1, h2, h3, h4') && el.querySelector('a, button'))
+      .filter((el) => {
+        const copy = el.cloneNode(true) as HTMLElement;
+        copy.querySelectorAll('h1, h2, h3, h4, a, button').forEach((n) => n.remove());
+        return copy.textContent!.trim() === '';
+      })
+      .map((el) => el.className);
+  });
+}
 
 test.beforeAll(() => {
   shop = createFixtureShop('Shell Test Bakery');
@@ -71,13 +109,69 @@ test.describe('at 1440', () => {
   test('the shell replaces the site chrome, with one skip link to the content', async ({ page }) => {
     await page.goto(`/shops/${shop.shop.id}`);
     for (const chrome of await page.locator('body > header, body > footer').all()) await expect(chrome).toBeHidden();
-    await expect(page.locator('[data-site-chrome]').first()).toBeHidden();
+    const chrome = page.locator('[data-site-chrome]');
+    expect(await chrome.count()).toBeGreaterThan(0);
+    for (const el of await chrome.all()) await expect(el).toBeHidden();
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to content' });
     await expect(skip).toHaveCount(1);
     await expect(skip).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(page.locator('#app-content')).toBeFocused();
+  });
+
+  test('?tab=menu deep-links, and quick switching never shows two panels (or none)', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}?tab=menu`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Menu' })).toBeVisible();
+    await expect(appNav(page).getByRole('link', { name: 'Menu' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.locator('[data-section-panel]')).toHaveCount(1);
+    await expect(page.locator('#section-panel-menu')).toBeVisible();
+
+    await page.evaluate(async () => {
+      const w = window as unknown as { __panels: number[]; __sampling: boolean };
+      w.__panels = [];
+      w.__sampling = true;
+      const sample = () => {
+        w.__panels.push(document.querySelectorAll('[data-section-panel]').length);
+        if (w.__sampling) requestAnimationFrame(sample);
+      };
+      requestAnimationFrame(sample);
+      const nav = document.querySelector('nav[aria-label="Shop sections"]')!;
+      const link = (name: string) => Array.from(nav.querySelectorAll('a')).find((a) => a.textContent!.startsWith(name))!;
+      for (const name of ['Share', 'Settings', 'Orders', 'Menu', 'Share', 'Orders', 'Settings', 'Menu', 'Settings']) {
+        link(name).click();
+        await new Promise((r) => setTimeout(r, 40));
+      }
+    });
+    await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+    await page.waitForTimeout(300);
+    const frames = await page.evaluate(() => {
+      const w = window as unknown as { __panels: number[]; __sampling: boolean };
+      w.__sampling = false;
+      return w.__panels;
+    });
+    expect(frames.length).toBeGreaterThan(10);
+    expect([...new Set(frames)]).toEqual([1]);
+    await expect(page.locator('#section-panel-settings')).toBeVisible();
+  });
+
+  test('the first order row starts under 260 px', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}`);
+    const first = (await page.locator('li[data-order]').first().boundingBox())!;
+    expect(first.y).toBeLessThan(260);
+  });
+
+  test('a new logo shows in the sidebar switcher without a reload', async ({ page, context }) => {
+    const s = createFixtureShop('Logo Switcher Bakery');
+    await signInAsOwner(context, s, BASE);
+    await page.goto(`/shops/${s.shop.id}?tab=settings`);
+    await expect(page.getByTestId('shop-switcher').locator('img[data-avatar="logo"]')).toHaveCount(0);
+    await page.evaluate(() => {
+      (window as unknown as Marked).__marker = 1;
+    });
+    await page.getByLabel('Add a logo').setInputFiles(SAMPLE_LOGO);
+    await expect(page.getByTestId('shop-switcher').locator('img[data-avatar="logo"]')).toBeVisible({ timeout: 20_000 });
+    expect(await page.evaluate(() => (window as unknown as Marked).__marker)).toBe(1);
   });
 
   test('no sideways scroll at 1024 and 1440', async ({ page }) => {
@@ -112,6 +206,22 @@ test.describe('at 390', () => {
     await a11y(page);
   });
 
+  test('a toast sits above the tab bar', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', { value: { writeText: () => Promise.reject(new Error('denied')) } });
+    });
+    await page.goto(`/shops/${shop.shop.id}?tab=share`);
+    await hideDevBadge(page);
+    await page.getByRole('button', { name: 'Copy agent door link' }).click();
+    const toast = page.locator('[data-toast-region] > *').first();
+    await expect(toast).toContainText('Couldn’t copy');
+    const barTop = (await appNav(page).boundingBox())!.y;
+    await expect(async () => {
+      const box = (await toast.boundingBox())!;
+      expect(box.y + box.height).toBeLessThanOrEqual(barTop);
+    }).toPass({ timeout: 3000 });
+  });
+
   test('the Share link switches sections from the tab bar', async ({ page }) => {
     await page.goto(`/shops/${shop.shop.id}`);
     await hideDevBadge(page);
@@ -133,6 +243,8 @@ test.describe('Orders and Menu at 390', () => {
       const box = (await b.boundingBox())!;
       expect(box.x).toBeGreaterThanOrEqual(0);
       expect(box.x + box.width).toBeLessThanOrEqual(PHONE.width);
+      expect(box.y).toBeGreaterThanOrEqual(0);
+      expect(box.y + box.height).toBeLessThanOrEqual(PHONE.height);
     }
 
     const heading = page.getByRole('heading', { name: /To prepare/ }).first();
@@ -205,10 +317,13 @@ test.describe('banners', () => {
     await page.getByRole('switch', { name: 'Pause agent orders' }).click();
     const banner = page.getByRole('status').filter({ hasText: 'Agent orders paused.' });
     await expect(banner).toBeVisible();
+    await expect(shellBanner(page)).toHaveCount(1);
+    await a11y(page);
     for (const name of ['Menu', 'Share', 'Settings', 'Orders']) {
       await appNav(page).getByRole('link', { name: new RegExp(`^${name}`) }).click();
       await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
       await expect(banner).toBeVisible();
+      await expect(shellBanner(page)).toHaveCount(1);
     }
     const sent = page.waitForRequest((r) => r.method() === 'PATCH' && r.url().endsWith(`/api/shops/${paused.shop.id}`));
     await banner.getByRole('button', { name: 'Resume' }).click();
@@ -250,8 +365,26 @@ test.describe('banners', () => {
     await expect(banner).toBeVisible();
     await page.getByRole('switch', { name: 'Pause agent orders' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Agent orders paused.' })).toHaveCount(0);
+    await expect(shellBanner(page)).toHaveCount(1);
     await banner.getByRole('link', { name: 'Add email' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();
+  });
+});
+
+test.describe('banner priority', () => {
+  test.use({ viewport: DESKTOP });
+
+  test('PayPal unreachable outranks a missing payee and a paused shop: one banner only', async ({ page, context }) => {
+    const s = createFixtureShop('All Conditions Bakery', { payeeEmail: null });
+    shopsRepo.update(getDb(), s.shop.id, { status: 'paused' });
+    const open = addFixtureOrder(s, { status: 'awaiting_approval', fulfillment: 'pickup', lines: [['Almond croissant', 1]], minutesAgo: 1 });
+    eventsRepo.add(getDb(), open.id, 'capture_error', 'poller', { status: 503 });
+    await signInAsOwner(context, s, BASE);
+    await page.goto(`/shops/${s.shop.id}`);
+    await expect(shellBanner(page)).toHaveCount(1);
+    await expect(shellBanner(page)).toContainText('We can’t reach PayPal right now.');
+    await expect(page.getByText('Not taking orders: add your PayPal email.')).toHaveCount(0);
+    await expect(page.getByText('Agent orders paused.')).toHaveCount(0);
   });
 });
 
@@ -281,8 +414,12 @@ test.describe('Live, Share, Settings', () => {
         const preview = page.getByTestId('live-preview');
         await expect(preview).toContainText('Live Screen Bakery');
         await expect(preview.getByRole('link', { name: 'Open your shop' })).toBeVisible();
+        expect(await headingAndButtonsOnGrey(page)).toEqual([]);
         await noSideways(page);
         await a11y(page);
+        await preview.getByRole('link', { name: 'Open your shop' }).click();
+        await expect(page).toHaveURL(new RegExp(`/s/${live.shop.slug}$`));
+        await expect(page.getByRole('heading', { level: 1, name: 'Live Screen Bakery' })).toBeVisible();
       });
 
       test('Share: exact rows, a QR in the Counter card region, a primary copy', async ({ page, context }) => {
@@ -290,12 +427,13 @@ test.describe('Live, Share, Settings', () => {
         await signInAsOwner(context, pub, BASE);
         await page.goto(`/shops/${pub.shop.id}?tab=share`);
         await hideDevBadge(page);
-        await expect(page.getByTestId('share-door-url')).toHaveText(new RegExp(`/s/${pub.shop.slug}/mcp$`));
-        await expect(page.getByTestId('share-shop-url')).toHaveText(new RegExp(`/s/${pub.shop.slug}$`));
+        await expect(page.getByTestId('share-door-url')).toHaveText(`${BASE}/s/${pub.shop.slug}/mcp`);
+        await expect(page.getByTestId('share-shop-url')).toHaveText(`${BASE}/s/${pub.shop.slug}`);
         await expect(page.getByRole('button', { name: 'Copy agent door link' })).toHaveAttribute('data-variant', 'primary');
         const region = page.getByRole('region', { name: 'Counter card' });
         await expect(region.getByRole('img')).toBeVisible();
         await expect(region.getByRole('link', { name: 'Print counter card' })).toBeVisible();
+        expect(await headingAndButtonsOnGrey(page)).toEqual([]);
         await noSideways(page);
         await a11y(page);
       });
@@ -371,3 +509,53 @@ test.describe('Live, Share, Settings', () => {
     await expect(page.locator('[data-app-shell]')).toHaveCount(0);
   });
 });
+
+for (const [label, viewport] of [['390', PHONE], ['1024', { width: 1024, height: 900 }], ['1440', DESKTOP]] as const) {
+  test.describe(`every shell screen at ${label}`, () => {
+    test.use({ viewport });
+
+    test('no sideways scroll, a 24 px H1 and no axe violations', async ({ page }) => {
+      test.setTimeout(240_000);
+      for (const [name, url] of shellScreens()) {
+        await page.goto(url);
+        await hideDevBadge(page);
+        await expect(page.locator('h1'), name).toHaveCount(1);
+        await expect(page.locator('h1'), name).toHaveCSS('font-size', '24px');
+        expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), name).toBeLessThanOrEqual(0);
+        if (label !== '1024') await a11y(page);
+      }
+    });
+  });
+}
+
+for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
+  test.describe(`at ${label}, print and first-run states`, () => {
+    test.use({ viewport });
+
+    test('printing the counter card hides all the shell chrome', async ({ page }) => {
+      await page.goto(`/shops/${shop.shop.id}/card`);
+      await page.emulateMedia({ media: 'print' });
+      await expect(
+        page.locator(
+          'nav[aria-label="Shop sections"]:visible, [data-testid="shop-switcher"]:visible, [data-testid="shop-switcher-bar"]:visible, a[href="#app-content"]:visible, [data-site-chrome]:visible',
+        ),
+      ).toHaveCount(0);
+      await expect(page.getByText('Payments run in the PayPal sandbox')).toBeHidden();
+      await expect(page.getByRole('link', { name: 'Back to Share' })).toBeHidden();
+      await expect(page.getByRole('img').first()).toBeVisible();
+    });
+
+    test('empty Orders names its next steps, and the paused banner is accessible', async ({ page, context }) => {
+      const empty = createFixtureShop(`Empty Bakery ${label}`);
+      await signInAsOwner(context, empty, BASE);
+      await page.goto(`/shops/${empty.shop.id}`);
+      await hideDevBadge(page);
+      await expect(page.getByRole('heading', { name: 'No orders yet' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Watch an AI order from you' })).toBeVisible();
+      await a11y(page);
+      await page.getByRole('switch', { name: 'Pause agent orders' }).click();
+      await expect(shellBanner(page)).toContainText('Agent orders paused.');
+      await a11y(page);
+    });
+  });
+}

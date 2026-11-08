@@ -15,7 +15,7 @@ const ACTION = 'press-text inline-flex min-h-tap items-center font-semibold whit
 
 function Banner({ icon, action, children }: { icon: LucideIcon; action?: ReactNode; children: ReactNode }) {
   return (
-    <div role="status" className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-(--card-radius) bg-warn-soft px-4 py-3 text-warn print:hidden">
+    <div role="status" data-shell-banner="" className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-(--card-radius) bg-warn-soft px-4 py-3 text-warn print:hidden">
       <div className="flex min-w-0 flex-1 basis-64 items-start gap-3">
         <Icon icon={icon} className="mt-0.5" />
         <p>{children}</p>
