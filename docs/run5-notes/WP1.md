@@ -49,10 +49,44 @@ Tests added: `tests/ui/button.test.ts`, `tests/ui/primitives.test.ts`, `tests/ui
 | `lib/feedback/pausable-timer.ts` | New module, not in the brief's file list | The toast's hover and focus holds are pure timing, so they are tested without a DOM. |
 | Toast card | Its own link and dismiss button carry `press-text` / `press-icon` | Otherwise they get the dim fallback. |
 
-## For the sweep
+## For the sweep (from the primitives task, done below)
 
 - `useAction` call sites (`MarkPickedUpButton`, `SettingsPanel`, `ItemLists`, `CounterSnap`) still pass `loading`. Pass `status` and `successLabel` instead. The `PayPal email saved` toast in `SettingsPanel` goes with that change (Toast rule).
 - `OrderCard.tsx:83` still has `transition-[transform,background-color]` and `active:scale-[0.99]`, which fight `press-surface`.
 - `SettingsPanel.tsx:113` makes a Button wide with `className="w-full sm:w-auto"`. Prefer `fullWidth` so it gets the wide press scale.
 - `IconButton` and `TextLink` have no call sites yet except `CopyButton`'s icon-only form.
 
+
+# WP1 notes (sweep task)
+
+Built: press states on every control in the Controls table; `useAction` at its call sites (`MarkPickedUpButton`, `SettingsPanel`, `ItemLists` add form, `CounterSnap` keep; `TrackingForm` keeps its toast); `tests/ui/press-coverage.test.ts`; order detail `loading.tsx` with a guard `layout.tsx`; `StartActions` calls `beginNavigation()` before `router.push`. Raw close buttons became `IconButton`; matching text links became `TextLink`.
+
+Existing tests edited:
+
+| File | Change | Why |
+|---|---|---|
+| `e2e/menu-tab.spec.ts:81` | `toContainText('Added')` is now `getByRole('status')` … `toContainText('Kept')` | Copy target (the brief's `CounterSnap` label is `Kept`) and selector: the row's `status` line, because the Button's hidden success layer also contains "Kept" at rest, which would make a plain `toContainText` true before the press. |
+
+Tests added: `tests/ui/press-coverage.test.ts`.
+
+## Deviations and choices the brief left open
+
+| Where | What | Why |
+|---|---|---|
+| `press-coverage` | Also checks radio labels; allowlist has one entry (the skip link); a `data-stretched-link` counts as covered (its press is on the row) | Fulfilment radios are in the Controls table; the skip link only appears on keyboard focus and moves focus. |
+| `TrackingForm` | Calls `feedback('success' / 'error')` directly, no `useAction` | Its 400 path needs the error object for the field message; `useAction` keeps only a sentence. The toast and form-goes-away behaviour are unchanged. |
+| `MarkPickedUpButton` | `successMs` 3000 with the 500 ms hold before `onDone`; the toast moves into that hold | The detail page calls `router.refresh`, which can take longer than the default 1400 ms; a flip back to "Mark picked up" would invite a second press. |
+| `CounterSnap` | The row's resting line says `Kept` (was `Added`); a small `ProposalActions` holds `useAction` per proposal | One word for one action; `useAction` is a hook and each proposal needs its own. The Button says `Kept` for 1.2 s, then the row settles on the line. |
+| `ReviewStep.makeItem` | The new item joins `items` 700 ms after the save | `openSkipped` drops the line as soon as the item exists, which would unmount the row before the Button could say `Added`. |
+| Filter segments and radios | Selected fill on `::before`, scale from `--press-scale` to 1 | Using the token means reduced motion holds the scale; colour and fade still answer. |
+| `FileLabel` | `aria-disabled` and `cursor-progress` while busy; `pointer-events-none` gone | `press` already excludes `[aria-disabled="true"]`, and the input stays natively disabled. |
+| File labels styled with `buttonClasses()` | `border-0` | The absolute file input fills the padding box, so the 1 px button border made its hit area 42 px (`a11y()` in `dashboard.spec`). |
+| `TextLink` swaps | `StartActions`, `Dashboard`, `MenuPanel`, `LiveStep`, `ReadingStep`, `RetakeStep`, card page | Same layout; the underline becomes the system's `decoration-line-strong` where it was the text colour, and `hover` darkens it as the table says. |
+| `PhotoPicker` thumbnail button | `hover:brightness-95` now snaps | `press` replaces the `transition-[filter]` list; the press animation matters more than the hover fade. |
+| Reduced `w-full sm:w-auto` buttons | `fullWidth` + `sm:w-auto` (`SettingsPanel`, `TrackingForm`, `PrintButton`, `SharePanel`, `OrderCard`, `OrdersPanel`, `orders/[orderId]/page.tsx`) | Wide press scale where the button is wide. `MarkPickedUpButton` stays as it was, so acceptance 5 reads .96 at 1440. |
+| `docs/DESIGN.md` | `Pressable` row and a short Press paragraph updated | The doc said "0.98 press". |
+| `orders/[orderId]/page.tsx` | Keeps its own `requireOwner` and order check | The guard layout must not be the only check: a soft navigation can render the page under a layout that did not re-run with this order's params. |
+
+## Not done here
+
+`e2e/tactile.spec.ts` (the brief's acceptance 5 to 8, 12, 13). The sweep was checked in the browser with a throwaway spec instead: Mark picked up .96 at 1440 and row scale `none`; segments press .96 and the thumb fades and scales; the stretched link presses the row at .985 with the sunken fill; Space presses a Button and keeps focus; reduced motion holds segments at 1 and keeps their state.
