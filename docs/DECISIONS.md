@@ -260,3 +260,4 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 ## Run 5 (2026-11-08 IST): the production pass
 - **The work packages run as parallel worktree branches and merge in the brief's order (WP1 with WP5, then WP2 with WP4, then WP3 with WP6, then WP7), rather than one at a time.** Reason: the brief's packages sum to about 15 h against a 12-hour cut-off; WP1 and WP5 touch different files, as do WP2/WP4 and WP3/WP6.
 - **Workers run on named worktrees (`.claude/worktrees/wpN`), not per-agent ones.** Reason: build, review and fix steps for one package must share one working copy.
+- **WP2 and WP4 start from `wp1`'s head (`32fd26b`) while WP1's correctness review runs, rather than waiting for its merge.** Reason: both need WP1's Button, IconButton and press classes; WP1 passed its 14 acceptance items and any review fixes will be small, and waiting would cost most of a session.

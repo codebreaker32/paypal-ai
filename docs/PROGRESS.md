@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-08 17:34 IST (run 5, session 1 hand-off)_
+_Last updated: 2026-11-08 17:40 IST (run 5, session 2 under way)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -9,6 +9,7 @@ _Last updated: 2026-11-08 17:34 IST (run 5, session 1 hand-off)_
   - **WP5 (`wp5`, `.claude/worktrees/wp5`, 21 commits):** built. The worker's last sweep at `b9917bb`: `npm test` 1499 passed, typecheck and lint clean, targeted e2e 30 passed / 1 skipped. Independent review round 1: acceptance all pass except SR17 under concurrency; 14 confirmed findings (4 major). **Not fixed yet; the fix round was cut off by the session's time limit.** Full list with repro: `.scratch/handoff/wp5-findings.json`. The majors: one free account can keep the global hash gate full; a login with the old password in flight when recovery commits gets a live session (twice reported); a key rotation or payee change in flight during recovery still applies.
   - **WP1 (`wp1`, `.claude/worktrees/wp1`, 23 commits, head `32fd26b`):** built, including `e2e/tactile.spec.ts`. Independent acceptance check on `c73aab5`: 14 of 14 pass. The 5 confirmed minor findings are fixed in `32fd26b` (no new test for the Copied timer restart or the hover guards). **Verified on `32fd26b`:** `npm test` 1279 passed, typecheck and lint clean, `e2e/tactile.spec.ts` + `e2e/primitives.spec.ts` 18 passed. **Not done:** a complete correctness review (the `code-review` skill returned no findings text inside a workflow agent; that reviewer read the code by hand and stopped at the time limit, so its list is partial) and the dashboard and shop specs on `32fd26b`. WP1 is not merged.
 - **Next (session 2), in order:** (1) run a complete correctness review of `run-5-production...wp1` (from the main loop or by hand: the skill gave no text inside a workflow agent), fix, gate, merge; (2) fix WP5's 14 findings and re-run its four security lenses, gate, merge; (3) WP2 (assistant) beside WP4 (seller shell); WP3 (tiles) beside WP6 (account screens); WP7; WP8; WP9; S1-S6. The workflow script to reuse (args: wp, worktree, branch, port, stopAt, sessionEnd, briefLines, e2e, tasks, lenses) is `.scratch/handoff/run5-wp.js`, one named worktree per package. **Each package took about 95 minutes before its fix round, so give workers a stop time that leaves the fix round and gate inside the session (stop building at +75 min).**
+- **Session 2 (17:33–19:33 IST), started:** four workflows run in parallel worktrees: WP1 (complete correctness review, fixes, gate), WP5 (the 14 findings fixed, security lenses re-run, gate), and the first builds of WP2 (assistant) and WP4 (seller shell), both on `wp1`'s head. Nothing is merged yet this session.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8); restated at the end of the run.
 
 ## Run 4
