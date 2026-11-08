@@ -88,6 +88,15 @@ describe('SR5: storing a password', () => {
     }
   });
 
+  it('a stored value with an empty or tiny key or salt never verifies (an empty key would match anything)', async () => {
+    stub.scrypt = (_p, _s, keylen, _o, cb) => cb(null, Buffer.alloc(keylen));
+    const good = Buffer.alloc(32).toString('base64url');
+    const tiny = Buffer.alloc(8).toString('base64url');
+    expect(await verifyPassword(PHRASE, ['scrypt', 32768, 8, 3, good, 'a'].join('$'))).toBe(false); // 'a' decodes to zero bytes
+    expect(await verifyPassword(PHRASE, ['scrypt', 32768, 8, 3, 'a', good].join('$'))).toBe(false);
+    expect(await verifyPassword(PHRASE, ['scrypt', 32768, 8, 3, good, tiny].join('$'))).toBe(false);
+  });
+
   it('a stored hash whose parameters would exceed the memory limit verifies as false', async () => {
     const salt = Buffer.alloc(16).toString('base64url');
     const key = Buffer.alloc(32).toString('base64url');

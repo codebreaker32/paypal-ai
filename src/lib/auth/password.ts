@@ -11,6 +11,7 @@ const R = 8;
 const P = 3;
 const SALT_BYTES = 16;
 const KEY_BYTES = 32;
+const MIN_STORED_KEY_BYTES = 16;
 /** Node's default limit (32 MB) is below what these parameters need. */
 const MAX_MEMORY = 64 * 1024 * 1024;
 
@@ -83,7 +84,11 @@ function parseStored(stored: string): (Params & { salt: Buffer; key: Buffer }) |
   if (!m) return null;
   const [n, r, p] = [Number(m[1]), Number(m[2]), Number(m[3])];
   if (n < 2 || r < 1 || p < 1 || 128 * r * (n + p + 2) > MAX_MEMORY || (n & (n - 1)) !== 0) return null;
-  return { N: n, r, p, salt: Buffer.from(m[4], 'base64url'), key: Buffer.from(m[5], 'base64url') };
+  const salt = Buffer.from(m[4], 'base64url');
+  const key = Buffer.from(m[5], 'base64url');
+  // An empty key would compare equal to anything.
+  if (salt.length < SALT_BYTES || key.length < MIN_STORED_KEY_BYTES) return null;
+  return { N: n, r, p, salt, key };
 }
 
 export async function verifyPassword(password: string, stored: string): Promise<boolean> {
