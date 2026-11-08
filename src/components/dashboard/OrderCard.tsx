@@ -80,7 +80,7 @@ export function OrderCard({
       data-just-paid={justPaid || undefined}
       className={cx(
         'isolate grid grid-cols-[3.5rem_minmax(0,1fr)_auto] gap-x-4 gap-y-2 px-4 py-4 sm:px-5',
-        'transition-[transform,background-color] hover:bg-surface-subtle active:scale-[0.99]',
+        'hover:bg-surface-subtle',
         'lg:grid-cols-[3.5rem_14rem_minmax(0,1fr)_7rem_11rem_10.5rem] lg:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
@@ -144,7 +144,7 @@ export function OrderCard({
       <div className="relative z-10 col-span-3 lg:order-6 lg:col-span-1 lg:justify-self-end">
         {order.status === 'paid' &&
           (ships ? (
-            <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck} className="w-full lg:w-auto">
+            <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck} fullWidth className="lg:w-auto">
               Add tracking
             </ButtonLink>
           ) : (

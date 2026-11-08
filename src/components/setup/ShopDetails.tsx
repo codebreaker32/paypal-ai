@@ -119,8 +119,10 @@ export function ShopDetails({
               <label
                 key={o.value}
                 className={cx(
-                  'relative flex min-h-tap cursor-pointer items-center justify-center rounded-full px-3 font-semibold transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
-                  checked ? 'bg-ink text-surface' : 'text-ink-soft hover:bg-line hover:text-ink',
+                  'press relative isolate flex min-h-tap cursor-pointer items-center justify-center rounded-full px-3 font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
+                  // The selected fill sits on a pseudo-element, so it fades and scales in behind the label.
+                  'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-ink before:scale-(--press-scale) before:opacity-0 before:transition-[opacity,scale] before:duration-(--duration-fast) before:ease-out',
+                  checked ? 'text-surface before:scale-100 before:opacity-100' : 'text-ink-soft hover:text-ink',
                 )}
               >
                 <input

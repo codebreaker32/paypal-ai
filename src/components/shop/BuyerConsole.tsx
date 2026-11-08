@@ -15,11 +15,10 @@ import { m, useReducedMotion } from 'motion/react';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type { OrderStatus } from '@/lib/domain/types';
-import { Button, ButtonLink, buttonClasses } from '@/components/ui/button';
+import { Button, ButtonLink } from '@/components/ui/button';
+import { PayPalLink } from '@/components/ui/paypal-link';
 import { FieldError, TextInput } from '@/components/ui/field';
-import { cx } from '@/components/ui/cx';
 import { CountUp } from '@/components/motion/count-up';
-import { Pressable } from '@/components/motion/pressable';
 import { StatusSwap } from '@/components/motion/status-swap';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
 import { LogoMark } from '@/components/brand/Logo';
@@ -267,14 +266,9 @@ function ApprovalCard({ entry, shopName, fresh }: { entry: Extract<Entry, { kind
       {view.approve ? (
         <>
           {safe ? (
-            <Pressable
-              as="a"
-              lift={false}
-              href={entry.approvalUrl}
-              className={cx(buttonClasses({ variant: 'paypal', fullWidth: true }), 'active:scale-[0.97]')}
-            >
+            <PayPalLink href={entry.approvalUrl} fullWidth>
               Approve {total} on PayPal
-            </Pressable>
+            </PayPalLink>
           ) : (
             <FieldError>This approval link doesn’t go to PayPal, so it isn’t shown.</FieldError>
           )}
@@ -316,7 +310,7 @@ function Starters({ prompts, onPick, disabled }: { prompts: string[]; onPick: (p
             type="button"
             disabled={disabled}
             onClick={() => onPick(p)}
-            className="flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink transition-[background-color,transform] duration-(--duration-fast) ease-out hover:bg-line active:scale-[0.98] disabled:opacity-50 motion-reduce:active:scale-100"
+            className="press flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink [--press-local:var(--press-scale-wide)] enabled:hover:bg-line disabled:opacity-50"
           >
             <span className="flex-1">{p}</span>
           </button>

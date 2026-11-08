@@ -124,7 +124,7 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
             href={`/s/${shop.slug}/photo/1`}
             target="_blank"
             rel="noopener"
-            className="group inline-flex min-h-tap shrink-0 items-center gap-3 self-start rounded-(--card-radius) pr-2 font-semibold no-underline"
+            className="group press-text inline-flex min-h-tap shrink-0 items-center gap-3 self-start rounded-(--card-radius) pr-2 font-semibold no-underline"
           >
             <Image
               src={`/s/${shop.slug}/photo/1?size=avatar`}

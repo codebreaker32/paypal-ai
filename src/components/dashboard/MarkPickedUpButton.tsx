@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from 'react';
 import { PackageCheck } from 'lucide-react';
 import { Button, type ButtonVariant } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { useToast } from '@/components/ui/toast';
 import type { Order } from '@/lib/domain/types';
+import { useAction } from '@/lib/feedback/use-action';
 import { markPickedUp } from './api';
+
+/** The button says "Picked up" this long before the row moves to Done. */
+const PICKED_UP_HOLD_MS = 500;
 
 export function MarkPickedUpButton({
   shopId,
@@ -22,21 +25,16 @@ export function MarkPickedUpButton({
   fullWidth?: boolean;
 }) {
   const toast = useToast();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Holds past onDone, so a page that refreshes slowly doesn't flip back to "Mark picked up" before the row goes away.
+  const { status, run, error } = useAction(() => markPickedUp(shopId, order.id), { successMs: 3000 });
 
-  const run = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      const { order: updated } = await markPickedUp(shopId, order.id);
+  const pickUp = async () => {
+    const done = await run();
+    if (!done) return;
+    setTimeout(() => {
       toast({ title: `${order.number} picked up`, description: 'Moved to Done.', tone: 'ok' });
-      onDone(updated);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Something went wrong. Try again.');
-    } finally {
-      setBusy(false);
-    }
+      onDone(done.order);
+    }, PICKED_UP_HOLD_MS);
   };
 
   return (
@@ -44,9 +42,10 @@ export function MarkPickedUpButton({
       <Button
         variant={variant}
         icon={PackageCheck}
-        loading={busy}
+        status={status}
         loadingLabel="Saving…"
-        onClick={run}
+        successLabel="Picked up"
+        onClick={pickUp}
         fullWidth={fullWidth}
         className={fullWidth ? undefined : 'w-full sm:w-auto'}
       >

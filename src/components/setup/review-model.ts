@@ -147,3 +147,8 @@ export function openSkipped(skipped: SkippedLine[], items: ItemWithVariants[]): 
   const used = new Set(items.map((i) => i.sourceText));
   return skipped.filter((s) => !used.has(s.text));
 }
+
+/** The list with a newly added item at the end. A server refresh may have brought it already: then the list stands. */
+export function withNewItem(all: ItemWithVariants[], item: ItemWithVariants): ItemWithVariants[] {
+  return all.some((i) => i.id === item.id) ? all : [...all, item];
+}

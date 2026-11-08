@@ -11,6 +11,7 @@ import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, ShopKind, SkippedLine } from '@/lib/domain/types';
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
+import { useAction } from '@/lib/feedback/use-action';
 import type { OnUpdate } from './IssueCards';
 import { ExampleCaption, ItemPhotoPicker, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
@@ -236,14 +237,14 @@ export function InPersonList({ items, onUpdate, shopId, shopKind, onPhoto, pictu
 export function Disclosure({ title, count, hint, children, defaultOpen }: { title: string; count: number; hint?: string; children: ReactNode; defaultOpen?: boolean }) {
   return (
     <details open={defaultOpen} className="group rounded-lg bg-surface-sunken">
-      <summary className="flex min-h-tap list-none items-center gap-3 px-4 py-2.5 [&::-webkit-details-marker]:hidden">
+      <summary className="group/summary press-text flex min-h-tap list-none items-center gap-3 px-4 py-2.5 [&::-webkit-details-marker]:hidden">
         <span className="flex flex-1 flex-col">
           <span className="font-semibold">
             {title} <span className="type-figures text-ink-muted">({count})</span>
           </span>
           {hint && <span className="type-meta text-ink-muted">{hint}</span>}
         </span>
-        <Icon icon={ChevronDown} className="text-ink-soft transition-transform duration-(--duration-fast) group-open:rotate-180" />
+        <Icon icon={ChevronDown} className="text-ink-soft transition-[rotate,color] duration-(--duration-fast) group-open:rotate-180 group-hover/summary:text-ink" />
       </summary>
       <div className="px-4 pb-3">{children}</div>
     </details>
@@ -283,8 +284,7 @@ function SkippedRow({
   const [name, setName] = useState(line.text.replace(/^[+\-•·*]\s*/, '').replace(/\$\s?\d+(?:\.\d{1,2})?/, '').trim() || line.text);
   const [text, setText] = useState(() => priceInputValue(firstAmountIn(line.text)));
   const [touched, setTouched] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { status, run, error } = useAction(onMake);
   const cents = text.trim() === '' ? null : parsePriceInput(text);
   const priceBad = text.trim() !== '' && cents === null;
 
@@ -307,18 +307,11 @@ function SkippedRow({
       {open && (
         <form
           className="mt-3 flex flex-col gap-4 rounded-md bg-surface-sunken p-4"
-          onSubmit={async (e) => {
+          onSubmit={(e) => {
             e.preventDefault();
             setTouched(true);
             if (!name.trim() || priceBad) return;
-            setBusy(true);
-            setError(null);
-            try {
-              await onMake({ name: name.trim(), priceCents: cents, sourceText: line.text });
-            } catch (err) {
-              setError(err instanceof Error ? err.message : String(err));
-              setBusy(false);
-            }
+            void run({ name: name.trim(), priceCents: cents, sourceText: line.text });
           }}
         >
           <Field label="Name" error={touched && !name.trim() ? 'Give it a name' : undefined}>
@@ -335,10 +328,10 @@ function SkippedRow({
           />
           {error && <p role="alert" className="text-sm font-medium text-error">{error}</p>}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" variant="secondary" icon={Plus} loading={busy} loadingLabel="Adding…">
+            <Button type="submit" variant="secondary" icon={Plus} status={status} loadingLabel="Adding…" successLabel="Added">
               Add to menu
             </Button>
-            <Button variant="ghost" onClick={() => setOpen(false)} disabled={busy}>
+            <Button variant="ghost" onClick={() => setOpen(false)} disabled={status !== 'idle'}>
               Cancel
             </Button>
           </div>

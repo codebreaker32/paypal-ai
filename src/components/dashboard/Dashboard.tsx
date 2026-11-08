@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
@@ -10,6 +9,7 @@ import { listedItems } from '@/lib/domain/listed';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { Tabs } from '@/components/ui/tabs';
+import { TextLink } from '@/components/ui/text-link';
 import { useToast } from '@/components/ui/toast';
 import { formatUSD } from '@/lib/domain/money';
 import { canBePaid } from '@/lib/domain/payee';
@@ -183,7 +183,6 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     try {
       const { shop: saved } = await setShopStatus(shop.id, paused ? 'paused' : 'live');
       setStatus(saved.status);
-      toast({ title: paused ? 'Agent orders paused' : 'Taking agent orders again', tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setStatus(before);
       setPauseError(e instanceof Error ? e.message : "Couldn’t save. Try again.");
@@ -210,19 +209,13 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
               <ShopStatusBadge status={status} payeeMissing={!canBePaid({ slug: shop.slug, payeeEmail })} />
               {status !== 'draft' ? (
-                <Link
-                  href={`/s/${shop.slug}`}
-                  className="inline-flex min-h-tap items-center gap-1.5 text-sm font-semibold text-ink underline underline-offset-4"
-                >
+                <TextLink href={`/s/${shop.slug}`} className="text-sm text-ink">
                   View your shop <Icon icon={ExternalLink} size="sm" />
-                </Link>
+                </TextLink>
               ) : (
-                <Link
-                  href={`/shops/${shop.id}/setup`}
-                  className="inline-flex min-h-tap items-center text-sm font-semibold text-ink underline underline-offset-4"
-                >
+                <TextLink href={`/shops/${shop.id}/setup`} className="text-sm text-ink">
                   Finish setting up
-                </Link>
+                </TextLink>
               )}
             </div>
           </div>
@@ -235,6 +228,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
               description={paused ? 'Assistants can still read your menu.' : undefined}
               checked={paused}
               busy={pausing}
+              failed={!!pauseError}
               onChange={togglePause}
             />
             {pauseError && <FieldError className="pb-2">{pauseError}</FieldError>}

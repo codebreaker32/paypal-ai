@@ -60,7 +60,7 @@ export function PhotoStrip({ shopId, count, version, className }: { shopId: stri
               type="button"
               onClick={() => setOpen(page)}
               aria-label={`See page ${page} of your menu photo full size`}
-              className="group relative block h-24 w-18 overflow-hidden rounded-(--thumb-radius) bg-surface-sunken"
+              className="press group relative block h-24 w-18 overflow-hidden rounded-(--thumb-radius) bg-surface-sunken"
             >
               <Image src={photoUrl(shopId, page, version)} alt="" fill unoptimized sizes="72px" className="object-cover" />
               <span className="absolute right-1 bottom-1 inline-flex size-6 items-center justify-center rounded-full bg-surface-raised/90 text-ink shadow-xs">

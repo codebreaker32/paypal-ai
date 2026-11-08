@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { ArrowLeft, TriangleAlert } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
 import { Icon } from '@/components/ui/icon';
+import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
@@ -33,13 +34,10 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
   return (
     <div className="mx-auto flex w-full max-w-page flex-col items-center gap-8 px-gutter pt-6 pb-section lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:pt-12 print:p-0">
       <div className="flex w-full max-w-measure flex-col gap-5 lg:pt-4 print:hidden">
-        <Link
-          href={`/shops/${shop.id}?tab=share`}
-          className="inline-flex min-h-tap items-center gap-1.5 self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink"
-        >
+        <TextLink href={`/shops/${shop.id}?tab=share`} className="self-start text-ink">
           <Icon icon={ArrowLeft} size="sm" />
           Back to Share
-        </Link>
+        </TextLink>
         <div className="flex flex-col gap-3">
           <h1 className="type-display">Counter card</h1>
           <p className="type-lead text-ink-soft">Stand it by your till. A scan opens your menu, and any AI assistant can order from it.</p>
@@ -51,7 +49,7 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
               Your counter card is ready once your shop is live.{' '}
               <span className="font-normal">
                 Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
-                <Link href={`/shops/${shop.id}/setup`} className="font-semibold underline underline-offset-4">
+                <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
                   Finish setting up
                 </Link>
               </span>

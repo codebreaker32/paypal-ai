@@ -5,11 +5,9 @@ import { CircleCheck, Info, TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Field, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
-import { useToast } from '@/components/ui/toast';
 import { parsePayeeEmail } from '@/lib/domain/payee';
+import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
-
-type SaveState = { kind: 'idle' } | { kind: 'saving' } | { kind: 'saved' } | { kind: 'error'; message: string };
 
 export interface SettingsPanelProps {
   shopId: string;
@@ -22,11 +20,11 @@ export interface SettingsPanelProps {
 
 /** Settings: where the money goes. One field, one Save; checked on blur and on Save, with the same rule as the server. */
 export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsPanelProps) {
-  const toast = useToast();
   const [saved, setSaved] = useState(payeeEmail);
   const [value, setValue] = useState(payeeEmail ?? '');
   const [touched, setTouched] = useState(false);
-  const [state, setState] = useState<SaveState>({ kind: 'idle' });
+  // Pressed Save since the last edit: the result sentence and a failure only speak for what is in the field now.
+  const [submitted, setSubmitted] = useState(false);
 
   // The demo shop may clear the email (back to Shelfie's demo account); every other shop needs one.
   const blankAllowed = isDemo && value.trim() === '';
@@ -34,27 +32,23 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
   const invalid = !blankAllowed && !parsed.ok;
   const next = blankAllowed ? null : parsed.ok ? parsed.email : null;
   const unchanged = !invalid && next === saved;
-  const fieldError = touched && invalid && !parsed.ok ? parsed.message : state.kind === 'error' ? state.message : undefined;
+
+  const { status, run, error } = useAction(() => setPayeeEmail(shopId, next));
+  // Saved speaks for the value it saved: once the field differs, Save works again and the edit isn't dropped by the hold.
+  const buttonStatus = status === 'success' && !unchanged ? 'idle' : status;
+  const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error ? error : undefined;
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setTouched(true);
     if (invalid) return;
-    if (unchanged) {
-      setState({ kind: 'saved' }); // already what PayPal gets; nothing to send
-      return;
-    }
-    setState({ kind: 'saving' });
-    try {
-      const { shop } = await setPayeeEmail(shopId, next);
-      setSaved(shop.payeeEmail);
-      setValue(shop.payeeEmail ?? '');
-      setState({ kind: 'saved' });
-      onSaved(shop.payeeEmail);
-      toast({ title: 'PayPal email saved', description: 'New orders are paid to it.', tone: 'ok', durationMs: 3000 });
-    } catch (err) {
-      setState({ kind: 'error', message: err instanceof Error ? err.message : 'Couldn’t save. Try again.' });
-    }
+    setSubmitted(true);
+    if (unchanged) return; // already what PayPal gets; nothing to send
+    const done = await run();
+    if (!done) return;
+    setSaved(done.shop.payeeEmail);
+    setValue(done.shop.payeeEmail ?? '');
+    onSaved(done.shop.payeeEmail);
   };
 
   return (
@@ -100,21 +94,21 @@ export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsP
               maxLength={254}
               placeholder="rosa@example.com"
               value={value}
-              disabled={state.kind === 'saving'}
+              disabled={status === 'loading'}
               onChange={(e) => {
                 setValue(e.currentTarget.value);
-                if (state.kind !== 'idle' && state.kind !== 'saving') setState({ kind: 'idle' });
+                setSubmitted(false);
               }}
               onBlur={() => setTouched(true)}
             />
           )}
         </Field>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Button type="submit" loading={state.kind === 'saving'} loadingLabel="Saving…" className="w-full sm:w-auto">
+          <Button type="submit" status={buttonStatus} loadingLabel="Saving…" successLabel="Saved" fullWidth className="sm:w-auto">
             Save
           </Button>
           <p role="status" className="flex min-w-0 items-start gap-1.5 font-medium text-ok [overflow-wrap:anywhere]">
-            {state.kind === 'saved' && unchanged && (
+            {submitted && unchanged && status !== 'loading' && (
               <>
                 <Icon icon={CircleCheck} size="sm" className="mt-1" />
                 <span>Saved. New orders are paid to {saved ?? 'Shelfie’s demo account'}.</span>

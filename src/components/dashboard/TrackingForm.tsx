@@ -8,6 +8,7 @@ import { Field, FieldError, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { TRACK_IN_YOUR_PAYPAL } from '@/lib/domain/payee';
+import { feedback } from '@/lib/feedback';
 import { OFFERED_CARRIERS, type CarrierId } from '@/lib/seller/carriers';
 import { ApiError, addTracking } from './api';
 
@@ -56,9 +57,11 @@ export function TrackingForm({ shopId, orderId, atPayPal = true }: { shopId: str
       });
       const t = trackers.at(-1);
       setState({ kind: 'sent', carrier: t?.carrier ?? carrier, trackingNumber: t?.trackingNumber ?? number, atPayPal: sentToPayPal !== false });
+      feedback('success');
       toast({ title: sentToPayPal === false ? 'Tracking saved' : 'Tracking sent to PayPal', description: 'The order moved to Done.', tone: 'ok' });
       router.refresh();
     } catch (err) {
+      feedback('error');
       if (err instanceof ApiError && err.status === 400) {
         setFieldErrors({ number: err.message });
         setState({ kind: 'idle' });
@@ -152,7 +155,8 @@ export function TrackingForm({ shopId, orderId, atPayPal = true }: { shopId: str
         icon={Send}
         loading={sending}
         loadingLabel={atPayPal ? 'Sending to PayPal…' : 'Saving…'}
-        className="w-full sm:w-auto sm:self-start"
+        fullWidth
+        className="sm:w-auto sm:self-start"
       >
         {atPayPal ? 'Send tracking to PayPal' : 'Save tracking'}
       </Button>

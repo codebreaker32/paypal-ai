@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
-import { Icon } from './icon';
+import { IconButton } from './icon-button';
 import { cn } from '@/lib/utils';
 
 export interface SheetProps {
@@ -88,13 +88,7 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="-mr-2 inline-flex size-(--spacing-tap) items-center justify-center rounded-full text-ink-soft hover:bg-surface-sunken hover:text-ink"
-          >
-            <Icon icon={X} label="Close" />
-          </button>
+          <IconButton icon={X} label="Close" iconSize="md" onClick={onClose} className="-mr-2" />
         </div>
         <div className="overflow-y-auto px-5 py-4 sm:px-6">{children}</div>
         {footer && <div className="border-t border-line px-5 py-4 sm:px-6">{footer}</div>}

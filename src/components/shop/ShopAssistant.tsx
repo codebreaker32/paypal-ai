@@ -5,7 +5,7 @@ import { X } from 'lucide-react';
 import { LogoMark } from '@/components/brand/Logo';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Icon } from '@/components/ui/icon';
+import { IconButton } from '@/components/ui/icon-button';
 import { Sheet } from '@/components/ui/sheet';
 import { ConsoleComposer, ConsoleConversation, useBuyerConsole } from './BuyerConsole';
 
@@ -103,13 +103,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
                   <h2 className="type-heading leading-6">{title}</h2>
                   <p className="type-meta text-ink-muted">Claude, through {shopName}’s agent door</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={hide}
-                  className="-mr-2 inline-flex size-(--spacing-tap) items-center justify-center rounded-full text-ink-soft hover:bg-surface-sunken hover:text-ink"
-                >
-                  <Icon icon={X} label="Close the assistant" />
-                </button>
+                <IconButton icon={X} label="Close the assistant" iconSize="md" onClick={hide} className="-mr-2" />
               </div>
               <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">{conversation}</div>
               <div className="border-t border-line px-5 py-4">
@@ -125,7 +119,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
               </Button>
               <p className="type-meta text-ink-muted">
                 Or connect your own assistant to the{' '}
-                <a href="#agent-door" className="font-semibold text-ink underline">
+                <a href="#agent-door" className="press-text font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
                   agent door
                 </a>
                 .

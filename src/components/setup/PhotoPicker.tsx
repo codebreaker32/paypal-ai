@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element -- site-relative uploads of unknown size, as in ItemPhoto */
 import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { ImagePlus, Loader2, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonClasses } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { Sheet } from '@/components/ui/sheet';
 import { cx } from '@/components/ui/cx';
@@ -99,10 +99,12 @@ function FileLabel({
   usePickedBeforeHydration(input, onPick);
   return (
     <label
+      aria-disabled={disabled || undefined}
       className={cx(
-        'relative has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
-        disabled && 'pointer-events-none',
+        'press relative cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
         className,
+        // After className: buttonClasses() dims aria-disabled, which is for unavailable controls, and this one is busy.
+        disabled && 'cursor-progress aria-disabled:cursor-progress aria-disabled:opacity-100',
       )}
     >
       <input
@@ -173,7 +175,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, exam
           aria-haspopup="dialog"
           aria-label={`Photo of ${name}: replace or remove`}
           onClick={() => setOpen(true)}
-          className={cx(box, 'transition-[filter] hover:brightness-95')}
+          className={cx(box, 'press hover:brightness-95')}
         >
           <img src={photoUrl} alt={name} className="size-full rounded-(--thumb-radius) object-cover" />
           {actions.busy && <Busy label={`Saving the photo of ${name}`} />}
@@ -210,7 +212,7 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, exam
               onPick={async (f) => {
                 if (await actions.pick(f)) setOpen(false);
               }}
-              className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-ink px-5 font-semibold text-surface hover:bg-ink-hover"
+              className={buttonClasses({ variant: 'primary', className: 'border-0' })}
             >
               <Icon icon={ImagePlus} />
               <span aria-hidden="true">Replace photo</span>
@@ -278,7 +280,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
           label="Add a cover photo"
           onPick={(f) => void actions.pick(f)}
           disabled={actions.busy}
-          className="relative flex aspect-[16/7] w-full flex-col sm:aspect-[3/1] items-center justify-center gap-2 overflow-hidden rounded-(--cover-radius) bg-surface-sunken text-ink-soft transition-colors hover:bg-line"
+          className="relative flex aspect-[16/7] w-full flex-col sm:aspect-[3/1] items-center justify-center gap-2 overflow-hidden rounded-(--cover-radius) bg-surface-sunken text-ink-soft [--press-local:var(--press-scale-surface)] not-aria-disabled:hover:bg-line"
         >
           <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink shadow-xs">
             <Icon icon={ImagePlus} />
@@ -293,7 +295,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
             label="Replace cover"
             onPick={(f) => void actions.pick(f)}
             disabled={actions.busy}
-            className="inline-flex min-h-tap items-center justify-center gap-2 rounded-full bg-surface-sunken px-5 font-semibold text-ink hover:bg-line"
+            className={buttonClasses({ variant: 'secondary', className: 'border-0' })}
           >
             <span aria-hidden="true">Replace cover</span>
           </FileLabel>
@@ -339,7 +341,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
             {actions.busy && <Busy label="Saving your logo" />}
           </span>
         ) : (
-          <FileLabel label="Add a logo" onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(tile, 'group text-ink transition-colors hover:bg-line')}>
+          <FileLabel label="Add a logo" onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(tile, 'group text-ink not-aria-disabled:hover:bg-line')}>
             <Icon icon={ImagePlus} className="transition-transform group-hover:scale-110" />
             {actions.busy && <Busy label="Saving your logo" />}
           </FileLabel>

@@ -12,7 +12,7 @@ import { BriefCard } from '@/components/dashboard/BriefCard';
 import { CountUp } from '@/components/motion/count-up';
 import { CopyButton } from '@/components/dashboard/CopyButton';
 import { withFallbackBrief } from '@/lib/ai/template';
-import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
+import { AutoRefresh, PickupAction, ScrollToHash } from '@/components/dashboard/DetailClient';
 import { LocalTime } from '@/components/dashboard/LocalTime';
 import { TrackingForm } from '@/components/dashboard/TrackingForm';
 import { OrderStatusText } from '@/components/dashboard/status';
@@ -135,7 +135,7 @@ function ActionCard({
           </p>
         )}
         {held && (
-          <ButtonLink href={`/shops/${shop.id}?tab=settings`} variant="secondary" icon={Settings} className="w-full sm:w-auto sm:self-start">
+          <ButtonLink href={`/shops/${shop.id}?tab=settings`} variant="secondary" icon={Settings} fullWidth className="sm:w-auto sm:self-start">
             Check your PayPal email
           </ButtonLink>
         )}
@@ -159,7 +159,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
         <div className="flex flex-col gap-1">
           {order.payerName && <p className="font-semibold">{order.payerName}</p>}
           {order.payerEmail && (
-            <a href={`mailto:${order.payerEmail}`} className="inline-flex min-h-tap items-center gap-1.5 self-start text-ink underline underline-offset-4 [overflow-wrap:anywhere]">
+            <a href={`mailto:${order.payerEmail}`} className="press-text inline-flex min-h-tap items-center gap-1.5 self-start text-ink underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink [overflow-wrap:anywhere]">
               <Icon icon={Mail} size="sm" />
               {order.payerEmail}
             </a>
@@ -334,7 +334,7 @@ function OrderList({ shopId, orders, current, photos, kind }: { shopId: string; 
               <Link
                 href={`/shops/${shopId}/orders/${o.id}`}
                 aria-current={here ? 'page' : undefined}
-                className={cx('flex items-center gap-3 rounded-(--thumb-radius) px-3 py-2.5 no-underline hover:bg-surface-sunken', here && 'bg-surface-sunken')}
+                className={cx('press-surface flex items-center gap-3 rounded-(--thumb-radius) px-3 py-2.5 no-underline', here ? 'bg-surface-sunken' : 'hover:bg-surface-subtle')}
               >
                 <ItemPhoto name={first?.name ?? o.number} {...(first ? linePicture(photos, first, kind) : { photoUrl: null, category: kindDefault(kind) })} decorative className="size-10 shrink-0 rounded-(--thumb-radius)" />
                 <span className="flex min-w-0 flex-1 flex-col">
@@ -375,11 +375,12 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   return (
     <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
       <AutoRefresh active={pending} />
+      <ScrollToHash />
       <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} kind={shop.kind} />
       <div className="flex min-w-0 flex-col gap-6">
       <Link
         href={`/shops/${shop.id}`}
-        className="-ml-1 inline-flex min-h-tap items-center gap-1.5 self-start rounded-sm px-1 font-semibold text-ink-soft hover:text-ink"
+        className="press-text -ml-1 inline-flex min-h-tap items-center gap-1.5 self-start rounded-sm px-1 font-semibold text-ink-soft hover:text-ink"
       >
         <Icon icon={ArrowLeft} size="sm" />
         Orders
