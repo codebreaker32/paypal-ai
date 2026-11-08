@@ -45,13 +45,13 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
       <h2 className="type-title">No orders yet</h2>
       <p className="max-w-measure text-ink-soft">Orders from AI assistants land here, ready to prepare once the buyer pays on PayPal.</p>
       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
-        <ButtonLink href={`/s/${slug}?assistant=1`} variant="primary" className="w-full sm:w-auto">
+        <ButtonLink href={`/s/${slug}?assistant=1`} variant="primary" fullWidth className="sm:w-auto">
           Watch an AI order from you
         </ButtonLink>
         <button
           type="button"
           onClick={onShowShare}
-          className="inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4"
+          className="press-text inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4"
         >
           Share your agent door
         </button>
@@ -61,6 +61,11 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
 }
 
 const ROWS = 'divide-y divide-line overflow-hidden rounded-(--card-radius) bg-(--card-bg) shadow-(--card-shadow)';
+
+/** The selected segment's fill, on a pseudo-element so it fades and scales in behind the label. */
+const SEGMENT_THUMB =
+  'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-(--segment-on) before:shadow-(--card-shadow) ' +
+  'before:scale-(--press-scale) before:opacity-0 before:transition-[opacity,scale] before:duration-(--duration-fast) before:ease-out';
 
 export function OrdersPanel({
   orders,
@@ -114,8 +119,9 @@ export function OrdersPanel({
                   aria-pressed={filter === id}
                   onClick={() => setFilter(id)}
                   className={cx(
-                    'inline-flex min-h-tap items-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap transition-colors',
-                    filter === id ? 'bg-(--segment-on) text-ink shadow-(--card-shadow)' : 'text-ink-soft hover:text-ink',
+                    'press relative isolate inline-flex min-h-tap items-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap',
+                    SEGMENT_THUMB,
+                    filter === id ? 'text-ink before:scale-100 before:opacity-100' : 'text-ink-soft hover:text-ink',
                   )}
                 >
                   {label}
@@ -143,10 +149,10 @@ export function OrdersPanel({
 
           {show('waiting') && g.waiting.length > 0 && (
             <details className="group" data-group="waiting" open={filter === 'waiting' || undefined}>
-              <summary className="flex min-h-tap list-none flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md [&::-webkit-details-marker]:hidden">
+              <summary className="group/summary press-text flex min-h-tap list-none flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-md [&::-webkit-details-marker]:hidden">
                 <h2 className="type-heading flex items-center gap-2">
                   Waiting for payment <Count n={g.waiting.length} />
-                  <Icon icon={ChevronDown} className="text-ink-muted transition-transform duration-(--duration-base) group-open:rotate-180" />
+                  <Icon icon={ChevronDown} className="text-ink-muted transition-[rotate,color] duration-(--duration-base) group-open:rotate-180 group-hover/summary:text-ink" />
                 </h2>
                 {/* Not "not charged": a payment-pending order is approved and its capture is clearing at PayPal. */}
                 <Subtotal orders={g.waiting} label="Not paid yet" as="span" />

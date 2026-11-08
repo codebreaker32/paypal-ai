@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
+import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
@@ -184,9 +185,7 @@ export function MenuPanel({
               {listed.length} {listed.length === 1 ? 'item' : 'items'} · {photos} with photos
             </p>
           </div>
-          <Link href={`/s/${slug}`} className="inline-flex min-h-tap items-center font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
-            See it on your shop
-          </Link>
+          <TextLink href={`/s/${slug}`}>See it on your shop</TextLink>
         </div>
         {bySection(listed).map(([section, sectionItems], n) => (
           <section key={section} aria-label={section} className="flex flex-col gap-1">

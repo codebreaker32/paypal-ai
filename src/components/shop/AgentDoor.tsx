@@ -53,11 +53,11 @@ export function AgentDoor({ slug, shopName, url, takesOrders }: AgentDoorProps) 
   return (
     <section id="agent-door" aria-labelledby="agent-door-title" className="scroll-mt-6 border-t border-line pt-4">
       <details className="group" open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
-        <summary className="flex min-h-tap list-none items-center justify-between gap-3 rounded-sm py-2 [&::-webkit-details-marker]:hidden">
+        <summary className="group/summary press-text flex min-h-tap list-none items-center justify-between gap-3 rounded-sm py-2 [&::-webkit-details-marker]:hidden">
           <h2 id="agent-door-title" className="type-heading">
             Connect your own assistant
           </h2>
-          <Icon icon={ChevronDown} className="shrink-0 text-ink-muted transition-transform duration-(--duration-base) group-open:rotate-180" />
+          <Icon icon={ChevronDown} className="shrink-0 text-ink-muted transition-[rotate,color] duration-(--duration-base) group-open:rotate-180 group-hover/summary:text-ink" />
         </summary>
         <div className="flex flex-col gap-4 pt-3">
           <p className="max-w-measure text-ink-soft">

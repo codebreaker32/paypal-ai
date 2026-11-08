@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useId, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { m } from 'motion/react';
@@ -10,6 +9,7 @@ import { ChevronDown, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-reac
 import { Button, ButtonLink } from '@/components/ui/button';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
+import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import { PublishProgress, usePublish } from './Publishing';
 
@@ -167,12 +167,9 @@ export function LiveStep(p: LiveProps) {
 
           <LinkSection title="Your shop link" className="order-2 lg:order-none">
             <CopyRow value={p.shopUrl} label="Shop link" />
-            <Link
-              href={`/s/${p.slug}`}
-              className="-my-1 inline-flex min-h-tap items-center gap-1.5 self-start font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink"
-            >
+            <TextLink href={`/s/${p.slug}`} className="-my-1 self-start">
               Open your shop <Icon icon={ExternalLink} size="sm" />
-            </Link>
+            </TextLink>
           </LinkSection>
 
           {p.ownerLink && (
@@ -183,9 +180,9 @@ export function LiveStep(p: LiveProps) {
           )}
 
           <details className="group order-2 rounded-lg bg-surface-sunken lg:order-none">
-            <summary className="flex min-h-tap list-none items-center gap-3 px-4 py-2.5 font-semibold [&::-webkit-details-marker]:hidden">
+            <summary className="group/summary press-text flex min-h-tap list-none items-center gap-3 px-4 py-2.5 font-semibold [&::-webkit-details-marker]:hidden">
               <span className="flex-1">For developers</span>
-              <Icon icon={ChevronDown} className="text-ink-soft transition-transform duration-(--duration-fast) group-open:rotate-180" />
+              <Icon icon={ChevronDown} className="text-ink-soft transition-[rotate,color] duration-(--duration-fast) group-open:rotate-180 group-hover/summary:text-ink" />
             </summary>
             <div className="flex flex-col gap-3 px-4 pb-4 text-sm text-ink-soft">
               <p>

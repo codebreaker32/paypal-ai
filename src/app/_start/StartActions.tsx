@@ -1,13 +1,14 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Camera, Loader2, Plus, ScanText, X } from 'lucide-react';
+import { beginNavigation } from '@/components/motion/tactile';
 import { Button } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
+import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import {
   StartError,
@@ -86,6 +87,7 @@ export function StartActions() {
     setError(null);
     try {
       const { shopId } = await startFromPhotos(photos.map((p) => p.file));
+      beginNavigation();
       router.push(`/shops/${shopId}/setup`);
     } catch (e) {
       fail('photos', e);
@@ -97,6 +99,7 @@ export function StartActions() {
     setError(null);
     try {
       const { shopId } = await startFromSample(id);
+      beginNavigation();
       router.push(`/shops/${shopId}/setup`);
     } catch (e) {
       fail('samples', e);
@@ -141,7 +144,7 @@ export function StartActions() {
                     type="button"
                     onClick={() => remove(p.key)}
                     aria-label={`Remove page ${i + 1}`}
-                    className="absolute -top-3 -right-3 inline-flex size-tap items-center justify-center rounded-full"
+                    className="press-icon absolute -top-3 -right-3 inline-flex size-tap items-center justify-center rounded-full"
                   >
                     <span className="inline-flex size-7 items-center justify-center rounded-full bg-surface-raised text-ink shadow-(--card-shadow)">
                       <Icon icon={X} size="sm" />
@@ -156,7 +159,7 @@ export function StartActions() {
                   type="button"
                   onClick={openPicker}
                   disabled={uploading}
-                  className="inline-flex h-24 w-18 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-control text-ink-soft hover:border-ink hover:text-ink disabled:opacity-50"
+                  className="press inline-flex h-24 w-18 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-control text-ink-soft hover:border-ink hover:text-ink disabled:opacity-50"
                 >
                   <Icon icon={Plus} />
                   <span className="type-meta font-semibold">Add page</span>
@@ -218,7 +221,7 @@ export function StartActions() {
                   disabled={busy !== null}
                   aria-busy={loading || undefined}
                   className={cx(
-                    'group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left hover:bg-line',
+                    'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left hover:bg-line',
                     'disabled:cursor-not-allowed',
                     busy !== null && !loading && 'opacity-50',
                   )}
@@ -254,13 +257,10 @@ export function StartActions() {
       </div>
 
       {/* Tertiary: see what a finished shop looks like */}
-      <Link
-        href={LIVE_SHOP_HREF}
-        className="-my-2 inline-flex min-h-tap items-center gap-1.5 self-start text-sm font-semibold text-ink-soft underline underline-offset-4 hover:text-ink"
-      >
+      <TextLink href={LIVE_SHOP_HREF} className="-my-2 self-start text-sm text-ink-soft hover:text-ink">
         See a live shop
         <Icon icon={ArrowRight} size="sm" />
-      </Link>
+      </TextLink>
     </div>
   );
 }

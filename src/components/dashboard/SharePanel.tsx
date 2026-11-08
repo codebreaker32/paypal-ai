@@ -75,7 +75,7 @@ export function SharePanel({ shopId, shopUrl, doorUrl, slug }: { shopId: string;
             Print counter card
           </ButtonLink>
         </section>
-        <ButtonLink href={`/s/${slug}?assistant=1`} variant="ghost" className="w-full sm:w-auto sm:self-start">
+        <ButtonLink href={`/s/${slug}?assistant=1`} variant="ghost" fullWidth className="sm:w-auto sm:self-start">
           Watch an AI order from you
         </ButtonLink>
       </div>

@@ -28,7 +28,7 @@ function CallRow({ call }: { call: ToolCall }) {
   return (
     <li>
       <details className="group">
-        <summary className="flex min-h-tap list-none items-start gap-2.5 rounded-sm px-3 py-2.5 hover:bg-line [&::-webkit-details-marker]:hidden">
+        <summary className="group/summary press-text flex min-h-tap list-none items-start gap-2.5 rounded-sm px-3 py-2.5 hover:bg-line [&::-webkit-details-marker]:hidden">
           <Icon icon={status.icon} size="sm" label={status.label} className={cx('mt-0.5', status.className)} />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="flex items-baseline gap-2">
@@ -42,7 +42,7 @@ function CallRow({ call }: { call: ToolCall }) {
               <span className={cx(call.status === 'error' && 'font-semibold text-error')}>{result}</span>
             </span>
           </span>
-          <Icon icon={ChevronRight} size="sm" className="mt-0.5 text-ink-muted transition-transform group-open:rotate-90" />
+          <Icon icon={ChevronRight} size="sm" className="mt-0.5 text-ink-muted transition-[rotate,color] duration-(--duration-fast) group-open:rotate-90 group-hover/summary:text-ink" />
         </summary>
         <div className="flex flex-col gap-2.5 px-3 pt-1 pb-3">
           <Json label="MCP request">{requestJson(call.name, call.input)}</Json>

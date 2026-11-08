@@ -32,7 +32,7 @@ export function SectionTabs({ sections }: { sections: { id: string; name: string
               aria-current={active === s.id ? 'true' : undefined}
               onClick={() => setActive(s.id)}
               className={cx(
-                'inline-flex min-h-(--shop-tabs-h) items-center border-b-2 font-semibold whitespace-nowrap no-underline transition-colors',
+                'press-text inline-flex min-h-(--shop-tabs-h) items-center border-b-2 font-semibold whitespace-nowrap no-underline',
                 active === s.id ? 'border-accent text-ink' : 'border-transparent text-ink-muted hover:text-ink',
               )}
             >

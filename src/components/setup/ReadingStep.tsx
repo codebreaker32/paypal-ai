@@ -1,11 +1,11 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TextLink } from '@/components/ui/text-link';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
@@ -164,12 +164,9 @@ export function ReadingStep({
         {photoCount > 1 && <p className="mt-3 type-meta text-ink-muted">Reading all {photoCount} pages together.</p>}
       </div>
 
-      <Link
-        href="/"
-        className="-my-2 inline-flex min-h-tap items-center self-start justify-self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink lg:col-span-6 lg:col-start-1 lg:row-start-2"
-      >
+      <TextLink href="/" className="-my-2 self-start justify-self-start text-ink lg:col-span-6 lg:col-start-1 lg:row-start-2">
         Cancel
-      </Link>
+      </TextLink>
     </div>
   );
 }

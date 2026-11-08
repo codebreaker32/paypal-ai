@@ -20,7 +20,7 @@ export function ExampleNote({ name }: { name: string }) {
       data-open={open || undefined}
       onClick={() => setOpen((o) => !o)}
       onBlur={() => setOpen(false)}
-      className="group/note absolute inset-0 cursor-default rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+      className="group/note press-text absolute inset-0 cursor-default rounded-[inherit] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
     >
       <span
         aria-hidden="true"

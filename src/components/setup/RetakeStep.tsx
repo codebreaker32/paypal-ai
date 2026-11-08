@@ -1,12 +1,12 @@
 'use client';
 
-import Link from 'next/link';
 import { useRef, useState } from 'react';
 import { Camera, ImagePlus, Lightbulb, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
+import { TextLink } from '@/components/ui/text-link';
 import { startErrorMessage } from '@/lib/client/api';
 import { MAX_PHOTOS, checkNewPhotos } from '@/lib/client/photos';
 import { PhotoStrip } from './MenuPhotos';
@@ -103,12 +103,9 @@ export function RetakeStep({
           )}
         </div>
         {(problem || error) && <FieldError>{problem ?? error}</FieldError>}
-        <Link
-          href="/"
-          className="-my-1 inline-flex min-h-tap items-center self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink"
-        >
+        <TextLink href="/" className="-my-1 self-start text-ink">
           Try a sample menu instead
-        </Link>
+        </TextLink>
       </div>
     </div>
   );
@@ -124,12 +121,9 @@ export function FailedStep({ shopId, photoCount, message, onRetry }: { shopId: s
         <Button size="lg" icon={RotateCcw} onClick={onRetry}>
           Try again
         </Button>
-        <Link
-          href="/"
-          className="inline-flex min-h-tap items-center self-start font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink sm:self-auto"
-        >
+        <TextLink href="/" className="self-start text-ink sm:self-auto">
           Start over
-        </Link>
+        </TextLink>
       </div>
     </div>
   );

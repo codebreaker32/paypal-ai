@@ -690,6 +690,10 @@
   :where(a[href], button, summary, [role="tab"]):not([class*="press"])[data-pressed] {
     opacity: var(--press-opacity);
   }
+  /* A disclosure's body fades in as it opens. */
+  details[open] > :not(summary) {
+    animation: var(--animate-fade-in);
+  }
   dialog::backdrop {
     background-color: var(--color-scrim);
   }
