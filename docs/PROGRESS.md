@@ -1,12 +1,13 @@
 # Progress
 
-_Last updated: 2026-11-08 15:58 IST (run 5, session 1)_
+_Last updated: 2026-11-08 17:30 IST (run 5, session 1 hand-off)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
 - **Verified, baseline on `75153e1` (15:47–16:01 IST):** 1145 unit tests, typecheck and lint clean; full e2e 185 passed, 9 skipped, 0 failed. `video/out/shelfie-demo-v2.mp4` saved (the 2:39.9 cut).
-- **Session 1 (15:45–17:45 IST), running:** WP1 (press and feedback) and WP5 (accounts backend) are being built in parallel worktrees (`.claude/worktrees/wp1`, `wp5`), each with independent review and, for WP5, security verification against SR1-SR25.
-- **Next:** merge WP1 and WP5; WP2 (assistant) beside WP4 (seller shell); WP3 (tiles) beside WP6 (account screens); WP7; WP8; WP9; S1-S6.
+- **Session 1 (15:45–17:45 IST), hand-off:** nothing is merged into `run-5-production` yet. Both packages live on their worktree branches.
+  - **WP5 (`wp5`, `.claude/worktrees/wp5`, 21 commits):** built. The worker's last sweep at `b9917bb`: `npm test` 1499 passed, typecheck and lint clean, targeted e2e 30 passed / 1 skipped. Independent review round 1: acceptance all pass except SR17 under concurrency; 14 confirmed findings (4 major). **Not fixed yet; the fix round was cut off by the session's time limit.** Full list with repro: `.scratch/handoff/wp5-findings.json`. The majors: one free account can keep the global hash gate full; a login with the old password in flight when recovery commits gets a live session (twice reported); a key rotation or payee change in flight during recovery still applies.
+  - **WP1 (`wp1`, `.claude/worktrees/wp1`, 22 commits):** all four build tasks committed including `e2e/tactile.spec.ts`; its review was running at hand-off.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8); restated at the end of the run.
 
 ## Run 4
