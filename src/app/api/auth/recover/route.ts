@@ -23,7 +23,7 @@ export async function POST(req: Request): Promise<Response> {
     const typedEmail = stringField(fields.email);
     const ip = clientIp(req);
     release = reserveRecovery(ip, typedEmail);
-    if (!release) return tooManyTries();
+    if (!release) return tooManyTries('Too many tries. Wait an hour and try again.'); // every recovery limit is hourly
 
     const parsed = parsePayeeEmail(typedEmail);
     const email = parsed.ok ? parsed.email : '';

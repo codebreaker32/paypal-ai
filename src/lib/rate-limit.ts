@@ -89,8 +89,11 @@ export const AUTH_RATES = {
   recoverFailuresEmailIp: { limit: 5, windowMs: HOUR },
   recoverFailuresEmail: { limit: 30, windowMs: HOUR },
   passwordFailures: { limit: 10, windowMs: QUARTER_HOUR },
-  /** Counted right or wrong: a correct password buys hash work too, and the hash gate is shared by every seller. */
-  passwordAttemptsAccount: { limit: 10, windowMs: HOUR },
+  /**
+   * Counted right or wrong: a correct password buys hash work too, and the hash gate is shared by every seller. Both sit
+   * above MAX_SHOPS_PER_ACCOUNT, because each shop's PayPal email change needs the password once (SR18).
+   */
+  passwordAttemptsAccount: { limit: 30, windowMs: HOUR },
   passwordAttemptsIp: { limit: 30, windowMs: HOUR },
 } as const;
 
@@ -209,13 +212,23 @@ export function recordPasswordFailure(accountId: string, nowMs: number = Date.no
   recordHit(key, windowMs, nowMs);
 }
 
+/** Called as a function, the password was right: the failure goes back and the attempts stay. */
+export interface PasswordCheckReservation extends ReleaseFailure {
+  /** No hash ran (503 BUSY, or a failure on our side): hands everything back. Safe to call twice. */
+  notChecked: () => void;
+}
+
 /**
  * Before hashing a `currentPassword` field: the failure limit, then the attempt limits per account and per address, all
- * checked before any is charged. Null when refused, else the function to call if the password was right. The attempts
- * stay counted either way (one account must not be able to keep the shared hash gate full).
+ * checked before any is charged. Null when refused, else the reservation. A hash that runs stays counted either way, so
+ * one account cannot keep the shared hash gate full; a request the gate refused bought no hash and costs nothing.
  */
-export function reservePasswordCheck(accountId: string, ip: string, nowMs: number = Date.now()): ReleaseFailure | null {
-  if (authLimitsSkipped()) return NOTHING_RESERVED;
+export function reservePasswordCheck(
+  accountId: string,
+  ip: string,
+  nowMs: number = Date.now(),
+): PasswordCheckReservation | null {
+  if (authLimitsSkipped()) return Object.assign(() => {}, { notChecked: () => {} });
   const { passwordAttemptsAccount: perAccount, passwordAttemptsIp: perAddress } = AUTH_RATES;
   const accountKey = `auth-password-attempts-account:${accountId}`;
   const addressKey = `auth-password-attempts-ip:${ip}`;
@@ -228,5 +241,15 @@ export function reservePasswordCheck(accountId: string, ip: string, nowMs: numbe
   }
   recordHit(accountKey, perAccount.windowMs, nowMs);
   recordHit(addressKey, perAddress.windowMs, nowMs);
-  return reserveFailure([passwordFailureSlot(accountId)], nowMs);
+  const releaseFailure = reserveFailure([passwordFailureSlot(accountId)], nowMs);
+  let attemptsHeld = true;
+  return Object.assign(releaseFailure, {
+    notChecked: () => {
+      releaseFailure();
+      if (!attemptsHeld) return;
+      attemptsHeld = false;
+      forgetHit(accountKey, nowMs);
+      forgetHit(addressKey, nowMs);
+    },
+  });
 }

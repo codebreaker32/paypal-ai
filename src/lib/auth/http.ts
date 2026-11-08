@@ -25,7 +25,7 @@ export const passwordWrong = (): Response => jsonError(403, 'PASSWORD_WRONG', 'T
 /**
  * A sensitive action's `currentPassword` field: null to carry on, else the refusal. Missing is 403 PASSWORD_REQUIRED and
  * wrong is 403 PASSWORD_WRONG. The limits come before the hash (SR8); a failure is reserved first and handed back on a
- * right password, so a burst cannot run more guesses than the limit. May throw HashBusyError. The caller must write
+ * right password, so a burst cannot run more guesses than the limit. May throw HashBusyError, which costs the seller nothing. The caller must write
  * with a compare-and-set on `account.passwordHash`, which may be stale by the time this returns.
  */
 export async function checkCurrentPassword(
@@ -34,17 +34,17 @@ export async function checkCurrentPassword(
   ip: string,
 ): Promise<Response | null> {
   if (typeof currentPassword !== 'string' || currentPassword === '') return passwordRequired();
-  const release = reservePasswordCheck(account.id, ip);
-  if (!release) return tooManyTries('Too many tries. Wait a few minutes and try again.');
+  const reservation = reservePasswordCheck(account.id, ip);
+  if (!reservation) return tooManyTries('Too many tries. Wait up to an hour and try again.');
   let right: boolean;
   try {
     right = await verifyPassword(currentPassword, account.passwordHash);
   } catch (err) {
-    release();
+    reservation.notChecked();
     throw err;
   }
   if (!right) return passwordWrong();
-  release();
+  reservation();
   return null;
 }
 

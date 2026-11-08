@@ -195,11 +195,11 @@ describe('a key rotation that overlaps recovery', () => {
 });
 
 describe('POST /api/account/recovery-key attempt limits', () => {
-  it('after 10 correct rotations from one account is 429 and hashes nothing', async () => {
+  it('after 30 correct rotations from one account is 429 and hashes nothing', async () => {
     enforceLimits();
     const account = makeAccount();
     await startSession(account.id);
-    for (let i = 0; i < 10; i++) expect((await rotate()).status).toBe(200);
+    for (let i = 0; i < 30; i++) expect((await rotate()).status).toBe(200);
     hashes.verify.mockClear();
     const res = await rotate();
     expect(res.status).toBe(429);
@@ -313,6 +313,37 @@ describe('what counts as a failure', () => {
     expect((await rotate()).status).toBe(503);
     hashes.verify.mockClear();
     expect((await rotate('wrong sentence for this account')).status).toBe(403);
+  });
+
+  it('a busy hash gate does not use up the current-password attempts', async () => {
+    enforceLimits();
+    const account = makeAccount();
+    await startSession(account.id);
+    for (let i = 0; i < 40; i++) {
+      hashes.verify.mockRejectedValueOnce(new HashBusyError());
+      expect((await rotate()).status).toBe(503);
+    }
+    expect((await rotate()).status).toBe(200);
+  });
+
+  it('tells a seller locked out of recovery the real wait, and blames no connection', async () => {
+    enforceLimits();
+    makeAccount();
+    const wrong = () => recoverRoute(post('/api/auth/recover', { email: EMAIL, recoveryKey: 'AAAAA-AAAAA-AAAAA-AAAAA', newPassword: NEW_PASSWORD }));
+    for (let i = 0; i < 5; i++) expect((await wrong()).status).toBe(401);
+    const res = await wrong();
+    expect(res.status).toBe(429);
+    expect(((await res.json()) as { error: { message: string } }).error.message).toBe('Too many tries. Wait an hour and try again.');
+  });
+
+  it('tells a seller over the current-password limits the real wait', async () => {
+    enforceLimits();
+    const account = makeAccount();
+    await startSession(account.id);
+    for (let i = 0; i < 10; i++) expect((await rotate('wrong sentence for this account')).status).toBe(403);
+    const res = await rotate();
+    expect(res.status).toBe(429);
+    expect(((await res.json()) as { error: { message: string } }).error.message).toBe('Too many tries. Wait up to an hour and try again.');
   });
 
   it('recovery still works after 10 login failures', async () => {

@@ -1,7 +1,8 @@
 // SR11 under concurrency: a failure is reserved before the hash and handed back on success, so a burst cannot run more
 // guesses than the limit. The current-password check also counts attempts, because a correct password buys hash work too.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { reserveLogin, reservePasswordCheck, reserveRecovery, resetRateLimits } from '@/lib/rate-limit';
+import { MAX_SHOPS_PER_ACCOUNT } from '@/lib/catalog/setup';
+import { AUTH_RATES, reserveLogin, reservePasswordCheck, reserveRecovery, resetRateLimits } from '@/lib/rate-limit';
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;
@@ -95,8 +96,8 @@ describe('reserving a failure before the hash', () => {
       expect(reservePasswordCheck('acc_b', IP, t0)).not.toBeNull();
     });
 
-    it('counts a correct password as an attempt: 10 per account per hour', () => {
-      times(10, () => reservePasswordCheck('acc_a', IP, t0)!());
+    it('counts a correct password as an attempt: 30 per account per hour', () => {
+      times(30, () => reservePasswordCheck('acc_a', IP, t0)!());
       expect(reservePasswordCheck('acc_a', IP, t0)).toBeNull();
       expect(reservePasswordCheck('acc_a', IP, t0 + HOUR)).not.toBeNull();
     });
@@ -115,10 +116,56 @@ describe('reserving a failure before the hash', () => {
     });
 
     it('a request refused by the account limit charges the address nothing', () => {
-      times(10, () => reservePasswordCheck('acc_a', IP, t0)!());
+      times(30, () => reservePasswordCheck('acc_a', '9.9.9.9', t0)!());
       times(5, () => expect(reservePasswordCheck('acc_a', IP, t0)).toBeNull());
-      times(19, (i) => expect(reservePasswordCheck(`acc_${i}`, IP, t0)).not.toBeNull());
+      times(29, (i) => expect(reservePasswordCheck(`acc_${i}`, IP, t0)).not.toBeNull());
       expect(reservePasswordCheck('acc_b', IP, t0)).not.toBeNull();
+    });
+
+    it('leaves room for one password per shop on the largest account, from one address', () => {
+      expect(AUTH_RATES.passwordAttemptsAccount.limit).toBeGreaterThan(MAX_SHOPS_PER_ACCOUNT);
+      expect(AUTH_RATES.passwordAttemptsIp.limit).toBeGreaterThan(MAX_SHOPS_PER_ACCOUNT);
+      times(MAX_SHOPS_PER_ACCOUNT, () => expect(reservePasswordCheck('acc_a', IP, t0)?.()).toBeUndefined());
+      expect(reservePasswordCheck('acc_a', IP, t0)).not.toBeNull();
+    });
+
+    describe('notChecked: the hash never ran', () => {
+      it('hands back the attempts on the account and the address, and the failure', () => {
+        times(100, () => reservePasswordCheck('acc_a', IP, t0)!.notChecked());
+        times(10, () => expect(reservePasswordCheck('acc_a', IP, t0)).not.toBeNull());
+        expect(reservePasswordCheck('acc_a', IP, t0)).toBeNull();
+      });
+
+      it('a second call hands back nothing more', () => {
+        times(29, () => reservePasswordCheck('acc_a', IP, t0)!());
+        const reserved = reservePasswordCheck('acc_a', IP, t0)!;
+        reserved.notChecked();
+        reserved.notChecked();
+        expect(reservePasswordCheck('acc_a', IP, t0)).not.toBeNull();
+        expect(reservePasswordCheck('acc_a', IP, t0)).toBeNull();
+      });
+
+      it('after a right password it still gives the attempts back, once, and the failure only once', () => {
+        times(9, () => reservePasswordCheck('acc_a', IP, t0));
+        const reserved = reservePasswordCheck('acc_a', IP, t0)!;
+        reserved();
+        reserved.notChecked();
+        expect(reservePasswordCheck('acc_a', IP, t0)).not.toBeNull();
+        expect(reservePasswordCheck('acc_a', IP, t0)).toBeNull();
+      });
+
+      it('does nothing after the window has passed', () => {
+        const old = reservePasswordCheck('acc_a', IP, t0)!;
+        times(29, () => reservePasswordCheck('acc_a', IP, t0 + HOUR)!());
+        old.notChecked();
+        expect(reservePasswordCheck('acc_a', IP, t0 + HOUR)).not.toBeNull();
+        expect(reservePasswordCheck('acc_a', IP, t0 + HOUR)).toBeNull();
+      });
+
+      it('is safe when the limits are skipped', () => {
+        vi.stubEnv('SHELFIE_TEST', '1');
+        expect(() => reservePasswordCheck('acc_a', IP, t0)!.notChecked()).not.toThrow();
+      });
     });
   });
 
