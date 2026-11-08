@@ -11,6 +11,11 @@ import { cn } from '@/lib/utils';
  * `useSearchParams` (and so `Dashboard`) follows. Back and Forward work the same way.
  */
 export function switchSection(href: string): void {
+  // Next patches pushState in an effect, so a click in that gap would change the URL and nothing else: load the page.
+  if (!routerFollowsPushState(window.history.pushState)) {
+    window.location.assign(href);
+    return;
+  }
   window.history.pushState(null, '', href);
   window.scrollTo(0, 0);
   // The dashboard's one H1 keeps its element as its text changes, so focus survives the section swap.
@@ -38,8 +43,7 @@ export function SectionLink({ href, shopId, onClick, pressAs = 'press', classNam
       prefetch={onDashboard ? false : undefined}
       onClick={(e) => {
         onClick?.(e);
-        // Before the router has patched pushState, leave the click to next/link, which navigates the ordinary way.
-        if (e.defaultPrevented || !onDashboard || !isPlainClick(e) || !routerFollowsPushState(window.history.pushState)) return;
+        if (e.defaultPrevented || !onDashboard || !isPlainClick(e)) return;
         e.preventDefault();
         switchSection(href);
       }}

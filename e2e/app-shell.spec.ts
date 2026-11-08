@@ -159,6 +159,7 @@ test.describe('at 1440', () => {
     await page.goto(`/shops/${shop.shop.id}`);
     await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeVisible();
     // Next patches pushState in an effect; hydrating the clicked link first can run its handler before that effect.
+    await page.waitForFunction(() => !String(window.history.pushState).includes('[native code]'));
     await page.evaluate(() => {
       delete (window.history as unknown as { pushState?: unknown }).pushState;
     });
