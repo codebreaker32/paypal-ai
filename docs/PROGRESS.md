@@ -1,8 +1,14 @@
 # Progress
 
-_Last updated: 2026-11-07 12:46 IST (run 4 complete)_
+_Last updated: 2026-11-08 15:58 IST (run 5, session 1)_
 
 ## Current phase
+**Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
+- **Session 1 (15:45–17:45 IST), running:** baseline suite on `75153e1` (`.scratch/baseline.log`); `video/out/shelfie-demo-v2.mp4` saved. WP1 (press and feedback) and WP5 (accounts backend) are being built in parallel worktrees (`.claude/worktrees/wp1`, `wp5`), each with independent review and, for WP5, security verification against SR1-SR25.
+- **Next:** merge WP1 and WP5; WP2 (assistant) beside WP4 (seller shell); WP3 (tiles) beside WP6 (account screens); WP7; WP8; WP9; S1-S6.
+- **Needs from human:** the brief's list (`Needs from human`, items 1-8); restated at the end of the run.
+
+## Run 4
 **Run 4 (7 Nov 2026): a clearer demo video (human request).** Only the video and the positioning text change; no product code.
 - **Session 2:** rewrote `video/project/demo.json` (cold open on the paid AI order, one sourced Census statistic, the positioning card, a 3-step roadmap, "Step N of 3" chapter bars, focus boxes with labels, plain words: "agent door" explained once, MCP said once, no "capture"), re-voiced at about 147 words a minute (Kokoro af_heart 0.88), new Remotion pieces (`ChapterBar`, `Focus`, `OnScreenText`, roadmap and summary cards). Not rendered.
 - **Session 3 (from 11:40 IST):** spoken greeting card ("Hi there! Welcome to Shelfie.") and "Thanks for watching!" on the end card; README and SUBMISSION lead with the positioning line, no other companies named (the Radio IQ quote paraphrased without social-network names). Five renders, each checked by a first-time viewer with no context: **clarity tests 1–5, all 6/6** (`docs/judge/video-clarity-*.md`), and **video judge round 2: A5 5/5, 0 Part C fails, ship** (`docs/judge/video-round-2.md`), all three of its fixes taken.
