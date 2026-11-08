@@ -12,7 +12,7 @@ import { BriefCard } from '@/components/dashboard/BriefCard';
 import { CountUp } from '@/components/motion/count-up';
 import { CopyButton } from '@/components/dashboard/CopyButton';
 import { withFallbackBrief } from '@/lib/ai/template';
-import { AutoRefresh, PickupAction } from '@/components/dashboard/DetailClient';
+import { AutoRefresh, PickupAction, ScrollToHash } from '@/components/dashboard/DetailClient';
 import { LocalTime } from '@/components/dashboard/LocalTime';
 import { TrackingForm } from '@/components/dashboard/TrackingForm';
 import { OrderStatusText } from '@/components/dashboard/status';
@@ -375,6 +375,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   return (
     <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
       <AutoRefresh active={pending} />
+      <ScrollToHash />
       <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} kind={shop.kind} />
       <div className="flex min-w-0 flex-col gap-6">
       <Link

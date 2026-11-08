@@ -112,3 +112,24 @@ Regression sweep, each run once on port 3201: `npm test` 1279 passed; typecheck 
 | Acceptance 10, denied clipboard | `navigator.clipboard.writeText` rejected through an init script | Same as `primitives.spec.ts`. A real browser permission denial was not tried. |
 | Acceptance 12 | The delay covers document and RSC requests to the order path (`url.pathname`) | In dev a soft navigation is an RSC fetch, and the brief's "delayed document" means the page is slow either way. |
 | Acceptance 14 | Runs at 390 and 1440, with `smallTargets` at 390 only | Matches the targets rule in `shop.spec.ts` (phone width). |
+
+
+# WP1 notes (review round 1)
+
+Fixed, each with a test that failed first:
+
+| Finding | Fix | Test |
+|---|---|---|
+| First-load `pageshow` ended a running bar and a live press | `tactile.tsx` acts only on `persisted` (a bfcache return) | `e2e/tactile.spec.ts`, "the pageshow at the end of the first load" |
+| Enter on a file picker showed no press | The Enter exclusion in `controlForKey` is now radios only | `e2e/tactile.spec.ts`, "Enter on a focused file picker" |
+| `loading.tsx` lost the `#tracking` jump | `ScrollToHash` in `DetailClient.tsx`, mounted by the order page, scrolls once the page arrives. The skeleton stays | `e2e/dashboard.spec.ts`, "Add tracking on an order row" |
+| `SettingsPanel` dropped an email edited during `Saved` | The button returns to idle once the field differs from the saved value, so the edit submits | `e2e/dashboard.spec.ts`, "an email changed while the button says Saved" |
+| Delayed `setItems` could list a new item twice | `withNewItem` in `review-model.ts` skips an id already in the list | `tests/components/duplicate-card.test.ts` |
+
+Existing tests edited: none. The three test files only gained new tests.
+
+| Where | What | Why |
+|---|---|---|
+| `paypal-link.tsx` | Left as it is: its `pageshow` still resets on any pageshow | The review's check of this part did not reproduce: in Chromium no `pageshow` fires during a pending hard navigation, and the first-load `pageshow` fires before the tap in every path that matters. It was reported as "should be dropped". Other browsers were not tested. |
+| "Add tracking" test | Passes in dev both before and after the fix; it fails before the fix only on a production build | Dev has no prefetched loading state, so the skeleton never commits first. Red and green were both measured with `next build` + `next start` and `E2E_REUSE_SERVER=1` (`top` 16 after the fix). The coordinator's dev e2e run will not catch a regression here. |
+| Bfcache path in the `pageshow` test | Simulated with `new PageTransitionEvent('pageshow', { persisted })` | Playwright's Chromium does not enter the bfcache by default. Next's router also reacts to a persisted `pageshow`, so the test does not wait for the held navigation to arrive after that event. |

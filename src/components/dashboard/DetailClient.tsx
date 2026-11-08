@@ -20,6 +20,17 @@ export function AutoRefresh({ active }: { active: boolean }) {
   return null;
 }
 
+/**
+ * Lands on the URL's #section when the page arrives. `loading.tsx` commits first, and Next's router gives up on a hash its
+ * skeleton doesn't contain, so "Add tracking" would otherwise open at the top of the order.
+ */
+export function ScrollToHash() {
+  useEffect(() => {
+    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView();
+  }, []);
+  return null;
+}
+
 export function PickupAction({ shopId, order }: { shopId: string; order: Pick<Order, 'id' | 'number'> }) {
   const router = useRouter();
   return <MarkPickedUpButton shopId={shopId} order={order} variant="primary" onDone={() => router.refresh()} />;
