@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { ComponentProps, MouseEvent } from 'react';
+import { routerFollowsPushState } from '@/lib/seller/shell-view';
 import { cn } from '@/lib/utils';
 
 /**
@@ -37,7 +38,8 @@ export function SectionLink({ href, shopId, onClick, pressAs = 'press', classNam
       prefetch={onDashboard ? false : undefined}
       onClick={(e) => {
         onClick?.(e);
-        if (e.defaultPrevented || !onDashboard || !isPlainClick(e)) return;
+        // Before the router has patched pushState, leave the click to next/link, which navigates the ordinary way.
+        if (e.defaultPrevented || !onDashboard || !isPlainClick(e) || !routerFollowsPushState(window.history.pushState)) return;
         e.preventDefault();
         switchSection(href);
       }}

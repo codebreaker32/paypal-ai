@@ -54,3 +54,12 @@ export function menuSummary({ total, own, examples }: { total: number; own: numb
   const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
   return `${plural(total, 'item', 'items')} · ${plural(own, 'your photo', 'your photos')} · ${plural(examples, 'example', 'examples')}`;
 }
+
+/**
+ * Whether Next's router has patched `history.pushState` yet. It patches it in an effect, so a section link that hydrates
+ * first (React hydrates a clicked boundary ahead of the rest) would change the URL with nothing following it.
+ */
+export function routerFollowsPushState(pushState: unknown): boolean {
+  return typeof pushState === 'function' && !Function.prototype.toString.call(pushState).includes('[native code]');
+}
+

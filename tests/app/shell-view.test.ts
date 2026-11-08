@@ -1,6 +1,6 @@
 // The seller shell's pure rules: which section a URL means, what each nav link points at, and the one banner it shows.
 import { describe, expect, it } from 'vitest';
-import { activeSection, shopStatusWord, menuSummary, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
+import { activeSection, routerFollowsPushState, shopStatusWord, menuSummary, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
 
 describe('sectionFromTab', () => {
   it('reads the three named sections and treats anything else as Orders', () => {
@@ -84,3 +84,22 @@ describe('shopStatusWord', () => {
     expect(shopStatusWord('draft', true)).toEqual({ tone: 'neutral', word: 'Draft' });
   });
 });
+
+describe('routerFollowsPushState', () => {
+  it('is false for a browser native (history.pushState before the router patches it)', () => {
+    expect(routerFollowsPushState(Array.prototype.push)).toBe(false);
+  });
+
+  it('is false for a bound native, which is what Next puts back when it unmounts', () => {
+    expect(routerFollowsPushState(Array.prototype.push.bind([]))).toBe(false);
+  });
+
+  it('is true for a script-defined wrapper (Next\'s patch)', () => {
+    expect(routerFollowsPushState(function pushState() {})).toBe(true);
+  });
+
+  it('is false for anything that is not a function', () => {
+    expect(routerFollowsPushState(undefined)).toBe(false);
+  });
+});
+

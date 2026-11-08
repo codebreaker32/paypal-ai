@@ -155,6 +155,18 @@ test.describe('at 1440', () => {
     await expect(page.locator('#section-panel-settings')).toBeVisible();
   });
 
+  test('a section link clicked before the router has taken over history still opens the section', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}`);
+    await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeVisible();
+    // Next patches pushState in an effect; hydrating the clicked link first can run its handler before that effect.
+    await page.evaluate(() => {
+      delete (window.history as unknown as { pushState?: unknown }).pushState;
+    });
+    await appNav(page).getByRole('link', { name: 'Share' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Share' })).toBeVisible();
+    await expect(page).toHaveURL(/\?tab=share/);
+  });
+
   test('the first order row starts under 260 px', async ({ page }) => {
     await page.goto(`/shops/${shop.shop.id}`);
     const first = (await page.locator('li[data-order]').first().boundingBox())!;
