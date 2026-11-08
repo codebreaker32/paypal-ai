@@ -8,13 +8,15 @@
 //       TOO_MANY_PHOTOS                      → up to 4 photos
 //       PHOTO_TOO_LARGE (or HTTP 413)        → over 15 MB
 //       RATE_LIMITED (or HTTP 429)           → too many shops from this address in the last hour
+//       LOGIN_REQUIRED (or HTTP 401)         → the visitor must log in to add a shop
+//       SHOP_LIMIT                           → the account already has 25 shops
 //     Anything else is shown as a generic "try again".
 
 import { MAX_PHOTOS, MAX_PHOTO_BYTES } from './photos';
 
 export type SampleId = 'marigold-bakehouse' | 'tia-lupe-chalkboard' | 'ravi-bike-repair';
 
-export type StartErrorKind = 'bad_file' | 'too_many' | 'too_large' | 'busy' | 'network' | 'server';
+export type StartErrorKind = 'bad_file' | 'too_many' | 'too_large' | 'busy' | 'login_required' | 'shop_limit' | 'network' | 'server';
 
 export class StartError extends Error {
   readonly kind: StartErrorKind;
@@ -32,6 +34,8 @@ const MESSAGES: Record<StartErrorKind, string> = {
   too_many: `Shelfie reads up to ${MAX_PHOTOS} photos at a time. Pick the clearest pages.`,
   too_large: `That photo is over ${MAX_MB} MB. Take it again or pick a smaller copy.`,
   busy: 'You’ve started a lot of shops in the last hour. Try again later.',
+  login_required: 'Log in to add a shop.',
+  shop_limit: 'One account can have up to 25 shops.',
   network: "We couldn’t reach Shelfie. Check your connection and try again.",
   server: 'Something went wrong on our side. Try again in a moment.',
 };
@@ -50,6 +54,8 @@ const CODE_TO_KIND: Record<string, StartErrorKind> = {
   TOO_MANY_PHOTOS: 'too_many',
   PHOTO_TOO_LARGE: 'too_large',
   RATE_LIMITED: 'busy',
+  LOGIN_REQUIRED: 'login_required',
+  SHOP_LIMIT: 'shop_limit',
 };
 
 async function readErrorKind(res: Response): Promise<StartErrorKind> {
@@ -64,6 +70,7 @@ async function readErrorKind(res: Response): Promise<StartErrorKind> {
   if (res.status === 413) return 'too_large';
   if (res.status === 415) return 'bad_file';
   if (res.status === 429) return 'busy';
+  if (res.status === 401) return 'login_required';
   return 'server';
 }
 

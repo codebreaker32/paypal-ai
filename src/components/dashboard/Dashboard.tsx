@@ -15,7 +15,7 @@ import { formatUSD } from '@/lib/domain/money';
 import { canBePaid } from '@/lib/domain/payee';
 import type { ItemWithVariants, Order, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { buyerLabel, mergePolledOrders, whereLabel } from '@/lib/seller/view';
-import { POLL_MS, fetchOrders, setShopStatus } from './api';
+import { POLL_MS, fetchOrders, isGone, setShopStatus } from './api';
 import { newlyPaid } from './new-orders';
 import { MenuPanel } from './MenuPanel';
 import { OrdersPanel } from './OrdersPanel';
@@ -145,8 +145,10 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         applyOrders(r.orders);
         setPaypalReachable(r.paypalReachable !== false);
         setPollFailures(0);
-      } catch {
-        if (!stopped) setPollFailures((n) => n + 1);
+      } catch (err) {
+        if (stopped) return;
+        if (isGone(err)) window.location.reload();
+        else setPollFailures((n) => n + 1);
       }
     };
     const timer = setInterval(tick, POLL_MS);
