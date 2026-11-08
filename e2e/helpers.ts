@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import { expect, type Page } from '@playwright/test';
 
 export const PHONE = { width: 390, height: 844 };
 export const DESKTOP = { width: 1440, height: 900 };
@@ -123,4 +124,27 @@ export async function holdShopsApi(page: Page) {
     await route.fulfill({ status: 503, json: { error: { code: 'UNAVAILABLE' } } });
   });
   return release;
+}
+
+/** axe (WCAG 2.1 A and AA) has nothing to report, and the page has no sideways scroll. */
+export async function a11y(page: Page) {
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();
+  expect(results.violations.map((v) => `${v.id}: ${v.help} (${v.nodes.map((n) => n.target.join(' ')).join(', ')})`)).toEqual([]);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+}
+
+/** Standalone controls under 44 px tall in `scope`. A link inside a sentence is exempt; a stretched link's target is its row. */
+export async function smallTargets(page: Page, scope = 'main') {
+  return page.evaluate(
+    (sel) =>
+      Array.from(document.querySelectorAll<HTMLElement>(`${sel} a, ${sel} button, ${sel} summary, ${sel} [role="tab"]`))
+        .filter((el) => el.offsetParent !== null && !el.closest('p, dd, li > span'))
+        .map((el) => {
+          const target = el.hasAttribute('data-stretched-link') ? (el.closest('li') ?? el) : el;
+          return { text: el.innerText.trim().slice(0, 40) || el.getAttribute('aria-label') || el.tagName, h: Math.round(target.getBoundingClientRect().height) };
+        })
+        .filter((c) => c.h < 44),
+    scope,
+  );
 }
