@@ -13,6 +13,7 @@ import { TextLink } from '@/components/ui/text-link';
 import { useToast } from '@/components/ui/toast';
 import { formatUSD } from '@/lib/domain/money';
 import { canBePaid } from '@/lib/domain/payee';
+import { feedback } from '@/lib/feedback';
 import type { ItemWithVariants, Order, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { buyerLabel, mergePolledOrders, whereLabel } from '@/lib/seller/view';
 import { POLL_MS, fetchOrders, setShopStatus } from './api';
@@ -99,6 +100,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           action: { label: 'Open', href: `/shops/${shop.id}/orders/${o.id}` },
         });
       }
+      if (paid.length) feedback('order'); // one chime for the batch, however many orders it brought
       ordersRef.current = next;
       setOrders(next);
       if (arrived.length) {

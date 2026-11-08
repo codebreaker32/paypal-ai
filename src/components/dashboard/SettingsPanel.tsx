@@ -6,8 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Field, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { parsePayeeEmail } from '@/lib/domain/payee';
+import { setFeedbackOn, useFeedbackOn } from '@/lib/feedback/prefs';
 import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
+import { Switch } from './Switch';
 
 export interface SettingsPanelProps {
   shopId: string;
@@ -18,8 +20,35 @@ export interface SettingsPanelProps {
   onSaved: (payeeEmail: string | null) => void;
 }
 
-/** Settings: where the money goes. One field, one Save; checked on blur and on Save, with the same rule as the server. */
-export function SettingsPanel({ shopId, payeeEmail, isDemo, onSaved }: SettingsPanelProps) {
+/** Settings: where the money goes, and this device's sound and vibration. */
+export function SettingsPanel(props: SettingsPanelProps) {
+  return (
+    <div className="flex flex-col gap-10">
+      <PayeeSection {...props} />
+      <SoundSection />
+    </div>
+  );
+}
+
+function SoundSection() {
+  const on = useFeedbackOn();
+  return (
+    <section aria-labelledby="settings-sound-title" className="flex max-w-measure flex-col gap-3">
+      <h2 id="settings-sound-title" className="type-title">
+        Sound and vibration
+      </h2>
+      <Switch
+        checked={on}
+        onChange={setFeedbackOn}
+        label="Play sounds and vibrate"
+        description="Saved on this device. Keep this page open, and tap it once after opening, to hear order chimes."
+      />
+    </section>
+  );
+}
+
+/** Where the money goes. One field, one Save; checked on blur and on Save, with the same rule as the server. */
+function PayeeSection({ shopId, payeeEmail, isDemo, onSaved }: SettingsPanelProps) {
   const [saved, setSaved] = useState(payeeEmail);
   const [value, setValue] = useState(payeeEmail ?? '');
   const [touched, setTouched] = useState(false);

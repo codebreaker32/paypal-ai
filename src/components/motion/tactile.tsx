@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useSyncExternalStore, type CSSProperties } from 'react';
-import { connectFeedback } from '@/lib/feedback';
+import { connectFeedback, feedback } from '@/lib/feedback';
 import { createPressMachine, type PressInput, type PressMachine } from '@/lib/feedback/press-machine';
 import { createRouteProgress, PROGRESS_MS, startsRouteNavigation, type ProgressPhase } from '@/lib/feedback/route-progress';
 
@@ -70,6 +70,7 @@ function listenForPresses(): () => void {
       machine = createPressMachine({
         apply: () => element.setAttribute('data-pressed', ''),
         clear: () => element.removeAttribute('data-pressed'),
+        press: () => feedback('tick'),
       });
       machines.set(element, machine);
     }
