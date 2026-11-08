@@ -85,7 +85,7 @@ Tests added: `tests/ui/press-coverage.test.ts`.
 | `PhotoPicker` thumbnail button | `hover:brightness-95` now snaps | `press` replaces the `transition-[filter]` list; the press animation matters more than the hover fade. |
 | Reduced `w-full sm:w-auto` buttons | `fullWidth` + `sm:w-auto` (`SettingsPanel`, `TrackingForm`, `PrintButton`, `SharePanel`, `OrderCard`, `OrdersPanel`, `orders/[orderId]/page.tsx`) | Wide press scale where the button is wide. `MarkPickedUpButton` stays as it was, so acceptance 5 reads .96 at 1440. |
 | `docs/DESIGN.md` | `Pressable` row and a short Press paragraph updated | The doc said "0.98 press". |
-| `orders/[orderId]/page.tsx` | Keeps its own `requireOwner` and order check | The guard layout must not be the only check: a soft navigation can render the page under a layout that did not re-run with this order's params. |
+| `orders/[orderId]/page.tsx` | Keeps its own `requireOwner` and order check | It needs the order anyway (`stored` is typed nullable), and a working guard on an owner check is not worth removing. The layout adds the early 404 only. |
 
 ## Not done here
 
