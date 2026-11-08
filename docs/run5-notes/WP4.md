@@ -70,3 +70,6 @@ Edited tests (selectors and copy targets only):
 
 Edited tests (selectors and copy targets only, nothing removed): `e2e/app-shell.spec.ts` only, this package's own spec. Tightened there: the site-chrome check now requires at least one `[data-site-chrome]` element and every one hidden; the door and shop URLs compare exact text rather than a suffix; the filter buttons also stay inside the viewport vertically.
 
+- **Bug found and fixed, section switch stuck on the old panel:** a `dashboard.spec.ts` Share-tab run failed with the URL on `?tab=share` and the page still on Orders. Next patches `history.pushState` in an effect, and React hydrates a clicked boundary first, so a click in that gap called the browser's own `pushState` and nothing followed the URL. `switchSection` now checks `routerFollowsPushState` (pure, `shell-view.ts`) and loads the page instead. This also covers the Orders empty state's `Share your agent door`. Regression: `e2e/app-shell.spec.ts`, "a section link clicked before the router has taken over history" (fails without the guard).
+- `tests/app/shell-view.test.ts`: added `routerFollowsPushState` cases. No existing assertion changed.
+
