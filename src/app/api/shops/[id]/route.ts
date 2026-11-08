@@ -10,6 +10,7 @@ import { notFound, ownedShop, readJson } from '@/lib/catalog/http';
 import { getDb } from '@/lib/db';
 import * as accounts from '@/lib/db/repos/accounts';
 import * as payeeChanges from '@/lib/db/repos/payee-changes';
+import { clientIp } from '@/lib/http/client-ip';
 import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
@@ -34,7 +35,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]'>):
     const newEmail = patch.payeeEmail !== undefined && patch.payeeEmail !== shop.payeeEmail;
     const published = shop.status !== 'draft';
     if (shop.accountId && published && newEmail) {
-      const denied = await checkCurrentPassword(accounts.byId(db, shop.accountId)!, currentPassword);
+      const denied = await checkCurrentPassword(accounts.byId(db, shop.accountId)!, currentPassword, clientIp(req));
       if (denied) return denied;
     }
     const updated = db.transaction(() => {

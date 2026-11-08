@@ -4,7 +4,7 @@ import { errorResponse } from '@/lib/catalog/http';
 import type { Account } from '@/lib/db/repos/accounts';
 import { jsonError } from '@/lib/http/json-error';
 import { BodyTooLargeError, MAX_JSON_BODY_BYTES, readJsonLimited } from '@/lib/http/read-body';
-import { allowPasswordCheck, recordPasswordFailure } from '@/lib/rate-limit';
+import { reservePasswordCheck } from '@/lib/rate-limit';
 import { HashBusyError, busyResponse, verifyPassword } from './password';
 
 /** A response carrying a recovery key or starting a session: never cached (SR23). */
@@ -18,19 +18,34 @@ export const tooManyTries = (message = 'Too many tries from this connection. Wai
 
 export const loginRequired = (): Response => jsonError(401, 'LOGIN_REQUIRED', 'Log in to do that.');
 
+export const passwordRequired = (): Response => jsonError(403, 'PASSWORD_REQUIRED', 'Enter your Shelfie password to do that.');
+
+export const passwordWrong = (): Response => jsonError(403, 'PASSWORD_WRONG', 'That password doesn’t match.');
+
 /**
  * A sensitive action's `currentPassword` field: null to carry on, else the refusal. Missing is 403 PASSWORD_REQUIRED and
- * wrong is 403 PASSWORD_WRONG; the limit comes before the hash (SR8), and only a wrong password counts. May throw
- * HashBusyError.
+ * wrong is 403 PASSWORD_WRONG. The limits come before the hash (SR8); a failure is reserved first and handed back on a
+ * right password, so a burst cannot run more guesses than the limit. May throw HashBusyError. The caller must write
+ * with a compare-and-set on `account.passwordHash`, which may be stale by the time this returns.
  */
-export async function checkCurrentPassword(account: Pick<Account, 'id' | 'passwordHash'>, currentPassword: unknown): Promise<Response | null> {
-  if (typeof currentPassword !== 'string' || currentPassword === '') {
-    return jsonError(403, 'PASSWORD_REQUIRED', 'Enter your Shelfie password to do that.');
+export async function checkCurrentPassword(
+  account: Pick<Account, 'id' | 'passwordHash'>,
+  currentPassword: unknown,
+  ip: string,
+): Promise<Response | null> {
+  if (typeof currentPassword !== 'string' || currentPassword === '') return passwordRequired();
+  const release = reservePasswordCheck(account.id, ip);
+  if (!release) return tooManyTries('Too many tries. Wait a few minutes and try again.');
+  let right: boolean;
+  try {
+    right = await verifyPassword(currentPassword, account.passwordHash);
+  } catch (err) {
+    release();
+    throw err;
   }
-  if (!allowPasswordCheck(account.id)) return tooManyTries('Too many tries. Wait a few minutes and try again.');
-  if (await verifyPassword(currentPassword, account.passwordHash)) return null;
-  recordPasswordFailure(account.id);
-  return jsonError(403, 'PASSWORD_WRONG', 'That password doesn’t match.');
+  if (!right) return passwordWrong();
+  release();
+  return null;
 }
 
 /** The JSON body as an object; {} for anything else, so every route answers bad input by its own rule. */
