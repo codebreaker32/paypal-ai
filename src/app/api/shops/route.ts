@@ -11,9 +11,8 @@ import { loginRequired } from '@/lib/auth/http';
 import { setOwnerCookie } from '@/lib/auth/owner';
 import { currentAccount } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
-import * as shops from '@/lib/db/repos/shops';
 import { isSampleId } from '@/lib/ai/samples';
-import { createShopFromPhotos, createShopFromSample, type CreatedShop } from '@/lib/catalog/setup';
+import { assertUnderShopLimit, createShopFromPhotos, createShopFromSample, type CreatedShop } from '@/lib/catalog/setup';
 import { errorResponse } from '@/lib/catalog/http';
 import { clientIp } from '@/lib/http/client-ip';
 import { jsonError } from '@/lib/http/json-error';
@@ -23,8 +22,6 @@ import { allowSetup } from '@/lib/rate-limit';
 import { MAX_PHOTOS, UploadError, checkUploadSize, readFileLimited } from '@/lib/uploads';
 
 export const runtime = 'nodejs';
-
-const MAX_SHOPS_PER_ACCOUNT = 25;
 
 async function photosFrom(req: Request): Promise<Buffer[]> {
   let form: FormData;
@@ -46,9 +43,8 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const account = await currentAccount();
     if (!account && !guestShopsAllowed()) return loginRequired();
-    if (account && shops.listByAccount(getDb(), account.id).length >= MAX_SHOPS_PER_ACCOUNT) {
-      return jsonError(409, 'SHOP_LIMIT', `One account can have up to ${MAX_SHOPS_PER_ACCOUNT} shops.`);
-    }
+    // An early answer that saves reading the body; createDraftShop repeats it where it is binding.
+    if (account) assertUnderShopLimit(getDb(), account.id);
     if (!allowSetup('shops', clientIp(req))) {
       return jsonError(429, 'RATE_LIMITED', 'You’ve started a lot of shops in the last hour. Try again later.');
     }
