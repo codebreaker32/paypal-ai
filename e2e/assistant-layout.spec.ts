@@ -8,6 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { getConfig } from '../src/lib/config';
 import { getDb } from '../src/lib/db';
+import * as itemsRepo from '../src/lib/db/repos/items';
 import * as shopsRepo from '../src/lib/db/repos/shops';
 import { createFakePayPal } from '../src/lib/paypal/fake';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
@@ -24,6 +25,36 @@ test.beforeAll(async () => {
   const db = getDb();
   if (!shopsRepo.bySlug(db, SLUG)) {
     await seedDemoShop({ db, paypal: createFakePayPal(), uploadsDir: getConfig().uploadsDir });
+  }
+});
+
+const ONE_SECTION_NAME = 'E2E One Section Shop';
+let oneSectionSlug = '';
+
+test.beforeAll(() => {
+  // Paused and one section long: "Ask the assistant" at the top, and a sticky row that only holds the compact button.
+  const db = getDb();
+  for (const o of db.prepare('SELECT id FROM shops WHERE name = ?').all(ONE_SECTION_NAME) as { id: string }[]) {
+    db.prepare('DELETE FROM shops WHERE id = ?').run(o.id);
+  }
+  const { shop } = shopsRepo.create(db, { name: ONE_SECTION_NAME, about: 'One section.', fulfillment: 'pickup', pickupNotes: 'Fridays' });
+  const items = itemsRepo.replaceDrafts(
+    db,
+    shop.id,
+    ['Lemon bar', 'Iced tea', 'Almond cake', 'Plum tart', 'Fig roll', 'Pear slice'].map((name) => ({
+      section: 'Today', name, description: null, sourceText: name, confidence: 'high' as const, kind: 'PHYSICAL' as const, issues: [],
+      issueDetail: null, status: 'draft' as const, variants: [{ label: null, priceCents: 350 }],
+    })),
+  );
+  items.forEach((item, n) => itemsRepo.setPayPalProductId(db, item.id, `PROD-E2E-LAYOUT-${n}`));
+  shopsRepo.publish(db, shop.id);
+  oneSectionSlug = shopsRepo.update(db, shop.id, { status: 'paused' }).slug;
+});
+
+test.afterAll(() => {
+  const db = getDb();
+  for (const o of db.prepare('SELECT id FROM shops WHERE name = ?').all(ONE_SECTION_NAME) as { id: string }[]) {
+    db.prepare('DELETE FROM shops WHERE id = ?').run(o.id);
   }
 });
 
@@ -198,4 +229,72 @@ test('reduced motion: the dock and sheet sit still', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(page.getByRole('dialog', { name: TITLE })).toBeVisible();
   await expect.poll(() => moved('dialog.assistant-sheet')).toEqual({ transform: 'none', running: 0 });
+});
+
+test.describe('entry points: one order button, no side card', () => {
+  const visibleCtas = (page: Page) => page.getByRole('button', { name: TITLE }).filter({ visible: true });
+  const scrollTo = async (page: Page, y: number) => {
+    await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), y);
+    await page.waitForTimeout(350);
+  };
+
+  test('1440, closed: no side card, and exactly one button at the top, mid page and the end', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await expect(page.getByRole('complementary', { name: TITLE })).toHaveCount(0);
+    await expect(visibleCtas(page)).toHaveCount(1);
+    await expect(page.getByRole('button', { name: 'Order with an assistant · PayPal' })).toBeVisible();
+    await expect(page.locator('[data-hero-cta]').getByRole('link', { name: 'agent door' })).toBeVisible();
+
+    for (const y of [900, 1_000_000]) {
+      await scrollTo(page, y);
+      await expect(visibleCtas(page)).toHaveCount(1);
+      await expect(page.locator('[data-compact-cta]').getByRole('button', { name: TITLE })).toBeVisible();
+    }
+  });
+
+  test('1440: the compact button opens the dock, then neither button shows; closing returns focus to it', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await scrollTo(page, 900);
+    await page.locator('[data-compact-cta]').getByRole('button', { name: TITLE }).click();
+    await expect(page.locator('[data-assistant-dock]')).toBeVisible();
+    await expect(page.locator('[data-hero-cta] button, [data-compact-cta] button').filter({ visible: true })).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Close the assistant' }).click();
+    await expect(page.locator('[data-assistant-dock]')).toHaveCount(0);
+    await expect(page.locator('[data-compact-cta]').getByRole('button', { name: TITLE })).toBeFocused();
+  });
+
+  for (const width of [1023, 640]) {
+    test(`${width}: the order bar keeps PayPal, centred at most 448 px wide, with no hero button`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto(`/s/${SLUG}`);
+      await settle(page);
+      const bar = page.locator('[data-order-bar] button');
+      await expect(bar).toContainText('· PayPal');
+      const wide = await box(bar);
+      expect(wide.width).toBeLessThanOrEqual(448);
+      expect(Math.abs(wide.x + wide.width / 2 - width / 2)).toBeLessThanOrEqual(2);
+
+      await expect(page.getByRole('complementary', { name: TITLE })).toHaveCount(0);
+      await expect(page.locator('[data-hero-cta] button').filter({ visible: true })).toHaveCount(0);
+    });
+  }
+
+  test('a shop with one section: "Ask the assistant" at lg, and its compact row appears only once the hero leaves', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 400 });
+    await page.goto(`/s/${oneSectionSlug}`);
+    await settle(page);
+    const ctas = page.getByRole('button', { name: 'Ask the assistant' }).filter({ visible: true });
+    await expect(ctas).toHaveCount(1);
+    await expect(page.locator('[data-hero-cta]').getByRole('button', { name: 'Ask the assistant' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /PayPal/ })).toHaveCount(0);
+
+    await scrollTo(page, 1_000_000);
+    await expect(ctas).toHaveCount(1);
+    await expect(page.locator('[data-compact-cta]').getByRole('button', { name: 'Ask the assistant' })).toBeVisible();
+  });
 });
