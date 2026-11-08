@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 /* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
 import { AgentDoor } from '@/components/shop/AgentDoor';
 import { Menu, menuSections } from '@/components/shop/Menu';
+import { HeroOrderCta } from '@/components/shop/OrderCta';
 import { ShopAssistant } from '@/components/shop/ShopAssistant';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { starterPrompts } from '@/components/shop/starters';
@@ -96,8 +97,9 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
       {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
           stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
       {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 -mt-16 -mb-1 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20" />}
-      <div className="flex items-start gap-4">
-        {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" />}
+      {/* The name row: from 1024 px the order button sits at its right end, bottom-aligned with the meta line. */}
+      <div className="flex items-start gap-4 lg:items-end">
+        {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" className="lg:self-start" />}
         <div className="min-w-0 flex-1">
           <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">
@@ -108,6 +110,7 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
             <span className="font-semibold text-ink">Paid with PayPal</span>
           </p>
         </div>
+        <HeroOrderCta />
       </div>
       {shop.about && <p className="max-w-measure type-lead text-ink-soft">{shop.about}</p>}
       {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}

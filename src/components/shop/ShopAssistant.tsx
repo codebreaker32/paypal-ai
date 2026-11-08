@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Sheet } from '@/components/ui/sheet';
-import { cn } from '@/lib/utils';
 import { AssistantShell } from './AssistantShell';
 import { useBuyerConsole } from './BuyerConsole';
+import { OrderCtaContext, orderCtaShown } from './OrderCta';
 
 const DESKTOP = '(min-width: 1024px)';
 const subscribe = (cb: () => void) => {
@@ -34,13 +33,11 @@ export interface ShopAssistantProps {
   takesOrders: boolean;
 }
 
-const ORDER = {
-  title: 'Order with an assistant',
-  pitch: 'Tell an assistant what you’d like. It checks the order with you and hands payment to PayPal.',
-};
-const ASK = {
-  title: 'Ask the assistant',
-  pitch: 'Not taking orders right now. An assistant can still answer questions about the menu.',
+const setAssistantParam = (on: boolean) => {
+  const url = new URL(window.location.href);
+  if (on) url.searchParams.set('assistant', '1');
+  else url.searchParams.delete('assistant');
+  window.history.replaceState(window.history.state, '', url);
 };
 
 /**
@@ -49,79 +46,67 @@ const ASK = {
  * and a dock from 1024 px, so the menu and the conversation stay side by side.
  */
 export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, intro, menu, door, takesOrders }: ShopAssistantProps) {
-  const { title, pitch } = takesOrders ? ORDER : ASK;
+  const title = takesOrders ? 'Order with an assistant' : 'Ask the assistant';
   const api = useBuyerConsole(slug);
   const [open, setOpen] = useState(initiallyOpen);
   const isDesktop = useIsDesktop();
   const inputRef = useRef<HTMLInputElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const openerRef = useRef<HTMLButtonElement>(null);
+  const heroButtonRef = useRef<HTMLButtonElement>(null);
+  const compactButtonRef = useRef<HTMLButtonElement>(null);
   const orderBarRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const panelOpen = open && isDesktop !== false;
 
-  const setUrl = (on: boolean) => {
-    const url = new URL(window.location.href);
-    if (on) url.searchParams.set('assistant', '1');
-    else url.searchParams.delete('assistant');
-    window.history.replaceState(window.history.state, '', url);
-  };
-  const show = () => {
+  const [heroInView, setHeroInView] = useState(true);
+  const shown = orderCtaShown({ docked: panelOpen, heroInView });
+
+  const show = useCallback(() => {
     setOpen(true);
-    setUrl(true);
-  };
+    setAssistantParam(true);
+  }, []);
   const hide = useCallback(() => {
     setOpen(false);
-    setUrl(false);
+    setAssistantParam(false);
   }, []);
 
-  // Desktop: the panel replaces the card in place, so put the cursor in the message box (and back on close).
+  // Desktop: put the cursor in the message box on opening; on closing, back on the order button that is showing now.
   const wasOpen = useRef(open);
   useEffect(() => {
     if (isDesktop && open && !wasOpen.current) inputRef.current?.focus();
-    if (isDesktop && !open && wasOpen.current) openerRef.current?.focus();
+    if (isDesktop && !open && wasOpen.current) (heroInView ? heroButtonRef : compactButtonRef).current?.focus();
     wasOpen.current = open;
-  }, [open, isDesktop]);
+  }, [open, isDesktop, heroInView]);
+
+  const cta = useMemo(
+    () => ({ title, takesOrders, shown, onOpen: show, setHeroInView, heroButtonRef, compactButtonRef }),
+    [title, takesOrders, shown, show],
+  );
 
   const shell = <AssistantShell api={api} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
 
   return (
     <>
-      {cover}
-      <div data-page-frame="" className="mx-auto grid w-full max-w-page items-start gap-8 px-gutter pt-6 pb-10 lg:grid-cols-12 lg:gap-10 lg:pt-8 lg:pb-section">
-        <div className={cn('flex min-w-0 flex-col gap-8', panelOpen ? 'lg:col-span-12' : 'lg:col-span-8')}>
-          {intro}
-          {menu}
-          {door}
+      <OrderCtaContext.Provider value={cta}>
+        {cover}
+        <div data-page-frame="" className="mx-auto w-full max-w-page px-gutter pt-6 pb-10 lg:pt-8 lg:pb-section">
+          <div className="@container/shop flex min-w-0 flex-col gap-8">
+            {intro}
+            {menu}
+            {door}
+          </div>
         </div>
+      </OrderCtaContext.Provider>
 
-        {!panelOpen && (
-          <aside aria-label={title} className="hidden lg:sticky lg:top-6 lg:col-span-4 lg:block">
-            <Card className="flex flex-col gap-4 shadow-md" padding="lg">
-              <h2 className="type-title">{title}</h2>
-              <p className="text-ink-soft">{pitch}</p>
-              <Button ref={openerRef} size="lg" fullWidth onClick={show}>
-                {title}
-              </Button>
-              <p className="type-meta text-ink-muted">
-                Or connect your own assistant to the{' '}
-                <a href="#agent-door" className="press-text font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
-                  agent door
-                </a>
-                .
-              </p>
-            </Card>
-          </aside>
-        )}
-      </div>
-
-      {/* Phones: the order bar sticks to the bottom of the screen while the page scrolls. */}
+      {/* Under 1024 px: the order bar sticks to the bottom of the screen while the page scrolls. */}
       <div data-order-bar className="sticky bottom-0 z-(--z-header) border-t border-line bg-surface px-gutter pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_24px_-12px_rgb(var(--ink-rgb)/0.18)] lg:hidden">
         {/* "PayPal" on the bar, so a buyer sees how they'll pay before tapping (only when the shop takes orders). */}
-        <Button ref={orderBarRef} size="lg" fullWidth onClick={show}>
-          {title}
-          {takesOrders && <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>}
-        </Button>
+        <div className="mx-auto w-full sm:max-w-md">
+          <Button ref={orderBarRef} size="lg" fullWidth onClick={show}>
+            {title}
+            {takesOrders && <span className="font-medium text-surface/75 max-[24.375rem]:hidden"> · PayPal</span>}
+          </Button>
+        </div>
       </div>
 
       {/* Docked from 1024 px (hidden by CSS below that, so a `?assistant=1` load never flashes a dock on a phone). */}
