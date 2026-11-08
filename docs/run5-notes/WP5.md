@@ -200,7 +200,7 @@ New: `tests/auth/{account-owner,route-guard,removal-guard,no-logging-routes}.tes
 
 Each root cause has a failing test first, in `tests/auth/limits-reserve.test.ts`, `tests/api/auth-races.test.ts` and `tests/api/shops-races.test.ts`. The race tests hold a hash open with a deferred promise, so the interleaving is exact.
 
-- **Hash-gate starvation.** `reservePasswordCheck` (in `rate-limit.ts`) counts attempts before the hash: 10 per account and 30 per address per hour, right or wrong, shared by the recovery-key route and the PayPal email change. SR11's 10 failures per account per 15 minutes is unchanged. A refused request does no hash and charges neither bucket.
+- **Hash-gate starvation.** `reservePasswordCheck` (in `rate-limit.ts`) counts attempts before the hash: 30 per account and 30 per address per hour (raised in round 2 below), right or wrong, shared by the recovery-key route and the PayPal email change. SR11's 10 failures per account per 15 minutes is unchanged. A 429 or a 503 does no hash and costs neither bucket (the 503 since round 2).
 - **Failure reservations (SR11).** `reserveLogin`, `reserveRecovery` and `reservePasswordCheck` count the failure before the hash and return a release function. A right answer releases it; so does anything that checked no guess (503 BUSY, a server error, a weak new password in recovery). A lost login race stays counted. `allowLogin`, `recordLoginFailure` and the rest stay exported: `reserve*` is built on them and `tests/auth/limits.test.ts` covers them.
 - **Login race.** `startSessionIfPasswordUnchanged` creates the session in one transaction that re-reads the account and requires the verified hash, else 401 `BAD_CREDENTIALS`.
 - **Rotation and payee change racing recovery.** Both write only if the row still holds the verified password hash. A lost race is 403 `PASSWORD_WRONG`.
@@ -222,7 +222,7 @@ If two logins with the same old-format password race on the rehash, one wins the
 
 - `checkCurrentPassword` now takes the client address as a third argument (`clientIp(req)`), and the caller must write with a compare-and-set on `account.passwordHash`. S1's password routes need both.
 - Settings should treat 409 `SHOP_CHANGED` like any other save error: show the message, and reload to pick up the new email.
-- The current-password attempt limit is 10 per account per hour, so a seller changing many shops' emails in one sitting can hit 429.
+- The current-password attempt limit is 30 per account and 30 per address per hour, enough for one change on each of 25 shops with 5 to spare.
 
 ### Edited tests (guards only, as the review asked; no assertion removed)
 
@@ -235,3 +235,29 @@ Each guard was run against real forbidden files (`api/auth/demo/route.ts`, `api/
 ### Verified
 
 `npm test` (1559 passed), `npm run typecheck`, `npm run lint`, and targeted e2e `auth-api`, `start` and `dashboard` (31 passed, 1 pre-existing skip).
+
+## Review round 2 fixes (4 findings, 4 failed acceptance items)
+
+Failing test first for each, in `tests/auth/limits-reserve.test.ts`, `tests/api/auth-races.test.ts` and `tests/api/shops-races.test.ts`.
+
+- **Attempt cap below the shop limit.** `passwordAttemptsAccount` is now 30 per hour (was 10), and `passwordAttemptsIp` stays 30. A test keeps both above `MAX_SHOPS_PER_ACCOUNT`, so raising the shop limit fails it. SR11's failure limit is unchanged and still stops guessing.
+- **A 503 cost attempts.** `reservePasswordCheck` now returns a reservation: called, it hands back the failure (right password); `.notChecked()` hands back the failure and both attempts (no hash ran). Both are safe to repeat.
+- **429 wording.** Recovery says `Too many tries. Wait an hour and try again.` (every recovery limit is hourly, and the email-wide one has nothing to do with the connection). The current-password check says `Too many tries. Wait up to an hour and try again.` (15 minutes for failures, an hour for attempts). Sign-up and login keep the strings the brief's WP6 copy table dictates. WP6 has no /recover 429 row, so if it maps 429 by code it should use this message.
+- **PATCH after the session ended.** `ownershipCheck` (`auth/owner.ts`) reads the cookies before the body, and the PATCH transaction runs its check on the row: an ended session gets 404 and writes nothing, on drafts and on non-email patches too. It runs after the password compare, so a lost recovery race on a password path stays 403 `PASSWORD_WRONG`. Reproduced first with the reviewer's harness (now `recover 200, patch 404`, email unchanged).
+
+### Not changed
+
+- **SR18 (shown in Settings), SR21 (first half), SR22, and so AC1's literal "every SR except SR19".** The review itself finds these need screens. The brief assigns them to WP6 (lines 662, 668, 676) and WP5's section says "API only; no screen changes" (line 612), so building them here would break that rule. The backends are done: `payeeChanges.latest`, `client/auth.ts`, `recoverySavedAt`. WP6 must close all three; the coordinator should check them after that merge.
+- **The same in-flight window on the other owner handlers.** `items` (PATCH, POST), `orders/[orderId]/tracking`, `extract`, `counter`, item photos, and cover and logo also check the owner before reading the body, so a request opened before a recovery can still land. The finding named only `PATCH /api/shops/[id]`, the route that holds the PayPal email and the pause switch, and none of these can touch either. Left as is for scope; the coordinator can ask for the same re-check there. `ownershipCheck` works for any of them.
+
+### Edited tests (the limit the review asked to raise; no assertion removed)
+
+These three files are this package's own tests from the previous review round. Each edit moves the literal from the old cap to the new one:
+
+- `tests/auth/limits-reserve.test.ts`: `counts a correct password as an attempt` now uses 30, and `a request refused by the account limit charges the address nothing` fills the account from another address, because the two caps are now equal.
+- `tests/api/auth-races.test.ts`: `after 30 correct rotations` (was 10).
+- `tests/api/shops-races.test.ts`: `after 30 correct changes` (was 10).
+
+### Verified
+
+`npm test` (119 files, 1572 passed), `npm run typecheck`, `npm run lint`, and targeted e2e `auth-api`, `large-upload`, `start`, `dashboard` (32 passed, 1 pre-existing skip).
