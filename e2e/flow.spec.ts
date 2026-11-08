@@ -9,7 +9,7 @@ import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { config } from 'dotenv';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { DESKTOP, PHONE, settle } from './helpers';
+import { DESKTOP, PHONE, appNav, settle } from './helpers';
 
 config({ path: path.resolve(__dirname, '..', '.env'), quiet: true });
 const HAS_KEYS = Boolean(process.env.ANTHROPIC_API_KEY && process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_SECRET_KEY);
@@ -76,7 +76,7 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
   await expect(page.getByText(new RegExp(`^${count} items are in your PayPal catalog`))).toBeVisible();
   await expect(page.getByText(/^https?:\/\/\S+\/s\/marigold-bakehouse-\d+\/mcp$/)).toBeVisible(); // never the demo shop's slug
   await expect(page.getByText(/\/claim\/[A-Za-z0-9_-]{40,}$/)).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Open your dashboard' })).toHaveAttribute('href', /\/shops\/shp_/);
+  await expect(appNav(page).getByRole('link', { name: /Orders/ })).toHaveAttribute('href', /\/shops\/shp_/);
   await accessible(page);
   await page.reload();
   await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();

@@ -40,3 +40,9 @@ export function pickBanner(v: { paypalDown: boolean; payeeMissing: boolean; stat
   if (v.recoveryUnsaved) return 'recovery-key';
   return null;
 }
+
+/** The line under the Menu heading: how many items, how many of them have the seller's own photo, how many an example. */
+export function menuSummary({ total, own, examples }: { total: number; own: number; examples: number }): string {
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  return `${plural(total, 'item', 'items')} · ${plural(own, 'your photo', 'your photos')} · ${plural(examples, 'example', 'examples')}`;
+}

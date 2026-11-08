@@ -3,7 +3,8 @@ import { kindDefault, linePicture, type ItemPicture } from '@/lib/domain/categor
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, CircleCheck, CircleX, Mail, Settings, TriangleAlert } from 'lucide-react';
+import { CircleCheck, CircleX, Mail, Settings, TriangleAlert } from 'lucide-react';
+import { PageHeader } from '@/components/app/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -324,7 +325,7 @@ const SIDEBAR_ORDERS = 40;
 /** Desktop only: the shop's newest orders beside the open one (list + detail), the open one marked. */
 function OrderList({ shopId, orders, current, photos, kind }: { shopId: string; orders: Order[]; current: string; photos: ReadonlyMap<string, ItemPicture>; kind: ShopKind }) {
   return (
-    <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 lg:block">
+    <nav aria-label="All orders" className="sticky top-6 hidden max-h-[calc(100dvh-3rem)] overflow-y-auto border-r border-line pr-3 xl:block">
       <ul className="flex flex-col gap-0.5">
         {orders.map((o) => {
           const first = o.lines[0];
@@ -373,37 +374,18 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
   const photos = itemsRepo.itemPictures(db, shop.id, shop.kind);
 
   return (
-    <div className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
+    <div className="grid w-full items-start gap-8 xl:grid-cols-[20rem_minmax(0,1fr)]">
       <AutoRefresh active={pending} />
       <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} kind={shop.kind} />
       <div className="flex min-w-0 flex-col gap-6">
-      <Link
-        href={`/shops/${shop.id}`}
-        className="press-text -ml-1 inline-flex min-h-tap items-center gap-1.5 self-start rounded-sm px-1 font-semibold text-ink-soft hover:text-ink"
-      >
-        <Icon icon={ArrowLeft} size="sm" />
-        Orders
-      </Link>
-
-      {/* Phone: number, status, who placed it, then the total as a till line. Wider: the total is the right-hand block. */}
-      <header className="flex flex-col gap-4 border-b border-line pb-5 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-            {/* The reference never breaks; if the line is too narrow, it wraps after "Order". */}
-            <h1 className="type-display">
-              Order <span className="type-price font-semibold tracking-tight whitespace-nowrap">{order.number}</span>
-            </h1>
-            <OrderStatusText order={order} size="md" />
-          </div>
-          <p className="text-ink-soft">
-            Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} />
-          </p>
-        </div>
-        <p className="rule-dashed flex items-baseline justify-between gap-4 pt-3 sm:shrink-0 sm:flex-col sm:items-end sm:gap-1 sm:border-t-0 sm:pt-0">
-          <span className="type-label text-ink-muted">Total</span>
-          <CountUp cents={order.totalCents} className="type-price text-3xl leading-none font-extrabold tracking-tight sm:text-4xl" />
-        </p>
-      </header>
+      <PageHeader
+        back={{ href: `/shops/${shop.id}`, label: 'Orders' }}
+        // The reference never breaks; if the line is too narrow, it wraps after "Order".
+        title={<>Order <span className="type-price whitespace-nowrap">{order.number}</span></>}
+        status={<OrderStatusText order={order} size="md" />}
+        description={<>Placed by {agentLabel(order.agentName)}, <LocalTime iso={order.createdAt} /></>}
+        actions={<CountUp cents={order.totalCents} className="type-page type-price" />}
+      />
 
       {/* Phone: brief, action, buyer, items, timeline, PayPal. Desktop: two columns. */}
       <div className="flex flex-col gap-5 lg:grid lg:grid-cols-12 lg:items-start lg:gap-6">

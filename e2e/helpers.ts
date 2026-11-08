@@ -126,6 +126,9 @@ export async function holdShopsApi(page: Page) {
   return release;
 }
 
+/** The seller shell's four section links (the sidebar at desktop, the tab bar on phones: only one is visible). */
+export const appNav = (page: Page) => page.getByRole('navigation', { name: 'Shop sections' });
+
 /** axe (WCAG 2.1 A and AA) has nothing to report, and the page has no sideways scroll. */
 export async function a11y(page: Page) {
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']).analyze();

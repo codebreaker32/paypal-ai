@@ -110,7 +110,7 @@ export function LiveStep(p: LiveProps) {
   const paused = p.status === 'paused';
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-col gap-10 px-gutter pt-8 pb-section lg:pt-12">
+    <div className="flex w-full flex-col gap-10">
       <header className="flex max-w-measure flex-col gap-3">
         <div className="flex items-center gap-4">
           {p.avatar && (
@@ -128,7 +128,7 @@ export function LiveStep(p: LiveProps) {
             <p className="type-title [overflow-wrap:anywhere]">{p.name}</p>
           </LiveBeat>
         </div>
-        <h1 className="type-display">{paused ? 'Your shop is paused' : 'Your shop is live'}</h1>
+        <h1 tabIndex={-1} className="type-page outline-none">{paused ? 'Your shop is paused' : 'Your shop is live'}</h1>
         <p className="type-lead text-ink-soft">
           {p.liveCount} {p.liveCount === 1 ? 'item is' : 'items are'} in your PayPal catalog
           {p.inPersonCount > 0 && <>, plus {p.inPersonCount} to ask about in person</>}. Any AI assistant can order from

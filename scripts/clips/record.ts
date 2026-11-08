@@ -310,7 +310,7 @@ async function sceneCard(display: Display, app: App): Promise<void> {
   try {
     const p = stage.page;
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
-    const share = p.getByRole('tab', { name: 'Share' });
+    const share = p.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Share' });
     await share.waitFor();
     await fontsReady(p);
     await picturesReady(p); // the shop's picture in the header
@@ -349,7 +349,7 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       if (!res.ok()) throw new Error(`removing the ${name} photo answered ${res.status()} (owner cookie?)`);
     }
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
-    const menuTab = p.getByRole('tab', { name: 'Menu' });
+    const menuTab = p.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Menu' });
     await menuTab.waitFor();
     await fontsReady(p);
     await picturesReady(p); // the shop's picture in the header
@@ -362,7 +362,7 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       await press(menuTab);
       const snap = p.locator('label').filter({ has: p.locator('input[aria-label="Snap your counter"]') });
       await snap.waitFor();
-      await picturesReady(p, '[role="tabpanel"]'); // the rows' photos, and the croissants' drawings
+      await picturesReady(p, '[data-section-panel]'); // the rows' photos, and the croissants' drawings
       await hold(1200);
       // The two croissant rows, with their drawings (no photo).
       await bring(row(COUNTER_ITEMS[0]), 'center', 600);
@@ -394,7 +394,7 @@ async function sceneCounter(display: Display, app: App): Promise<void> {
       await sheet.waitFor({ state: 'hidden' });
       // The rows' thumbnails, filled in.
       await bring(row(COUNTER_ITEMS[0]), 'center', 400);
-      await picturesReady(p, '[role="tabpanel"]');
+      await picturesReady(p, '[data-section-panel]');
       await hold(4000);
     });
     const kept = [];
@@ -727,7 +727,7 @@ async function backgroundDashboard(stage: Stage, app: App): Promise<Page> {
   const dash = await stage.context.newPage();
   await dash.addInitScript({ content: BACKGROUND_TAB });
   await dash.goto(`${app.origin}/shops/${app.demoShopId}`);
-  await dash.getByRole('tab', { name: 'Orders' }).waitFor();
+  await dash.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Orders' }).waitFor();
   await fontsReady(dash);
   await picturesReady(dash);
   return dash;
@@ -788,7 +788,7 @@ async function sceneDashboard(display: Display, app: App): Promise<void> {
     const order = await paidOrder(app, stage, true);
     say(`  ${order.number}: PayPal order ${order.paypalOrderId}, transaction ${order.captureId ?? '—'}`);
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
-    await p.getByRole('tab', { name: 'Orders' }).waitFor();
+    await p.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Orders' }).waitFor();
     await fontsReady(p);
     await picturesReady(p);
     await clip(display, '08-dashboard-brief', async () => {
@@ -814,7 +814,7 @@ async function sceneTracking(display: Display, app: App): Promise<void> {
     // A USPS-shaped number (22 digits, 9400 1118 prefix), unique per run (as e2e/capture.spec.ts).
     const tracking = `9400111${Date.now().toString().slice(-13)}${Math.floor(Math.random() * 90 + 10)}`;
     await p.goto(`${app.origin}/shops/${app.demoShopId}`);
-    await p.getByRole('tab', { name: 'Orders' }).waitFor();
+    await p.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Orders' }).waitFor();
     await fontsReady(p);
     await picturesReady(p);
     await clip(display, '09-tracking', async () => {

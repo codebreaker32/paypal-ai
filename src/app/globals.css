@@ -439,6 +439,18 @@
   --mark-bg: transparent;
 }
 
+/* ───────────── Seller app shell ───────────── */
+:root {
+  --app-sidebar-w:15rem; --app-topbar-h:3.5rem; --app-tabbar-h:3.5rem;
+}
+@utility type-page { font-family:var(--font-display); font-size:var(--text-2xl); line-height:var(--text-2xl--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
+@utility type-section { font-family:var(--font-display); font-size:var(--text-base); line-height:var(--text-base--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
+body:has([data-app-shell]) [data-site-chrome] { display:none; }
+@media (width < 64rem) {
+  html:has([data-app-shell]) { scroll-padding-top:var(--app-topbar-h); scroll-padding-bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom)); }
+  body:has([data-app-shell]) [data-toast-region] { bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom) + .75rem); padding-bottom:0; }
+}
+
 /* ───────────── Type roles (semantic type utilities) ───────────── */
 /*
  * One family, Figtree, from 400 to 800. Display roles are tight and heavy (700 to 800), UI text 400 to 600.

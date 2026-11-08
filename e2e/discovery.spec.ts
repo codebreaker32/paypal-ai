@@ -11,7 +11,7 @@ import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { qrSvg } from '@/lib/discovery/qr';
 import type { Shop } from '@/lib/domain/types';
-import { DESKTOP, PHONE, settle } from './helpers';
+import { DESKTOP, PHONE, appNav, settle } from './helpers';
 import { createFixtureShop, type FixtureShop } from './task8-fixtures';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -174,7 +174,7 @@ test.describe('Share tab', () => {
     await expect(page).toHaveURL(`${BASE}/shops/${live.shop.id}/card`);
     await expect(page.getByRole('heading', { level: 1, name: 'Counter card' })).toBeVisible();
     await page.getByRole('link', { name: 'Back to Share' }).click();
-    await expect(page.getByRole('tab', { name: 'Share' })).toHaveAttribute('aria-selected', 'true');
+    await expect(appNav(page).getByRole('link', { name: 'Share' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeVisible();
   });
 });

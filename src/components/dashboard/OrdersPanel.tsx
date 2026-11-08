@@ -2,7 +2,7 @@
 
 import type { ItemPicture } from '@/lib/domain/category';
 import { useState } from 'react';
-import { ChevronDown, CloudOff } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
@@ -25,17 +25,6 @@ function Subtotal({ orders, label, as: Tag = 'p' }: { orders: Order[]; label: st
       <span className="type-meta text-ink-muted">{label}</span>
       <CountUp cents={groupTotalCents(orders)} className="type-price font-bold" />
     </Tag>
-  );
-}
-
-export function PayPalBanner() {
-  return (
-    <div role="status" className="flex items-start gap-3 rounded-(--card-radius) bg-warn-soft px-4 py-3 text-warn">
-      <Icon icon={CloudOff} className="mt-0.5" />
-      <p>
-        <span className="font-semibold">We can’t reach PayPal right now.</span> Payments will show up here as soon as it answers.
-      </p>
-    </div>
   );
 }
 
@@ -75,7 +64,6 @@ export function OrdersPanel({
   justPaid,
   photos,
   shopKind,
-  paypalReachable,
   onOrderChange,
   onShowShare,
 }: {
@@ -87,7 +75,6 @@ export function OrdersPanel({
   justPaid?: ReadonlySet<string>;
   photos?: ReadonlyMap<string, ItemPicture>;
   shopKind?: ShopKind;
-  paypalReachable: boolean;
   onOrderChange: (order: Order) => void;
   onShowShare: () => void;
 }) {
@@ -104,7 +91,6 @@ export function OrdersPanel({
 
   return (
     <div className="flex flex-col gap-6">
-      {!paypalReachable && <PayPalBanner />}
 
       {orders.length === 0 ? (
         <EmptyState slug={slug} onShowShare={onShowShare} />

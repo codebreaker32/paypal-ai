@@ -1,6 +1,6 @@
 // The seller shell's pure rules: which section a URL means, what each nav link points at, and the one banner it shows.
 import { describe, expect, it } from 'vitest';
-import { activeSection, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
+import { activeSection, menuSummary, pickBanner, sectionFromTab, sectionHref, sectionLabel, sectionTitle } from '@/lib/seller/shell-view';
 
 describe('sectionFromTab', () => {
   it('reads the three named sections and treats anything else as Orders', () => {
@@ -62,5 +62,14 @@ describe('pickBanner', () => {
   });
   it('does not ask a draft for its PayPal email: setup does', () => {
     expect(pickBanner({ ...calm, payeeMissing: true, status: 'draft' })).toBeNull();
+  });
+});
+
+describe('menuSummary', () => {
+  it('counts the items, the seller’s own photos and the examples', () => {
+    expect(menuSummary({ total: 10, own: 4, examples: 6 })).toBe('10 items · 4 your photos · 6 examples');
+  });
+  it('uses the singular for one', () => {
+    expect(menuSummary({ total: 1, own: 1, examples: 1 })).toBe('1 item · 1 your photo · 1 example');
   });
 });

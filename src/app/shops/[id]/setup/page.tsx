@@ -2,13 +2,14 @@
 // The step comes from the database on every request, so a refresh always lands on the right one.
 import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
-import { getOwnedShop, ownerCookieName } from '@/lib/auth/owner';
+import { AppShell } from '@/components/app/AppShell';
+import { ownerCookieName, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as extractions from '@/lib/db/repos/extractions';
 import * as items from '@/lib/db/repos/items';
 import { loadSetupView } from '@/lib/catalog/setup';
+import { loadShell } from '@/lib/seller/shell';
 import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { isPendingPublish } from '@/lib/catalog/rules';
 import { LiveStep } from '@/components/setup/LiveStep';
@@ -21,8 +22,7 @@ export const metadata: Metadata = {
 
 export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup'>) {
   const { id } = await params;
-  const shop = await getOwnedShop(id);
-  if (!shop) notFound();
+  const shop = await requireOwner(id);
   const db = getDb();
   const view = loadSetupView(db, shop);
 
@@ -30,24 +30,27 @@ export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup
     const appUrl = getConfig().appUrl;
     const token = (await cookies()).get(ownerCookieName(id))?.value;
     const all = items.listWithVariants(db, id);
+    const { data, account } = await loadShell(shop);
     return (
-      <LiveStep
-        shopId={id}
-        name={shop.name}
-        slug={shop.slug}
-        status={shop.status}
-        shopUrl={`${appUrl}/s/${shop.slug}`}
-        agentDoorUrl={`${appUrl}/s/${shop.slug}/mcp`}
-        ownerLink={token ? `${appUrl}/claim/${token}` : null}
-        liveCount={all.filter((i) => i.status === 'live').length}
-        inPersonCount={all.filter((i) => i.status === 'in_person').length}
-        pendingCount={all.filter(isPendingPublish).length}
-        pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
-        avatar={{
-          shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') },
-          items: items.avatarItems(db, id),
-        }}
-      />
+      <AppShell data={data} account={account}>
+        <LiveStep
+          shopId={id}
+          name={shop.name}
+          slug={shop.slug}
+          status={shop.status}
+          shopUrl={`${appUrl}/s/${shop.slug}`}
+          agentDoorUrl={`${appUrl}/s/${shop.slug}/mcp`}
+          ownerLink={token ? `${appUrl}/claim/${token}` : null}
+          liveCount={all.filter((i) => i.status === 'live').length}
+          inPersonCount={all.filter((i) => i.status === 'in_person').length}
+          pendingCount={all.filter(isPendingPublish).length}
+          pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
+          avatar={{
+            shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') },
+            items: items.avatarItems(db, id),
+          }}
+        />
+      </AppShell>
     );
   }
 

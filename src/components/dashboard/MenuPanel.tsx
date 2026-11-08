@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
-import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
@@ -112,7 +111,6 @@ export function MenuPanel({
   items,
   shopId,
   shopKind,
-  slug,
   shopName,
   coverUrl,
   onItemsChange,
@@ -122,7 +120,8 @@ export function MenuPanel({
   shopId: string;
   /** Decides an item's drawing while it has no photo, as on the public menu (`itemCategory(item, shopKind)`). */
   shopKind: ShopKind;
-  slug: string;
+  /** Unused since the shop link moved to the page header. */
+  slug?: string;
   /** For the cover's alt text. */
   shopName?: string;
   /** The shop's cover, kept by the dashboard (like the items) so it survives switching tabs. */
@@ -133,7 +132,6 @@ export function MenuPanel({
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const listed = listedItems(items);
-  const photos = listed.filter((i) => i.photoUrl).length;
   const pictures = itemPictures(listed, shopKind);
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
@@ -178,15 +176,6 @@ export function MenuPanel({
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:gap-x-14">
       <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
-          <div className="flex flex-col gap-1">
-            <h2 className="type-title">Menu</h2>
-            <p className="type-figures text-ink-soft">
-              {listed.length} {listed.length === 1 ? 'item' : 'items'} · {photos} with photos
-            </p>
-          </div>
-          <TextLink href={`/s/${slug}`}>See it on your shop</TextLink>
-        </div>
         {bySection(listed).map(([section, sectionItems], n) => (
           <section key={section} aria-label={section} className="flex flex-col gap-1">
             <h3 className="type-heading">{section}</h3>

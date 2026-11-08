@@ -40,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       <body className="flex min-h-dvh flex-col bg-surface text-ink">
         <a
           href="#main"
+          data-site-chrome=""
           className="sr-only rounded-md bg-ink px-4 py-3 font-semibold text-surface focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-(--z-toast)"
         >
           Skip to content
