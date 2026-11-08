@@ -15,14 +15,43 @@ function fakeParam() {
   };
 }
 
+function fakeOscillator() {
+  return {
+    type: 'square',
+    frequency: fakeParam(),
+    connectedTo: null as unknown,
+    started: [] as number[],
+    stopped: [] as number[],
+    connect(node: unknown) {
+      this.connectedTo = node;
+    },
+    start(at: number) {
+      this.started.push(at);
+    },
+    stop(at: number) {
+      this.stopped.push(at);
+    },
+  };
+}
+
+function fakeGain() {
+  return {
+    gain: fakeParam(),
+    connectedTo: null as unknown,
+    connect(target: unknown) {
+      this.connectedTo = target;
+    },
+  };
+}
+
 class FakeContext {
   static made: FakeContext[] = [];
   static initialState = 'running';
   state = FakeContext.initialState;
   currentTime = 5;
   destination = { name: 'speakers' };
-  oscillators: ReturnType<FakeContext['createOscillator']>[] = [];
-  gains: ReturnType<FakeContext['createGain']>[] = [];
+  oscillators: ReturnType<typeof fakeOscillator>[] = [];
+  gains: ReturnType<typeof fakeGain>[] = [];
   resume = vi.fn(async () => {
     this.state = 'running';
   });
@@ -32,34 +61,13 @@ class FakeContext {
   }
 
   createOscillator() {
-    const oscillator = {
-      type: 'square',
-      frequency: fakeParam(),
-      connectedTo: null as unknown,
-      started: [] as number[],
-      stopped: [] as number[],
-      connect(node: unknown) {
-        this.connectedTo = node;
-      },
-      start(at: number) {
-        this.started.push(at);
-      },
-      stop(at: number) {
-        this.stopped.push(at);
-      },
-    };
+    const oscillator = fakeOscillator();
     this.oscillators.push(oscillator);
     return oscillator;
   }
 
   createGain() {
-    const node = {
-      gain: fakeParam(),
-      connectedTo: null as unknown,
-      connect(target: unknown) {
-        this.connectedTo = target;
-      },
-    };
+    const node = fakeGain();
     this.gains.push(node);
     return node;
   }
@@ -77,7 +85,7 @@ function stubWindow() {
   return target;
 }
 
-const peakOf = (gain: FakeContext['gains'][number]) => Math.max(...gain.gain.events.map(([, value]) => value));
+const peakOf = (gain: ReturnType<typeof fakeGain>) => Math.max(...gain.gain.events.map(([, value]) => value));
 
 describe('sound', () => {
   let store: Map<string, string>;

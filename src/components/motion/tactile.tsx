@@ -2,6 +2,7 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useSyncExternalStore, type CSSProperties } from 'react';
+import { connectFeedback } from '@/lib/feedback';
 import { createPressMachine, type PressInput, type PressMachine } from '@/lib/feedback/press-machine';
 import { createRouteProgress, PROGRESS_MS, startsRouteNavigation, type ProgressPhase } from '@/lib/feedback/route-progress';
 
@@ -188,6 +189,7 @@ export function Tactile() {
   const search = useSearchParams().toString();
   const phase = useSyncExternalStore(progress.subscribe, progress.getPhase, serverPhase);
 
+  useEffect(connectFeedback, []); // before the press listener, so a press finds audio already unlocked
   useEffect(listenForPresses, []);
   useEffect(() => progress.finish(), [pathname, search]);
 
