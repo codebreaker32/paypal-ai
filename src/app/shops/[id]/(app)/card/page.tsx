@@ -32,35 +32,31 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
   const qr = shop.status === 'draft' ? null : await qrSvg(shopUrl);
 
   return (
-    <div className="flex w-full flex-col items-center gap-8 lg:flex-row lg:items-start lg:justify-center lg:gap-16 print:p-0">
-      <div className="flex w-full max-w-measure flex-col gap-5 lg:pt-4 print:hidden">
-        <PageHeader
-          title="Counter card"
-          description="Stand it by your till. A scan opens your menu, and any AI assistant can order from it."
-          back={{ href: `/shops/${shop.id}?tab=share`, label: 'Share' }}
-        />
-        {qr === null ? (
-          <p className="flex items-start gap-2.5 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
-            <Icon icon={TriangleAlert} className="mt-0.5" />
-            <span>
-              Your counter card is ready once your shop is live.{' '}
-              <span className="font-normal">
-                Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
-                <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
-                  Finish setting up
-                </Link>
-              </span>
+    <div className="flex w-full flex-col print:p-0">
+      <PageHeader
+        title="Counter card"
+        description="Stand it by your till. A scan opens your menu, and any AI assistant can order from it."
+        back={{ href: `/shops/${shop.id}?tab=share`, label: 'Share' }}
+        actions={qr !== null ? <PrintButton /> : undefined}
+      />
+
+      {qr === null && (
+        <p className="flex max-w-measure items-start gap-2.5 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
+          <Icon icon={TriangleAlert} className="mt-0.5" />
+          <span>
+            Your counter card is ready once your shop is live.{' '}
+            <span className="font-normal">
+              Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
+              <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
+                Finish setting up
+              </Link>
             </span>
-          </p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <PrintButton />
-            <p className="type-meta text-ink-muted">Prints 5 × 7 inches on letter or A4 paper. Cut along the edge.</p>
-          </div>
-        )}
-      </div>
+          </span>
+        </p>
+      )}
 
       {qr !== null && (
+        <div className="flex flex-col items-center gap-3">
         <article
           data-print-alone
           aria-labelledby="card-shop-name"
@@ -112,6 +108,8 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
             </footer>
           </div>
         </article>
+        <p className="type-meta text-ink-muted print:hidden">Prints 5 × 7 inches on letter or A4 paper. Cut along the edge.</p>
+        </div>
       )}
     </div>
   );
