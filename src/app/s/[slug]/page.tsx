@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 /* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
@@ -19,6 +19,9 @@ import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
 import { responsiveImage } from '@/lib/images/responsive';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
+
+/** Android shrinks the page for the keyboard, so the assistant's box stays above it. */
+export const viewport: Viewport = { interactiveWidget: 'resizes-content' };
 
 /** Published shops only: drafts and unknown slugs are 404. */
 function loadShop(slug: string): Shop {

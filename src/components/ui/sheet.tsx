@@ -16,6 +16,8 @@ interface SheetBase {
   initialFocusRef?: RefObject<HTMLElement | null>;
   /** Takes focus on close when the opener is gone (or focus was on the page itself). */
   fallbackFocusRef?: RefObject<HTMLElement | null>;
+  /** The `<dialog>` itself, for a caller that sizes it (the assistant, around the on-screen keyboard). */
+  dialogRef?: RefObject<HTMLDialogElement | null>;
 }
 
 interface TitledSheet extends SheetBase {
@@ -43,8 +45,9 @@ export type SheetProps = TitledSheet | BareSheet;
  * Bottom sheet on phones, centred dialog from 640 px up. Built on the native modal <dialog>:
  * the page behind is inert (focus stays inside), Esc closes it, and focus returns to the opener.
  */
-export function Sheet({ open, onClose, title, description, children, footer, className, bare, labelledBy, initialFocusRef, fallbackFocusRef }: SheetProps) {
-  const ref = useRef<HTMLDialogElement>(null);
+export function Sheet({ open, onClose, title, description, children, footer, className, bare, labelledBy, initialFocusRef, fallbackFocusRef, dialogRef }: SheetProps) {
+  const ownRef = useRef<HTMLDialogElement>(null);
+  const ref = dialogRef ?? ownRef;
   const opener = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const titleId = useId();
@@ -64,7 +67,7 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
     } else if (!open && dialog.open) {
       dialog.close();
     }
-  }, [open, initialFocusRef]);
+  }, [open, initialFocusRef, ref]);
 
   useEffect(() => {
     const dialog = ref.current;
@@ -84,7 +87,7 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
       dialog.removeEventListener('close', handleClose);
       dialog.removeEventListener('cancel', handleCancel);
     };
-  }, [fallbackFocusRef]);
+  }, [fallbackFocusRef, ref]);
 
   return (
     <dialog

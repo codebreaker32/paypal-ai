@@ -6,6 +6,7 @@ import { Sheet } from '@/components/ui/sheet';
 import { AssistantShell } from './AssistantShell';
 import { useBuyerConsole } from './BuyerConsole';
 import { OrderCtaContext, orderCtaShown } from './OrderCta';
+import { useKeyboardViewport } from './use-keyboard-viewport';
 
 const DESKTOP = '(min-width: 1024px)';
 const subscribe = (cb: () => void) => {
@@ -55,8 +56,10 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const heroButton = useRef<HTMLButtonElement>(null);
   const compactButton = useRef<HTMLButtonElement>(null);
   const orderBarRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const panelOpen = open && isDesktop !== false;
+  useKeyboardViewport(dialogRef, open && isDesktop === false);
 
   const [heroInView, setHeroInView] = useState(true);
   const shown = orderCtaShown({ docked: panelOpen, heroInView });
@@ -123,7 +126,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       )}
 
       {isDesktop === false && (
-        <Sheet bare labelledBy={titleId} open={open} onClose={hide} className="assistant-sheet text-ink" initialFocusRef={titleRef} fallbackFocusRef={orderBarRef}>
+        <Sheet bare dialogRef={dialogRef} labelledBy={titleId} open={open} onClose={hide} className="assistant-sheet text-ink" initialFocusRef={titleRef} fallbackFocusRef={orderBarRef}>
           {shell}
         </Sheet>
       )}

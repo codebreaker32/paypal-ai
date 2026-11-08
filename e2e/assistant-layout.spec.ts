@@ -425,3 +425,41 @@ test.describe('message scrolling', () => {
     expect(await page.evaluate(() => window.scrollY)).toBe(before);
   });
 });
+
+test.describe('keyboard', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('the page asks the browser to resize for the keyboard, and keeps the root viewport', async ({ page }) => {
+    await page.goto(`/s/${SLUG}`);
+    const content = await page.locator('meta[name="viewport"]').getAttribute('content');
+    expect(content).toContain('interactive-widget=resizes-content');
+    expect(content).toContain('width=device-width');
+    expect(content).not.toContain('viewport-fit');
+  });
+
+  test('a visual viewport of 500 px: the dialog shrinks to 488 and the composer stays above it', async ({ page }) => {
+    await page.addInitScript(() => {
+      const fake = new EventTarget() as EventTarget & { height: number; offsetTop: number; scale: number; width: number };
+      fake.height = window.innerHeight;
+      fake.offsetTop = 0;
+      fake.scale = 1;
+      Object.defineProperty(window, 'visualViewport', { value: fake });
+      (window as unknown as { keyboard: (h: number) => void }).keyboard = (h) => {
+        fake.height = h;
+        fake.dispatchEvent(new Event('resize'));
+      };
+    });
+    await page.goto(`/s/${SLUG}?assistant=1`);
+    await settle(page);
+    const dialog = page.getByRole('dialog');
+    await page.evaluate(() => (window as unknown as { keyboard: (h: number) => void }).keyboard(500));
+    await expect.poll(async () => (await box(dialog)).height).toBe(488);
+    expect((await box(dialog)).y).toBe(12);
+    const send = await box(dialog.getByRole('button', { name: 'Send' }));
+    expect(send.y + send.height).toBeLessThanOrEqual(500);
+
+    // The keyboard goes away: back to the full height.
+    await page.evaluate(() => (window as unknown as { keyboard: (h: number) => void }).keyboard(844));
+    await expect.poll(async () => (await box(dialog)).height).toBe(832);
+  });
+});
