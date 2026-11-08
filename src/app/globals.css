@@ -253,6 +253,10 @@
   --animate-fade-in: fade-in var(--duration-base) var(--ease-out) both;
   /* A dashboard row the poll just saw get paid: the ok tint comes up fast, holds, then fades (2.4 s in all). */
   --animate-paid-glow: paid-glow 2400ms var(--ease-out) both;
+  /* A confirming tick (Copied, Saved): overshoots a little and settles. */
+  --animate-pop: pop 220ms var(--ease-out) both;
+  /* A control saying no: a short shake (a failed switch). */
+  --animate-nope: nope 300ms var(--ease-in-out) both;
 
   @keyframes spin {
     to {
@@ -295,6 +299,34 @@
     }
     100% {
       opacity: 0;
+    }
+  }
+  @keyframes pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+    60% {
+      opacity: 1;
+      transform: scale(1.15);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes nope {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-3px);
+    }
+    40%,
+    80% {
+      transform: translateX(3px);
     }
   }
 }
@@ -627,6 +659,19 @@
   }
   button:disabled {
     cursor: not-allowed;
+  }
+  /* An unavailable control still gets pointer events (for its cursor), so it can be hovered and pressed: rest those fills
+     on the resting one. A busy button is aria-disabled, so it counts. */
+  :disabled,
+  [aria-disabled="true"] {
+    --button-primary-bg-hover: var(--button-primary-bg);
+    --button-primary-bg-active: var(--button-primary-bg);
+    --button-secondary-bg-hover: var(--button-secondary-bg);
+    --button-secondary-bg-active: var(--button-secondary-bg);
+    --button-ghost-bg-hover: transparent;
+    --button-ghost-bg-active: transparent;
+    --button-paypal-bg-hover: var(--button-paypal-bg);
+    --button-paypal-bg-active: var(--button-paypal-bg);
   }
   /* Any control that has no press* utility still answers a press. */
   :where(a[href], button, summary, [role="tab"]):not([class*="press"])[data-pressed] {
