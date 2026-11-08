@@ -312,9 +312,11 @@ test.describe('at 1440 with a mouse', () => {
   test('a slow route shows the bar by 300 ms and marks the pressed row; both clear on arrival (12)', async ({ page }) => {
     const order = paidPickup();
     const path = `/shops/${shop.shop.id}/orders/${order.id}`;
+    let delayed = 0;
     await page.route(
       (url) => url.pathname === path,
       async (route) => {
+        delayed += 1;
         await new Promise((resolve) => setTimeout(resolve, 1200));
         await route.continue();
       },
@@ -331,6 +333,7 @@ test.describe('at 1440 with a mouse', () => {
     await link.click();
     await expect(page).toHaveURL(new RegExp(`${path}$`), { timeout: 30_000 });
     const { readings, marks } = await stopSampling(page);
+    expect(delayed).toBeGreaterThan(0); // the navigation really was the slow one
 
     const shown = readings.find((r) => r.t >= marks.click && Number(r.bar) > 0.5);
     expect(shown, JSON.stringify(readings.slice(0, 40))).toBeDefined();

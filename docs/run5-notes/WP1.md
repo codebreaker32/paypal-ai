@@ -109,6 +109,6 @@ Regression sweep, each run once on port 3201: `npm test` 1279 passed; typecheck 
 | Acceptance 6, swipe | Real touch events through CDP `Input.dispatchTouchEvent` | `Input.synthesizeScrollGesture` did not scroll the page, so the test proved nothing about a swipe. The test also asserts `scrollY` grew. |
 | Acceptance 9 | `el.click()`, so no press scale is in the width; readings after the row leaves are dropped | `MarkPickedUpButton` moves the row to Done 500 ms into success, so the button can be gone before sampling stops. |
 | Acceptance 10 | The tick must be visible from 300 ms into the hold, not its first frame | `animate-pop` starts it faded for its 220 ms pop-in. |
-| Acceptance 10, denied clipboard | `navigator.clipboard.writeText` rejected through an init script | Same as `primitives.spec.ts`: headless Chromium has no reliable real denial. |
+| Acceptance 10, denied clipboard | `navigator.clipboard.writeText` rejected through an init script | Same as `primitives.spec.ts`. A real browser permission denial was not tried. |
 | Acceptance 12 | The delay covers document and RSC requests to the order path (`url.pathname`) | In dev a soft navigation is an RSC fetch, and the brief's "delayed document" means the page is slow either way. |
 | Acceptance 14 | Runs at 390 and 1440, with `smallTargets` at 390 only | Matches the targets rule in `shop.spec.ts` (phone width). |
