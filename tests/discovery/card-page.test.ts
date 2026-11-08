@@ -21,7 +21,7 @@ const { createTestDb } = await import('@/lib/db');
 const shops = await import('@/lib/db/repos/shops');
 const { getConfig } = await import('@/lib/config');
 const { seedShop } = await import('../helpers/shop');
-const { default: CounterCardPage } = await import('@/app/shops/[id]/card/page');
+const { default: CounterCardPage } = await import('@/app/shops/[id]/(app)/card/page');
 
 async function render(shop: Shop): Promise<string> {
   h.shop = shop;
