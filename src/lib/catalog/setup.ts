@@ -39,24 +39,28 @@ async function createDraftShop(
   db: Db,
   name: string,
   savePhotos: (shopId: string) => Promise<string[]>,
+  accountId: string | null,
 ): Promise<CreatedShop> {
-  const { shop, ownerToken } = shops.create(db, { name: `draft ${newId('shp', 8).slice(4)}` });
+  const { shop, ownerToken } = shops.create(db, { name: `draft ${newId('shp', 8).slice(4)}`, accountId });
   const menuPhotoPaths = await savePhotos(shop.id);
   return { shop: shops.update(db, shop.id, { name, menuPhotoPaths }), ownerToken };
 }
 
 /** `photos` are raw uploads; each is normalised (and rejected if it isn't a photo) before the shop exists. */
-export async function createShopFromPhotos(db: Db, photos: Buffer[]): Promise<CreatedShop> {
+export async function createShopFromPhotos(db: Db, photos: Buffer[], accountId: string | null = null): Promise<CreatedShop> {
   const jpegs = await Promise.all(photos.map((p) => normalizePhoto(p)));
-  return createDraftShop(db, PLACEHOLDER_NAME, (id) =>
-    Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
+  return createDraftShop(
+    db,
+    PLACEHOLDER_NAME,
+    (id) => Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
+    accountId,
   );
 }
 
 /** The sample's photo is copied into the shop's folder; its file name remembers which sample it was. */
-export async function createShopFromSample(db: Db, sample: SampleId): Promise<CreatedShop> {
+export async function createShopFromSample(db: Db, sample: SampleId, accountId: string | null = null): Promise<CreatedShop> {
   const jpeg = await normalizePhoto(await fs.readFile(samplePhotoPath(sample)));
-  return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)]);
+  return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)], accountId);
 }
 
 /**

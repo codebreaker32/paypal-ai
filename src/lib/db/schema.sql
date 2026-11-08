@@ -1,6 +1,35 @@
 -- Shelfie schema (spec §6). Money is integer cents. Timestamps are ISO-8601 UTC strings.
 -- Applied idempotently on every connection open.
 
+-- Seller accounts (run 5): email and password, server-side sessions, a one-time recovery key.
+CREATE TABLE IF NOT EXISTS accounts (
+  id TEXT PRIMARY KEY,            -- acc_...
+  email TEXT NOT NULL UNIQUE,     -- normalised by parsePayeeEmail
+  password_hash TEXT NOT NULL,    -- scrypt$32768$8$3$<salt>$<key>, base64url
+  recovery_hash TEXT NOT NULL,    -- SHA-256 hex of the current key
+  recovery_saved_at TEXT,         -- null shows the banner
+  terms_version TEXT NOT NULL,
+  terms_accepted_at TEXT NOT NULL,
+  password_changed_at TEXT NOT NULL,
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sessions (
+  token_hash TEXT PRIMARY KEY,    -- SHA-256 of the cookie value
+  account_id TEXT NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL        -- created_at + 30 days, never extended
+);
+CREATE INDEX IF NOT EXISTS sessions_account ON sessions(account_id);
+
+CREATE TABLE IF NOT EXISTS payee_changes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  shop_id TEXT NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+  old_masked TEXT,
+  new_masked TEXT NOT NULL,
+  changed_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS shops (
   id TEXT PRIMARY KEY,
   slug TEXT NOT NULL UNIQUE,
@@ -17,6 +46,7 @@ CREATE TABLE IF NOT EXISTS shops (
   owner_token_hash TEXT NOT NULL,
   menu_photo_paths TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL,
+  account_id TEXT REFERENCES accounts(id), -- the owning account (run 5); null = unattached, reached by its owner link; added by applySchema on older databases
   published_at TEXT,
   payee_email TEXT -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
 );

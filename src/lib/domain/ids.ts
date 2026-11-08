@@ -10,7 +10,7 @@ function randomFrom(alphabet: string, len: number): string {
   return out;
 }
 
-export type IdPrefix = 'shp' | 'itm' | 'var' | 'ord' | 'evt' | 'ext' | 'asst' | 'img';
+export type IdPrefix = 'shp' | 'itm' | 'var' | 'ord' | 'evt' | 'ext' | 'asst' | 'img' | 'acc';
 
 /** Unguessable ids, safe to hand to agents: "ord_k7f2qxm4…". */
 export function newId(prefix: IdPrefix, len = 16): string {
