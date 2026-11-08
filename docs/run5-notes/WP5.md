@@ -247,7 +247,7 @@ Failing test first for each, in `tests/auth/limits-reserve.test.ts`, `tests/api/
 
 ### Not changed
 
-- **SR18 (shown in Settings), SR21 (first half), SR22, and so AC1's literal "every SR except SR19".** The review itself finds these need screens. The brief assigns them to WP6 (lines 662, 668, 676) and WP5's section says "API only; no screen changes" (line 612), so building them here would break that rule. The backends are done: `payeeChanges.latest`, `client/auth.ts`, `recoverySavedAt`. WP6 must close all three; the coordinator should check them after that merge.
+- **SR18 (shown in Settings), SR21 (first half), SR22, and so AC1's literal "every SR except SR19".** The review itself finds these need screens. The brief assigns them to WP6 (lines 648, 662, 664, 676) and WP5's section says "API only; no screen changes" (line 612), so building them here would break that rule. The backends are done: `payeeChanges.latest`, `client/auth.ts`, `recoverySavedAt`. WP6 must close all three; the coordinator should check them after that merge.
 - **The same in-flight window on the other owner handlers.** `items` (PATCH, POST), `orders/[orderId]/tracking`, `extract`, `counter`, item photos, and cover and logo also check the owner before reading the body, so a request opened before a recovery can still land. The finding named only `PATCH /api/shops/[id]`, the route that holds the PayPal email and the pause switch, and none of these can touch either. Left as is for scope; the coordinator can ask for the same re-check there. `ownershipCheck` works for any of them.
 
 ### Edited tests (the limit the review asked to raise; no assertion removed)
@@ -257,6 +257,29 @@ These three files are this package's own tests from the previous review round. E
 - `tests/auth/limits-reserve.test.ts`: `counts a correct password as an attempt` now uses 30, and `a request refused by the account limit charges the address nothing` fills the account from another address, because the two caps are now equal.
 - `tests/api/auth-races.test.ts`: `after 30 correct rotations` (was 10).
 - `tests/api/shops-races.test.ts`: `after 30 correct changes` (was 10).
+
+### Verified
+
+`npm test` (119 files, 1572 passed), `npm run typecheck`, `npm run lint`, and targeted e2e `auth-api`, `large-upload`, `start`, `dashboard` (32 passed, 1 pre-existing skip).
+
+## Review round 3 (0 findings, 4 failed acceptance items: AC1, SR18, SR21, SR22)
+
+No code changed. The four failures are accurate as statements of fact, and they are still open: nothing on this branch displays the PayPal email change, finishes a login or logout with `window.location.replace`, or renders the recovery banner. They are not fixed here because each one is a screen that the brief gives to WP6, and each review item says so itself.
+
+| Item | Missing | Assigned by the brief to | Backend ready and tested on this branch |
+|---|---|---|---|
+| SR18 (`shown in Settings`) | `PayPal email changed on {date}` in `SettingsPanel` | WP6, line 662; `dashboard/SettingsPanel` in its files, line 666; AC 9, line 677 | Password check and masked `payee_changes` rows; `payeeChanges.latest` (`tests/api/shops-accounts.test.ts`) |
+| SR21 (first half) | Login and logout forms | WP6, line 648; `LoginForm` and `HeaderNav` in its files, line 666 | `client/auth.ts` `login` and `logout`; the second half (`requireOwner` everywhere) passes under SR16 |
+| SR22 | `RecoveryBanner` in the banner slot | WP6, line 664; its named check is WP6 AC 8, line 676 | `recoverySavedAt`, `PATCH /api/account/recovery-key`, `markRecoverySaved` |
+| AC1 (`every SR except SR19 passes here`) | The three above | Follows from them | Every other SR passes, by this review's own evidence |
+
+Why not build them here: WP5's section says `API only; no screen changes at 390 or 1440` (line 612), and these are the same files WP6 is specified to create or change, so a second version would break that rule and collide at merge. AC1 (line 614) and line 612 can't both be met literally by WP5 alone. This is the smallest reading that keeps both packages as specified: the line 612 rule holds and AC1 is met by WP5 and WP6 together.
+
+**The coordinator should re-check SR18, SR21 and SR22 after WP6 merges, and treat AC1 as open until then.** WP5 alone does not satisfy AC1.
+
+### Edited tests
+
+None this round.
 
 ### Verified
 
