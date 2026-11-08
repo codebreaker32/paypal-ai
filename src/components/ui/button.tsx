@@ -95,7 +95,7 @@ function StateLabel({ own, active, hasIcon, children }: { own?: string; active: 
   return <span className={hasIcon ? undefined : 'sr-only'}>{children}</span>;
 }
 
-export interface ButtonProps extends Omit<ComponentProps<'button'>, 'children'>, ButtonStyleOptions {
+export interface ButtonProps extends Omit<ComponentProps<'button'>, 'children'>, Omit<ButtonStyleOptions, 'layered'> {
   /** `loading` shows a spinner after --pending-delay; `success` a tick. Either blocks clicks and keeps focus. */
   status?: ButtonStatus;
   /** The same as status="loading". */
@@ -167,7 +167,7 @@ export function Button({
   );
 }
 
-export interface ButtonLinkProps extends Omit<ComponentProps<typeof Link>, 'children'>, ButtonStyleOptions {
+export interface ButtonLinkProps extends Omit<ComponentProps<typeof Link>, 'children'>, Omit<ButtonStyleOptions, 'layered'> {
   icon?: LucideIcon;
   iconEnd?: LucideIcon;
   children: ReactNode;
