@@ -56,18 +56,34 @@ export function byEmail(db: Db, email: string): Account | null {
   return r ? toAccount(r) : null;
 }
 
-/** Stores a stronger hash of the same password (SR5): not a password change, so password_changed_at stays. */
-export function setPasswordHash(db: Db, id: string, passwordHash: string): void {
-  db.prepare('UPDATE accounts SET password_hash = ? WHERE id = ?').run(passwordHash, id);
+/**
+ * Stores a stronger hash of the same password (SR5): not a password change, so password_changed_at stays. Pass the hash
+ * that was just verified: false, and nothing written, if the row no longer holds it (recovery got there first).
+ */
+export function setPasswordHash(db: Db, id: string, passwordHash: string, verifiedHash?: string): boolean {
+  const { changes } =
+    verifiedHash === undefined
+      ? db.prepare('UPDATE accounts SET password_hash = ? WHERE id = ?').run(passwordHash, id)
+      : db.prepare('UPDATE accounts SET password_hash = ? WHERE id = ? AND password_hash = ?').run(passwordHash, id, verifiedHash);
+  return changes === 1;
 }
 
 export function markRecoverySaved(db: Db, id: string): void {
   db.prepare('UPDATE accounts SET recovery_saved_at = ? WHERE id = ?').run(now(), id);
 }
 
-/** A new recovery key cancels the old one; the seller has not saved the new one yet. */
-export function replaceRecoveryHash(db: Db, id: string, recoveryHash: string): void {
-  db.prepare('UPDATE accounts SET recovery_hash = ?, recovery_saved_at = NULL WHERE id = ?').run(recoveryHash, id);
+/**
+ * A new recovery key cancels the old one; the seller has not saved the new one yet. Pass the password hash that was just
+ * verified: false, and nothing written, if the row no longer holds it (a recovery ran while the password was checked).
+ */
+export function replaceRecoveryHash(db: Db, id: string, recoveryHash: string, verifiedPasswordHash?: string): boolean {
+  const { changes } =
+    verifiedPasswordHash === undefined
+      ? db.prepare('UPDATE accounts SET recovery_hash = ?, recovery_saved_at = NULL WHERE id = ?').run(recoveryHash, id)
+      : db
+          .prepare('UPDATE accounts SET recovery_hash = ?, recovery_saved_at = NULL WHERE id = ? AND password_hash = ?')
+          .run(recoveryHash, id, verifiedPasswordHash);
+  return changes === 1;
 }
 
 export interface RecoverAccountInput {

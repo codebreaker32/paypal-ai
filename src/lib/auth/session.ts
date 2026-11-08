@@ -56,20 +56,37 @@ export async function requireAccount(next?: string): Promise<accounts.Account> {
  * the account's other devices stay logged in.
  */
 export async function startSession(accountId: string): Promise<void> {
+  await openSession(accountId, () => true);
+}
+
+/**
+ * `startSession` for a login: the row must still hold the hash that was just verified, checked in the same transaction
+ * as the insert. False, and no session, when a recovery swapped the password during the hash.
+ */
+export function startSessionIfPasswordUnchanged(accountId: string, verifiedHash: string): Promise<boolean> {
+  return openSession(accountId, (db) => accounts.byId(db, accountId)?.passwordHash === verifiedHash);
+}
+
+async function openSession(accountId: string, stillValid: (db: Db) => boolean): Promise<boolean> {
   const jar = await cookies();
   const db = getDb();
   const previous = jar.get(sessionCookieName())?.value;
-  if (previous) sessions.deleteByTokenHash(db, hashToken(previous));
-  sessions.purgeExpired(db, now());
-
   const token = randomBytes(32).toString('base64url');
-  sessions.create(db, {
-    tokenHash: hashToken(token),
-    accountId,
-    expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000).toISOString(),
-  });
+  const opened = db.transaction(() => {
+    if (!stillValid(db)) return false;
+    if (previous) sessions.deleteByTokenHash(db, hashToken(previous));
+    sessions.purgeExpired(db, now());
+    sessions.create(db, {
+      tokenHash: hashToken(token),
+      accountId,
+      expiresAt: new Date(Date.now() + SESSION_SECONDS * 1000).toISOString(),
+    });
+    return true;
+  })();
+  if (!opened) return false;
   jar.set(sessionCookieName(), token, cookieOptions(SESSION_SECONDS));
   jar.set(RETURNING_COOKIE, '1', cookieOptions(RETURNING_SECONDS));
+  return true;
 }
 
 /** Ends this browser's session. The cookie is cleared with its full attributes: a `__Host-` cookie needs them. */
