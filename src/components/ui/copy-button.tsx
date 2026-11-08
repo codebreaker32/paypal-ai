@@ -68,16 +68,18 @@ function CopyLabel({ copied, label, size }: { copied: boolean; label: string; si
  */
 export function CopyButton({ text, what, label, ariaLabel, iconOnly, primary, size = 'md', describedBy, className }: CopyButtonProps) {
   const toast = useToast();
-  const [copied, setCopied] = useState(false);
+  // A counter, not a boolean: copying again while it says Copied restarts the 2 s.
+  const [copies, setCopies] = useState(0);
+  const copied = copies > 0;
 
   useEffect(() => {
-    if (!copied) return;
-    const t = setTimeout(() => setCopied(false), COPIED_MS);
+    if (copies === 0) return;
+    const t = setTimeout(() => setCopies(0), COPIED_MS);
     return () => clearTimeout(t);
-  }, [copied]);
+  }, [copies]);
 
   const onCopy = async () => {
-    if (await copyAndReport(text, toast)) setCopied(true);
+    if (await copyAndReport(text, toast)) setCopies((n) => n + 1);
   };
 
   const done = `${what} copied`;

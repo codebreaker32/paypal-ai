@@ -159,7 +159,7 @@ function BuyerCard({ shop, order, className }: { shop: Shop; order: Order; class
         <div className="flex flex-col gap-1">
           {order.payerName && <p className="font-semibold">{order.payerName}</p>}
           {order.payerEmail && (
-            <a href={`mailto:${order.payerEmail}`} className="press-text inline-flex min-h-tap items-center gap-1.5 self-start text-ink underline underline-offset-4 [overflow-wrap:anywhere]">
+            <a href={`mailto:${order.payerEmail}`} className="press-text inline-flex min-h-tap items-center gap-1.5 self-start text-ink underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink [overflow-wrap:anywhere]">
               <Icon icon={Mail} size="sm" />
               {order.payerEmail}
             </a>

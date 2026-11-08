@@ -102,8 +102,9 @@ function FileLabel({
       aria-disabled={disabled || undefined}
       className={cx(
         'press relative cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-focus',
-        disabled && 'cursor-progress',
         className,
+        // After className: buttonClasses() dims aria-disabled, which is for unavailable controls, and this one is busy.
+        disabled && 'cursor-progress aria-disabled:cursor-progress aria-disabled:opacity-100',
       )}
     >
       <input
@@ -279,7 +280,7 @@ export function CoverPicker({ shopId, shopName, coverUrl, onChange }: CoverPicke
           label="Add a cover photo"
           onPick={(f) => void actions.pick(f)}
           disabled={actions.busy}
-          className="relative flex aspect-[16/7] w-full flex-col sm:aspect-[3/1] items-center justify-center gap-2 overflow-hidden rounded-(--cover-radius) bg-surface-sunken text-ink-soft [--press-local:var(--press-scale-surface)] hover:bg-line"
+          className="relative flex aspect-[16/7] w-full flex-col sm:aspect-[3/1] items-center justify-center gap-2 overflow-hidden rounded-(--cover-radius) bg-surface-sunken text-ink-soft [--press-local:var(--press-scale-surface)] not-aria-disabled:hover:bg-line"
         >
           <span className="flex size-12 items-center justify-center rounded-full bg-surface text-ink shadow-xs">
             <Icon icon={ImagePlus} />
@@ -340,7 +341,7 @@ export function LogoPicker({ shopId, shopName, logoUrl, onChange }: LogoPickerPr
             {actions.busy && <Busy label="Saving your logo" />}
           </span>
         ) : (
-          <FileLabel label="Add a logo" onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(tile, 'group text-ink hover:bg-line')}>
+          <FileLabel label="Add a logo" onPick={(f) => void actions.pick(f)} disabled={actions.busy} className={cx(tile, 'group text-ink not-aria-disabled:hover:bg-line')}>
             <Icon icon={ImagePlus} className="transition-transform group-hover:scale-110" />
             {actions.busy && <Busy label="Saving your logo" />}
           </FileLabel>

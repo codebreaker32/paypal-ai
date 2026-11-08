@@ -119,7 +119,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
               </Button>
               <p className="type-meta text-ink-muted">
                 Or connect your own assistant to the{' '}
-                <a href="#agent-door" className="press-text font-semibold text-ink underline">
+                <a href="#agent-door" className="press-text font-semibold text-ink underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
                   agent door
                 </a>
                 .

@@ -310,7 +310,7 @@ function Starters({ prompts, onPick, disabled }: { prompts: string[]; onPick: (p
             type="button"
             disabled={disabled}
             onClick={() => onPick(p)}
-            className="press flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink [--press-local:var(--press-scale-wide)] hover:bg-line disabled:opacity-50"
+            className="press flex min-h-tap w-full items-center rounded-(--radius-xl) bg-surface-sunken px-4 py-2.5 text-left text-sm font-semibold text-ink [--press-local:var(--press-scale-wide)] enabled:hover:bg-line disabled:opacity-50"
           >
             <span className="flex-1">{p}</span>
           </button>

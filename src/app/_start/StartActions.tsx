@@ -144,9 +144,9 @@ export function StartActions() {
                     type="button"
                     onClick={() => remove(p.key)}
                     aria-label={`Remove page ${i + 1}`}
-                    className="press-icon absolute -top-3 -right-3 inline-flex size-tap items-center justify-center rounded-full"
+                    className="press-icon group/remove absolute -top-3 -right-3 inline-flex size-tap items-center justify-center rounded-full"
                   >
-                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-surface-raised text-ink shadow-(--card-shadow)">
+                    <span className="inline-flex size-7 items-center justify-center rounded-full bg-surface-raised text-ink shadow-(--card-shadow) group-hover/remove:bg-surface-sunken">
                       <Icon icon={X} size="sm" />
                     </span>
                   </button>
@@ -159,7 +159,7 @@ export function StartActions() {
                   type="button"
                   onClick={openPicker}
                   disabled={uploading}
-                  className="press inline-flex h-24 w-18 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-control text-ink-soft hover:border-ink hover:text-ink disabled:opacity-50"
+                  className="press inline-flex h-24 w-18 flex-col items-center justify-center gap-1 rounded-md border border-dashed border-control text-ink-soft enabled:hover:border-ink enabled:hover:text-ink disabled:opacity-50"
                 >
                   <Icon icon={Plus} />
                   <span className="type-meta font-semibold">Add page</span>
@@ -221,7 +221,7 @@ export function StartActions() {
                   disabled={busy !== null}
                   aria-busy={loading || undefined}
                   className={cx(
-                    'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left hover:bg-line',
+                    'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left enabled:hover:bg-line',
                     'disabled:cursor-not-allowed',
                     busy !== null && !loading && 'opacity-50',
                   )}

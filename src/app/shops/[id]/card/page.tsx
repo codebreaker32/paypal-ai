@@ -49,7 +49,7 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
               Your counter card is ready once your shop is live.{' '}
               <span className="font-normal">
                 Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
-                <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4">
+                <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
                   Finish setting up
                 </Link>
               </span>

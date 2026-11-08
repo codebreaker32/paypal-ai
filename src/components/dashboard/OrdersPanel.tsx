@@ -51,7 +51,7 @@ function EmptyState({ slug, onShowShare }: { slug: string; onShowShare: () => vo
         <button
           type="button"
           onClick={onShowShare}
-          className="press-text inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4"
+          className="press-text inline-flex min-h-tap items-center justify-center px-2 font-semibold text-ink underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink"
         >
           Share your agent door
         </button>
