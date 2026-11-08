@@ -377,7 +377,7 @@ export default async function OrderDetailPage({ params }: PageProps<'/shops/[id]
     <div className="grid w-full items-start gap-8 xl:grid-cols-[20rem_minmax(0,1fr)]">
       <AutoRefresh active={pending} />
       <OrderList shopId={shop.id} orders={allOrders} current={order.id} photos={photos} kind={shop.kind} />
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col">
       <PageHeader
         back={{ href: `/shops/${shop.id}`, label: 'Orders' }}
         // The reference never breaks; if the line is too narrow, it wraps after "Order".

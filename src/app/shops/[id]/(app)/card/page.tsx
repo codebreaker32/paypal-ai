@@ -88,7 +88,7 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
                 role="img"
                 aria-label={`QR code that opens ${asTyped(shopUrl)}`}
                 data-testid="card-qr"
-                className={cx('aspect-square [&>svg]:block [&>svg]:size-full', shop.coverUrl ? 'w-[46%]' : 'w-3/5')}
+                className={cx('aspect-square [&>svg]:block [&>svg]:size-full', shop.coverUrl ? 'w-[36%] @md:w-[46%]' : 'w-[46%] @md:w-3/5')}
                 dangerouslySetInnerHTML={{ __html: qr }}
               />
               <p className="mt-1 type-heading">Scan for the menu</p>

@@ -3,6 +3,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE, a11y, appNav } from './helpers';
 import { createFixtureShop, seedAllStates, signInAsOwner, type FixtureShop } from './task8-fixtures';
+import { getDb } from '@/lib/db';
+import * as itemsRepo from '@/lib/db/repos/items';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE = `http://localhost:${PORT}`;
@@ -67,7 +69,7 @@ test.describe('at 1440', () => {
 
   test('the shell replaces the site chrome, with one skip link to the content', async ({ page }) => {
     await page.goto(`/shops/${shop.shop.id}`);
-    await expect(page.locator('body > header, body > footer')).toHaveCount(0);
+    for (const chrome of await page.locator('body > header, body > footer').all()) await expect(chrome).toBeHidden();
     await expect(page.locator('[data-site-chrome]').first()).toBeHidden();
     await page.keyboard.press('Tab');
     const skip = page.getByRole('link', { name: 'Skip to content' });
@@ -115,6 +117,77 @@ test.describe('at 390', () => {
     await appNav(page).getByRole('link', { name: 'Share' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Share' })).toBeVisible();
     await expect(appNav(page).getByRole('link', { name: 'Share' })).toHaveAttribute('aria-current', 'page');
+  });
+});
+
+test.describe('Orders and Menu at 390', () => {
+  test.use({ viewport: PHONE });
+
+  test('filters fit, group heads stay on one line, a paid order keeps its status and action on one line', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}`);
+    await hideDevBadge(page);
+    const filters = page.getByRole('group', { name: 'Show orders' }).getByRole('button');
+    await expect(filters).toHaveCount(4);
+    for (const b of await filters.all()) {
+      const box = (await b.boundingBox())!;
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(PHONE.width);
+    }
+
+    const heading = page.getByRole('heading', { name: /To prepare/ }).first();
+    const subtotal = page.locator('section').filter({ has: heading }).locator('p').first();
+    const h = (await heading.boundingBox())!;
+    const t = (await subtotal.boundingBox())!;
+    expect(t.y).toBeLessThan(h.y + h.height);
+    expect(t.y + t.height).toBeGreaterThan(h.y);
+
+    const paid = page.locator('li[data-order]').filter({ has: page.getByRole('button', { name: 'Mark picked up' }) }).first();
+    const status = (await paid.getByText('Paid', { exact: true }).boundingBox())!;
+    const action = (await paid.getByRole('button', { name: 'Mark picked up' }).boundingBox())!;
+    expect(status.y).toBeLessThan(action.y + action.height);
+    expect(status.y + status.height).toBeGreaterThan(action.y);
+
+    const first = (await page.locator('li[data-order]').first().boundingBox())!;
+    expect(first.y).toBeLessThan(280);
+    await a11y(page);
+  });
+
+  test('Photos in one go leads the Menu only while some items lack the seller\'s own photo', async ({ page, context }) => {
+    const order = async () => {
+      const list = (await page.locator('li[data-item]').first().boundingBox())!.y;
+      const photos = (await page.getByRole('heading', { name: 'Photos in one go' }).boundingBox())!.y;
+      return { list, photos };
+    };
+    await page.goto(`/shops/${shop.shop.id}?tab=menu`);
+    let at = await order();
+    expect(at.photos).toBeLessThan(at.list);
+
+    const full = createFixtureShop('All Photos Bakery');
+    for (const it of Object.values(full.items)) itemsRepo.update(getDb(), it.id, { photoUrl: '/demo/marigold-bakehouse/almond-croissant.webp' });
+    for (const it of itemsRepo.listWithVariants(getDb(), full.shop.id)) if (!it.photoUrl) itemsRepo.update(getDb(), it.id, { photoUrl: '/demo/marigold-bakehouse/almond-croissant.webp' });
+    await signInAsOwner(context, full, BASE);
+    await page.goto(`/shops/${full.shop.id}?tab=menu`);
+    at = await order();
+    expect(at.list).toBeLessThan(at.photos);
+  });
+
+  test('order detail and the counter card have no sideways scroll, and Orders empty has its next steps', async ({ page, context }) => {
+    for (const width of [390, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 844 });
+      for (const path of [`/shops/${shop.shop.id}/orders/${orderId}`, `/shops/${shop.shop.id}/card`]) {
+        await page.goto(path);
+        const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        expect(over, `${width} ${path}`).toBeLessThanOrEqual(0);
+      }
+    }
+    const empty = createFixtureShop('Empty Orders Bakery');
+    await signInAsOwner(context, empty, BASE);
+    await page.setViewportSize(PHONE);
+    await page.goto(`/shops/${empty.shop.id}`);
+    await expect(page.getByRole('heading', { name: 'No orders yet' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Watch an AI order from you' })).toBeVisible();
+    await page.getByRole('button', { name: 'Share your agent door' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Share' })).toBeVisible();
   });
 });
 

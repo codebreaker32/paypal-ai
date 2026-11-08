@@ -31,7 +31,7 @@ export function AppNav({ shopId, toPrepare, variant }: { shopId: string; toPrepa
 
   return (
     <nav aria-label="Shop sections">
-      <ul className={bar ? 'grid h-(--app-tabbar-h) grid-cols-4 gap-1 p-1' : 'flex flex-col gap-0.5'}>
+      <ul className={bar ? 'grid h-[calc(var(--app-tabbar-h)-1px)] grid-cols-4 gap-1 p-1' : 'flex flex-col gap-0.5'}>
         {LINKS.map(({ section, icon }) => {
           const current = section === active;
           const count = section === 'orders' && toPrepare > 0 ? toPrepare : null;
