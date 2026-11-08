@@ -1,10 +1,13 @@
-// Seller auth without accounts (spec §11): one httpOnly cookie per shop holds the raw owner token;
-// the database stores only its SHA-256 hash.
+// Who owns a shop. An account-owned shop belongs to its account's session and nothing else (SR15). An unattached shop
+// (the seed, the test harness) belongs to whoever holds its owner token: one httpOnly cookie per shop holds the raw
+// token and the database stores only its SHA-256 hash.
 import { cookies } from 'next/headers';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { getDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
+import { loginPath } from './next-path';
+import { RETURNING_COOKIE, currentAccount } from './session';
 
 export const OWNER_COOKIE_PREFIX = 'shelfie_owner_';
 const ONE_YEAR = 60 * 60 * 24 * 365;
@@ -13,17 +16,27 @@ export const ownerCookieName = (shopId: string) => `${OWNER_COOKIE_PREFIX}${shop
 
 /** The shop if this browser owns it, else null. */
 export async function getOwnedShop(shopId: string): Promise<Shop | null> {
-  const jar = await cookies();
-  const token = jar.get(ownerCookieName(shopId))?.value;
   const db = getDb();
-  return shops.verifyOwnerToken(db, shopId, token) ? shops.byId(db, shopId) : null;
+  const shop = shops.byId(db, shopId);
+  if (!shop) return null;
+  if (shop.accountId) {
+    const account = await currentAccount();
+    return account?.id === shop.accountId ? shop : null;
+  }
+  const jar = await cookies();
+  return shops.verifyOwnerToken(db, shopId, jar.get(ownerCookieName(shopId))?.value) ? shop : null;
 }
 
-/** For pages and route handlers: 404 unless this browser owns the shop. */
+/**
+ * For pages: the shop if this browser owns it. A browser that has logged in before and has no valid session now goes
+ * to log in and come back; anyone else gets a 404, so a shop's address tells a stranger nothing.
+ */
 export async function requireOwner(shopId: string): Promise<Shop> {
   const shop = await getOwnedShop(shopId);
-  if (!shop) notFound();
-  return shop;
+  if (shop) return shop;
+  const jar = await cookies();
+  if (jar.get(RETURNING_COOKIE) && !(await currentAccount())) redirect(loginPath(`/shops/${shopId}`));
+  notFound();
 }
 
 /** Call from a route handler or server action. */
@@ -38,7 +51,7 @@ export async function setOwnerCookie(shopId: string, token: string): Promise<voi
   });
 }
 
-/** Shops this browser owns (for "Open your dashboard" on the start page). */
+/** Unattached shops this browser holds an owner cookie for (for "Open your dashboard" on the start page). */
 export async function listOwnedShops(): Promise<Shop[]> {
   const jar = await cookies();
   const db = getDb();
@@ -49,5 +62,5 @@ export async function listOwnedShops(): Promise<Shop[]> {
       const shopId = c.name.slice(OWNER_COOKIE_PREFIX.length);
       return shops.verifyOwnerToken(db, shopId, c.value) ? shops.byId(db, shopId) : null;
     })
-    .filter((s): s is Shop => s !== null);
+    .filter((s): s is Shop => s !== null && s.accountId === null);
 }
