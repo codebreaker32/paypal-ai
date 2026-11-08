@@ -1,23 +1,12 @@
 // POST /api/account/recovery-key { currentPassword } → 200 { recoveryKey }: a new key, the old one cancelled.
 // Errors: 401 LOGIN_REQUIRED; 403 PASSWORD_REQUIRED (none sent) or PASSWORD_WRONG; 429 RATE_LIMITED; 503 BUSY.
 // PATCH (no body) → 204: the seller has saved the current key, so the banner goes. 401 LOGIN_REQUIRED.
-import {
-  authFailure,
-  loginRequired,
-  noStoreEmpty,
-  noStoreJson,
-  passwordRequired,
-  passwordWrong,
-  readFields,
-  tooManyTries,
-} from '@/lib/auth/http';
-import { verifyPassword } from '@/lib/auth/password';
+import { authFailure, checkCurrentPassword, loginRequired, noStoreEmpty, noStoreJson, readFields } from '@/lib/auth/http';
 import { generateRecoveryKey, hashRecoveryKey } from '@/lib/auth/recovery';
 import { currentAccount } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
 import * as accounts from '@/lib/db/repos/accounts';
 import { assertSameOrigin } from '@/lib/http/same-origin';
-import { allowPasswordCheck, recordPasswordFailure } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -27,13 +16,8 @@ export async function POST(req: Request): Promise<Response> {
   try {
     const account = await currentAccount();
     if (!account) return loginRequired();
-    const { currentPassword } = await readFields(req);
-    if (typeof currentPassword !== 'string' || currentPassword === '') return passwordRequired();
-    if (!allowPasswordCheck(account.id)) return tooManyTries();
-    if (!(await verifyPassword(currentPassword, account.passwordHash))) {
-      recordPasswordFailure(account.id);
-      return passwordWrong();
-    }
+    const denied = await checkCurrentPassword(account, (await readFields(req)).currentPassword);
+    if (denied) return denied;
     const recoveryKey = generateRecoveryKey();
     accounts.replaceRecoveryHash(getDb(), account.id, hashRecoveryKey(recoveryKey));
     return noStoreJson({ recoveryKey });

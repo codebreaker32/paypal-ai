@@ -31,7 +31,7 @@ export async function readJson(req: Request): Promise<unknown> {
   }
 }
 
-/** The shop if this browser owns it (owner cookie), else null. Route handlers answer 404 for null. */
+/** The shop if this browser owns it (its account's session, or the owner cookie of an unattached shop), else null. Route handlers answer 404 for null. */
 export function ownedShop(id: string): Promise<Shop | null> {
   return getOwnedShop(id);
 }

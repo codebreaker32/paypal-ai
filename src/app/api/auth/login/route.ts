@@ -25,7 +25,7 @@ export async function POST(req: Request): Promise<Response> {
     const typedEmail = stringField(fields.email);
     const password = stringField(fields.password);
     const ip = clientIp(req);
-    if (!allowLogin(ip, typedEmail)) return tooManyTries();
+    if (!allowLogin(ip, typedEmail)) return tooManyTries('Too many tries. Wait 15 minutes, or reset your password with your recovery key.');
 
     const db = getDb();
     const parsed = parsePayeeEmail(typedEmail);
