@@ -1,11 +1,11 @@
-import { createElement, type ReactElement } from 'react';
+import { createElement, type ComponentProps, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { Check } from 'lucide-react';
 import { Button, ButtonLink, buttonClasses, type ButtonProps } from '@/components/ui/button';
 
 const render = (props: Partial<ButtonProps> = {}, label = 'Save changes') =>
-  renderToStaticMarkup(createElement(Button, { children: label, ...props }));
+  renderToStaticMarkup(createElement(Button, props as ButtonProps, label));
 
 /** One entry per label layer: its name and whether it is hidden. */
 function layers(html: string) {
@@ -173,7 +173,7 @@ describe('Button styling', () => {
   });
 
   it('ButtonLink stays a plain flex row (no state layers)', () => {
-    const html = renderToStaticMarkup(createElement(ButtonLink, { href: '/x', children: 'Open' }));
+    const html = renderToStaticMarkup(createElement(ButtonLink, { href: '/x' } as ComponentProps<typeof ButtonLink>, 'Open'));
     expect(html).not.toContain('data-layer');
     expect(html).not.toContain('inline-grid');
     expect(html).toContain('press');

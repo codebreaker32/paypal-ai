@@ -6,11 +6,9 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
-import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
-import { Pressable } from '@/components/motion/pressable';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
 import { setSoldOut } from './api';
@@ -65,7 +63,7 @@ function MenuRow({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const soldOut = item.status === 'live' && item.soldOut;
   return (
-    <Pressable as="li" lift={false} className="flex flex-col gap-1.5 py-3" data-item={item.name}>
+    <li className="flex flex-col gap-1.5 py-3" data-item={item.name}>
       <div className="flex items-center gap-3 sm:gap-4">
         <ItemPhotoPicker
           shopId={shopId}
@@ -97,6 +95,7 @@ function MenuRow({
             }
             checked={item.soldOut}
             busy={busy}
+            failed={!!error}
             onChange={onToggle}
             inline
           />
@@ -104,7 +103,7 @@ function MenuRow({
       </div>
       <PhotoError error={photoError} />
       {error && <FieldError>{error}</FieldError>}
-    </Pressable>
+    </li>
   );
 }
 
@@ -130,7 +129,6 @@ export function MenuPanel({
   onItemsChange: (update: (items: ItemWithVariants[]) => ItemWithVariants[]) => void;
   onCoverChange: (url: string | null) => void;
 }) {
-  const toast = useToast();
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const listed = listedItems(items);
@@ -152,7 +150,6 @@ export function MenuPanel({
       const { items: saved } = await setSoldOut(shopId, item.id, next);
       const byId = new Map(saved.map((i) => [i.id, i]));
       onItemsChange((all) => all.map((i) => byId.get(i.id) ?? i));
-      toast({ title: next ? `${item.name}: sold out today` : `${item.name} is back on`, tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setItem(item.id, { soldOut: !next });
       setErrors((all) => ({ ...all, [item.id]: e instanceof Error ? e.message : "Couldn’t save. Try again." }));

@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import { ArrowLeft } from 'lucide-react';
-import { ButtonLink, buttonClasses } from '@/components/ui/button';
+import { ButtonLink } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Icon } from '@/components/ui/icon';
+import { PayPalLink } from '@/components/ui/paypal-link';
 import { cx } from '@/components/ui/cx';
 import { StatusSwap } from '@/components/motion/status-swap';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
@@ -99,9 +100,9 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
 
         <div className="flex flex-col gap-3">
           {approvalUrl && (
-            <a href={approvalUrl} className={buttonClasses({ variant: 'paypal', size: 'lg', fullWidth: true })}>
+            <PayPalLink href={approvalUrl} size="lg" fullWidth>
               {view.approve}
-            </a>
+            </PayPalLink>
           )}
           <div className="flex flex-col gap-3 sm:flex-row">
             <ButtonLink href={shopHref} variant={approvalUrl ? 'secondary' : 'primary'} icon={ArrowLeft}>

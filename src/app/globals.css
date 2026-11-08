@@ -354,6 +354,7 @@
   --press-scale-icon: 0.9;
   --press-scale-surface: 0.985;
   --press-opacity: 0.6;
+  --press-flex: 1.18; /* A Switch's thumb, squashed along its travel. */
   --pending-delay: 160ms;
 
   --icon-sm: 1rem;
@@ -602,6 +603,18 @@
     transition-duration: var(--press-in);
   }
 }
+/* The Switch: its button doesn't move, its thumb flexes toward its travel. The thumb's `translate` keeps its own timing. */
+@utility press-switch {
+  & [data-thumb] {
+    transition:
+      translate var(--duration-base) var(--ease-out),
+      scale var(--press-out) var(--ease-out);
+  }
+  &[data-pressed] [data-thumb] {
+    scale: var(--press-flex) 1;
+    transition-duration: var(--duration-base), var(--press-in);
+  }
+}
 
 /* ───────────── Base ───────────── */
 @layer base {
@@ -714,6 +727,7 @@ html[data-motion-off] [data-entrance] {
     --press-scale-wide: 1;
     --press-scale-icon: 1;
     --press-scale-surface: 1;
+    --press-flex: 1;
   }
   *,
   ::before,

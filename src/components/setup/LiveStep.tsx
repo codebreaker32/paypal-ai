@@ -2,14 +2,14 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useId, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { m } from 'motion/react';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
 import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
-import { Check, ChevronDown, Copy, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
+import { ChevronDown, ExternalLink, RotateCcw, TriangleAlert } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/button';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
-import { useToast } from '@/components/ui/toast';
 import { cx } from '@/components/ui/cx';
 import { PublishProgress, usePublish } from './Publishing';
 
@@ -53,16 +53,7 @@ function LiveBeat({ delay = 0, className, children }: { delay?: number; classNam
   );
 }
 
-async function copyText(text: string): Promise<boolean> {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** A link shown in full (it wraps), with a Copy button that confirms in place and with a toast. */
+/** A link shown in full (it wraps), with a Copy button that confirms in place. */
 function CopyRow({
   value,
   label,
@@ -77,14 +68,7 @@ function CopyRow({
   /** The screen's one primary action. */
   primary?: boolean;
 }) {
-  const toast = useToast();
-  const [copied, setCopied] = useState(false);
   const id = useId();
-  useEffect(() => {
-    if (!copied) return;
-    const t = setTimeout(() => setCopied(false), 2000);
-    return () => clearTimeout(t);
-  }, [copied]);
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <code
@@ -96,19 +80,7 @@ function CopyRow({
       >
         {value}
       </code>
-      <Button
-        variant={primary ? 'primary' : 'secondary'}
-        size={primary ? 'lg' : 'md'}
-        icon={copied ? Check : Copy}
-        aria-describedby={id}
-        onClick={async () => {
-          const ok = await copyText(value);
-          setCopied(ok);
-          toast(ok ? { title: `${label} copied`, tone: 'ok' } : { title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
-        }}
-      >
-        {copied ? 'Copied' : copyLabel}
-      </Button>
+      <CopyButton text={value} what={label} label={copyLabel} primary={primary} size={primary ? 'lg' : 'md'} describedBy={id} />
     </div>
   );
 }

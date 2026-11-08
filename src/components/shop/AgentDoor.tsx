@@ -1,31 +1,10 @@
 'use client';
 
-import { Check, ChevronDown, Copy } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
 import { Tabs } from '@/components/ui/tabs';
-import { useToast } from '@/components/ui/toast';
-
-function CopyButton({ text, label, what }: { text: string; label: string; what: string }) {
-  const toast = useToast();
-  const [copied, setCopied] = useState(false);
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      toast({ title: `${what} copied`, tone: 'ok' });
-    } catch {
-      toast({ title: "Couldn’t copy", description: 'Select the text and copy it yourself.', tone: 'danger' });
-    }
-  };
-  return (
-    <Button variant="secondary" icon={copied ? Check : Copy} onClick={copy} aria-label={label} className="shrink-0">
-      {copied ? 'Copied' : 'Copy'}
-    </Button>
-  );
-}
 
 function Snippet({ code, what }: { code: string; what: string }) {
   return (
@@ -33,7 +12,7 @@ function Snippet({ code, what }: { code: string; what: string }) {
       <pre className="min-w-0 flex-1 rounded-md bg-surface-sunken px-3 py-2.5 font-mono text-sm leading-6 whitespace-pre-wrap [overflow-wrap:anywhere]">
         {code}
       </pre>
-      <CopyButton text={code} label={`Copy the ${what}`} what={what} />
+      <CopyButton text={code} what={what} ariaLabel={`Copy the ${what}`} className="shrink-0" />
     </div>
   );
 }
@@ -95,7 +74,7 @@ export function AgentDoor({ slug, shopName, url, takesOrders }: AgentDoorProps) 
             <code className="min-w-0 flex-1 rounded-md bg-surface-sunken px-3 py-2.5 font-mono text-sm [overflow-wrap:anywhere]">
               {url}
             </code>
-            <CopyButton text={url} label="Copy the agent door link" what="Agent door link" />
+            <CopyButton text={url} what="Agent door link" ariaLabel="Copy the agent door link" className="shrink-0" />
           </div>
           <Tabs
             label="Connect an assistant"

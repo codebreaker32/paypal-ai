@@ -183,7 +183,6 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     try {
       const { shop: saved } = await setShopStatus(shop.id, paused ? 'paused' : 'live');
       setStatus(saved.status);
-      toast({ title: paused ? 'Agent orders paused' : 'Taking agent orders again', tone: 'ok', durationMs: 3000 });
     } catch (e) {
       setStatus(before);
       setPauseError(e instanceof Error ? e.message : "Couldn’t save. Try again.");
@@ -235,6 +234,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
               description={paused ? 'Assistants can still read your menu.' : undefined}
               checked={paused}
               busy={pausing}
+              failed={!!pauseError}
               onChange={togglePause}
             />
             {pauseError && <FieldError className="pb-2">{pauseError}</FieldError>}

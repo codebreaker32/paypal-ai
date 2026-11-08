@@ -1,8 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type FocusEvent, type ReactNode } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { CircleAlert, CircleCheck, Info, X, type LucideIcon } from 'lucide-react';
+import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
+import { createPausableTimer, type PausableTimer } from '@/lib/feedback/pausable-timer';
 import { Icon } from './icon';
 import { cn } from '@/lib/utils';
 
@@ -56,26 +59,47 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         data-toast-region=""
         className="pointer-events-none fixed inset-x-4 bottom-4 z-(--z-toast) flex flex-col gap-2 pb-[env(safe-area-inset-bottom)] sm:left-auto sm:right-6 sm:bottom-6 sm:w-md"
       >
-        {toasts.map((t) => (
-          <ToastCard key={t.id} toast={t} onDismiss={dismiss} />
-        ))}
+        <AnimatePresence>
+          {toasts.map((t) => (
+            <ToastCard key={t.id} toast={t} onDismiss={dismiss} />
+          ))}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );
 }
 
+const HIDDEN = { opacity: 0, y: 16, scale: 0.98 };
+
 function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number) => void }) {
+  const timer = useRef<PausableTimer | null>(null);
+
   useEffect(() => {
-    const timer = setTimeout(() => onDismiss(toast.id), toast.durationMs);
-    return () => clearTimeout(timer);
+    const t = createPausableTimer(() => onDismiss(toast.id), toast.durationMs);
+    timer.current = t;
+    t.start();
+    return () => t.stop();
   }, [toast.id, toast.durationMs, onDismiss]);
+
+  // A toast never leaves while someone is reading it or has tabbed into it.
+  const leaveFocus = (e: FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) timer.current?.release('focus');
+  };
 
   const tone = TONE_ICON[toast.tone];
   return (
-    <div
+    <m.div
+      data-entrance=""
+      initial={HIDDEN}
+      animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: MOTION_S.base, ease: EASE_OUT } }}
+      exit={{ ...HIDDEN, transition: { duration: MOTION_S.fast, ease: EASE_OUT } }}
+      onPointerEnter={() => timer.current?.hold('hover')}
+      onPointerLeave={() => timer.current?.release('hover')}
+      onFocus={() => timer.current?.hold('focus')}
+      onBlur={leaveFocus}
       className={cn(
         'pointer-events-auto flex items-start gap-3 rounded-(--toast-radius) bg-(--toast-bg) py-3 pl-4 pr-1',
-        'text-(--toast-fg) shadow-(--toast-shadow) animate-rise-in',
+        'text-(--toast-fg) shadow-(--toast-shadow)',
       )}
     >
       <Icon icon={tone.icon} className={cn('mt-0.5', tone.className)} />
@@ -86,7 +110,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
           <Link
             href={toast.action.href}
             onClick={() => onDismiss(toast.id)}
-            className="-ml-1 mt-1 inline-flex min-h-tap items-center self-start rounded-full px-1 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
+            className="press-text -ml-1 mt-1 inline-flex min-h-tap items-center self-start rounded-full px-1 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
           >
             {toast.action.label}
           </Link>
@@ -95,15 +119,18 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="inline-flex size-(--spacing-tap) shrink-0 items-center justify-center rounded-full hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
+        className="press-icon inline-flex size-(--spacing-tap) shrink-0 items-center justify-center rounded-full hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
       >
         <Icon icon={X} size="sm" label="Dismiss" />
       </button>
-    </div>
+    </m.div>
   );
 }
 
-/** Returns toast(...) for brief confirmations: "Link copied", "Tracking sent to PayPal". */
+/**
+ * Returns toast(...) for news the person can't see where they are: a new paid order, tracking sent, picked up,
+ * `Couldn’t copy`. Anything whose result is in view (a switch, a saved field, Copied) confirms in place instead.
+ */
 export function useToast(): (t: ToastInput) => void {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast must be used inside <ToastProvider>');
