@@ -46,8 +46,8 @@ export function MarkPickedUpButton({
         loadingLabel="Saving…"
         successLabel="Picked up"
         onClick={pickUp}
-        fullWidth
-        className={fullWidth ? undefined : 'sm:w-auto'}
+        fullWidth={fullWidth}
+        className={fullWidth ? undefined : 'w-full sm:w-auto'}
       >
         Mark picked up
       </Button>
