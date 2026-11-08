@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useReducer, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type FormEvent, type RefObject } from 'react';
 import {
   CircleAlert,
   CircleCheck,
@@ -41,6 +41,7 @@ import {
   type ConsoleState,
   type Entry,
 } from './console-state';
+import { nearBottom, noteEntries, scrollCause, scrollTarget, type ScrollCause, type SeenEntries } from './console-scroll';
 import { RichText } from './RichText';
 import './console-motion.css';
 
@@ -326,44 +327,112 @@ export interface ConsoleConversationProps {
   starters: string[];
   /** False for a shop that isn't taking orders: the greeting then offers only questions. */
   takesOrders: boolean;
+  /** Blurred when an approval card arrives on a touch screen, so the keyboard stops covering it. */
+  inputRef?: RefObject<HTMLElement | null>;
+}
+
+/**
+ * Places the log as the conversation changes (rules in `console-scroll.ts`). Also runs when the scroller itself changes
+ * size: a sheet opening (a closed one has no height) goes to the end; anything else, such as the keyboard or the action
+ * row appearing, keeps a following buyer at the bottom.
+ */
+function useConversationScroll(state: ConsoleState, inputRef: RefObject<HTMLElement | null> | undefined) {
+  const end = useRef<HTMLDivElement>(null);
+  const log = useRef<HTMLDivElement>(null);
+  const place = useRef<{ scroller: HTMLElement | null; seen: SeenEntries | null; anchor: number; following: boolean; pastTurnStart: boolean; movedTo: number }>({
+    scroller: null,
+    seen: null,
+    anchor: -1,
+    following: true,
+    pastTurnStart: false,
+    movedTo: -1,
+  });
+
+  const moveFor = useCallback((cause: ScrollCause) => {
+    const p = place.current;
+    const scroller = p.scroller;
+    if (!scroller) return;
+    const start = p.anchor >= 0 ? log.current?.children[p.anchor] : undefined;
+    // An entry still rising in reads up to 8 px low, which the scroller's own padding covers.
+    const toStart = start ? scroller.scrollTop + start.getBoundingClientRect().top - scroller.getBoundingClientRect().top - parseFloat(getComputedStyle(scroller).paddingTop) : Infinity;
+    const target = scrollTarget(cause, {
+      scrollTop: scroller.scrollTop,
+      toEnd: scroller.scrollHeight - scroller.clientHeight,
+      toStart,
+      following: p.following,
+      pastTurnStart: p.pastTurnStart,
+    });
+    if (target === null) return;
+    const before = scroller.scrollTop;
+    scroller.scrollTop = target;
+    if (scroller.scrollTop !== before) p.movedTo = scroller.scrollTop;
+  }, []);
+
+  useLayoutEffect(() => {
+    const p = place.current;
+    const endEl = end.current;
+    if (endEl && !p.scroller?.contains(endEl)) p.scroller = scrollParentOf(endEl);
+    const cause = scrollCause(p.seen, state.entries, state.restored);
+    p.seen = noteEntries(state.entries);
+    p.anchor = turnStartIndex(state.entries);
+    if (cause === 'restored' || cause === 'message' || cause === 'approval') {
+      p.following = true;
+      p.pastTurnStart = cause !== 'message';
+    }
+    moveFor(cause);
+    if (cause === 'approval' && window.matchMedia('(pointer: coarse)').matches) inputRef?.current?.blur();
+  }, [state.entries, state.busy, state.restored, inputRef, moveFor]);
+
+  const hasEntries = state.entries.length > 0;
+  useEffect(() => {
+    const p = place.current;
+    const scroller = p.scroller;
+    if (!hasEntries || !scroller) return;
+    const onScroll = () => {
+      // Our own move is not the buyer's last scroll: the content may have grown again before this event fires.
+      if (Math.abs(scroller.scrollTop - p.movedTo) < 1) {
+        p.movedTo = -1;
+        return;
+      }
+      p.following = nearBottom(scroller);
+    };
+    let height = scroller.clientHeight;
+    const resized = new ResizeObserver(() => {
+      const was = height;
+      height = scroller.clientHeight;
+      if (height === was || height === 0) return;
+      if (was === 0) {
+        p.following = true;
+        p.pastTurnStart = true;
+        moveFor('restored');
+      } else {
+        moveFor('stream');
+      }
+    });
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    resized.observe(scroller);
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      resized.disconnect();
+    };
+  }, [hasEntries, moveFor]);
+
+  return { end, log };
 }
 
 /** The chat: an empty state with starter prompts, the turns with their Activity, approval cards, and a status line. */
-export function ConsoleConversation({ api, shopName, starters, takesOrders }: ConsoleConversationProps) {
+export function ConsoleConversation({ api, shopName, starters, takesOrders, inputRef }: ConsoleConversationProps) {
   const { state, send, reset } = api;
-  const end = useRef<HTMLDivElement>(null);
-  const log = useRef<HTMLDivElement>(null);
+  const { end, log } = useConversationScroll(state, inputRef);
   const last = state.entries.at(-1);
   const calling = last?.kind === 'activity' && last.calls.some((c) => c.status === 'running');
   const full = isConversationFull(state);
 
-  // Follow new content, but never past the start of the latest turn: when a reply is taller than the log, its
-  // Activity card stays at the top (under the sheet or panel title) and the buyer scrolls on from there.
-  const anchor = turnStartIndex(state.entries);
   // How many entries the conversation had when it was first shown (restored from sessionStorage or empty). A reset
   // empties it, and from then on everything is new (adjusted during render, so the next entry already rises in).
   const [shownAtOpen, setShownAtOpen] = useState(state.entries.length);
   if (shownAtOpen > 0 && state.entries.length === 0) setShownAtOpen(0);
   const freshFrom = firstFreshEntry(state, shownAtOpen);
-  // Found once per mount (the log moves between the sheet and the panel by remounting), not on every streamed event.
-  const scrollerRef = useRef<HTMLElement | null>(null);
-  useEffect(() => {
-    const endEl = end.current;
-    if (!endEl) return;
-    if (!scrollerRef.current?.contains(endEl)) {
-      scrollerRef.current = scrollParentOf(endEl) ?? (document.scrollingElement as HTMLElement | null);
-    }
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    // The page itself scrolls against the viewport, not against its own (full-height) box.
-    const box = scroller === document.scrollingElement ? { top: 0, bottom: window.innerHeight } : scroller.getBoundingClientRect();
-    const toEnd = scroller.scrollTop + endEl.getBoundingClientRect().bottom - box.bottom + parseFloat(getComputedStyle(scroller).paddingBottom);
-    const start = anchor >= 0 ? log.current?.children[anchor] : undefined;
-    const toStart = start ? scroller.scrollTop + start.getBoundingClientRect().top - box.top - parseFloat(getComputedStyle(scroller).paddingTop) : Infinity;
-    const target = Math.min(toEnd, toStart);
-    // Only ever move down: a buyer who scrolled further on keeps their place.
-    if (target > scroller.scrollTop) scroller.scrollTop = target;
-  }, [state.entries, state.busy, anchor]);
 
   if (!state.entries.length) {
     return (

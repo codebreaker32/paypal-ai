@@ -298,3 +298,130 @@ test.describe('entry points: one order button, no side card', () => {
     await expect(page.locator('[data-compact-cta]').getByRole('button', { name: 'Ask the assistant' })).toBeVisible();
   });
 });
+
+/** The assistant's stream, under the test's control: `emit` one event at a time, `finish` to end the reply. */
+const streamByHand = (page: Page) =>
+  page.addInitScript(() => {
+    const w = window as unknown as Record<string, unknown>;
+    const realFetch = window.fetch.bind(window);
+    let stream: ReadableStreamDefaultController<Uint8Array> | null = null;
+    window.fetch = (input, init) => {
+      if (!String(input).includes('/api/assistant/')) return realFetch(input, init);
+      const body = new ReadableStream<Uint8Array>({ start: (c) => void (stream = c) });
+      return Promise.resolve(new Response(body, { status: 200, headers: { 'content-type': 'application/x-ndjson' } }));
+    };
+    w.emit = (event: unknown) => stream?.enqueue(new TextEncoder().encode(JSON.stringify(event) + '\n'));
+    w.finish = () => {
+      stream?.enqueue(new TextEncoder().encode(JSON.stringify({ type: 'done' }) + '\n'));
+      stream?.close();
+    };
+  });
+
+const emit = (page: Page, event: Record<string, unknown>) => page.evaluate((e) => (window as unknown as { emit: (e: unknown) => void }).emit(e), event);
+const finish = (page: Page) => page.evaluate(() => (window as unknown as { finish: () => void }).finish());
+const PARAGRAPH = Array.from({ length: 70 }, (_, i) => `word${i}`).join(' ');
+
+const logState = (scroller: Locator) =>
+  scroller.evaluate((el) => ({ top: el.scrollTop, end: el.scrollHeight - el.clientHeight, bottom: el.getBoundingClientRect().bottom, boxTop: el.getBoundingClientRect().top }));
+
+/** Sends one message and waits for the buyer's bubble. */
+async function say(region: Locator, text: string): Promise<void> {
+  const input = region.getByRole('textbox', { name: 'Message to the assistant' });
+  await input.fill(text);
+  await input.press('Enter');
+  await expect(region.getByRole('log').getByText(text)).toBeVisible();
+}
+
+test.describe('message scrolling', () => {
+  test.use({ viewport: { width: 390, height: 560 } });
+
+  /** A first turn long enough to scroll, then a second message with its reply started. */
+  async function longConversation(page: Page) {
+    await streamByHand(page);
+    await page.goto(`/s/${SLUG}?assistant=1`);
+    await settle(page);
+    const region = page.getByRole('dialog');
+    await say(region, 'first');
+    for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+    await finish(page);
+    await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+    return { region, scroller: region.locator('.overflow-y-auto').first() };
+  }
+
+  test('a new message scrolls to it, even after the buyer scrolled away', async ({ page }) => {
+    const { region, scroller } = await longConversation(page);
+    await scroller.evaluate((el) => (el.scrollTop = 0));
+    await page.waitForTimeout(100);
+    await say(region, 'second question');
+    const s = await logState(scroller);
+    expect(s.top).toBeGreaterThanOrEqual(s.end - 1);
+    const bubble = await box(region.getByRole('log').getByText('second question'));
+    expect(bubble.y + bubble.height).toBeLessThanOrEqual(s.bottom);
+  });
+
+  test('a stream follows up to the start of the turn and never past it', async ({ page }) => {
+    const { region, scroller } = await longConversation(page);
+    await say(region, 'second question');
+    await emit(page, { type: 'text', text: `FIRST-REPLY ${PARAGRAPH}` });
+    const reply = region.getByRole('log').getByText('FIRST-REPLY');
+    await expect(reply).toBeVisible();
+    for (let i = 0; i < 6; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+    await page.waitForTimeout(400);
+    const s = await logState(scroller);
+    const first = await box(reply);
+    expect(first.y).toBeGreaterThanOrEqual(s.boxTop);
+    expect(s.top).toBeLessThan(s.end);
+  });
+
+  test('a buyer who scrolled up during a stream keeps their place', async ({ page }) => {
+    const { region, scroller } = await longConversation(page);
+    await say(region, 'second question');
+    await emit(page, { type: 'text', text: PARAGRAPH });
+    await page.waitForTimeout(100);
+    await scroller.evaluate((el) => (el.scrollTop = Math.max(0, el.scrollTop - 400)));
+    await page.waitForTimeout(100);
+    const before = (await logState(scroller)).top;
+    for (let i = 0; i < 4; i++) await emit(page, { type: 'text', text: PARAGRAPH });
+    await page.waitForTimeout(300);
+    expect((await logState(scroller)).top).toBe(before);
+  });
+
+  test('a restored conversation opens at its end', async ({ page }) => {
+    const { region, scroller } = await longConversation(page);
+    await region.getByRole('button', { name: 'Close the assistant' }).click();
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    await page.getByRole('button', { name: new RegExp(TITLE) }).click();
+    await expect(region).toBeVisible();
+    const s = await logState(scroller);
+    expect(s.end).toBeGreaterThan(0);
+    expect(s.top).toBeGreaterThanOrEqual(s.end - 1);
+  });
+
+  for (const viewport of [{ width: 1440, height: 900 }, { width: 390, height: 844 }, { width: 390, height: 560 }]) {
+    test(`${viewport.width}x${viewport.height}: the approval link is fully inside the log on arrival`, async ({ page }) => {
+      await page.setViewportSize(viewport);
+      await replayTurns(page);
+      await page.goto(`/s/${SLUG}?assistant=1`);
+      await settle(page);
+      const region = viewport.width >= 1024 ? page.locator('[data-assistant-dock]') : page.getByRole('dialog');
+      await orderThrough(region);
+      await page.waitForTimeout(350);
+      const link = await box(region.getByRole('link', { name: 'Approve $27.00 on PayPal' }));
+      const s = await logState(region.locator('.overflow-y-auto').first());
+      expect(link.y).toBeGreaterThanOrEqual(s.boxTop);
+      expect(link.y + link.height).toBeLessThanOrEqual(s.bottom);
+    });
+  }
+
+  test('wheel over the log at its end leaves the page where it was', async ({ page }) => {
+    const { scroller } = await longConversation(page);
+    await scroller.evaluate((el) => (el.scrollTop = el.scrollHeight));
+    const before = await page.evaluate(() => window.scrollY);
+    const b = await box(scroller);
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(200);
+    expect(await page.evaluate(() => window.scrollY)).toBe(before);
+  });
+});
