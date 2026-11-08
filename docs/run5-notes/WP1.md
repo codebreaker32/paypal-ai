@@ -90,3 +90,25 @@ Tests added: `tests/ui/press-coverage.test.ts`.
 ## Not done here
 
 `e2e/tactile.spec.ts` (the brief's acceptance 5 to 8, 12, 13). The sweep was checked in the browser with a throwaway spec instead: Mark picked up .96 at 1440 and row scale `none`; segments press .96 and the thumb fades and scales; the stretched link presses the row at .985 with the sunken fill; Space presses a Button and keeps focus; reduced motion holds segments at 1 and keeps their state.
+
+
+# WP1 notes (end-to-end task)
+
+Built: `e2e/tactile.spec.ts`, acceptance 5 to 14 on the real dashboard and shop. No product code changed: every check passed once the spec itself measured correctly.
+
+Existing tests edited: none (`e2e/helpers.ts` only gained exports).
+
+Regression sweep, each run once on port 3201: `npm test` 1279 passed; typecheck and lint clean; `dashboard` 21 passed, 1 skipped (it was already `test.skip`); `shop` 30, `menu-tab` 7, `start` 9, `setup-review` 8, all passed.
+
+## Deviations and choices the brief left open
+
+| Where | What | Why |
+|---|---|---|
+| `e2e/helpers.ts` | Added `a11y` and `smallTargets` | The task names them as helpers there, but they only existed inside `dashboard.spec.ts` and `shop.spec.ts`. Those keep their own copies, untouched. `smallTargets` takes the stretched-link rule from `dashboard.spec.ts` (the target is the row), which the dashboard needs. |
+| `tactile.spec.ts` timing | Measured in the page (a `requestAnimationFrame` sampler and a `MutationObserver`), not with Playwright polling | A round trip on a loaded machine is longer than the 100 to 350 ms windows being checked. |
+| Acceptance 6, swipe | Real touch events through CDP `Input.dispatchTouchEvent` | `Input.synthesizeScrollGesture` did not scroll the page, so the test proved nothing about a swipe. The test also asserts `scrollY` grew. |
+| Acceptance 9 | `el.click()`, so no press scale is in the width; readings after the row leaves are dropped | `MarkPickedUpButton` moves the row to Done 500 ms into success, so the button can be gone before sampling stops. |
+| Acceptance 10 | The tick must be visible from 300 ms into the hold, not its first frame | `animate-pop` starts it faded for its 220 ms pop-in. |
+| Acceptance 10, denied clipboard | `navigator.clipboard.writeText` rejected through an init script | Same as `primitives.spec.ts`: headless Chromium has no reliable real denial. |
+| Acceptance 12 | The delay covers document and RSC requests to the order path (`url.pathname`) | In dev a soft navigation is an RSC fetch, and the brief's "delayed document" means the page is slow either way. |
+| Acceptance 14 | Runs at 390 and 1440, with `smallTargets` at 390 only | Matches the targets rule in `shop.spec.ts` (phone width). |
