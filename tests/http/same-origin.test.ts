@@ -81,7 +81,7 @@ describe('assertSameOrigin', () => {
 
 describe('SR1', () => {
   it('has no proxy or middleware file, which would truncate large uploads', () => {
-    for (const name of ['src/proxy.ts', 'src/middleware.ts', 'proxy.ts', 'middleware.ts']) {
+    for (const name of ['src/proxy.ts', 'src/middleware.ts', 'proxy.ts', 'middleware.ts', 'src/proxy.js', 'src/middleware.js', 'proxy.js', 'middleware.js']) {
       expect(fs.existsSync(path.join(process.cwd(), name)), name).toBe(false);
     }
   });

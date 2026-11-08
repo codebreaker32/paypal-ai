@@ -19,8 +19,8 @@ function filesUnder(dir: string, match: (name: string) => boolean): string[] {
   });
 }
 
-const parse = (file: string): ts.SourceFile =>
-  ts.createSourceFile(file, fs.readFileSync(path.join(ROOT, file), 'utf8'), ts.ScriptTarget.Latest, true, file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
+const parse = (file: string, text: string = fs.readFileSync(path.join(ROOT, file), 'utf8')): ts.SourceFile =>
+  ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
 
 type Fn = ts.FunctionDeclaration | ts.ArrowFunction | ts.FunctionExpression;
 const isExported = (n: ts.Node) => (ts.getCombinedModifierFlags(n as ts.Declaration) & ts.ModifierFlags.Export) !== 0;
@@ -32,10 +32,45 @@ interface Handler {
   fn: Fn | null;
 }
 
-function handlersIn(file: string, methods: string[]): Handler[] {
-  const source = parse(file);
+/** The module `name` is imported from as itself (so not `{ other as name }`, and not a type), or null. */
+function importedFrom(source: ts.SourceFile, name: string): string | null {
+  for (const statement of source.statements) {
+    if (!ts.isImportDeclaration(statement) || statement.importClause?.isTypeOnly) continue;
+    const bindings = statement.importClause?.namedBindings;
+    if (!bindings || !ts.isNamedImports(bindings)) continue;
+    for (const el of bindings.elements) {
+      if (el.name.text === name && !el.isTypeOnly && (el.propertyName?.text ?? name) === name) {
+        return (statement.moduleSpecifier as ts.StringLiteral).text;
+      }
+    }
+  }
+  return null;
+}
+
+/** A top-level `const routes = shopImageRoutes(...)` with the factory really imported: a comment or a local copy is not enough. */
+function routesComeFromFactory(source: ts.SourceFile): boolean {
+  const declared = source.statements
+    .filter(ts.isVariableStatement)
+    .flatMap((s) => [...s.declarationList.declarations])
+    .some(
+      (d) =>
+        ts.isIdentifier(d.name) &&
+        d.name.text === 'routes' &&
+        !!d.initializer &&
+        ts.isCallExpression(d.initializer) &&
+        ts.isIdentifier(d.initializer.expression) &&
+        d.initializer.expression.text === 'shopImageRoutes',
+    );
+  return declared && importedFrom(source, 'shopImageRoutes') === '@/lib/catalog/shop-image-route';
+}
+
+function handlersIn(file: string, methods: string[], text?: string): Handler[] {
+  const source = parse(file, text);
   const found: Handler[] = [];
   for (const statement of source.statements) {
+    if (ts.isExportDeclaration(statement) && (!statement.exportClause || !ts.isNamedExports(statement.exportClause))) {
+      throw new Error(`${file}: export * hides what this route serves; declare each handler where it can be checked`);
+    }
     if (ts.isExportDeclaration(statement) && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
       for (const el of statement.exportClause.elements) {
         if (methods.includes(el.name.text)) throw new Error(`${file}: ${el.name.text} is re-exported; declare it where it can be checked`);
@@ -46,12 +81,13 @@ function handlersIn(file: string, methods: string[]): Handler[] {
     }
     if (ts.isVariableStatement(statement) && isExported(statement)) {
       for (const decl of statement.declarationList.declarations) {
-        if (!ts.isIdentifier(decl.name) || !methods.includes(decl.name.text)) continue;
+        if (!ts.isIdentifier(decl.name)) throw new Error(`${file}: an exported binding pattern is a form this guard cannot read`);
+        if (!methods.includes(decl.name.text)) continue;
         const init = decl.initializer;
         if (init && (ts.isArrowFunction(init) || ts.isFunctionExpression(init))) {
           found.push({ file, method: decl.name.text, fn: init });
         } else if (init && ts.isPropertyAccessExpression(init) && init.expression.getText(source) === 'routes' && init.name.text === decl.name.text) {
-          expect(source.text, `${file}: routes must come from shopImageRoutes`).toMatch(/const routes = shopImageRoutes\(/);
+          expect(routesComeFromFactory(source), `${file}: routes must come from shopImageRoutes`).toBe(true);
           found.push({ file, method: decl.name.text, fn: null });
         } else {
           throw new Error(`${file}: exported ${decl.name.text} has a form this guard cannot read`);
@@ -76,6 +112,73 @@ function imageRouteHandlers(methods: string[]): Handler[] {
   return found;
 }
 
+describe('the guard itself: forms it must not let through', () => {
+  const FILE = 'src/app/api/zz/route.ts';
+  const handlers = (text: string) => handlersIn(FILE, WRITE_METHODS, text);
+  const ORIGIN_IMPORT = "import { assertSameOrigin } from '@/lib/http/same-origin';";
+  const FACTORY_IMPORT = "import { shopImageRoutes } from '@/lib/catalog/shop-image-route';";
+  const CHECKED = 'export async function POST(req: Request) { const refused = assertSameOrigin(req); if (refused) return refused; return new Response(); }';
+  const originCheckPasses = (text: string) => {
+    const source = parse(FILE, text);
+    const [h] = handlersIn(FILE, WRITE_METHODS, text);
+    return startsWithOriginCheck(h.fn!, source);
+  };
+
+  it('a destructured export', () => {
+    expect(() => handlers('function make() { return { POST: async () => new Response() }; }\nexport const { POST } = make();')).toThrow(/cannot read/);
+  });
+
+  it('export * from a route file', () => {
+    expect(() => handlers("export * from './impl';")).toThrow(/export \*/);
+  });
+
+  it('export * as a name', () => {
+    expect(() => handlers("export * as POST from './impl';")).toThrow(/export \*/);
+  });
+
+  it('routes.POST with only a comment naming shopImageRoutes', () => {
+    const text = `${FACTORY_IMPORT}\n// const routes = shopImageRoutes(\nconst routes = { POST: async () => new Response() };\nexport const POST = routes.POST;`;
+    expect(() => handlers(text)).toThrow();
+  });
+
+  it('routes.POST from a local shopImageRoutes', () => {
+    const text = 'const shopImageRoutes = () => ({ POST: async () => new Response() });\nconst routes = shopImageRoutes();\nexport const POST = routes.POST;';
+    expect(() => handlers(text)).toThrow();
+  });
+
+  it('accepts routes.POST built by the real factory', () => {
+    const text = `${FACTORY_IMPORT}\nconst routes = shopImageRoutes({});\nexport const POST = routes.POST;`;
+    expect(handlers(text).map((h) => h.method)).toEqual(['POST']);
+  });
+
+  it('a local no-op assertSameOrigin', () => {
+    expect(originCheckPasses(`const assertSameOrigin = (_r: Request) => null;\n${CHECKED}`)).toBe(false);
+  });
+
+  it('assertSameOrigin imported from another module', () => {
+    expect(originCheckPasses(`import { assertSameOrigin } from './mine';\n${CHECKED}`)).toBe(false);
+  });
+
+  it('another function imported under the name assertSameOrigin', () => {
+    expect(originCheckPasses(`import { other as assertSameOrigin } from '@/lib/http/same-origin';\n${CHECKED}`)).toBe(false);
+  });
+
+  it('a parameter shadowing assertSameOrigin', () => {
+    const text = `${ORIGIN_IMPORT}\nexport async function POST(req: Request, assertSameOrigin: (r: Request) => null) { const refused = assertSameOrigin(req); if (refused) return refused; return new Response(); }`;
+    expect(originCheckPasses(text)).toBe(false);
+  });
+
+  it('accepts the real import', () => {
+    expect(originCheckPasses(`${ORIGIN_IMPORT}\n${CHECKED}`)).toBe(true);
+  });
+});
+
+describe('route files this guard cannot parse', () => {
+  it('no route.js, route.jsx, route.mjs or route.cjs exists under src/app', () => {
+    expect(filesUnder(APP, (n) => /^route\.(js|jsx|mjs|cjs)$/.test(n))).toEqual([]);
+  });
+});
+
 const writeRoutes = filesUnder(path.join(APP, 'api'), (n) => n === 'route.ts' || n === 'route.tsx');
 const routeFiles = writeRoutes.filter((f) => !SAME_ORIGIN_EXEMPT.includes(f));
 
@@ -89,6 +192,8 @@ function startsWithOriginCheck(fn: Fn, sourceFile: ts.SourceFile): boolean {
   const decl = first.declarationList.declarations[0];
   if (!decl?.initializer || !ts.isCallExpression(decl.initializer) || !ts.isIdentifier(decl.name)) return false;
   if (decl.initializer.expression.getText(sourceFile) !== 'assertSameOrigin') return false;
+  if (importedFrom(sourceFile, 'assertSameOrigin') !== '@/lib/http/same-origin') return false;
+  if (fn.parameters.some((p) => p.name.getText(sourceFile) === 'assertSameOrigin')) return false;
   if (decl.initializer.arguments[0]?.getText(sourceFile) !== param) return false;
   const name = decl.name.text;
   return (
@@ -139,7 +244,7 @@ function containsCall(fn: Fn, names: string[]): boolean {
 
 describe('SR16: every owner surface checks the owner', () => {
   const API_SHOP = path.join(APP, 'api/shops/[id]');
-  const shopRoutes = filesUnder(API_SHOP, (n) => n === 'route.ts');
+  const shopRoutes = filesUnder(API_SHOP, (n) => n === 'route.ts' || n === 'route.tsx');
   const handlers = shopRoutes.flatMap((f) => handlersIn(f, ALL_METHODS));
 
   it('finds the handlers', () => {
