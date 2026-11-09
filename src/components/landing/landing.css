@@ -4,7 +4,7 @@
 }
 @media (width >= 80rem) {
   .hero-wash {
-    background: linear-gradient(90deg, rgb(var(--blush-rgb) / 0.94) 0%, rgb(var(--blush-rgb) / 0.9) 32%, rgb(var(--blush-rgb) / 0.3) 50%, rgb(var(--blush-rgb) / 0) 64%);
+    background: linear-gradient(90deg, rgb(var(--blush-rgb) / 0.86) 0%, rgb(var(--blush-rgb) / 0.88) 39%, rgb(var(--blush-rgb) / 0.15) 54%, rgb(var(--blush-rgb) / 0) 64%);
   }
 }
 
@@ -22,10 +22,18 @@
 }
 
 .closing-fade {
-  background: linear-gradient(180deg, rgb(var(--cocoa-rgb) / 0.62) 0%, rgb(var(--cocoa-rgb) / 0.82) 100%);
+  background: linear-gradient(90deg, rgb(var(--cocoa-rgb) / 0) 0%, rgb(var(--cocoa-rgb) / 0.1) 16%, rgb(var(--cocoa-rgb) / 0.94) 36%, rgb(var(--cocoa-rgb)) 60%);
 }
 @media (width >= 48rem) {
   .closing-fade {
-    background: linear-gradient(90deg, rgb(var(--cocoa-rgb) / 0) 0%, rgb(var(--cocoa-rgb) / 0.08) 26%, rgb(var(--cocoa-rgb) / 0.95) 54%, rgb(var(--cocoa-rgb)) 66%);
+    background: linear-gradient(90deg, rgb(var(--cocoa-rgb) / 0) 0%, rgb(var(--cocoa-rgb) / 0) 30%, rgb(var(--cocoa-rgb) / 0.95) 56%, rgb(var(--cocoa-rgb)) 62%);
+  }
+}
+
+/* The hero chain's beats are hidden in the server HTML. Reduced motion shows them at once, also before hydration. */
+@media (prefers-reduced-motion: reduce) {
+  [data-chain-beat] {
+    opacity: 1 !important;
+    transform: none !important;
   }
 }

@@ -26,11 +26,11 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
   });
 }
 
-test('every footer list is named by its heading', async ({ page }) => {
+test('the footer’s main links are one named navigation', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/help');
-  const footer = page.locator('footer');
-  for (const name of ['Product', 'Help', 'For AI assistants', 'Legal']) await expect(footer.getByRole('list', { name, exact: true })).toHaveCount(1);
+  const nav = page.locator('footer').getByRole('navigation', { name: 'Footer', exact: true });
+  expect(await nav.getByRole('link').allInnerTexts()).toEqual(['Product', 'Help', 'Legal', 'Open Source']);
 });
 
 test('404, logged out: the brief’s copy with Go to Shelfie and Log in', async ({ page }) => {

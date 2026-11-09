@@ -1,6 +1,14 @@
 # Progress
 
-_Last updated: 2026-11-09 20:40 IST (run 5 complete)_
+_Last updated: 2026-11-10 01:15 IST (run 6 complete)_
+
+## Run 6 is complete (10 Nov 2026, 01:15 IST): the home page from the owner's reference
+Branch `run-6-home` (not merged; `main` untouched). `/`, its header and footer are rebuilt to the reference at 1440 and 390 px (`docs/preview/home-1440.png`, `home-390.png`). The sticky blush header and charcoal footer also serve `/help`, `/terms` and `/privacy`; shop, setup, seller and auth screens keep their old chrome.
+- **Verified on the final code:** `npm test` 2325 passed, typecheck and lint clean, `npm run build` succeeded. e2e: landing and auth-screens 38 passed; other-pages and sounds 37; app-shell, accounts and assistant-layout 140; tactile and discovery passed earlier in the run, before a one-line header fix. The full e2e suite was not run.
+- **Measured:** axe clean at both widths; text over photos 4.32:1 or better from the pixels behind it; band padding equal (56 px at 1440, 36 px at 390); no text under 14 px, body 16 and 18 px.
+- **Not done or not checked:** no real phone was used. The demo video was not re-recorded, so check whether any shot shows the old header or home page. The owner has not seen this page yet.
+- **For the owner to judge:** the hero photo is a blurred bakery case, not the reference's market with string lights, because the left of it must stay pale enough for the headline to pass contrast.
+
 
 ## Run 5 is complete (9 Nov 2026, 20:40 IST)
 **Final summary.** Every work package is on `main` (fast-forwarded from `run-5-production`): WP1-WP9, the cart (WP3b), the click sounds, and the should-haves S1, S3, S4, S5 and S6 (S2 became part of the click sounds).

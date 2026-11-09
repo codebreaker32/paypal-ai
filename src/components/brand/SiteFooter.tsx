@@ -5,22 +5,28 @@ import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/brand/Logo';
 import { BUYER_LINKS, COMPACT_LINKS, FOOTER_NAV, FOOTER_SMALL, REPO_URL, footerKind, type FooterLink } from '@/lib/brand/footer';
 import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
+import { cn } from '@/lib/utils';
 import { Frame } from './Frame';
 import { SoundToggle } from './SoundToggle';
 
-const LINK = 'press-text inline-flex min-h-tap items-center text-ink-soft hover:text-ink';
+
+const ANCHOR = {
+  plain: 'press-text inline-flex min-h-tap items-center text-ink-soft hover:text-ink',
+  band: 'press-text inline-flex min-h-tap items-center text-on-dark hover:text-blush-ring hover:underline',
+  bandSmall: 'press-text inline-flex min-h-tap items-center text-sm text-on-dark-soft hover:text-on-dark hover:underline',
+};
 
 /** Not prefetched: a footer scrolls into view on every page, and a buyer on a phone should not pay for the legal pages. */
-function FooterAnchor({ link, className = LINK }: { link: FooterLink; className?: string }) {
+function FooterAnchor({ link, tone = 'plain' }: { link: FooterLink; tone?: keyof typeof ANCHOR }) {
   if (link.native) {
     return (
-      <a href={link.href} className={className}>
+      <a href={link.href} className={ANCHOR[tone]}>
         {link.label}
       </a>
     );
   }
   return (
-    <Link href={link.href} prefetch={false} className={className}>
+    <Link href={link.href} prefetch={false} className={ANCHOR[tone]}>
       {link.label}
     </Link>
   );
@@ -45,8 +51,6 @@ function CompactFooter({ links }: { links: FooterLink[] }) {
   );
 }
 
-const ON_DARK = 'press-text inline-flex min-h-tap items-center text-on-dark hover:text-blush-ring hover:underline';
-const ON_DARK_SMALL = 'press-text inline-flex min-h-tap items-center text-sm text-on-dark-soft hover:text-on-dark hover:underline';
 const ROUND_ON_DARK = 'text-on-dark hover:bg-on-dark/15 hover:text-on-dark';
 
 /** The GitHub mark, which names the link to this project's repository. */
@@ -63,14 +67,14 @@ function SiteWideFooter() {
   return (
     <div className="bg-charcoal text-on-dark [--focus-ring-color:var(--white)]">
       <div className="mx-auto w-full max-w-site px-band-gutter">
-        <div className="flex items-center justify-between gap-x-4 gap-y-2 py-5 max-md:flex-wrap">
-          <Logo className="text-on-dark" />
-          <nav aria-label="Footer" className="max-md:order-3 max-md:w-full">
-            <ul className="flex items-center gap-x-3 md:gap-x-5">
+        <div className="flex items-center justify-between gap-x-3 py-3 md:py-5">
+          <Logo size="sm" className="text-on-dark md:h-7" />
+          <nav aria-label="Footer">
+            <ul className="flex items-center gap-x-2 text-sm md:gap-x-5 md:text-base">
               {FOOTER_NAV.map((link, index) => (
-                <li key={link.label} className="flex items-center gap-x-3 md:gap-x-5">
+                <li key={link.label} className={cn('flex items-center gap-x-2 md:gap-x-5', link.native && 'max-md:hidden')}>
                   {index > 0 && <span aria-hidden="true" className="h-4 w-px bg-on-dark-soft/50" />}
-                  <FooterAnchor link={link} className={ON_DARK} />
+                  <FooterAnchor link={link} tone="band" />
                 </li>
               ))}
             </ul>
@@ -83,7 +87,7 @@ function SiteWideFooter() {
           <p className="py-2 text-sm text-on-dark-soft">{TEST_MODE_LINE}</p>
           <div className="flex items-center gap-x-5 max-md:w-full">
             {FOOTER_SMALL.map((link) => (
-              <FooterAnchor key={link.href} link={link} className={ON_DARK_SMALL} />
+              <FooterAnchor key={link.href} link={link} tone="bandSmall" />
             ))}
             <span className="max-md:ml-auto">
               <SoundToggle className={ROUND_ON_DARK} />

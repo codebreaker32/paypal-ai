@@ -61,7 +61,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await page.goto('/');
       const footer = page.locator('body > footer');
       await expect(footer.getByText(TEST_MODE_LINE)).toBeVisible();
-      for (const name of ['Product', 'Help', 'Legal', 'Open Source', 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
+      for (const name of ['Product', 'Help', 'Legal', ...(label === '1440' ? ['Open Source'] : []), 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
         await expect(footer.getByRole('link', { name, exact: true })).toBeVisible();
       }
       await expect(footer.getByRole('button', { name: 'Sound' })).toBeVisible();

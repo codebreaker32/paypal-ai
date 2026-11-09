@@ -78,12 +78,14 @@
   --ill-pom: var(--pom-600);
   /* ── end illustrations ── */
 
-  /* Public site bands (home, help, legal). Blush is Radix Colors Ruby 2, 3 and 5; the pomegranate ramp above matches
+  /* Public site bands (home, help, legal). Blush is Radix Colors Ruby 1, 2, 3 and 5; the pomegranate ramp above matches
      Tailwind rose 700, 800 and 900 in lightness; charcoal and its soft text are Tailwind stone 800 and 300. */
+  --blush-1: #fffcfd;
   --blush-2: #fff7f8;
   --blush-3: #feeaed;
   --blush-5: #ffced6;
   --blush-rgb: 255 247 248;
+  --paper: #f6ecd9;
   --cocoa-800: #4a2d1f;
   --cocoa-rgb: 74 45 31;
   --stone-300: #d6d3d1;
@@ -181,8 +183,10 @@
   --color-note-soft: var(--slate-50);
   --color-note-ink: var(--ink-900);
 
+  --color-blush-bar: var(--blush-1);
   --color-blush: var(--blush-2);
   --color-blush-band: var(--blush-3);
+  --color-paper: var(--paper);
   --color-blush-ring: var(--blush-5);
   --color-cocoa: var(--cocoa-800);
   --color-charcoal: var(--stone-800);
@@ -263,9 +267,9 @@
   --spacing-gutter: clamp(1.25rem, 4vw, 3rem);
   --spacing-section: clamp(3rem, 8vw, 6rem);
   /* The public site's bands: one vertical padding for every band, one gutter for every band's content. */
-  --spacing-band: clamp(2.5rem, 5vw, 4.5rem);
+  --spacing-band: clamp(2.25rem, 4vw, 3.5rem);
   --spacing-band-gutter: clamp(1.25rem, 2.4vw, 2.5rem);
-  --spacing-wave: clamp(3.5rem, 8vw, 7.5rem);
+  --spacing-wave: clamp(2rem, 8vw, 7.5rem);
 
   --container-site: 90rem;
   --container-page: 76rem;
@@ -838,13 +842,6 @@ html[data-motion-off] [data-entrance] {
   transform: none !important;
 }
 
-/* The hero chain's beats are hidden in the server HTML. Reduced motion shows them at once, also before hydration. */
-@media (prefers-reduced-motion: reduce) {
-  [data-chain-beat] {
-    opacity: 1 !important;
-    transform: none !important;
-  }
-}
 
 /* The link that was just followed: it dims if the next page takes a moment. An animation, not a transition, so the delay
    holds whatever transition list the control's press utility sets. Unlayered so it applies over any utility. */

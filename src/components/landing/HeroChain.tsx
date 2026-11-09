@@ -9,7 +9,7 @@ import { LogoMark } from '@/components/brand/Logo';
 import { EASE_OUT } from '@/components/motion';
 import { usePrefersReducedMotion } from '@/components/motion/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
-import { AssistantMark } from './art';
+import { AccentMarks, AssistantMark } from './art';
 
 // The handwriting on the paper menu only, loaded when the chain is.
 const hand = Caveat({ subsets: ['latin'], weight: '700', display: 'swap', preload: false });
@@ -64,7 +64,7 @@ function Arrow({ on, className }: { on: number; className?: string }) {
   return (
     <div aria-hidden="true" className={cn('overflow-hidden text-on-dark', className)}>
       <Beat on={on} kind="draw">
-        <svg viewBox="0 0 28 24" className="block w-full drop-shadow-sm" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+        <svg viewBox="0 0 28 24" className="block w-full [filter:drop-shadow(0_1px_3px_rgb(var(--ink-rgb)/0.55))]" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 12h21M15 4l9 8-9 8" />
         </svg>
       </Beat>
@@ -72,7 +72,7 @@ function Arrow({ on, className }: { on: number; className?: string }) {
   );
 }
 
-const CARD = 'relative flex aspect-[4/5] flex-col overflow-hidden rounded-xl bg-surface p-3 shadow-lg xl:p-3.5';
+const CARD = 'relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl bg-surface px-3 pb-7 pt-3 shadow-lg xl:px-3.5 xl:pt-3.5';
 
 function PaperCard() {
   const rows = [
@@ -82,8 +82,9 @@ function PaperCard() {
     ['Banana Bread', '$5'],
   ];
   return (
-    <div className={cn('flex aspect-[4/5] -rotate-3 flex-col rounded-xs bg-blush p-3 text-ink-soft shadow-lg xl:p-4', hand.className)}>
-      <p className="text-center text-2xl leading-none text-ink">Menu</p>
+    <div className={cn('relative flex aspect-[3/4] -rotate-3 flex-col rounded-xs bg-paper px-3 pb-7 pt-3 text-ink-soft shadow-lg xl:px-4 xl:pt-4', hand.className)}>
+      <AccentMarks className="absolute -top-7 right-3 size-8 -scale-x-100 text-accent" />
+      <p className="text-center text-2xl uppercase leading-none tracking-wide text-ink">Menu</p>
       <ul className="mt-2 flex flex-1 flex-col justify-around text-lg leading-none xl:text-xl">
         {rows.map(([name, price]) => (
           <li key={name} className="flex justify-between gap-1">
@@ -169,16 +170,16 @@ const STEPS = [
 /** The four white cards with their captions, from 768 px. */
 function FullChain() {
   return (
-    <ol className="hidden items-start gap-8 md:flex">
+    <ol className="hidden items-start gap-10 md:flex xl:mt-8">
       {STEPS.map((step, index) => (
         <li key={step.caption} className="relative min-w-0 flex-1">
           <Beat on={step.on}>
             <div aria-hidden="true">{step.card}</div>
-            <p className="relative z-10 mx-auto -mt-4 w-fit max-w-full rounded-lg bg-surface px-3 py-1.5 text-center text-sm font-semibold text-ink shadow-md xl:text-base">
+            <p className="relative z-10 mx-auto -mt-4 w-fit max-w-[9.5rem] rounded-lg bg-surface px-3 py-1.5 text-balance text-center text-sm font-semibold text-ink shadow-md xl:text-base">
               {index + 1}. {step.caption}
             </p>
           </Beat>
-          {step.arrow !== null && <Arrow on={step.arrow} className="absolute left-full top-[38%] ml-1 w-6" />}
+          {step.arrow !== null && <Arrow on={step.arrow} className="absolute left-full top-[38%] ml-1 w-8" />}
         </li>
       ))}
     </ol>
@@ -188,7 +189,7 @@ function FullChain() {
 const TILE = 'relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden rounded-lg bg-surface shadow-md';
 
 const PHONE_TILES = [
-  <div key="paper" className={cn('flex aspect-[4/5] -rotate-3 flex-col gap-1 rounded-xs bg-blush p-1.5 shadow-md', hand.className)}>
+  <div key="paper" className={cn('flex aspect-[4/5] -rotate-3 flex-col gap-1 rounded-xs bg-paper p-1.5 shadow-md', hand.className)}>
     <span className="text-center text-sm leading-none text-ink">Menu</span>
     {[0, 1, 2, 3].map((row) => (
       <span key={row} className="flex items-center gap-1">
@@ -197,9 +198,11 @@ const PHONE_TILES = [
       </span>
     ))}
   </div>,
-  <div key="shop" className={TILE}>
-    <Image src="/demo/home/cupcake.webp" alt="" fill sizes="80px" className="object-cover" />
-    <LogoMark className="absolute left-1 top-1 size-5" />
+  <div key="shop" className={cn(TILE, 'justify-start gap-0.5 p-1')}>
+    <LogoMark className="size-4 self-start" />
+    <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-xs">
+      <Image src="/demo/home/cupcake.webp" alt="" fill sizes="80px" className="object-cover" />
+    </div>
   </div>,
   <div key="assistant" className={TILE}>
     <AssistantMark className="size-10 text-ink" />

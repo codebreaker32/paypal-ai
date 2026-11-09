@@ -308,4 +308,6 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The band header and charcoal footer apply to `/`, `/help`, `/terms` and `/privacy` only.** Reason: buyer pages have their own sticky rows, and the brief keeps them and the seller shell as they are.
 - **The footer has a small second row (sandbox sentence, Privacy, agents.txt, llms.txt, Sound).** Reason: those links and the sound switch must stay reachable, and the reference's single row has four links only.
 - **The FAQ keeps six questions, dropping password recovery.** Reason: `/help` already answers it, and a seventh row makes the band much taller than the reference's.
-- **The hero uses `public/samples/counter-case.jpg`, heavily blurred.** Reason: of the eleven candidates viewed it was the warmest, and its price cards vanish under the blur.
+- **The hero uses `public/samples/counter-case.jpg`, heavily blurred.** Reason: of the candidates viewed it was the warmest, and its price cards vanish under the blur.
+- **The phone footer drops the `Open Source` text link and keeps the GitHub icon.** Reason: the reference does, and one row fits at 390 px with 14 px links.
+- **The review's 13 px footer links and sub-44 px controls were not adopted.** Reason: the brief sets 14 px for meta text, and tap targets stay 44 px.

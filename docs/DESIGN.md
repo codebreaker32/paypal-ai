@@ -219,6 +219,17 @@ The cart is one view in the assistant's boxes: the same right-edge dock from 102
 
 Cart states: while checkout is in flight the button reads `Opening PayPal…` and every control is disabled; over the shop's cap the button is disabled with the limit as an inline line; every refusal is one `role="alert"` line under the button, in `error`, and keeps the cart unless the item itself has gone. Changes are announced by one polite status line. An unavailable item's sheet ends in one plain line with no button. `e2e/screenshots.spec.ts` captures `item-sheet`, `cart` and `cart-error` at both widths.
 
+## The public site (home, help, legal)
+
+Built from the owner's reference image (run 6), and the one place the rules above are relaxed: pomegranate may fill a band and a pill (`Button` variants `brand` and `inverse`), and the page is a stack of bands, not a white page.
+
+- **Bands, each a different place:** the sticky near-white header (`BandHeader`), the hero photo with its pomegranate wave, the blush How it works band, the solid pomegranate FAQ with deeper rows, the cocoa photo band, the charcoal footer. Every band uses one padding (`py-band`) and one gutter (`px-band-gutter`) inside `max-w-site`.
+- **Palette:** blush `#fffcfd`, `#fff7f8`, `#feeaed` and `#ffced6` are Radix Colors Ruby 1, 2, 3 and 5. Pomegranate 600 to 800 match Tailwind rose 700 to 900 in lightness. Charcoal `#292524` and its soft text `#d6d3d1` are Tailwind stone 800 and 300. Cocoa is `#4a2d1f`, and the paper menu `#f6ecd9`.
+- **Text over photos** is checked from the pixels behind it (axe can't read images): the hero's veil and the closing band's fade exist for this, so re-measure after changing either or the photo.
+- **Motion:** the hero chain (`landing/HeroChain.tsx`) lands in turn when it comes into view, replays when the visitor returns, and never loops; under reduced motion it shows at once. Every beat carries `data-entrance` and `data-chain-beat`.
+- **Type:** body at least 16 px on phones and 18 px from 1280 px, meta at least 14 px. The handwriting on the paper menu (Caveat) is the only other typeface, and only there.
+- **Icons:** `landing/art.tsx` holds the chunky outline drawings. The assistant is a neutral speech bubble and spark, never an AI company's mark; PayPal appears as blue text.
+
 ## Rules
 
 - One primary (black) action per screen; PayPal blue only to approve a payment.

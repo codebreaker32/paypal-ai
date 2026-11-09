@@ -41,7 +41,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
   }, [open]);
 
   return (
-    <header ref={barRef} data-site-chrome="" data-band-header="" className="sticky top-0 z-(--z-header) border-b border-blush-ring bg-blush shadow-xs">
+    <header ref={barRef} data-site-chrome="" data-band-header="" className="sticky top-0 z-(--z-header) border-b border-blush-ring bg-blush-bar shadow-xs">
       <div className="mx-auto flex h-16 w-full max-w-site items-center justify-between gap-2 px-band-gutter xl:h-20">
         <div className="flex items-center gap-12">
           <Link href={view.logoHref} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap items-center rounded-sm px-1">
@@ -58,7 +58,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
 
         <div className="flex items-center gap-1 md:gap-3">
           {dashboardHref && (
-            <Link href={dashboardHref} className={`${LINK} hidden px-2 md:inline-flex`}>
+            <Link href={dashboardHref} className={`${LINK} px-2 max-md:hidden`}>
               Dashboard
             </Link>
           )}
@@ -91,18 +91,18 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
         id="band-menu"
         aria-label="Menu"
         hidden={!open}
-        className="absolute inset-x-0 top-full animate-fade-in border-b border-blush-ring bg-blush px-band-gutter pb-3 shadow-md md:hidden"
+        className="absolute inset-x-0 top-full animate-fade-in border-b border-blush-ring bg-blush-bar px-band-gutter pb-3 shadow-md md:hidden"
       >
         <ul>
           {[...SECTIONS, { label: 'Help', href: '/help' }, ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }] : [])].map((link) => (
-            <li key={link.label} className="border-t border-blush-band first:border-t-0">
+            <li key={link.label} className="border-t border-blush-ring first:border-t-0">
               <Link href={link.href} className={`${LINK} w-full text-lg`} onClick={() => setOpen(false)}>
                 {link.label}
               </Link>
             </li>
           ))}
           {view.kind === 'public' && (
-            <li className="border-t border-blush-band min-[22rem]:hidden">
+            <li className="border-t border-blush-ring min-[22rem]:hidden">
               <Link href="/login" className={`${LINK} w-full text-lg`} onClick={() => setOpen(false)}>
                 Log in
               </Link>

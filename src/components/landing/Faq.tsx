@@ -41,14 +41,14 @@ export function Faq() {
         <style>{'#faq-list{display:block!important}'}</style>
       </noscript>
       <div className="mx-auto grid w-full max-w-site px-band-gutter py-band md:gap-8 xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] xl:gap-10">
-        <div>
+        <div className="xl:self-center">
           <h2 id="faq-title" className="type-band">
             <button
               type="button"
               aria-expanded={open}
               aria-controls="faq-list"
               onClick={() => setOpen((value) => !value)}
-              className="press-text flex w-full items-center justify-between gap-4 text-left md:hidden"
+              className="press-text flex min-h-tap w-full items-center justify-between gap-4 text-left text-2xl leading-tight md:hidden"
             >
               Frequently asked questions
               <Icon icon={ChevronDown} size="lg" className={`shrink-0 transition-[rotate] duration-(--duration-base) ${open ? 'rotate-180' : ''}`} />
@@ -61,10 +61,10 @@ export function Faq() {
           <span aria-hidden="true" className="mt-4 hidden h-1 w-20 rounded-full bg-on-dark md:block" />
         </div>
         <div id="faq-list" className={open ? 'mt-6 md:mt-0' : 'hidden md:block'}>
-          <Reveal className="flex flex-col gap-2.5">
+          <Reveal className="flex flex-col gap-2">
             {QUESTIONS.map(({ q, a }) => (
               <details key={q} className="group rounded-lg bg-accent-active">
-                <summary className="press-text flex min-h-13 list-none items-center justify-between gap-4 rounded-lg px-5 py-3 text-lg font-semibold hover:bg-accent-hover xl:text-xl [&::-webkit-details-marker]:hidden">
+                <summary className="press-text flex min-h-12 list-none items-center justify-between gap-4 rounded-lg px-5 py-2 text-lg font-semibold hover:bg-accent-hover xl:text-xl [&::-webkit-details-marker]:hidden">
                   {q}
                   <Icon icon={ChevronDown} className="shrink-0 transition-[rotate] duration-(--duration-base) group-open:rotate-180" />
                 </summary>
