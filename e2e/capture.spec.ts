@@ -483,4 +483,117 @@ test.describe('capture gate (real PayPal sandbox)', () => {
     });
     await runGate(page, info, origin, { mode: 'platform', shop, prefix: '' });
   });
+
+  // The cart's own money path (addendum, WP3b): no agent door. A buyer adds from the menu and pays through the shop page.
+  test('cart checkout: a buyer adds from the menu → wallet login → Paid to the seller → capture COMPLETED → cart cleared → brief', async ({ page, baseURL }, info) => {
+    test.skip(!SELLER || !BUYER, 'Needs PAYPAL_SANDBOX_SELLER_EMAIL and PAYPAL_SANDBOX_BUYER_EMAIL / _PASSWORD in .env.');
+    test.setTimeout(12 * 60_000);
+    const origin = baseURL!;
+    const api = page.context().request;
+    const shot = (p: Page, name: string, full = false) => shoot(p, info, `cart-${name}`, full);
+    let shop!: LiveShop;
+    let shopName = '';
+    const cartKey = () => `shelfie:cart:${shop.slug}`;
+
+    await test.step('1. a live shop paid to the seller\'s own PayPal email', async () => {
+      shop = await createLiveShop(api, origin, SELLER!);
+    });
+
+    let checkout!: { orderRef: string; number: string; approvalUrl: string; totalCents: number };
+    await test.step('2. the shop page: add two items, open the cart, approve on PayPal', async () => {
+      await page.goto(`/s/${shop.slug}`);
+      shopName = (await page.getByRole('heading', { level: 1 }).first().innerText()).trim();
+      await page.evaluate(() => localStorage.clear());
+      await page.reload();
+      await page.waitForFunction(() => {
+        const el = document.querySelector('li[data-menu-item] button');
+        return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
+      });
+      const add = page.getByRole('button', { name: /^Add .* to your order$/ });
+      expect(await add.count()).toBeGreaterThan(1);
+      await add.first().click();
+      await add.nth(1).click();
+      await page.getByRole('button', { name: /View order/ }).filter({ visible: true }).first().click();
+
+      const dock = page.locator('[data-assistant-dock]');
+      await expect(dock.locator('[data-cart-line]')).toHaveCount(2);
+      await dock.getByLabel(/Note for the shop/).fill(BUYER_NOTE);
+      const pay = dock.getByRole('button', { name: /^Approve \$[\d.,]+ on PayPal$/ });
+      await expect(pay).toBeVisible();
+      const shownTotal = /\$([\d.,]+)/.exec((await pay.innerText()).trim())![1];
+      await settle(page);
+      await shot(page, 'panel');
+
+      const created = page.waitForResponse((r) => new URL(r.url()).pathname === `/api/checkout/${shop.slug}` && r.request().method() === 'POST', { timeout: 120_000 });
+      await pay.click();
+      const res = await created;
+      expect(res.status()).toBe(201);
+      checkout = (await res.json()) as typeof checkout;
+      expect(usd(checkout.totalCents)).toBe(shownTotal);
+      expect(checkout.approvalUrl).toMatch(/^https:\/\/www\.sandbox\.paypal\.com\/checkoutnow\?token=[A-Z0-9]+$/);
+      await page.waitForURL(/^https:\/\/www\.sandbox\.paypal\.com\//, { timeout: 60_000 });
+      log(`[cart] order ${checkout.number} (${checkout.orderRef}) $${usd(checkout.totalCents)} from the shop page`);
+    });
+    const paypalOrderId = new URL(checkout.approvalUrl).searchParams.get('token')!;
+
+    await test.step('3. PayPal sandbox: buyer logs in and pays (wallet), back to Shelfie', async () => {
+      const returned = await payWithPayPalLogin(page, checkout.approvalUrl, { returnOrigin: origin, testInfo: info, ...BUYER! });
+      expect(returned.startsWith(`${origin}/api/paypal/return?o=${checkout.orderRef}`), returned).toBe(true);
+      await page.waitForURL(`${origin}/o/${checkout.orderRef}`, { timeout: 90_000 });
+    });
+
+    await test.step('4. receipt: Paid, to the seller; capture COMPLETED at PayPal; the cart is cleared', async () => {
+      await expect(page.getByRole('heading', { level: 1, name: `Paid. ${shopName} has your order.` })).toBeVisible({ timeout: 60_000 });
+      await expect(page.getByText(`Paid to ${shopName}’s own PayPal account (`)).toBeVisible();
+      expect((await page.locator('body').innerText()).includes(SELLER!)).toBe(false);
+      await settle(page);
+      await redactSandboxLogins(page);
+      await shot(page, 'receipt-paid', true);
+
+      const stored = await storedOrder(api, origin, shop.id, checkout.orderRef);
+      expect(stored.status).toBe('paid');
+      expect(stored.paypalOrderId).toBe(paypalOrderId);
+      expect(stored.captureId).toMatch(/^[A-Z0-9]{10,}$/);
+      const pp = await paypalGet<{
+        status: string;
+        purchase_units: { custom_id?: string; payee?: { email_address?: string }; payments?: { captures?: { id: string; status: string; amount: { value: string } }[] } }[];
+      }>(`/v2/checkout/orders/${paypalOrderId}`);
+      const cap = pp.purchase_units[0].payments?.captures?.[0];
+      expect(pp.status).toBe('COMPLETED');
+      expect(pp.purchase_units[0].custom_id).toBe(checkout.orderRef);
+      expect(cap?.id).toBe(stored.captureId);
+      expect(cap?.status).toBe('COMPLETED');
+      expect(cap?.amount.value).toBe(usd(checkout.totalCents));
+      expect(pp.purchase_units[0].payee?.email_address?.toLowerCase() === SELLER, 'PayPal payee is the sandbox seller').toBe(true);
+      log(`[cart] capture ${stored.captureId} COMPLETED at PayPal, $${cap?.amount.value}, payee = PAYPAL_SANDBOX_SELLER_EMAIL`);
+
+      await expect.poll(() => page.evaluate((k) => localStorage.getItem(k), cartKey()), { timeout: 15_000 }).toBeNull();
+      expect(await page.evaluate((k) => localStorage.getItem(`${k}:pending`), cartKey())).toBeNull();
+    });
+
+    await test.step('5. the seller sees "via your shop page", with the brief from the buyer\'s note', async () => {
+      let stored!: StoredOrder;
+      await expect
+        .poll(
+          async () => {
+            stored = await storedOrder(api, origin, shop.id, checkout.orderRef);
+            return stored.brief !== null;
+          },
+          { timeout: 180_000, intervals: [3_000] },
+        )
+        .toBe(true);
+      log(`[cart] brief (${stored.briefSource}): "${stored.brief!.headline}"`);
+      if (HAS_CLAUDE) {
+        expect(stored.briefSource).toBe('agent');
+        expect(stored.brief!.buyer_requests.map((r) => r.kind)).toContain('allergy');
+      }
+      await page.goto(`/shops/${shop.id}`);
+      const card = page.locator(`[data-order="${checkout.number}"]`);
+      await expect(card).toContainText('Paid');
+      await expect(card).toContainText('via your shop page');
+      await settle(page);
+      await redactSandboxLogins(page);
+      await shot(page, 'dashboard-paid');
+    });
+  });
 });
