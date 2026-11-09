@@ -81,8 +81,8 @@ export function RecoveryKeyStep({ recoveryKey, email, next, appUrl }: RecoveryKe
           {recoveryKey}
         </span>
         <div aria-hidden="true" className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-1.5 font-mono text-xl font-semibold sm:grid-cols-4">
-          {keyGroups(recoveryKey).map((group) => (
-            <span key={group}>{group}</span>
+          {keyGroups(recoveryKey).map((group, i) => (
+            <span key={i}>{group}</span>
           ))}
         </div>
       </div>

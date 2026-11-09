@@ -209,6 +209,20 @@ test.describe('how they look', () => {
       await settle(page);
       await a11y(page);
       await page.screenshot({ path: `test-results/wp6-auth-key-${name}.png` });
+
+      // Print shows only the key step, without its buttons, and says where to use it.
+      await page.emulateMedia({ media: 'print' });
+      await expect(page.locator('header[data-site-chrome]')).toBeHidden();
+      await expect(page.getByRole('button', { name: 'Download' })).toBeHidden();
+      await expect(page.getByText(/\/recover and enter this key/)).toBeVisible();
+      await page.emulateMedia({ media: 'screen' });
+
+      await page.goto('/this-page-does-not-exist');
+      await settle(page);
+      await page.getByRole('button', { name: 'Account' }).click();
+      await expect(page.getByTestId('account-menu')).toBeVisible();
+      await a11y(page);
+      await page.screenshot({ path: `test-results/wp6-account-menu-${name}.png` });
     });
   }
 });
