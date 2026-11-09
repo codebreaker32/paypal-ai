@@ -8,6 +8,7 @@ import { HeroOrderCta } from '@/components/shop/OrderCta';
 import { ShopAssistant } from '@/components/shop/ShopAssistant';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { starterPrompts } from '@/components/shop/starters';
+import { cx } from '@/components/ui/cx';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
@@ -77,7 +78,7 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
   if (!shop.coverUrl && strip.length < 2) return null;
   return (
     <div data-page-frame="" className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
-      <div className="relative h-44 overflow-hidden bg-surface-sunken sm:h-64 sm:rounded-(--cover-radius) lg:h-80">
+      <div className="relative h-32 overflow-hidden bg-surface-sunken sm:h-44 sm:rounded-(--cover-radius) lg:h-60">
         {shop.coverUrl ? (
           <img src={shop.coverUrl} {...responsiveImage(shop.coverUrl, COVER_SIZES)} alt="" fetchPriority="high" className="size-full object-cover" />
         ) : (
@@ -95,16 +96,17 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
 function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariants[]; photoCount: number }) {
   const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
   const avatar = { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') };
+  // Under 640 px the price list link moves up beside the avatar (when a cover carries one); from 640 px it is at the right of the pickup lines.
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-4 sm:gap-y-5">
       {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
           stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
-      {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 -mt-16 -mb-1 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20" />}
+      {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 col-start-1 -mt-16 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20 sm:-mb-1" />}
       {/* The name row: from 1024 px the order button sits at its right end, bottom-aligned with the meta line. */}
-      <div className="flex items-start gap-4 lg:items-end">
+      <div className="col-span-2 flex items-start gap-4 lg:items-end">
         {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" className="lg:self-start" />}
         <div className="min-w-0 flex-1">
-          <h1 className="type-hero [overflow-wrap:anywhere]">{shop.name}</h1>
+          <h1 className="type-display [overflow-wrap:anywhere]">{shop.name}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">
             <span>{KIND[shop.kind]}</span>
             <span aria-hidden="true">·</span>
@@ -115,35 +117,38 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
         </div>
         <HeroOrderCta />
       </div>
-      {shop.about && <p className="max-w-measure type-lead text-ink-soft">{shop.about}</p>}
+      {shop.about && <p className="col-span-2 max-w-measure type-body text-ink-soft lg:type-lead">{shop.about}</p>}
       {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
       {!takesOrders(shop) && (
-        <p role="status" className="rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
+        <p role="status" className="col-span-2 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
           {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
           <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
         </p>
       )}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className={cx('sm:col-span-1', photoCount > 0 ? 'max-sm:col-span-2' : 'col-span-2')}>
         <HowToGetIt shop={shop} />
-        {photoCount > 0 && (
-          <a
-            href={`/s/${shop.slug}/photo/1`}
-            target="_blank"
-            rel="noopener"
-            className="group press-text inline-flex min-h-tap shrink-0 items-center gap-3 self-start rounded-(--card-radius) pr-2 font-semibold no-underline"
-          >
-            <Image
-              src={`/s/${shop.slug}/photo/1?size=avatar`}
-              alt={`The price list ${shop.name} was made from`}
-              width={88}
-              height={88}
-              unoptimized
-              className="size-12 rounded-(--thumb-radius) object-cover shadow-(--card-shadow)"
-            />
-            <span className="text-sm text-ink-soft group-hover:text-ink group-hover:underline">Original price list</span>
-          </a>
-        )}
       </div>
+      {photoCount > 0 && (
+        <a
+          href={`/s/${shop.slug}/photo/1`}
+          target="_blank"
+          rel="noopener"
+          className={cx(
+            'group press-text inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center gap-3 self-start rounded-(--card-radius) font-semibold no-underline sm:justify-start sm:self-center sm:pr-2',
+            hasCover ? 'max-sm:col-start-2 max-sm:row-start-1 max-sm:-mt-5' : 'max-sm:col-span-2 max-sm:justify-self-start',
+          )}
+        >
+          <Image
+            src={`/s/${shop.slug}/photo/1?size=avatar`}
+            alt={`The price list ${shop.name} was made from`}
+            width={88}
+            height={88}
+            unoptimized
+            className="size-8 rounded-(--thumb-radius) object-cover shadow-(--card-shadow) sm:size-12"
+          />
+          <span className="text-sm text-ink-soft group-hover:text-ink group-hover:underline max-sm:sr-only">Original price list</span>
+        </a>
+      )}
     </div>
   );
 }
@@ -175,7 +180,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         initiallyOpen={assistant === '1'}
         cover={<Cover shop={shop} items={items} />}
         intro={<Intro shop={shop} items={items} photoCount={shop.menuPhotoPaths.length} />}
-        menu={<Menu sections={menuSections(items)} kind={shop.kind} />}
+        menu={<Menu sections={menuSections(items)} kind={shop.kind} takesOrders={ordersOpen} />}
         door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
         takesOrders={ordersOpen}
       />
