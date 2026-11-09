@@ -9,6 +9,7 @@ import * as shopsRepo from '@/lib/db/repos/shops';
 import { toPayPalValue } from '@/lib/domain/money';
 import { canBePaid, maskEmail } from '@/lib/domain/payee';
 import { absolutePhotoUrl } from '@/lib/domain/photo-url';
+import { approvalMinutes, isStorefrontAgentName } from '@/lib/domain/storefront';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
 import { OrderError } from '@/lib/orders/errors';
@@ -218,7 +219,11 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
     return shop;
   };
 
-  const agentName = (): string | null => server.server.getClientVersion()?.name || deps.agentName || null;
+  // The storefront's name is reserved: an agent that claims it (client name or ?agent=) is recorded as unnamed (SR29).
+  const agentName = (): string | null => {
+    const name = server.server.getClientVersion()?.name || deps.agentName || null;
+    return isStorefrontAgentName(name) ? null : name;
+  };
 
   register('get_shop_info', {
     title: 'Shop info',
@@ -437,6 +442,6 @@ function statusMessage(
         ? 'The shop cancelled this order before payment. Nothing was charged. Tell the user; they can contact the shop before ordering again.'
         : 'The user cancelled on PayPal. Nothing was charged.';
     case 'expired':
-      return 'The approval link expired after 60 minutes without payment. Nothing was charged. Create a new order if the user still wants it.';
+      return `The approval link expired after ${approvalMinutes(order.agentName)} minutes without payment. Nothing was charged. Create a new order if the user still wants it.`;
   }
 }

@@ -322,6 +322,32 @@ async function openConsole(page: Page, phone: boolean): Promise<Locator> {
   return region;
 }
 
+async function hydratedMenu(page: Page) {
+  await page.waitForFunction(() => {
+    const el = document.querySelector('li[data-menu-item] button');
+    return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
+  });
+}
+
+async function openItem(page: Page) {
+  await hydratedMenu(page);
+  await page.locator('li[data-menu-item="Almond croissant"] h4 button').click();
+  await expect(page.locator('dialog[open]')).toBeVisible();
+}
+
+/** One item in the order, and its cart open: the sheet on a phone, the dock from 1024 px. */
+async function openCart(page: Page): Promise<Locator> {
+  await page.goto(`/s/${SLUG}`);
+  await page.evaluate((slug) => localStorage.removeItem(`shelfie:cart:${slug}`), SLUG);
+  await page.reload();
+  await hydratedMenu(page);
+  await page.getByRole('button', { name: 'Add Almond croissant to your order' }).click();
+  await page.getByRole('button', { name: /View order/ }).filter({ visible: true }).first().click();
+  const cart = page.locator('dialog[open], [data-assistant-dock]').filter({ has: page.locator('[data-cart-line]') });
+  await expect(cart.locator('[data-cart-line]')).toHaveCount(1);
+  return cart;
+}
+
 async function say(region: Locator, text: string) {
   await region.getByRole('textbox', { name: 'Message to the assistant' }).fill(text);
   await region.getByRole('button', { name: 'Send' }).click();
@@ -612,6 +638,36 @@ const SCREENS: Screen[] = [
       await say(region, FIXTURE.prompts[1]);
       await expect(region.getByRole('alert')).toHaveText("The shop didn’t answer. Try again.");
       await expect(region.getByRole('button', { name: 'Start over' })).toBeVisible();
+    },
+  },
+  // Item sheet and cart (MOCKED where it says so; the cart is the browser's own).
+  {
+    name: 'item-sheet',
+    viewport: true,
+    run: async (page) => {
+      await page.goto(`/s/${SLUG}`);
+      await openItem(page);
+      await expect(page.locator('dialog[open]').getByRole('button', { name: /^Add to order/ })).toBeVisible();
+    },
+  },
+  {
+    name: 'cart',
+    viewport: true,
+    run: async (page) => {
+      await openCart(page);
+    },
+  },
+  {
+    // MOCKED: the route's answer when PayPal can't be reached.
+    name: 'cart-error',
+    viewport: true,
+    run: async (page) => {
+      await page.route(`**/api/checkout/${SLUG}`, (route) =>
+        route.fulfill({ status: 502, json: { error: { code: 'PAYPAL_UNAVAILABLE', message: 'We can’t reach PayPal right now. Your order is saved here. Try again in a moment.' } } }),
+      );
+      const cart = await openCart(page);
+      await cart.getByRole('button', { name: /on PayPal/ }).click();
+      await expect(cart.getByRole('alert')).toContainText('We can’t reach PayPal');
     },
   },
   // Receipt

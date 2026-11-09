@@ -52,7 +52,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
             tone: 'warn',
             icon: Clock,
             title: 'Waiting for your approval',
-            body: 'Approve the payment on PayPal to place this order. Nothing is charged until you do, and the link works for 60 minutes.',
+            body: `Approve the payment on PayPal to place this order. Nothing is charged until you do, and the link works for ${o.approvalMinutes ?? 60} minutes.`,
             approve: `Approve ${total} on PayPal`,
           };
     case 'approved':
@@ -102,7 +102,7 @@ export function statusView(o: ReceiptOrder, pickupNotes: string, tracking: Track
         tone: 'neutral',
         icon: TimerOff,
         title: 'This order expired',
-        body: "It wasn’t approved on PayPal within 60 minutes, so nothing was charged. You can place it again.",
+        body: `It wasn’t approved on PayPal within ${o.approvalMinutes ?? 60} minutes, so nothing was charged. You can place it again.`,
       };
     case 'failed':
       return {

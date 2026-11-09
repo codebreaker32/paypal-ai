@@ -5,6 +5,7 @@ import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { isDemoShop, maskEmail } from '@/lib/domain/payee';
+import { approvalMinutes } from '@/lib/domain/storefront';
 import type { Order, OrderStatus, Shop } from '@/lib/domain/types';
 import { cancelledByShop, cardDeclined } from './declined';
 import { lastCaptureFailure } from './service';
@@ -31,6 +32,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
   const awaiting = order.status === 'awaiting_approval';
   const events = awaiting || order.status === 'cancelled' ? eventsRepo.list(db, order.id) : [];
   const declined = awaiting && cardDeclined(order, events);
+  const minutes = approvalMinutes(order.agentName);
   return {
     number: order.number,
     status: order.status,
@@ -41,6 +43,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     shopSlug: shop.slug,
     fulfillment: order.fulfillment,
     approvalUrl: awaiting ? order.approvalUrl : null,
+    ...(minutes === approvalMinutes(null) ? {} : { approvalMinutes: minutes }),
     paidAt: order.paidAt,
     declined,
     cancelledByShop: cancelledByShop(order, events),

@@ -15,7 +15,7 @@ export interface AssistantShellProps {
   titleRef?: RefObject<HTMLHeadingElement | null>;
   shopName: string;
   starters: string[];
-  inputRef?: RefObject<HTMLInputElement | null>;
+  inputRef?: RefObject<HTMLTextAreaElement | null>;
   /** False for a shop that isn't taking orders: the console greets with questions only. */
   takesOrders: boolean;
   onClose: () => void;

@@ -9,6 +9,7 @@ import { PayPalLink } from '@/components/ui/paypal-link';
 import { cx } from '@/components/ui/cx';
 import { StatusSwap } from '@/components/motion/status-swap';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
+import { clearCartIfPaid } from '@/components/shop/cart';
 import { formatUSD } from '@/lib/domain/money';
 import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
 import './receipt-motion.css';
@@ -77,6 +78,15 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
       clearTimeout(timer);
     };
   }, [open, orderRef]);
+
+  // Only the order this cart became, and only once it went through: a cancelled or expired order keeps the cart.
+  useEffect(() => {
+    try {
+      clearCartIfPaid(order.shopSlug, orderRef, order.status, window.localStorage);
+    } catch {
+      // Storage is off: there is no saved cart.
+    }
+  }, [order.shopSlug, order.status, orderRef]);
 
   const view = statusView(order, pickupNotes, tracking);
   const shopHref = `/s/${order.shopSlug}`;

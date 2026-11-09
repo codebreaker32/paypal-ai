@@ -1,4 +1,5 @@
 // Plain-word views of orders for the seller dashboard and order detail. Pure: safe in client components.
+import { STOREFRONT_AGENT_NAME, approvalMinutes } from '@/lib/domain/storefront';
 import type { Order, OrderEventRow, OrderLine } from '@/lib/domain/types';
 
 export interface OrderGroups {
@@ -42,10 +43,11 @@ export function buyerLabel(order: Pick<Order, 'payerName' | 'buyerName'>): strin
   return order.payerName?.trim() || order.buyerName?.trim() || 'No name given';
 }
 
-/** "shelfie-assistant" → "Shelfie Assistant"; names that already have capitals are kept as written. */
+/** "shelfie-assistant" → "Shelfie Assistant", the cart's orders → "your shop page"; names that already have capitals are kept as written. */
 export function agentLabel(name: string | null | undefined): string {
   const n = name?.trim();
   if (!n) return 'an AI assistant';
+  if (n === STOREFRONT_AGENT_NAME) return 'your shop page';
   if (/[A-Z]/.test(n)) return n;
   return n
     .split(/[-_\s]+/)
@@ -144,7 +146,7 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         );
         break;
       case 'expired':
-        entry('Expired: not approved within 60 minutes');
+        entry(`Expired: not approved within ${approvalMinutes(order.agentName)} minutes`);
         break;
       case 'fulfilled':
         entry(order.fulfillment === 'pickup' ? 'Marked picked up' : 'Marked shipped', 'info');
@@ -168,7 +170,7 @@ export { cancelledByShop, cardDeclined } from '@/lib/orders/declined';
  * PayPal holds the payment because no PayPal account uses the order's email (heldForUnknownEmail).
  */
 export function actionWords(
-  order: Pick<Order, 'status' | 'captureRefused'> & { payeeEmail?: string | null },
+  order: Pick<Order, 'status' | 'captureRefused'> & { payeeEmail?: string | null; agentName?: string | null },
   declined = false,
   byShop = false,
   held = false,
@@ -197,7 +199,7 @@ export function actionWords(
     payment_pending: ['Payment pending', "PayPal is still clearing this payment. Don’t hand over or ship until it shows Paid."],
     failed: ['Payment failed', "Nothing was charged. Don’t hand over or ship this order."],
     cancelled: ['Cancelled', 'The buyer cancelled on PayPal. Nothing was charged.'],
-    expired: ['Expired', 'The buyer didn\'t approve within 60 minutes, so the order expired. Nothing was charged.'],
+    expired: ['Expired', `The buyer didn't approve within ${approvalMinutes(order.agentName)} minutes, so the order expired. Nothing was charged.`],
   };
   return order.status === 'paid' || order.status === 'fulfilled' ? ['', ''] : words[order.status];
 }

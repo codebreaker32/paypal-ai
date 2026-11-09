@@ -20,6 +20,8 @@ export interface ReceiptOrder {
   fulfillment: Fulfillment;
   /** Only while the order waits for the buyer's approval on PayPal. */
   approvalUrl: string | null;
+  /** How long the approval link works (60 when absent). */
+  approvalMinutes?: number;
   paidAt: string | null;
   /** PayPal declined the payment method; the buyer can approve again with the same link. */
   declined: boolean;
