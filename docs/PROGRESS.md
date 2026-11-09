@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 11:50 IST (run 5, session 6 under way)_
+_Last updated: 2026-11-09 13:40 IST (run 5, session 7 under way)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -23,6 +23,7 @@ _Last updated: 2026-11-09 11:50 IST (run 5, session 6 under way)_
   - **Next session:** `Workflow` with `scriptPath` `.scratch/handoff/run5-wp.js` and args from `.scratch/s6/args-wp3.json` and `args-wp6.json` (both skip the build through `startTask`; set `stopAt` and `sessionEnd` first, the cap is 120 min from the `timeout` process's start). WP6's run is the security lens plus browser checks of round 1's fixes. Merge WP6, then WP3 (branch both on the current `run-5-production` first: they lack the WP4 review's fixes). Then WP7 (`.scratch/handoff/args-wp7.json`), WP8, WP9. WP3 and WP7 also run the full e2e, one at a time.
   - **For WP6's fixer or the coordinator:** `tests/app/shell-data.test.ts` ("is null until accounts exist") now passes only through a catch in `currentShellAccount`; decide whether to add a `next/headers` mock or retire it.
   - **Late results (13:40 IST):** on `9074152` the targeted e2e passed, `accounts` + `app-shell` 63 of 63, after round 1's fixes. `wp3` now contains `run-5-production` (merged clean, `f33c9f8`; no tests run since). `wp6` does not: merging it conflicts in `AppShell.tsx`, `ShellBanner.tsx`, `Dashboard.tsx` and `copy-button.tsx`, so the merge was aborted. **Resolve those four first next session, then re-run WP6's specs before its security check.**
+- **Session 7 (13:35 to about 15:35 IST, 9 Nov), started.** `wp6` now contains `run-5-production` (`c52ed41`, four conflicts resolved: WP6's account slot and banner kept, the payee change date moved into the shell store so a cached payload can't undo it); `npm test` 1989 passed, typecheck and lint exit 0 on it. Two review workflows run side by side: WP6 (security lens, browser checks of round 1's fixes) and WP3 + cart (correctness, spec, checkout security, design). Next: merge WP6, then WP3, then WP7, WP8, WP9.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
