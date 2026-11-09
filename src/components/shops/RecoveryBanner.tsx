@@ -8,7 +8,7 @@ export function RecoveryBanner() {
     <Banner
       icon={KeyRound}
       action={
-        <Link href="/account#recovery-key" className={BANNER_ACTION}>
+        <Link href="/account#recovery-key" className={`press-text ${BANNER_ACTION}`}>
           Get a new key
         </Link>
       }

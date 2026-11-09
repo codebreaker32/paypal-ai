@@ -26,7 +26,7 @@ function ResumeButton({ shopId }: { shopId: string }) {
     }
   };
   return (
-    <button type="button" className={ACTION} aria-disabled={busy} onClick={busy ? undefined : () => void resume()}>
+    <button type="button" className={`press-text ${ACTION}`} aria-disabled={busy} onClick={busy ? undefined : () => void resume()}>
       Resume
     </button>
   );

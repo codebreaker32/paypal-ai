@@ -26,6 +26,32 @@
 - Verified: `npm test` (1935 passed), `npm run typecheck`, `npm run lint`, `npm run build`, targeted e2e `auth-screens`, `start`, `app-shell`.
 - One `app-shell` failure in that batch (`Live: in the shell` at 1440): a 5 s `toHaveURL` on the first compile of `/s/[slug]` while two workers ran. It passed when re-run alone.
 
-## Not in this slice (rest of WP6)
+## Second slice: /shops, /shops/new, /account, Settings password, shell account
 
-`/shops`, `/shops/new`, `/account`, `RecoveryBanner`, real `currentShellAccount()`, `AccountMenu` in the shell, the Frame `WIDE` change and the payee password check in Settings. Until `/shops/new` lands, `Continue` after sign-up and a login with no shops reach the 404 page.
+Built:
+
+- `/shops` (`shops/(list)/{layout,page,loading}.tsx`), `components/shops/{ShopRow,RecoveryBanner}.tsx`, `dashboard/shop-status.tsx` (`ShopStatusBadge`, now also used by the shell and the Live step), pure `lib/seller/shop-rows.ts` and `ordersRepo.paidCountsByAccount`.
+- `/shops/new` (`StartActions` gains `samples` and `liveLink`), `Frame`'s rule moved to pure `lib/brand/frame.ts` and excludes `new`.
+- `/account` with `components/account/RecoverySection.tsx`, `LocalDay` and `lib/domain/day.ts`.
+- Settings: `PasswordField` under the email when `payeeChangeNeedsPassword` is true; `PayPal email changed on {date}`.
+- `currentShellAccount()` reads the real account. `AccountMenu` is in the shell (up in the sidebar, down in the top bar, `panelClassName` so it fits the 15 rem sidebar). The banner box moved to `app/Banner.tsx`; `RecoveryBanner` is used by the shell's slot and by `/shops`.
+
+Deviations and choices:
+
+- **`/shops` lives in a route group, `shops/(list)/`.** The brief's `shops/loading.tsx` would wrap every `/shops/[id]` page too: Next starts streaming with a 200 at that boundary, so a non-owner would lose the real 404 (`Decisions`, `loading.tsx` row). The group's layout also makes the logged-out and zero-shop redirects real 307s before the skeleton streams.
+- **`/account`'s key step replaces the page.** `RecoverySection` takes the rest of the page as `children` and hides it while the key shows, so `RecoveryKeyStep`'s H1 stays the only one. S1 should add its sections inside those children (or beside them, keeping that rule).
+- **Banner on `/shops` sits at the top of the content**, where the shell's slot is, rather than between the title and the list.
+- **The shell banner stays one slot** (Decisions, Banners): a paused or payee-missing shop shows that banner instead of the recovery one until it clears. Setup steps before Live have no shell, so no banner either.
+- **Sidebar trigger is the icon alone**, as the brief's `AccountMenu`; the email is in the panel.
+- **Two sentences the brief does not list:** `Enter your Shelfie password to do that.` (the route's own words, shown before sending when the field is empty) and `Enter your password.` on `/account`.
+- **Labelled `Current password` on `/account`**; ids `account-current-password` and `payee-current-password`, so no two forms share one.
+- A rate-limit failure on the Settings password shows under the password field, since that is what was limited.
+
+To check at merge:
+
+- **`currentShellAccount` has a catch**, like `SiteHeader`: it rethrows Next's signals and otherwise logs and returns null. `tests/app/shell-data.test.ts` ('is null until accounts exist') calls it with no request scope, and the rules forbid editing that test for anything but selectors, routes and copy. **So that test now passes through the catch (it logs one line), and no longer proves anything about accounts.** The real behaviour is in the new `tests/app/shell-account.test.ts`. The coordinator may want to add a `next/headers` mock to the old test, or retire it.
+
+Tests:
+
+- New: `tests/seller/shop-rows.test.ts`, `tests/brand/frame.test.ts`, `tests/app/shell-account.test.ts`, `tests/domain/payee-password.test.ts`, `e2e/accounts.spec.ts` (acceptance 1 to 5 and 7 to 9; 5 and 6 are also in `e2e/auth-screens.spec.ts`). Added cases to my own `tests/client/auth-copy.test.ts`.
+- **No existing test was edited.**

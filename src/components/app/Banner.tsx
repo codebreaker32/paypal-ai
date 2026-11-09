@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 
-export const BANNER_ACTION = 'press-text inline-flex min-h-tap items-center font-semibold whitespace-nowrap text-warn underline decoration-2 underline-offset-4';
+export const BANNER_ACTION = 'inline-flex min-h-tap items-center font-semibold whitespace-nowrap text-warn underline decoration-2 underline-offset-4';
 
 /** The one banner look: the shell's banner slot and the list of shops. */
 export function Banner({ icon, action, children }: { icon: LucideIcon; action?: ReactNode; children: ReactNode }) {
