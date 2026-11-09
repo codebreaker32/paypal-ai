@@ -1,86 +1,55 @@
-import { unstable_rethrow } from 'next/navigation';
-import { LayoutDashboard } from 'lucide-react';
-import { ButtonLink } from '@/components/ui/button';
-import { ShopAvatar, type ShopAvatarProps } from '@/components/shop/ShopAvatar';
-import { listOwnedShops } from '@/lib/auth/owner';
+import { redirect, unstable_rethrow } from 'next/navigation';
+import { LIVE_SHOP_HREF } from '@/app/_start/samples';
+import { Closing } from '@/components/landing/Closing';
+import { Faq } from '@/components/landing/Faq';
+import { Hero } from '@/components/landing/Hero';
+import { HowItWorks } from '@/components/landing/HowItWorks';
+import { currentAccount, landingPath } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
-import * as itemsRepo from '@/lib/db/repos/items';
-import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
-import { StorePreview } from './_start/StorePreview';
-import { StartActions } from './_start/StartActions';
+import * as shops from '@/lib/db/repos/shops';
+import { RESERVED_SLUG } from '@/lib/domain/payee';
 
-/** A shop this browser owns, for the "Open your dashboard" shortcut. */
-interface ReturningShop {
-  id: string;
-  name: string;
-  /** What its picture is made from (never letters): logo, cover, menu photo, else the drawing of the items its shop page lists. */
-  avatar: Pick<ShopAvatarProps, 'shop' | 'items'>;
-}
-
-async function getReturningShops(): Promise<ReturningShop[]> {
+/** Where a logged-in visitor goes instead, or null to show the page. The landing page must render even if storage is down. */
+function destinationFor(accountId: string): string | null {
   try {
-    const db = getDb();
-    return (await listOwnedShops()).slice(0, 3).map((s) => ({
-      id: s.id,
-      name: s.name,
-      avatar: {
-        shop: { logoUrl: s.logoUrl, coverUrl: s.coverUrl, kind: s.kind, menuPhotoSrc: menuPhotoAvatarSrc(s, 'owner') },
-        items: itemsRepo.avatarItems(db, s.id),
-      },
-    }));
+    return landingPath(accountId);
   } catch (err) {
-    unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
-    // The start page must always render; a storage problem only hides the shortcut.
-    console.error('Start page: could not read owned shops', err instanceof Error ? err.message : err);
-    return [];
+    console.error('Landing page: could not read the account’s shops', err instanceof Error ? err.message : err);
+    return null;
   }
 }
 
-function WelcomeBack({ shops }: { shops: ReturningShop[] }) {
-  return (
-    // A quiet row above the headline, divided off by a rule: the shop's mark, its name, and the way back in. No box.
-    <section aria-labelledby="welcome-back" className="mb-8 flex flex-col gap-3 border-b border-line pb-5">
-      <h2 id="welcome-back" className="type-label text-ink-muted">
-        Welcome back
-      </h2>
-      <ul className="flex flex-col gap-3">
-        {shops.map((shop) => (
-          <li key={shop.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <span className="flex min-w-0 items-center gap-3">
-              <ShopAvatar {...shop.avatar} size="sm" />
-              <span className="truncate text-lg font-bold">{shop.name}</span>
-            </span>
-            <ButtonLink href={`/shops/${shop.id}`} variant="secondary" icon={LayoutDashboard}>
-              Open your dashboard
-            </ButtonLink>
-          </li>
-        ))}
-      </ul>
-    </section>
-  );
+async function readAccountId(): Promise<string | null> {
+  try {
+    return (await currentAccount())?.id ?? null;
+  } catch (err) {
+    unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
+    console.error('Landing page: could not read the session', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
-export default async function StartPage() {
-  const returningShops = await getReturningShops();
+/** The example shop's address while it is live; no link at all on a deployment that hasn't seeded it. */
+function exampleShopHref(): string | null {
+  try {
+    return shops.bySlug(getDb(), RESERVED_SLUG)?.status === 'live' ? LIVE_SHOP_HREF : null;
+  } catch (err) {
+    console.error('Landing page: could not read the example shop', err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+export default async function LandingPage() {
+  const accountId = await readAccountId();
+  const destination = accountId && destinationFor(accountId);
+  if (destination) redirect(destination);
 
   return (
-    <div className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 pb-section lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-14">
-      <section aria-labelledby="start-title" className="lg:col-span-6">
-        {returningShops.length > 0 && <WelcomeBack shops={returningShops} />}
-        <h1 id="start-title" className="type-hero max-w-[12ch]">
-          Your price list, open to AI shoppers.
-        </h1>
-        <p className="mt-5 max-w-[30rem] type-lead text-ink-soft">
-          Snap the paper menu on your counter. Shelfie turns it into a PayPal shop any AI assistant can order from.
-        </p>
-        <div className="mt-8">
-          <StartActions />
-        </div>
-      </section>
-
-      <div className="lg:col-span-6">
-        <StorePreview />
-      </div>
-    </div>
+    <>
+      <Hero />
+      <HowItWorks exampleShopHref={exampleShopHref()} />
+      <Faq />
+      <Closing />
+    </>
   );
 }

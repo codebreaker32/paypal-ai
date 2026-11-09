@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TextLink } from '@/components/ui/text-link';
+import { ADD_SHOP_HREF } from '@/lib/brand/add-shop';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
@@ -164,7 +165,7 @@ export function ReadingStep({
         {photoCount > 1 && <p className="mt-3 type-meta text-ink-muted">Reading all {photoCount} pages together.</p>}
       </div>
 
-      <TextLink href="/" className="-my-2 self-start justify-self-start text-ink lg:col-span-6 lg:col-start-1 lg:row-start-2">
+      <TextLink href={ADD_SHOP_HREF} className="-my-2 self-start justify-self-start text-ink lg:col-span-6 lg:col-start-1 lg:row-start-2">
         Cancel
       </TextLink>
     </div>

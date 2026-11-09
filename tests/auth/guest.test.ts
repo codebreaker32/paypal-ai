@@ -16,6 +16,18 @@ describe('guestShopsAllowed', () => {
     vi.stubEnv('SHELFIE_ALLOW_GUEST_SHOPS', '1');
     expect(guestShopsAllowed()).toBe(false);
   });
+
+  it('is closed without the flag, off Render', () => {
+    vi.stubEnv('RENDER', '');
+    vi.stubEnv('SHELFIE_ALLOW_GUEST_SHOPS', '');
+    expect(guestShopsAllowed()).toBe(false);
+  });
+
+  it('accepts only the exact value 1', () => {
+    vi.stubEnv('RENDER', '');
+    vi.stubEnv('SHELFIE_ALLOW_GUEST_SHOPS', 'true');
+    expect(guestShopsAllowed()).toBe(false);
+  });
 });
 
 describe('authLimitsSkipped', () => {

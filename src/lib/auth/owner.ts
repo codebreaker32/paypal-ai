@@ -65,7 +65,7 @@ export async function setOwnerCookie(shopId: string, token: string): Promise<voi
   });
 }
 
-/** Unattached shops this browser holds an owner cookie for (for "Open your dashboard" on the start page). */
+/** Unattached shops this browser holds an owner cookie for (for the header's Dashboard link). */
 export async function listOwnedShops(): Promise<Shop[]> {
   const jar = await cookies();
   const db = getDb();

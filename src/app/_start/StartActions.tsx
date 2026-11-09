@@ -3,13 +3,11 @@
 import Image from 'next/image';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Camera, Loader2, Plus, ScanText, X } from 'lucide-react';
+import { Camera, Plus, ScanText, X } from 'lucide-react';
 import { beginNavigation } from '@/components/motion/tactile';
 import { Button } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
-import { TextLink } from '@/components/ui/text-link';
-import { cx } from '@/components/ui/cx';
 import {
   StartError,
   startErrorMessage,
@@ -19,7 +17,7 @@ import {
   type StartErrorKind,
 } from '@/lib/client/api';
 import { MAX_PHOTOS, checkNewPhotos } from '@/lib/client/photos';
-import { LIVE_SHOP_HREF, SAMPLE_MENUS } from './samples';
+import { SAMPLE_MENUS } from './samples';
 
 interface PickedPhoto {
   key: number;
@@ -33,14 +31,12 @@ type ErrorState = null | { area: 'photos' | 'samples'; kind: StartErrorKind };
 const plural = (n: number) => `${n} photo${n === 1 ? '' : 's'}`;
 
 export interface StartActionsProps {
-  /** chips: the sample buttons with their pictures. plain: one line of text and the same three buttons. none: left out. */
-  samples?: 'chips' | 'plain' | 'none';
-  /** The `See a live shop` link (the landing page only). */
-  liveLink?: boolean;
+  /** plain: one line of text and the three sample buttons. none: left out. */
+  samples: 'plain' | 'none';
 }
 
-/** Snap (primary), try a sample (secondary), see a live shop (tertiary). */
-export function StartActions({ samples = 'chips', liveLink = true }: StartActionsProps) {
+/** Snap (primary), then a sample menu (secondary). */
+export function StartActions({ samples }: StartActionsProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const nextKey = useRef(1);
@@ -213,58 +209,6 @@ export function StartActions({ samples = 'chips', liveLink = true }: StartAction
       </div>
 
       {/* Secondary: a sample menu, for anyone without a price list at hand */}
-      {samples === 'chips' && (
-        <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
-          <h2 id={samplesLabelId} className="type-label text-ink-muted">
-            Or try a sample menu
-          </h2>
-          <ul className="flex flex-wrap gap-2">
-            {SAMPLE_MENUS.map((s) => {
-              const loading = busy?.kind === 'sample' && busy.id === s.id;
-              return (
-                <li key={s.id}>
-                  <button
-                    type="button"
-                    onClick={() => trySample(s.id)}
-                    disabled={busy !== null}
-                    aria-busy={loading || undefined}
-                    className={cx(
-                      'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left enabled:hover:bg-line',
-                      'disabled:cursor-not-allowed',
-                      busy !== null && !loading && 'opacity-50',
-                    )}
-                  >
-                    <span className="relative block size-9 shrink-0 overflow-hidden rounded-full bg-surface">
-                      <Image
-                        src={s.image}
-                        alt=""
-                        width={240}
-                        height={180}
-                        sizes="36px"
-                        className="size-full object-cover"
-                      />
-                      {loading && (
-                        <span className="absolute inset-0 flex items-center justify-center bg-surface/80">
-                          <Icon icon={Loader2} size="sm" className="animate-spin text-ink" />
-                        </span>
-                      )}
-                    </span>
-                    <span className="flex flex-col">
-                      <span className="sr-only">Try the sample menu from </span>
-                      <span className="text-sm leading-5 font-semibold text-ink">
-                        {s.name}
-                      </span>
-                      {loading && <span className="type-meta text-ink-muted">Opening…</span>}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-          {error?.area === 'samples' && <FieldError>{startErrorMessage(error.kind)}</FieldError>}
-        </div>
-      )}
-
       {samples === 'plain' && (
         <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
           <p id={samplesLabelId} className="text-ink-soft">
@@ -288,14 +232,6 @@ export function StartActions({ samples = 'chips', liveLink = true }: StartAction
           </ul>
           {error?.area === 'samples' && <FieldError>{startErrorMessage(error.kind)}</FieldError>}
         </div>
-      )}
-
-      {/* Tertiary: see what a finished shop looks like */}
-      {liveLink && (
-        <TextLink href={LIVE_SHOP_HREF} className="-my-2 self-start text-sm text-ink-soft hover:text-ink">
-          See a live shop
-          <Icon icon={ArrowRight} size="sm" />
-        </TextLink>
       )}
     </div>
   );

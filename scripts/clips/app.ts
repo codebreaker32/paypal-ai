@@ -115,6 +115,7 @@ export async function startApp(opts: { baseUrl?: string; port: number; build: bo
       DATABASE_PATH: path.join('data/clips', 'clips.db'),
       UPLOADS_DIR: path.join('data/clips', 'uploads'),
       APP_URL: origin,
+      SHELFIE_ALLOW_GUEST_SHOPS: '1',
     };
     seedEnv = { ...process.env, ...appEnv };
     if (opts.build || !fs.existsSync('.next/BUILD_ID')) {
