@@ -99,3 +99,28 @@ Existing tests edited: none outside this WP's own specs. Assertions were only ad
 | `ShopAssistant.tsx` unknown-id effect | Calls `itemParam.dismiss`, not `close` | Product bug found by the spec: `close` runs `flushSync`, which React refuses inside an effect, logging an error on every `?item=<unknown>` load. `e2e/cart.spec.ts` now asserts no such warning. |
 | Stubbed error copy | The refusal tests stub the route's `message`, so they prove the client shows it; the copy itself is unit-tested in `tests/api/checkout-route.test.ts` | Browser-side stub, as the rest of the spec. |
 
+
+## Review round 1
+
+All findings fixed; none rejected.
+
+| Finding | Fix |
+|---|---|
+| A pause erased the cart | `joinCart` keeps `not_taking` lines (priced from the new `heldOptions`; `options` stays empty, so nothing can be added) and reports `paused`. The cart stays visible, Approve is disabled and the addendum's `{Shop} isn’t taking orders right now. Your items are saved here.` shows under it. Sold-out and gone items still drop. Also covers a live shop with no payee. |
+| Controls live in flight, stale total on retry | `CartApi.busy` disables the tile's `+`/`−` and the sheet's Add; the dock's Assistant and Close are disabled; Esc and the backdrop are ignored while busy. `add`, `decrement`, `setQty`, `setFulfillment` and `setNote` refuse through a ref, so nothing slips in before the render. `checkout` snapshots lines, fulfilment, note and total once, and a retry sends that same snapshot. |
+| Emptied phone cart lost focus | The cart-close focus effect now also runs on a phone when the cart is empty: the dialog unmounts open, so no `close` event reaches `Sheet`. |
+| `router.refresh()` dropped `?order=1` | A layout effect on the refresh's new props rewrites `assistant`, `order` and `item` from what the page shows (`urlWithPanels`) and restores the own-entry mark. It runs in the commit where Next writes its stale URL. |
+| Add past 20 reported as added | `addLine` returns the same array at 20; `addRefusal` gives the copy (`An order can hold 20 of each item.`, ours, the addendum has none). The item sheet's stepper stops at the room left, and at no room the footer is that line. |
+| 15-line refusal was silent | `feedback('tick')` in the refusal branch. |
+| Segment focus | `has-[:focus-visible]` outline on the label. |
+| Phone bar | Both buttons `text-base` (16 px) and `px-4`; the total is `shrink-0`, and the words truncate on very narrow phones (320 px). The button's accessible name stays the full `View order · 3   $19.00`. |
+| TTL renewed on load | `saveCart` leaves storage alone when the lines are unchanged. A real edit restarts the 24 hours. |
+| Agent posing as the shop page | `isStorefrontAgentName` also reserves anything normalising to `yourshoppage`, including the zero-width variant. Visually similar letters from other alphabets are not handled. |
+| Long option label overflow | Only the price is `whitespace-nowrap`; the label wraps. |
+| No-cover price list row | Same row as the avatar, at the right, under 640 px, as the brief says. This replaces the earlier `No-cover shops` deviation above. |
+| Stepper pill offset | `-ml-1.5` removed. |
+| Dangling `·` | Each separator hangs in the gap before its item and the row clips its left edge, so a wrapped line starts clean. |
+
+Existing tests edited:
+- `tests/cart/cart.test.ts`, in `prices lines from the menu and drops what can no longer be ordered`: the third fixture item changed from `not_taking` to `in_person`, because that state's drop was the defect under review. Every assertion stays, unchanged.
+- `tests/checkout/agent-door-name.test.ts`, `tests/cart/cart-menu.test.ts`, `tests/components/menu-tile.test.ts`, `e2e/cart.spec.ts`, `e2e/tiles.spec.ts`: cases only added.

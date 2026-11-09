@@ -14,6 +14,8 @@ import { a11y, DESKTOP, PHONE, settle, smallTargets } from './helpers';
 const SLUG = DEMO_SHOP.slug;
 const FIXTURE_NAME = 'E2E Tiles Shop';
 const PAUSED_NAME = 'E2E Tiles Paused Shop';
+const EDGE_NAME = 'E2E Tiles Edge Shop';
+let edgeSlug = '';
 let fixtureSlug = '';
 let pausedSlug = '';
 
@@ -54,13 +56,19 @@ test.beforeAll(async () => {
   itemsRepo.update(db, byName('Sold out one').id, { soldOut: true });
   itemsRepo.update(db, byName('In person one').id, { status: 'in_person' });
 
+  const edge = seedShop(EDGE_NAME, [
+    draft('Trays', 'Pastry tray', [{ label: 'Half dozen assorted', priceCents: 2400 }, { label: 'Full dozen assorted', priceCents: 4200 }]),
+    draft('Trays', 'Catering box', [{ label: 'Small (serves 4 to 6 people)', priceCents: 6500 }, { label: 'Large (serves 10 to 12 people)', priceCents: 12800 }]),
+  ]);
+  edgeSlug = shopsRepo.update(db, edge.shop.id, { fulfillment: 'both', menuPhotoPaths: ['menu-photo.webp'] }).slug;
+
   const paused = seedShop(PAUSED_NAME, section('Today', 3));
   pausedSlug = shopsRepo.update(db, paused.shop.id, { status: 'paused' }).slug;
 });
 
 test.afterAll(() => {
   const db = getDb();
-  for (const name of [FIXTURE_NAME, PAUSED_NAME]) {
+  for (const name of [FIXTURE_NAME, PAUSED_NAME, EDGE_NAME]) {
     for (const o of db.prepare('SELECT id FROM shops WHERE name = ?').all(name) as { id: string }[]) db.prepare('DELETE FROM shops WHERE id = ?').run(o.id);
   }
 });
@@ -118,6 +126,35 @@ test.describe('at 390', () => {
     await settle(page);
     expect(await smallTargets(page)).toEqual([]);
     await a11y(page);
+  });
+
+  test('a long option label wraps inside its tile and the page does not scroll sideways', async ({ page }) => {
+    await page.goto(`/s/${edgeSlug}`);
+    await settle(page);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const box = (await page.locator('li[data-menu-item="Catering box"]').boundingBox())!;
+    for (const li of await page.locator('li[data-menu-item="Catering box"] ul li').all()) {
+      const r = (await li.boundingBox())!;
+      expect(r.x + r.width).toBeLessThanOrEqual(box.x + box.width + 0.5);
+    }
+  });
+
+  test('with no cover the price list link is in the name row, at the right, and no dot ends a line', async ({ page }) => {
+    await page.goto(`/s/${edgeSlug}`);
+    await settle(page);
+    const link = page.getByRole('link', { name: /price list E2E Tiles Edge Shop was made from/ });
+    const box = (await link.boundingBox())!;
+    const h1 = (await page.getByRole('heading', { level: 1 }).boundingBox())!;
+    expect(box.y).toBeLessThan(h1.y + h1.height);
+    expect(box.x + box.width).toBeGreaterThan(360);
+    const dangling = await page.locator('h1 + p > span').evaluateAll((items) => {
+      const left = items[0].parentElement!.getBoundingClientRect().left;
+      return items.filter((el) => {
+        const dot = el.querySelector('[aria-hidden]');
+        return dot && dot.getBoundingClientRect().left >= left && el.getBoundingClientRect().left <= left;
+      }).length;
+    });
+    expect(dangling).toBe(0);
   });
 
   test('the price list link sits in the avatar row with its 32 px thumb', async ({ page }) => {

@@ -49,7 +49,10 @@ const clearCart = async (page: Page) => {
   await page.goto(SHOP);
   await page.evaluate(() => localStorage.clear());
 };
-const saved = (page: Page, slug = SLUG) => page.evaluate((k) => localStorage.getItem(k), `shelfie:cart:${slug}`);
+const saved = (page: Page, slug: string = SLUG) => page.evaluate((k) => localStorage.getItem(k), `shelfie:cart:${slug}`);
+
+/** The `router.refresh()` a PRICE_CHANGED asks for. Set up before the click that causes it. */
+const rscRefresh = (page: Page) => page.waitForResponse((r) => new URL(r.url()).pathname === SHOP && r.request().headers()['rsc'] === '1' && r.ok());
 
 async function hydrate(page: Page, name = ITEM) {
   await expect(tile(page, name)).toBeVisible();
@@ -370,6 +373,181 @@ test.describe('cart on a phone', () => {
     await expect(sheet(page)).toContainText('PayPal asks for your address.');
   });
 
+  test('emptying the cart and closing it returns focus to the order bar', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await sheet(page).getByRole('button', { name: `Remove one ${ITEM}` }).click();
+    await expect(sheet(page).locator('[data-cart-empty]')).toBeVisible();
+    await sheet(page).getByRole('button', { name: 'Close your order' }).click();
+    await expect(sheet(page)).toHaveCount(0);
+    await expect(bar(page).getByRole('button', { name: /Order with an assistant/ })).toBeFocused();
+  });
+
+  test('PRICE_CHANGED keeps ?order=1 and the cart through the refresh', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await stubCheckout(page, (route) => route.fulfill({ status: 409, json: { error: { code: 'PRICE_CHANGED', message: 'Prices changed. Check your total, then try again.' } } }));
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    const refreshed = rscRefresh(page);
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(sheet(page).getByRole('alert')).toContainText('Prices changed');
+    await refreshed;
+    await page.waitForTimeout(300); // Its commit, after the response.
+    await expect(page).toHaveURL(/order=1/);
+    expect(await page.evaluate(() => (history.state as { shelfieAssistantEntry?: boolean }).shelfieAssistantEntry)).toBe(true);
+    await page.reload();
+    await hydrate(page);
+    await expect(sheet(page).getByRole('heading', { name: 'Your order' })).toBeVisible();
+  });
+
+  test('PRICE_CHANGED after a ?assistant=1 load does not bring the assistant back into the URL', async ({ page }) => {
+    await clearCart(page);
+    await page.goto(`${SHOP}?assistant=1`);
+    await hydrate(page);
+    await expect(sheet(page)).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(sheet(page)).toHaveCount(0);
+    await addPlus(page).click();
+    await stubCheckout(page, (route) => route.fulfill({ status: 409, json: { error: { code: 'PRICE_CHANGED', message: 'Prices changed. Check your total, then try again.' } } }));
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    const refreshed = rscRefresh(page);
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await refreshed;
+    await page.waitForTimeout(300); // Its commit, after the response.
+    await expect(page).toHaveURL(/order=1/);
+    await expect(page).not.toHaveURL(/assistant=1/);
+  });
+
+  test('the cart is kept through a shop pause: shown, unapprovable, and back when the shop is', async ({ page }) => {
+    const db = getDb();
+    const paused = shopsRepo.bySlug(db, bigSlug)!;
+    await page.goto(`/s/${bigSlug}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await hydrate(page, BIG_ITEM);
+    await addPlus(page, BIG_ITEM).click();
+    await expect(bar(page).getByRole('button', { name: /View order · 1/ })).toBeVisible();
+    await expect.poll(() => saved(page, bigSlug)).toContain('qty');
+    try {
+      shopsRepo.update(db, paused.id, { status: 'paused' });
+      await page.reload();
+      await hydrate(page, BIG_ITEM);
+      await expect(bar(page).getByRole('button', { name: /View order · 1/ })).toBeVisible();
+      expect(await saved(page, bigSlug)).toContain('qty');
+      await expect(page.locator('[data-toast-region]')).not.toContainText('took it out');
+      await bar(page).getByRole('button', { name: /View order/ }).click();
+      await expect(sheet(page).getByRole('button', { name: /on PayPal/ })).toBeDisabled();
+      await expect(sheet(page)).toContainText(`${BIG_NAME} isn’t taking orders right now. Your items are saved here.`);
+    } finally {
+      shopsRepo.update(db, paused.id, { status: 'live' });
+    }
+    await page.reload();
+    await hydrate(page, BIG_ITEM);
+    await expect(bar(page).getByRole('button', { name: /View order · 1/ })).toBeVisible();
+    expect(await saved(page, bigSlug)).toContain('qty');
+  });
+
+  test('a saved cart keeps its first timestamp when the page is opened again', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await expect.poll(() => saved(page)).toContain('qty');
+    const old = Date.now() - 23 * 60 * 60 * 1000;
+    await page.evaluate(([k, at]) => {
+      const v = JSON.parse(localStorage.getItem(k as string)!);
+      localStorage.setItem(k as string, JSON.stringify({ ...v, savedAt: at }));
+    }, [`shelfie:cart:${SLUG}`, old] as const);
+    await page.reload();
+    await hydrate(page);
+    await expect(bar(page).getByRole('button', { name: /View order · 1/ })).toBeVisible();
+    expect(JSON.parse((await saved(page))!).savedAt).toBe(old);
+  });
+
+  test('a line at 20 refuses the next add, with a tick and no add sound', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await expect.poll(() => saved(page)).toContain('qty');
+    await page.evaluate((k) => {
+      const v = JSON.parse(localStorage.getItem(k)!);
+      v.lines[0].qty = 20;
+      localStorage.setItem(k, JSON.stringify(v));
+    }, `shelfie:cart:${SLUG}`);
+    await page.reload();
+    await hydrate(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { heard: string[] };
+      w.heard = [];
+      window.addEventListener('shelfie:feedback', (e) => w.heard.push((e as CustomEvent<{ event: string }>).detail.event));
+    });
+    await addPlus(page).click();
+    await expect(page.locator('[data-cart-status]')).toHaveText('An order can hold 20 of each item.');
+    await expect.poll(() => page.evaluate(() => (window as unknown as { heard: string[] }).heard)).toEqual(['tick']);
+    expect(await saved(page)).toContain('"qty":20');
+  });
+
+  test('the sheet stops at the room left on the line and states what it adds', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await expect.poll(() => saved(page)).toContain('qty');
+    await page.evaluate((k) => {
+      const v = JSON.parse(localStorage.getItem(k)!);
+      v.lines[0].qty = 18;
+      localStorage.setItem(k, JSON.stringify(v));
+    }, `shelfie:cart:${SLUG}`);
+    await page.reload();
+    await hydrate(page);
+    await openTile(page);
+    await sheet(page).getByRole('button', { name: 'One more' }).click();
+    await expect(sheet(page).getByRole('button', { name: 'One more' })).toBeDisabled();
+    const dollars = (t: string) => Number(t.replace(/[^0-9.]/g, ''));
+    const total = dollars((await sheet(page).getByRole('button', { name: /^Add to order/ }).textContent())!);
+    await sheet(page).getByRole('button', { name: /^Add to order/ }).click();
+    await expect(bar(page).getByRole('button', { name: /View order · 20/ })).toBeVisible();
+    expect(total).toBeGreaterThan(0);
+  });
+
+  for (const width of [390, 360, 320]) {
+    test(`the bar with items is 16 px and its button holds its text at ${width}`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 800 });
+      await clearCart(page);
+      await hydrate(page);
+      for (let i = 0; i < 4; i++) await addPlus(page).click();
+      const view = bar(page).getByRole('button', { name: /View order/ });
+      await expect(view).toBeVisible();
+      const m = await view.evaluate((b) => {
+        const total = b.querySelector('.type-figures') as HTMLElement;
+        const r = total.getBoundingClientRect();
+        const box = b.getBoundingClientRect();
+        return { size: getComputedStyle(b).fontSize, sw: b.scrollWidth, cw: b.clientWidth, totalRight: r.right, boxRight: box.right, docW: document.documentElement.scrollWidth, vw: innerWidth };
+      });
+      expect(m.size).toBe('16px');
+      expect(m.sw).toBeLessThanOrEqual(m.cw);
+      expect(m.totalRight).toBeLessThanOrEqual(m.boxRight);
+      expect(m.docW).toBeLessThanOrEqual(m.vw);
+      await expect(bar(page).getByRole('button', { name: 'Order with an assistant' })).toHaveCSS('font-size', '16px');
+    });
+  }
+
+  test('the Pickup and Shipping segments show keyboard focus', async ({ page }) => {
+    await page.goto(`/s/${bigSlug}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await hydrate(page, BIG_ITEM);
+    await addPlus(page, BIG_ITEM).click();
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    const pickup = sheet(page).getByRole('radio', { name: 'Pickup' });
+    await sheet(page).getByRole('button', { name: `Add one ${BIG_ITEM}` }).focus();
+    await page.keyboard.press('Tab');
+    await expect(pickup).toBeFocused();
+    expect(await pickup.evaluate((i) => (i.parentElement as HTMLElement).matches(':has(:focus-visible)'))).toBe(true);
+    expect(await pickup.evaluate((i) => getComputedStyle(i.parentElement as HTMLElement).outlineStyle)).toBe('solid');
+  });
+
   test('axe is clean with the cart open', async ({ page }) => {
     await clearCart(page);
     await hydrate(page);
@@ -422,6 +600,55 @@ test.describe('cart in the dock', () => {
     await dock(page).getByRole('button', { name: `Remove one ${ITEM}` }).click();
     await expect(dock(page).locator('[data-cart-empty]')).toContainText('Add something from the menu and it shows up here.');
     await expect(dock(page).getByRole('heading', { name: 'Your order', exact: true }).first()).toBeFocused();
+  });
+
+  test('in flight the tile controls and the dock are disabled, and the order sent is the order shown', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await expect(addPlus(page)).toBeEnabled();
+    await hero(page).click();
+    const bodies: { lines: unknown[]; expectedTotalCents: number }[] = [];
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await stubCheckout(page, async (route) => {
+      bodies.push(route.request().postDataJSON());
+      await held;
+      await route.fulfill({ status: 409, json: { error: { code: 'CHECKOUT_STALE', message: 'Something changed. Try again.' } } });
+    });
+    await dock(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(dock(page).getByRole('button', { name: /Opening PayPal/ })).toBeDisabled();
+    await expect(addPlus(page)).toBeDisabled();
+    await expect(tile(page).getByRole('button', { name: `Remove one ${ITEM}` })).toBeDisabled();
+    await expect(dock(page).getByRole('button', { name: 'Assistant', exact: true })).toBeDisabled();
+    await expect(dock(page).getByRole('button', { name: 'Close your order' })).toBeDisabled();
+    await dock(page).getByRole('heading', { name: 'Your order' }).focus();
+    await page.keyboard.press('Escape');
+    await expect(dock(page).locator('[data-cart-panel]')).toHaveCount(1);
+    release();
+    await expect(dock(page).getByRole('alert')).toContainText('Something changed');
+    expect(bodies).toHaveLength(2);
+    expect(bodies[1].lines).toEqual(bodies[0].lines);
+    expect(bodies[1].expectedTotalCents).toBe(bodies[0].expectedTotalCents);
+    await expect(addPlus(page)).toBeEnabled();
+  });
+
+  test('PRICE_CHANGED keeps ?order=1 with the cart docked', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    await hero(page).click();
+    await stubCheckout(page, (route) => route.fulfill({ status: 409, json: { error: { code: 'PRICE_CHANGED', message: 'Prices changed. Check your total, then try again.' } } }));
+    const refreshed = rscRefresh(page);
+    await dock(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(dock(page).getByRole('alert')).toContainText('Prices changed');
+    await refreshed;
+    await page.waitForTimeout(300); // Its commit, after the response.
+    await expect(page).toHaveURL(/order=1/);
+    await expect(page).not.toHaveURL(/assistant=1/);
+    await page.reload();
+    await hydrate(page);
+    await expect(dock(page).locator('[data-cart-panel]')).toHaveCount(1);
   });
 
   test('axe is clean with the cart docked', async ({ page }) => {
