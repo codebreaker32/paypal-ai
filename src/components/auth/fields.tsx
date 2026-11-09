@@ -16,7 +16,7 @@ export function useKeepTypedValue(value: string, onChange: (value: string) => vo
     const typed = input.current?.value;
     if (typed && typed !== value) onChange(typed);
   });
-  useEffect(() => adopt(), [input]);
+  useEffect(() => adopt(), []);
   return input;
 }
 
@@ -77,7 +77,7 @@ export function PasswordField({ id, label, autoComplete, value, onChange, hint, 
     const hide = () => setShown(false);
     form.addEventListener('submit', hide);
     return () => form.removeEventListener('submit', hide);
-  }, []);
+  }, [input]);
 
   return (
     <Field label={label} id={id} hint={hint} liveHint={liveHint} error={error}>
