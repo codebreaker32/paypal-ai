@@ -524,14 +524,19 @@ test.describe('capture gate (real PayPal sandbox)', () => {
       await settle(page);
       await shot(page, 'panel');
 
-      const created = page.waitForResponse((r) => new URL(r.url()).pathname === `/api/checkout/${shop.slug}` && r.request().method() === 'POST', { timeout: 120_000 });
+      // Read in a route handler: the page leaves for PayPal the moment this answers, which discards the response body.
+      let status = 0;
+      await page.route(`**/api/checkout/${shop.slug}`, async (route) => {
+        const res = await route.fetch({ timeout: 120_000 });
+        status = res.status();
+        checkout = (await res.json()) as typeof checkout;
+        await route.fulfill({ response: res });
+      });
       await pay.click();
-      const res = await created;
-      expect(res.status()).toBe(201);
-      checkout = (await res.json()) as typeof checkout;
+      await page.waitForURL(/^https:\/\/www\.sandbox\.paypal\.com\//, { timeout: 120_000 });
+      expect(status).toBe(201);
       expect(usd(checkout.totalCents)).toBe(shownTotal);
       expect(checkout.approvalUrl).toMatch(/^https:\/\/www\.sandbox\.paypal\.com\/checkoutnow\?token=[A-Z0-9]+$/);
-      await page.waitForURL(/^https:\/\/www\.sandbox\.paypal\.com\//, { timeout: 60_000 });
       log(`[cart] order ${checkout.number} (${checkout.orderRef}) $${usd(checkout.totalCents)} from the shop page`);
     });
     const paypalOrderId = new URL(checkout.approvalUrl).searchParams.get('token')!;
