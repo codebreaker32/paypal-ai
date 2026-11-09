@@ -393,7 +393,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
         </Sheet>
       )}
 
-      {isDesktop === false && (
+      {/* Mounted only with something to show: an empty page keeps one dialog, the assistant's. */}
+      {isDesktop === false && (cartOpen || hasItems) && (
         <Sheet bare dialogRef={cartDialogRef} labelledBy={cartTitleId} open={cartOpen} onClose={hideCart} className="assistant-sheet text-ink" initialFocusRef={cartTitleRef} fallbackFocusRef={orderBarRef}>
           <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} onClose={hideCart} />
           {cartOpen && <CartStatus cart={cart} />}

@@ -225,7 +225,7 @@ test.describe('cart on a phone', () => {
     await hydrate(page);
     await expect(bar(page).getByRole('button', { name: /View order/ })).toHaveCount(0);
     await expect(page.locator('[data-toast-region]')).toContainText('no longer available, so we took it out');
-    await expect.poll(() => saved(page)).not.toContain('gone');
+    await expect.poll(async () => (await saved(page)) ?? '').not.toContain('gone');
   });
 
   test('axe is clean with the cart open', async ({ page }) => {
