@@ -297,3 +297,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **Only the four clips whose screens S3 to S6 changed were re-recorded (03, 04, 06, 06b; 08 ran with 06), and their cut points and focus boxes were set by hand from viewed frames.** Reason: the pixel alignment tool cannot match a screen whose layout changed, and the other seven clips show unchanged screens.
 - **The clarity test ran on the first render; the final render differs only in caption placement on two beats.** Reason: the tester named those overlaps, and moving a caption cannot change an answer about what the product is; the changed frames were viewed and the rest compared by PSNR.
 
+
+## Run 6: home page directions
+
+- `/preview/*` hides the site header and footer with a `<style>` in its own layout, so no global CSS changes and the skip link stays.
+- `impeccable`'s product interview and concept roll were replaced by the owner's written brief, which pins three directions and nobody can answer questions during this run.
