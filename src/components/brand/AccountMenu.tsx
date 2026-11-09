@@ -41,7 +41,7 @@ export function AccountMenu({ email, placement = 'down', className, panelClassNa
       if (root.current?.contains(target)) return;
       setOpen(false);
       // After the press has finished moving focus; a press on another control keeps it.
-      if (!target.closest('a,button,input,select,textarea,[tabindex]')) setTimeout(() => trigger.current?.focus({ preventScroll: true }), 0);
+      if (!target.closest('a,button,input,select,textarea,[tabindex]:not([tabindex="-1"])')) setTimeout(() => trigger.current?.focus({ preventScroll: true }), 0);
     };
     const onFocusIn = (e: FocusEvent) => {
       if (!root.current?.contains(e.target as Node)) setOpen(false);

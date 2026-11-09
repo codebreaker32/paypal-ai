@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSyncExternalStore } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { TextLink } from '@/components/ui/text-link';
 import { headerView } from '@/lib/brand/header';
+import { startedAccount, subscribeStartedSession } from '@/lib/client/started-session';
 import { AccountMenu } from './AccountMenu';
 import { Logo } from './Logo';
 
 /** The header's contents, which depend on the page (`lib/brand/header.ts` holds the table). */
 export function HeaderNav({ account, ownerShopIds }: { account: { email: string } | null; ownerShopIds: string[] }) {
-  const view = headerView({ pathname: usePathname() ?? '/', account, ownerShopIds });
+  const started = useSyncExternalStore(subscribeStartedSession, startedAccount, () => null);
+  const view = headerView({ pathname: usePathname() ?? '/', account: account ?? started, ownerShopIds });
   return (
     <>
       <Link href={view.logoHref} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap items-center rounded-sm px-1">

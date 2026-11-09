@@ -11,6 +11,7 @@ import { AuthHeading } from './AuthHeading';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
+import { announceSession } from '@/lib/client/started-session';
 import { useAuthForm } from './use-auth-form';
 
 const IDS = { email: 'recover-email', recoveryKey: 'recovery-key', password: 'recover-new-password' };
@@ -29,7 +30,9 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
     void submit(
       checkRecover(email, recoveryKey, password),
       async () => {
-        setDone(await recover(email, recoveryKey, password));
+        const created = await recover(email, recoveryKey, password);
+        announceSession(email.trim().toLowerCase());
+        setDone(created);
       },
       recoverProblem,
     );
@@ -38,7 +41,7 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
   return (
     <>
       <AuthHeading title="Reset your password">Use the recovery key you saved when you signed up.</AuthHeading>
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+      <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         <EmailField
           id={IDS.email}
           value={email}

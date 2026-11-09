@@ -63,7 +63,7 @@ export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySe
             <span>Not saved yet</span>
           </p>
         )}
-        <form onSubmit={onSubmit} noValidate className="mt-4 flex flex-col gap-4">
+        <form method="post" onSubmit={onSubmit} noValidate className="mt-4 flex flex-col gap-4">
           <PasswordField
             id={IDS.password}
             label="Current password"

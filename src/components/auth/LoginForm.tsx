@@ -33,7 +33,7 @@ export function LoginForm({ next }: { next: string | null }) {
   return (
     <>
       <AuthHeading title="Log in">{next?.startsWith('/shops/') ? 'Log in to open this shop.' : null}</AuthHeading>
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+      <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         <EmailField
           id={IDS.email}
           value={email}

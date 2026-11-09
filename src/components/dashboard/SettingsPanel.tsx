@@ -29,7 +29,8 @@ export interface SettingsPanelProps {
   isDemo: boolean;
   /** A draft isn't told by the shell's banner that it needs an email, so the section says so itself. */
   draft: boolean;
-  onSaved: (payeeEmail: string | null) => void;
+  /** The date is set when this save recorded a change, so it survives the panel unmounting between sections. */
+  onSaved: (payeeEmail: string | null, changedAt: string | null) => void;
   logoUrl: string | null;
   onLogoChange: (logoUrl: string | null) => void;
   /** The signed-in account's email, or null when there is none. */
@@ -74,19 +75,24 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved, accountOwned, p
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [changedAt, setChangedAt] = useState(payeeChangedAt);
+  // The last failure was about the password: retyping clears its message there, and it must not reappear on the email.
+  const [failureIsPassword, setFailureIsPassword] = useState(false);
   const needsPassword = payeeChangeNeedsPassword({ accountOwned, status: draft ? 'draft' : 'live', changes: !invalid && !unchanged });
 
   const { status, run, error } = useAction(async () => {
     try {
       return await setPayeeEmail(shopId, next, needsPassword ? password : undefined);
     } catch (e) {
-      if (e instanceof ApiError && PASSWORD_ERRORS.has(e.code)) setPasswordError(e.message);
+      if (e instanceof ApiError && PASSWORD_ERRORS.has(e.code)) {
+        setPasswordError(e.message);
+        setFailureIsPassword(true);
+      }
       throw e;
     }
   });
   // Saved speaks for the value it saved: once the field differs, Save works again and the edit isn't dropped by the hold.
   const buttonStatus = status === 'success' && !unchanged ? 'idle' : status;
-  const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error && !passwordError ? error : undefined;
+  const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error && !failureIsPassword ? error : undefined;
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -97,9 +103,11 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved, accountOwned, p
     setPasswordError(null);
     if (needsPassword && !password) {
       setPasswordError('Enter your Shelfie password to do that.');
+      setFailureIsPassword(true);
       document.getElementById(PASSWORD_ID)?.focus();
       return;
     }
+    setFailureIsPassword(false);
     const done = await run();
     if (!done) {
       if (needsPassword) document.getElementById(PASSWORD_ID)?.focus();
@@ -108,8 +116,9 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved, accountOwned, p
     setSaved(done.shop.payeeEmail);
     setValue(done.shop.payeeEmail ?? '');
     setPassword('');
-    if (!draft && done.shop.payeeEmail) setChangedAt(new Date().toISOString());
-    onSaved(done.shop.payeeEmail);
+    const changed = !draft && done.shop.payeeEmail ? new Date().toISOString() : null;
+    if (changed) setChangedAt(changed);
+    onSaved(done.shop.payeeEmail, changed);
   };
 
   return (

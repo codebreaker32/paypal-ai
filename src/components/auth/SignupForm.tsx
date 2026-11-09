@@ -9,6 +9,7 @@ import { AuthHeading } from './AuthHeading';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
+import { announceSession } from '@/lib/client/started-session';
 import { useAuthForm } from './use-auth-form';
 
 const IDS = { email: 'signup-email', password: 'new-password' };
@@ -27,7 +28,9 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
     void submit(
       checkSignup(email, password),
       async () => {
-        setDone(await signup(email, password));
+        const created = await signup(email, password);
+        announceSession(email.trim().toLowerCase());
+        setDone(created);
       },
       signupProblem,
     );
@@ -36,7 +39,7 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
   return (
     <>
       <AuthHeading title="Create your account" />
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+      <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         <EmailField
           id={IDS.email}
           value={email}

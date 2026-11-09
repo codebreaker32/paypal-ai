@@ -68,6 +68,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   }));
   const status = useShellValues(shop.id, serverShell).status;
   const [payeeEmail, setPayeeEmail] = useState(shop.payeeEmail);
+  const [payeeChangedAt, setPayeeChangedAt] = useState(shop.payeeChangedAt ?? null);
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
@@ -257,12 +258,15 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             payeeEmail={payeeEmail}
             isDemo={shop.isDemo}
             draft={status === 'draft'}
-            onSaved={setPayeeEmail}
+            onSaved={(email, changedAt) => {
+              setPayeeEmail(email);
+              if (changedAt) setPayeeChangedAt(changedAt);
+            }}
             logoUrl={logoUrl}
             onLogoChange={setLogoUrl}
             accountEmail={accountEmail}
             accountOwned={shop.accountOwned ?? false}
-            payeeChangedAt={shop.payeeChangedAt ?? null}
+            payeeChangedAt={payeeChangedAt}
           />
         )}
       </div>

@@ -12,7 +12,7 @@ export function ShopRow({ row }: { row: ShopRowData }) {
       <Link
         href={row.href}
         data-testid="shop-row"
-        className="press-surface grid min-h-22 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 px-(--row-pad-x) py-3 no-underline hover:bg-surface-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus @xl:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
+        className="press-surface grid min-h-22 content-center grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 px-(--row-pad-x) py-3 no-underline hover:bg-surface-subtle focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus @xl:grid-cols-[auto_minmax(0,1fr)_auto_auto]"
       >
         <ShopAvatar {...row.avatar} size="md" className="row-span-3 @xl:row-span-2" />
         <span title={row.name} className="col-start-2 row-start-1 truncate type-heading">
