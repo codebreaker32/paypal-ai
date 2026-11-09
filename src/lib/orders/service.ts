@@ -7,6 +7,7 @@ import * as eventsRepo from '@/lib/db/repos/events';
 import { newId, orderNumber } from '@/lib/domain/ids';
 import { toPayPalValue } from '@/lib/domain/money';
 import { maskEmail } from '@/lib/domain/payee';
+import { STOREFRONT_AGENT_NAME, approvalMinutes } from '@/lib/domain/storefront';
 import type { EventSource, Fulfillment, Order, OrderEvent, ShipTo, Shop } from '@/lib/domain/types';
 import { PayPalApiError, type PayPalOrder, type PayPalPort } from '@/lib/paypal/types';
 import { OrderError } from './errors';
@@ -35,7 +36,9 @@ export interface CreateOrderInput {
 export const MAX_OPEN_ORDERS_PER_SHOP = 10;
 /** One caller can hold at most this many unpaid orders per shop, so it cannot use up the shop-wide cap alone. */
 export const MAX_OPEN_ORDERS_PER_CLIENT = 3;
-export const APPROVAL_WINDOW_MS = 60 * 60_000;
+const MINUTE_MS = 60_000;
+export const APPROVAL_WINDOW_MS = approvalMinutes(null) * MINUTE_MS;
+export const STOREFRONT_APPROVAL_WINDOW_MS = approvalMinutes(STOREFRONT_AGENT_NAME) * MINUTE_MS;
 
 const clock = (deps: Pick<OrderDeps, 'now'>) => deps.now?.() ?? Date.now();
 const iso = (ms: number) => new Date(ms).toISOString();
@@ -101,12 +104,14 @@ export async function createOrderForShop(deps: OrderDeps, shop: Shop, input: Cre
 
 /**
  * A client_request_id only makes a retry idempotent: the stored order comes back only when the request has the same
- * content (items, options, quantities, fulfillment). Anything else is a different order that reused the key, and gets
- * a conflict instead of someone else's order_ref and approval link.
+ * content (items, options, quantities, fulfillment, buyer note). Anything else is a different order that reused the key,
+ * and gets a conflict instead of someone else's order_ref and approval link. An omitted note or fulfillment says nothing
+ * about the request, so it matches.
  */
 function sameRequestOrConflict(order: Order, input: CreateOrderInput): Order {
   const same =
     (input.fulfillment === undefined || input.fulfillment === order.fulfillment) &&
+    (input.buyerNote === undefined || clean(input.buyerNote, 280, true) === order.buyerNote) &&
     input.lines.length === order.lines.length &&
     input.lines.every((l, i) => {
       const stored = order.lines[i];
@@ -237,7 +242,7 @@ async function createReserved(
           totalCents: priced.totalCents,
           paypalOrderId: created.id,
           approvalUrl: created.approveUrl,
-          expiresAt: iso(nowMs + APPROVAL_WINDOW_MS),
+          expiresAt: iso(nowMs + approvalMinutes(agentName) * MINUTE_MS),
           payeeEmail,
         },
         priced.lines,

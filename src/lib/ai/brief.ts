@@ -11,6 +11,7 @@ import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { formatUSD } from '@/lib/domain/money';
+import { STOREFRONT_AGENT_NAME } from '@/lib/domain/storefront';
 import type { Order, OrderBrief, Shop } from '@/lib/domain/types';
 import { createSellerToolkit, type ShopScope } from '@/lib/paypal/toolkit';
 import { shopScope } from '@/lib/seller/scope';
@@ -137,12 +138,13 @@ const escapeTagText = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt
 const tagJson = (value: unknown) =>
   JSON.stringify(value, null, 2).replace(/</g, '\\u003c').replace(/>/g, '\\u003e').replace(/&/g, '\\u0026');
 
-function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; section: string | null; notes: string }[]): string {
+export function buildUserMessage(order: Order, shop: Shop, itemNotes: { name: string; section: string | null; notes: string }[]): string {
   const snapshot = {
     order_number: order.number,
     status: order.status === 'paid' || order.status === 'fulfilled' ? 'payment received' : order.status,
     fulfillment: order.fulfillment,
-    ordered_by_assistant: order.agentName,
+    // The cart's orders came from no assistant: the seller's brief must not credit one.
+    ordered_by_assistant: order.agentName === STOREFRONT_AGENT_NAME ? null : order.agentName,
     buyer_name_given_to_assistant: order.buyerName,
     placed_at: order.createdAt,
     paid_at: order.paidAt,
