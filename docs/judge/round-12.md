@@ -134,3 +134,24 @@ Fix 3 comes last on Part A gain but should be done **first in time**: it alone b
 Part A **25/25** (held), Part B **24/25** (held), **0 Part C fails**, so the rubric's ship bar is met. **Proposed check "Proper placing" fails, and that blocks this run's sign-off.**
 
 **This round delivered, and I saw working:** a stranger signing up and publishing a real sandbox shop in about 30 s at both widths; an assistant that stays put at every scroll position and state; presses that answer inside 150 ms; a sound switch that persists; and a real cart reaching PayPal. What's left is one CSS rule and one label bug for a coder, the video re-record, and the human's publish and deploy steps.
+
+## Recheck of Proper placing
+
+**Result: PASS.** Scope was this one check only. Measured with Playwright on a production build of the current source, freshly seeded demo shop (`/s/marigold-bakehouse`, 10 tiles, 9 of them published to the PayPal sandbox), at 390x844 (mobile, touch) and 1440x900.
+
+| Part of the check | Measured | Result |
+|---|---|---|
+| At least two complete photos on a phone's first screen | Country sourdough loaf and Seeded rye photos: top 619, bottom 746. The order bar starts at 767, so both end 21 px above it and have loaded. The third photo is off screen. Their names sit behind the bar (name bottoms 802 and 778), as in the original round. | Pass |
+| One complete row on desktop | First row is all 3 Breads tiles (the section has 3 in a 4-column grid): photos 691 to 892 of 900, none cut. Only 8 px to spare. Names and prices fall below the fold (924), so I read "complete row" as complete photos, as the original round did. | Pass |
+| No hole from a lone last item on a phone | Breads (3 tiles): last tile Focaccia is 350 px of a 350 px grid. Coffee (1 tile): Drip coffee is 350 of 350. Pastries (4) and Cakes (2) end in two 169 px tiles. Hole on the right of each last row: 0 px in all four sections. No sideways scroll (`scrollWidth` 390). | Pass |
+| Seller lists share one row system | Menu and Share at 390 and 1440 render `[data-slot="panel-list"]` with the same row metrics (`min-height` 72 px, padding 20 px / 16 px). No other list markup in those tabs except the app's own navigation. A fresh shop has no orders, so Orders was read from source only: `OrdersPanel.tsx:141,158,165` and the shops list `(list)/page.tsx:31` use the same `PanelList`. | Pass |
+| No text wraps alone onto its own line at 390 | Word-by-word line measurement of every text block on the page, by client rects. Tile names, all now `text-wrap: balance`: **"Country / sourdough loaf"** and **'Olive oil citrus / cake – 8"'** (both named in round 12), and "Focaccia – / rosemary & sea salt". The other 7 names fit on one line. No tile name ends on a one-word line at 390, nor at 360, 375 or 412. | Pass |
+| Order bar after adding items | Added two items at 390: the bar reads **"View order · 2   $19.50"**. The count's text ends at 269.7 px and the total starts at 277.7 px, a visible **8 px** gap on one line, nothing truncated (`display: flex` on the spans' parent). Screenshot confirms. | Pass |
+
+**Descriptions.** No description's last line is a single word on the shop page, so there is no fail here. The two descriptions the demo shop has, "(caraway, sunflower)" and "contains nuts!", each fit on one line at 390. Since the seeded shop has no two-line description, I also swapped 17 test descriptions into a tile at its real 169 px width (in the browser only, nothing stored): none left a lone word on the last visible line. "Pretty" holds the two-line cases ("Sourdough starter, flour, / salt, water"), and longer text clamps at two full lines.
+
+**One thing flagged by the measurement, not a fail.** The only block whose last line is one word is the `claude mcp add` command in the shop page's agent door: it breaks to "claude mcp add --transport http / marigold-bakehouse / http://localhost:3129/s/marigold-bakehouse/mcp". The URL can't fit on a line with anything else (`overflow-wrap: anywhere` on a `pre`), and the block is a copyable command inside a `<details>` that is closed by default. It is a code snippet, not running text, so I don't count it against the check. The same command appears on the seller's Share tab, with the same reasoning.
+
+The item sheet at 390 has no wrapped text in the case I opened (Seeded rye).
+
+**Round 12's Proper placing failure is fixed; this check no longer blocks sign-off on these grounds.** I did not re-score anything else in this round.

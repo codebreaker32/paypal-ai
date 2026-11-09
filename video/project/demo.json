@@ -84,15 +84,15 @@
         {
           "at": "An AI assistant",
           "shot": "screen",
-          "videoStartSec": 1.4,
+          "videoStartSec": 1.9,
           "focus": {
-            "x": 84,
-            "y": 526,
-            "w": 1752,
-            "h": 184,
+            "x": 378,
+            "y": 276,
+            "w": 1486,
+            "h": 168,
             "zoom": 1.0,
             "label": "Ordered by an AI assistant · Paid with PayPal",
-            "delaySec": 1.8
+            "delaySec": 1.5
           }
         }
       ],
@@ -175,36 +175,36 @@
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 3.6,
+          "videoStartSec": 2.6,
           "focus": {
-            "x": 720,
-            "y": 220,
-            "w": 480,
-            "h": 420,
-            "zoom": 1.35,
+            "x": 735,
+            "y": 240,
+            "w": 450,
+            "h": 230,
+            "zoom": 1.3,
             "label": "One photo of the paper menu"
           }
         },
         {
           "at": "Claude, an",
-          "videoStartSec": 7.0,
+          "videoStartSec": 6.4,
           "focus": {
-            "x": 720,
-            "y": 150,
-            "w": 480,
-            "h": 300,
-            "zoom": 1.35,
+            "x": 735,
+            "y": 190,
+            "w": 450,
+            "h": 180,
+            "zoom": 1.3,
             "label": "Claude reads the menu"
           }
         },
         {
           "at": "every item",
-          "videoStartSec": 24.6,
+          "videoStartSec": 23.4,
           "focus": {
-            "x": 720,
-            "y": 180,
-            "w": 480,
-            "h": 110,
+            "x": 735,
+            "y": 195,
+            "w": 450,
+            "h": 85,
             "zoom": 1.3,
             "label": "10 items read, 4 to check"
           }
@@ -231,38 +231,38 @@
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 4.6,
+          "videoStartSec": 5.0,
           "focus": {
             "x": 745,
-            "y": 175,
-            "w": 432,
-            "h": 320,
-            "zoom": 1.4,
+            "y": 170,
+            "w": 430,
+            "h": 530,
+            "zoom": 1.25,
             "label": "It only asks what it isn't sure of"
           },
-          "playbackRate": 0.75
+          "playbackRate": 0.6
         },
         {
           "at": "Rosa adds",
-          "videoStartSec": 20.6,
+          "videoStartSec": 21.4,
           "focus": {
             "x": 735,
-            "y": 640,
+            "y": 618,
             "w": 455,
-            "h": 110,
+            "h": 120,
             "zoom": 1.3,
             "label": "Her PayPal email: the money goes to her"
           }
         },
         {
           "at": "Then every",
-          "videoStartSec": 27.0,
+          "videoStartSec": 26.2,
           "focus": {
             "x": 735,
-            "y": 185,
+            "y": 340,
             "w": 455,
-            "h": 265,
-            "zoom": 1.3,
+            "h": 555,
+            "zoom": 1.2,
             "label": "Every item added to PayPal's catalog"
           }
         },
@@ -271,10 +271,10 @@
           "video": "clips/06-console-order.mp4",
           "videoStartSec": 0.3,
           "focus": {
-            "x": 220,
-            "y": 110,
-            "w": 1500,
-            "h": 600,
+            "x": 200,
+            "y": 100,
+            "w": 1520,
+            "h": 700,
             "zoom": 1.0,
             "label": "Live shop, with photos",
             "delaySec": 0.6
@@ -293,7 +293,7 @@
       "narration": "Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.",
       "audio": "audio/door.mp3",
       "words": "audio/door.words.json",
-      "screen": "Laptop: the dashboard's Share tab: Your agent door, Give it to any AI assistant to order from you, the door's address.",
+      "screen": "Laptop: the Share screen (left sidebar): Your agent door, Give it to any AI assistant to order from you, the door's address.",
       "chapter": {
         "step": 2,
         "of": 3,
@@ -306,10 +306,10 @@
           "videoStartSec": 3.0,
           "playbackRate": 0.15,
           "focus": {
-            "x": 70,
-            "y": 368,
-            "w": 1240,
-            "h": 172,
+            "x": 382,
+            "y": 116,
+            "w": 1010,
+            "h": 142,
             "zoom": 1.25,
             "label": "The agent door: where AI assistants order",
             "delaySec": 1.2
@@ -337,12 +337,12 @@
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 13.5,
+          "videoStartSec": 12.6,
           "focus": {
-            "x": 30,
+            "x": 20,
             "y": 70,
-            "w": 1860,
-            "h": 160,
+            "w": 1880,
+            "h": 170,
             "zoom": 1.0,
             "label": "Given only the shop's web address",
             "delaySec": 0.3
@@ -350,29 +350,29 @@
         },
         {
           "at": "It finds",
-          "videoStartSec": 30.5,
+          "videoStartSec": 31.7,
           "focus": {
-            "x": 30,
-            "y": 615,
-            "w": 1860,
-            "h": 95,
+            "x": 20,
+            "y": 556,
+            "w": 1880,
+            "h": 250,
             "zoom": 1.0,
             "label": "Finds the agent door on the page"
           }
         },
         {
           "at": "orders two",
-          "videoStartSec": 47.0,
+          "videoStartSec": 40.4,
           "playbackRate": 2.5
         },
         {
           "at": "and gets back",
-          "videoStartSec": 56.0,
+          "videoStartSec": 46.0,
           "focus": {
-            "x": 30,
-            "y": 555,
-            "w": 1860,
-            "h": 135,
+            "x": 20,
+            "y": 652,
+            "w": 1880,
+            "h": 100,
             "zoom": 1.0,
             "label": "Order placed · PayPal link to pay"
           }
@@ -399,41 +399,41 @@
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 2.6,
+          "videoStartSec": 0.6,
           "playbackRate": 2.0
         },
         {
           "at": "They have",
-          "videoStartSec": 13.6,
+          "videoStartSec": 8.2,
           "focus": {
-            "x": 1250,
+            "x": 1344,
             "y": 10,
-            "w": 470,
-            "h": 940,
+            "w": 576,
+            "h": 1060,
             "zoom": 1.0
           }
         },
         {
           "at": "It warns",
-          "videoStartSec": 15.0,
+          "videoStartSec": 12.6,
           "focus": {
-            "x": 1300,
-            "y": 415,
-            "w": 390,
-            "h": 230,
+            "x": 1368,
+            "y": 448,
+            "w": 530,
+            "h": 172,
             "zoom": 1.3,
             "label": "Warns: contains nuts"
           }
         },
         {
           "at": "They confirm",
-          "videoStartSec": 26.4,
+          "videoStartSec": 26.7,
           "playbackRate": 0.5,
           "focus": {
-            "x": 1320,
-            "y": 605,
-            "w": 372,
-            "h": 130,
+            "x": 1436,
+            "y": 700,
+            "w": 450,
+            "h": 100,
             "zoom": 1.3,
             "label": "They confirm the order",
             "delaySec": 0.1
@@ -441,12 +441,12 @@
         },
         {
           "at": "the order",
-          "videoStartSec": 34.5,
+          "videoStartSec": 31.0,
           "focus": {
-            "x": 1268,
-            "y": 390,
-            "w": 424,
-            "h": 250,
+            "x": 1368,
+            "y": 588,
+            "w": 530,
+            "h": 200,
             "zoom": 1.3,
             "label": "Order placed · Approve on PayPal"
           }
@@ -486,23 +486,24 @@
         },
         {
           "at": "approves on",
-          "videoStartSec": 3.0
+          "videoStartSec": 3.2
         },
         {
           "at": "The money",
-          "videoStartSec": 15.6,
+          "videoStartSec": 10.2,
           "focus": {
-            "x": 1196,
-            "y": 566,
-            "w": 440,
-            "h": 62,
+            "x": 1195,
+            "y": 574,
+            "w": 490,
+            "h": 66,
             "zoom": 1.35,
             "label": "Paid to Rosa's own PayPal account"
           }
         }
       ],
       "narrationSec": 6.896,
-      "durationSec": 8.546
+      "durationSec": 8.546,
+      "captionPlacement": "top"
     },
     {
       "id": "dashboard",
@@ -524,34 +525,35 @@
           "atSec": 0,
           "videoStartSec": 3.6,
           "focus": {
-            "x": 84,
-            "y": 526,
-            "w": 1752,
-            "h": 184,
+            "x": 378,
+            "y": 276,
+            "w": 1486,
+            "h": 168,
             "zoom": 1.0,
             "label": "Paid"
           }
         },
         {
           "at": "Claude reads",
-          "videoStartSec": 13.2,
+          "videoStartSec": 12.4,
           "focus": {
-            "x": 570,
-            "y": 405,
-            "w": 732,
-            "h": 140,
+            "x": 846,
+            "y": 216,
+            "w": 584,
+            "h": 340,
             "zoom": 1.3,
             "label": "Claude writes Rosa a brief"
-          }
+          },
+          "playbackRate": 0.6
         },
         {
           "at": "It flags",
-          "videoStartSec": 14.0,
+          "videoStartSec": 14.5,
           "focus": {
-            "x": 600,
-            "y": 556,
-            "w": 670,
-            "h": 122,
+            "x": 846,
+            "y": 742,
+            "w": 584,
+            "h": 135,
             "zoom": 1.35,
             "label": "Brief flags the nut allergy"
           },
@@ -579,16 +581,17 @@
       "beats": [
         {
           "atSec": 0,
-          "videoStartSec": 12.1,
+          "videoStartSec": 11.0,
           "focus": {
             "x": 95,
             "y": 516,
             "w": 1075,
-            "h": 44,
+            "h": 40,
             "zoom": 1.5,
             "label": "Refused: prices are set by the shop",
-            "delaySec": 0.3
-          }
+            "delaySec": 2.6
+          },
+          "playbackRate": 0.75
         }
       ],
       "narrationSec": 5.721,
