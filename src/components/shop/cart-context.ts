@@ -6,7 +6,7 @@ import { createContext, useContext } from 'react';
 export interface CartApi {
   /** How many of this item are in the order, across its options. */
   quantity(itemId: string): number;
-  add(itemId: string, optionId: string): void;
+  add(itemId: string, optionId: string, qty?: number): void;
   /** One fewer of this item; with several options, off its most recently added line. */
   decrement(itemId: string): void;
   /** Opens the item sheet; focus returns to `opener` when it closes. */

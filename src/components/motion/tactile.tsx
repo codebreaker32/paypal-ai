@@ -70,7 +70,10 @@ function listenForPresses(): () => void {
       machine = createPressMachine({
         apply: () => element.setAttribute('data-pressed', ''),
         clear: () => element.removeAttribute('data-pressed'),
-        press: () => feedback('tick'),
+        press: () => {
+          // An add control answers with its own warmer sound (`feedback('add')`), once the line is really added.
+          if (!element.matches('[data-add-press]')) feedback('tick');
+        },
       });
       machines.set(element, machine);
     }

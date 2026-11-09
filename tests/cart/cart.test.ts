@@ -32,7 +32,7 @@ const item = (id: string, over: Partial<CartMenuItem> = {}): CartMenuItem => ({
   state: 'orderable',
   options: [{ id: `${id}-o`, label: null, cents: 300 }],
   priceText: '$3.00',
-  picture: { photoUrl: null, category: 'bakery' } as CartMenuItem['picture'],
+  picture: { photoUrl: null, category: 'pastry' },
   tone: 0,
   example: false,
   ...over,

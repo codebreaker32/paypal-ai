@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { shopCartData } from '@/components/shop/cart-menu';
 import type { ItemWithVariants, Shop } from '@/lib/domain/types';
 
-const variant = (id: string, priceCents: number | null, label: string | null = null) => ({ id, itemId: 'x', label, priceCents, position: 0 });
+const variant = (id: string, priceCents: number | null, label: string | null = null) => ({ id, itemId: 'x', label, priceCents, sort: 0 }) as unknown as ItemWithVariants['variants'][number];
 const item = (id: string, over: Partial<ItemWithVariants> = {}): ItemWithVariants =>
   ({ id, name: `Item ${id}`, description: 'Desc', status: 'live', soldOut: false, photoUrl: null, variants: [variant(`${id}-a`, 300)], ...over }) as unknown as ItemWithVariants;
 const shop = { fulfillment: 'both', shippingFeeCents: 800, pickupNotes: 'At the counter', orderCapCents: 50000 } as Shop;

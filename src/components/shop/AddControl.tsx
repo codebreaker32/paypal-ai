@@ -50,6 +50,7 @@ export function AddControl({ itemId, itemName, optionId }: { itemId: string; ite
         type="button"
         aria-label={optionId ? `Add ${itemName} to your order` : `Choose options for ${itemName}`}
         aria-haspopup={optionId ? undefined : 'dialog'}
+        data-add-press={optionId ? '' : undefined}
         onClick={onPlus}
         className={HIT}
       >

@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 /* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
 import { AgentDoor } from '@/components/shop/AgentDoor';
+import { shopCartData } from '@/components/shop/cart-menu';
 import { Menu, menuSections } from '@/components/shop/Menu';
 import { HeroOrderCta } from '@/components/shop/OrderCta';
 import { ShopAssistant } from '@/components/shop/ShopAssistant';
@@ -162,6 +163,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
   const doorUrl = `${shopUrl}/mcp`;
   // Live, and it can be paid: otherwise the door refuses every order, so nothing on the page offers one.
   const ordersOpen = takesOrders(shop);
+  const sections = menuSections(items);
 
   return (
     <>
@@ -180,7 +182,8 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
         initiallyOpen={assistant === '1'}
         cover={<Cover shop={shop} items={items} />}
         intro={<Intro shop={shop} items={items} photoCount={shop.menuPhotoPaths.length} />}
-        menu={<Menu sections={menuSections(items)} kind={shop.kind} takesOrders={ordersOpen} />}
+        menu={<Menu sections={sections} kind={shop.kind} takesOrders={ordersOpen} />}
+        cartData={shopCartData(shop, sections, shop.kind, ordersOpen)}
         door={<AgentDoor slug={shop.slug} shopName={shop.name} url={doorUrl} takesOrders={ordersOpen} />}
         takesOrders={ordersOpen}
       />
