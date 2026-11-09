@@ -38,8 +38,9 @@ function ShopSwitcher({ data, values, account }: { data: ShellData; values: Shel
     );
   }
   return (
-    <Link href="/shops" data-testid="shop-switcher" aria-label={`${data.name}, switch shop`} className={`press ${box} hover:bg-surface-sunken`}>
+    <Link href="/shops" data-testid="shop-switcher" className={`press ${box} hover:bg-surface-sunken`}>
       {body}
+      <span className="sr-only">, switch shop</span>
       <Icon icon={ChevronsUpDown} size="sm" className="text-ink-muted" />
     </Link>
   );

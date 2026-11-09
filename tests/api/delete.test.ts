@@ -181,6 +181,13 @@ describe('DELETE /api/shops/[id]', () => {
     expect(accounts.byId(state.db, account.id)).not.toBeNull();
   });
 
+  it('takes a name that only differs by a keyboard apostrophe or a doubled space', async () => {
+    shops.update(state.db, shopId, { name: 'Ravi’s  Bikes' });
+    const res = await remove({ confirmName: "Ravi's Bikes", currentPassword: PASSWORD });
+    expect(res.status).toBe(204);
+    expect(shops.byId(state.db, shopId)).toBeNull();
+  });
+
   it('gives the same name a new slug afterwards', async () => {
     await remove();
     expect(shops.create(state.db, { name: NAME }).shop.slug).toBe(`${SLUG}-2`);

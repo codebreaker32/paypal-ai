@@ -81,16 +81,17 @@ function ChangePassword() {
           error={problem?.field === 'newPassword' ? <AuthProblemText problem={problem} /> : undefined}
         />
         <FormProblem problem={problem} />
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
           <Button type="submit" variant="secondary" disabled={!ready} loading={busy} loadingLabel="Changing…" className="self-start">
             Change password
           </Button>
-          <p role="status" className="flex min-w-0 items-start gap-1.5 font-medium text-ok">
+          {/* The spacing lives on the message: an empty live region stays mounted and must add no gap. */}
+          <p role="status" className="min-w-0 font-medium text-ok">
             {changed && (
-              <>
+              <span className="mt-3 flex items-start gap-1.5 sm:mt-0">
                 <Icon icon={CircleCheck} size="sm" className="mt-1" />
                 <span>Password changed. Your other devices are logged out.</span>
-              </>
+              </span>
             )}
           </p>
         </div>

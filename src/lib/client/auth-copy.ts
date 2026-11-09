@@ -2,6 +2,7 @@
 // a `code`; each form turns it into one problem, naming the field it belongs under. Pure, so the copy is testable.
 import { MIN_PASSWORD_LENGTH, passwordLength } from '@/lib/auth/password-policy';
 import { parsePayeeEmail } from '@/lib/domain/payee';
+import { sameShopName } from '@/lib/domain/shop-name';
 import { ApiError } from './http';
 
 /** One piece of a message: plain words, or words that link somewhere. */
@@ -137,9 +138,9 @@ export function checkChangePassword(currentPassword: string, newPassword: string
   return checkCurrentPassword(currentPassword) ?? (passwordLength(newPassword) < MIN_PASSWORD_LENGTH ? problem('newPassword', SHORT_PASSWORD_TEXT) : null);
 }
 
-/** The same comparison as the server's: exact apart from spaces around it. The name is checked first, as it is there. */
+/** The same comparison as the server's (`sameShopName`). The name is checked first, as it is there. */
 export function checkDeleteShop(typedName: string, shopName: string, currentPassword: string): AuthProblem | null {
-  if (typedName.trim() !== shopName.trim()) return problem('name', 'Type the shop’s name exactly as it appears.');
+  if (!sameShopName(typedName, shopName)) return problem('name', 'Type the shop’s name exactly as it appears.');
   return checkCurrentPassword(currentPassword);
 }
 

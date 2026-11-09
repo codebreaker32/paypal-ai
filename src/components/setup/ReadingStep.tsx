@@ -7,6 +7,7 @@ import { Icon } from '@/components/ui/icon';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TextLink } from '@/components/ui/text-link';
 import { ADD_SHOP_HREF } from '@/lib/brand/add-shop';
+import { ApiError } from '@/lib/client/http';
 import { readingStatus, startReading, type ExtractResult } from './api';
 import { MenuPhoto } from './MenuPhotos';
 import { StepHeader } from './StepHeader';
@@ -91,8 +92,11 @@ export function ReadingStep({
         if (cancelled) return;
         if (status === 'running') timer = setTimeout(poll, POLL_MS);
         else router.refresh();
-      } catch {
-        timer = setTimeout(poll, POLL_MS * 2);
+      } catch (err) {
+        if (cancelled) return;
+        // The shop was deleted (another tab): the reload lands on its 404. Anything else is a blip worth another try.
+        if (err instanceof ApiError && err.status === 404) window.location.reload();
+        else timer = setTimeout(poll, POLL_MS * 2);
       }
     };
 

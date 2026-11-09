@@ -14,9 +14,11 @@ import { READING_DEADLINE_MS, type MenuPhoto } from '@/lib/ai/extract';
 import { normalizeExtraction } from '@/lib/ai/normalize';
 import { parseStoredReading, type MenuExtraction } from '@/lib/ai/schemas';
 import { SAMPLE_IDS, SAMPLES, recordedReading, samplePhotoPath, type SampleId } from '@/lib/ai/samples';
-import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, writeUpload } from '@/lib/uploads';
+import { MAX_PHOTOS, UploadError, normalizePhoto, readUpload, uploadFilePath, writeUpload } from '@/lib/uploads';
 import { startLiveExamples } from '@/lib/library/pexels';
+import { removeFiles } from './delete-shop';
 import { EditError } from './edits';
+import { deleteUploaded } from './photos';
 
 /** Shown until the menu (or the seller) gives the shop a name. */
 export const PLACEHOLDER_NAME = 'My shop';
@@ -95,6 +97,11 @@ export async function setShopPhotos(db: Db, shop: Shop, photos: Buffer[], mode: 
   const added = await Promise.all(
     jpegs.map((jpeg, i) => writeUpload(shop.id, `page-${kept.length + i + 1}-${stamp}.jpg`, jpeg)),
   );
+  // The delete can commit while the photos decode, and writing them recreates the folder it removed.
+  if (!shops.byId(db, shop.id)) {
+    await removeFiles([uploadFilePath(shop.id)]);
+    throw new EditError('NOT_FOUND', 404, 'No such shop.');
+  }
   return shops.update(db, shop.id, { menuPhotoPaths: [...kept, ...added] });
 }
 
@@ -209,13 +216,16 @@ export async function runReading(deps: ReadingDeps, shopId: string): Promise<Rea
     extractions.finish(db, id, { raw, imageQuality: raw.image_quality, warnings: raw.warnings, skipped: [], durationMs });
     return { status: 'unreadable', reason: result.reason, tip: result.tip };
   }
-  db.transaction(() => {
+  const replacedPhotos = db.transaction(() => {
     extractions.finish(db, id, {
       raw, imageQuality: raw.image_quality, warnings: result.warnings, skipped: result.skipped, durationMs,
     });
+    const photos = items.draftPhotoUrls(db, shopId);
     items.replaceDrafts(db, shopId, result.items);
     applyShopDraft(db, shop, result);
+    return photos;
   })();
+  await deleteUploaded(...replacedPhotos); // nothing points at them now, so a later delete could never find them
   // With PEXELS_API_KEY set, a closer live example for items Claude gave none; in the background, never waited on.
   startLiveExamples(db, shopId);
   return { status: 'done', catalog: result };

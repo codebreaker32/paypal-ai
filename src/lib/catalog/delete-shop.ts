@@ -1,13 +1,13 @@
 // Deleting a shop for good (SR19): rows and slug in the caller's transaction, then its files once that has committed.
 // Only files this shop owns are touched: its upload folder and the exact "/i/<file>" URLs on its rows, never a bundled
 // /demo/ or /samples/ photo, and never the library cache other shops share.
-import fs from 'node:fs/promises';
 import type { Db } from '@/lib/db';
 import * as accounts from '@/lib/db/repos/accounts';
 import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
+import { removeWithOptimizedCopies } from '@/lib/images/optimizer-cache';
 import { uploadFilePath } from '@/lib/uploads';
 import { uploadedPhotoFile, uploadedPhotoPath } from './photos';
 
@@ -53,7 +53,7 @@ export function deleteAccountRows(db: Db, accountId: string): DeleteAccountOutco
   return { paths };
 }
 
-/** Never throws: the rows are already gone, and a stale file is only disk space. */
+/** The files, and the resized copies the image optimizer made of them. Never throws. */
 export async function removeFiles(paths: string[]): Promise<void> {
-  await Promise.all(paths.map((p) => fs.rm(p, { recursive: true, force: true }).catch(() => undefined)));
+  await removeWithOptimizedCopies(paths);
 }

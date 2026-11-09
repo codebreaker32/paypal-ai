@@ -10,6 +10,7 @@ import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { newId } from '@/lib/domain/ids';
+import { removeWithOptimizedCopies } from '@/lib/images/optimizer-cache';
 import { normalizePhoto, type PhotoEncoding } from '@/lib/uploads';
 import { EditError } from './edits';
 
@@ -47,11 +48,14 @@ async function savePhoto(input: Buffer, encoding: PhotoEncoding): Promise<string
   return `${URL_PREFIX}${file}`;
 }
 
-/** Deletes the uploaded file behind a replaced URL. Never throws: a stale file is only disk space. */
-async function deleteUploaded(url: string | null): Promise<void> {
-  const file = uploadedPhotoFile(url);
-  const abs = file && uploadedPhotoPath(file);
-  if (abs) await fs.rm(abs, { force: true }).catch(() => undefined);
+/** Deletes the uploaded files behind these URLs and their resized copies; other URLs are left. Never throws. */
+export async function deleteUploaded(...urls: (string | null)[]): Promise<void> {
+  const paths = urls.flatMap((url) => {
+    const file = uploadedPhotoFile(url);
+    const abs = file && uploadedPhotoPath(file);
+    return abs ? [abs] : [];
+  });
+  if (paths.length > 0) await removeWithOptimizedCopies(paths);
 }
 
 function itemOf(db: Db, shopId: string, itemId: string) {
@@ -95,15 +99,20 @@ const SHOP_IMAGES = {
 
 /**
  * Stores `input` as the shop's cover (fitted to 2000 px) or logo (its centre square at 512 px) and returns its URL;
- * the upload it replaces is deleted. Throws UploadError like setItemPhoto.
+ * the upload it replaces is deleted. Throws UploadError like setItemPhoto, or EditError NOT_FOUND (404) when the shop
+ * was deleted while this upload was on its way (its file would otherwise have no row to be found through).
  */
 export async function setShopImage(db: Db, shopId: string, image: ShopImage, input: Buffer): Promise<string> {
   const { field, encoding } = SHOP_IMAGES[image];
   const url = await savePhoto(input, encoding);
   // Read and swap with no await in between, as for an item photo.
-  const previous = shopsRepo.byId(db, shopId)?.[field] ?? null;
+  const shop = shopsRepo.byId(db, shopId);
+  if (!shop) {
+    await deleteUploaded(url);
+    throw new EditError('NOT_FOUND', 404, 'No such shop.');
+  }
   shopsRepo.update(db, shopId, { [field]: url });
-  await deleteUploaded(previous);
+  await deleteUploaded(shop[field]);
   return url;
 }
 

@@ -23,6 +23,17 @@ const text = (p: AuthProblem) => p.message.map((b) => (typeof b === 'string' ? b
 const links = (p: AuthProblem) => p.message.filter((b): b is { text: string; href: string } => typeof b !== 'string');
 const err = (code: string, message = 'server said', status = 400) => new ApiError(status, code, message);
 
+describe('checkDeleteShop and names that look the same', () => {
+  it('takes a keyboard apostrophe for a typographic one, and one space for two', () => {
+    expect(checkDeleteShop("Ravi's Bike Repair", 'Ravi’s Bike Repair', 'pw')).toBeNull();
+    expect(checkDeleteShop('Rosa Tamales', 'Rosa  Tamales', 'pw')).toBeNull();
+  });
+
+  it('still refuses a different name', () => {
+    expect(checkDeleteShop("Ravis Bike Repair", 'Ravi’s Bike Repair', 'pw')?.field).toBe('name');
+  });
+});
+
 describe('signupProblem', () => {
   it('invalid email goes to the email field', () => {
     const p = signupProblem(err('INVALID_EMAIL'));

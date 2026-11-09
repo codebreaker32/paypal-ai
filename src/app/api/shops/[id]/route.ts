@@ -22,6 +22,7 @@ import * as orders from '@/lib/db/repos/orders';
 import * as payeeChanges from '@/lib/db/repos/payee-changes';
 import * as shops from '@/lib/db/repos/shops';
 import { isDemoShop } from '@/lib/domain/payee';
+import { sameShopName } from '@/lib/domain/shop-name';
 import type { Shop } from '@/lib/domain/types';
 import { clientIp } from '@/lib/http/client-ip';
 import { jsonError } from '@/lib/http/json-error';
@@ -84,7 +85,7 @@ export async function PATCH(req: Request, ctx: RouteContext<'/api/shops/[id]'>):
   }
 }
 
-const sameName = (typed: unknown, name: string): boolean => typeof typed === 'string' && typed.trim() === name.trim();
+const sameName = (typed: unknown, name: string): boolean => typeof typed === 'string' && sameShopName(typed, name);
 
 export async function DELETE(req: Request, ctx: RouteContext<'/api/shops/[id]'>): Promise<Response> {
   const refused = assertSameOrigin(req);

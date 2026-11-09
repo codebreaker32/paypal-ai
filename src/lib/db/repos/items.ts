@@ -105,6 +105,12 @@ export function byIdForShop(db: Db, shopId: string, itemId: string): ItemWithVar
 }
 
 /** Every photo URL on the shop's items, removed items included. */
+/** The photos on the shop's unpublished items: what `replaceDrafts` is about to drop. */
+export function draftPhotoUrls(db: Db, shopId: string): string[] {
+  const rows = db.prepare('SELECT photo_url FROM items WHERE shop_id = ? AND paypal_product_id IS NULL AND photo_url IS NOT NULL').all(shopId) as { photo_url: string }[];
+  return rows.map((r) => r.photo_url);
+}
+
 export function photoUrls(db: Db, shopId: string): string[] {
   const rows = db.prepare('SELECT photo_url FROM items WHERE shop_id = ? AND photo_url IS NOT NULL').all(shopId) as { photo_url: string }[];
   return rows.map((r) => r.photo_url);

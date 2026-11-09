@@ -13,7 +13,7 @@ import { checkDeleteShop, deleteShopProblem } from '@/lib/client/auth-copy';
 const IDS = { name: 'delete-shop-name', password: 'delete-shop-password' };
 
 /** The foot of Settings: what deleting does, and the sheet that asks for the shop's name and the password. */
-export function DeleteShop({ shopId, shopName }: { shopId: string; shopName: string }) {
+export function DeleteShop({ shopId, shopName, onDeletingChange }: { shopId: string; shopName: string; onDeletingChange: (deleting: boolean) => void }) {
   const [open, setOpen] = useState(false);
   const [typedName, setTypedName] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +35,13 @@ export function DeleteShop({ shopId, shopName }: { shopId: string; shopName: str
     void submit(
       checkDeleteShop(typedName, shopName, password),
       async () => {
-        await deleteShop(shopId, typedName, password);
+        onDeletingChange(true);
+        try {
+          await deleteShop(shopId, typedName, password);
+        } catch (err) {
+          onDeletingChange(false);
+          throw err;
+        }
         window.location.replace('/shops');
       },
       deleteShopProblem,
