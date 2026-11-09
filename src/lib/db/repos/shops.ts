@@ -122,6 +122,12 @@ export function setSlug(db: Db, id: string, name: string): Shop {
   return byId(db, id)!;
 }
 
+/** Deletes the shop (its items, orders and the rest cascade) and retires its slug for good (SR19). Run inside the caller's transaction. */
+export function deleteAndRetireSlug(db: Db, shop: Pick<Shop, 'id' | 'slug'>): void {
+  db.prepare('INSERT OR IGNORE INTO retired_slugs (slug, retired_at) VALUES (?, ?)').run(shop.slug, now());
+  db.prepare('DELETE FROM shops WHERE id = ?').run(shop.id);
+}
+
 /** Marks the shop live (first publish keeps its original published_at). */
 export function publish(db: Db, id: string): Shop {
   db.prepare(`UPDATE shops SET status = 'live', published_at = COALESCE(published_at, ?) WHERE id = ?`).run(now(), id);
