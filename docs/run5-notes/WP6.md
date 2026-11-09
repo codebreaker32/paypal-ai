@@ -55,3 +55,5 @@ Tests:
 
 - New: `tests/seller/shop-rows.test.ts`, `tests/brand/frame.test.ts`, `tests/app/shell-account.test.ts`, `tests/domain/payee-password.test.ts`, `e2e/accounts.spec.ts` (acceptance 1 to 5 and 7 to 9; 5 and 6 are also in `e2e/auth-screens.spec.ts`). Added cases to my own `tests/client/auth-copy.test.ts`.
 - **No existing test was edited.**
+- Verified on the final code: `npm test` (1968 passed), typecheck, lint, `npm run build`, targeted e2e `accounts` and `dashboard`. `app-shell`, `auth-screens` and `start` passed before the last change, which only moved press classes.
+- **One failure I did not cause:** `e2e/dashboard.spec.ts:345` (Add tracking lands on the form) expects the form at 16 px from the top and gets 72 at 390, which is 16 plus the 56 px top bar. It fails the same way on the base commit 4417376, so it came in with the shell (WP4), and is not fixed here.
