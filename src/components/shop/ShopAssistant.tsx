@@ -53,9 +53,11 @@ const setAssistantParam = (on: boolean, method: 'pushState' | 'replaceState' = '
   History.prototype[method].call(window.history, state, '', url);
 };
 
-const focusAtEnd = (input: HTMLInputElement | null) => {
-  input?.focus();
-  input?.setSelectionRange(input.value.length, input.value.length);
+const focusAtEnd = (input: HTMLTextAreaElement | null) => {
+  if (!input) return;
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+  input.scrollTop = input.scrollHeight;
 };
 
 const canTakeFocus = (el: HTMLElement | null): el is HTMLElement => !!el?.isConnected && el.getClientRects().length > 0 && getComputedStyle(el).visibility === 'visible';
@@ -93,10 +95,9 @@ function keepPlace(change: () => void): void {
  */
 export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, intro, menu, door, takesOrders }: ShopAssistantProps) {
   const title = takesOrders ? 'Order with an assistant' : 'Ask the assistant';
-  const api = useBuyerConsole(slug);
   const [open, setOpen] = useState(initiallyOpen);
   const isDesktop = useIsDesktop();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const heroButton = useRef<HTMLButtonElement>(null);
   const compactButton = useRef<HTMLButtonElement>(null);
@@ -131,6 +132,28 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     keepPlace(() => setOpen(false));
     setAssistantParam(false);
   }, []);
+
+  const showForDraft = useCallback(() => {
+    if (!open) show();
+  }, [open, show]);
+  const api = useBuyerConsole(slug, { takesOrders, onOpen: showForDraft });
+  const { openWithDraft, draftRevision } = api;
+
+  // An "Ask the assistant" control anywhere on the page carries `data-order-item={name}`.
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      const name = e.target instanceof Element ? e.target.closest<HTMLElement>('[data-order-item]')?.dataset.orderItem : undefined;
+      if (name) openWithDraft(name);
+    };
+    document.addEventListener('click', onClick);
+    return () => document.removeEventListener('click', onClick);
+  }, [openWithDraft]);
+
+  // A drafted item: on the dock the cursor goes to the end of the message box, in the commit that shows the draft. In a
+  // sheet focus stays on the title (`Sheet`), so the keyboard doesn't cover the menu.
+  useEffect(() => {
+    if (draftRevision && window.matchMedia(DESKTOP).matches) focusAtEnd(inputRef.current);
+  }, [draftRevision]);
 
   useEffect(() => {
     const onPopState = () => {
