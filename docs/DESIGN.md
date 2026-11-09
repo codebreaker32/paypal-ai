@@ -209,6 +209,12 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - Sections are divided by rules on the white page. Copy is trimmed to one line where a seller would otherwise be stuck.
 - **Receipt `/o/[ref]`:** the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), beside a grey summary panel. The panel shows the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
 
+### Item sheet and cart (`shop/ItemSheet.tsx`, `shop/CartView.tsx`)
+
+The item sheet is `Sheet` with `media` (the 4:3 photo full-bleed, the close button solid white over it, the footer pinned). Its URL is `?item=<id>`, pushed by a tap, so Back closes it. Unavailable items end in one plain line instead of a button.
+
+The cart is one view in the assistant's boxes: the same right-edge dock from 1024 px (one panel at a time, with an `Assistant` switch in its header), the assistant's side and bottom sheets below it. A cart line is only `{itemId, optionId, qty}`; names and prices are joined from the menu the server sent, and client totals are for display only. The phone bar keeps its one button with an empty cart and becomes `Assistant` plus `View order · 3  $19.00` with items.
+
 ## Rules
 
 - One primary (black) action per screen; PayPal blue only to approve a payment.

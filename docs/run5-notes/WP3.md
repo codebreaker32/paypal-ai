@@ -63,3 +63,25 @@ Existing tests edited: `tests/auth/removal-guard.test.ts` (dropped `shelfie-stor
 - Success: 201 `{ orderRef, number, approvalUrl, totalCents }`. Refusals: `{ error: { code, message, itemId?, scope? } }`. `message` is the buyer's copy from the addendum's table, ready to show; `itemId` is the line to remove for `UNKNOWN_ITEM`, `ITEM_UNAVAILABLE`.
 - SR27: new `crypto.randomUUID()` whenever lines, fulfilment or note change, and on `CHECKOUT_STALE`, `IDEMPOTENCY_CONFLICT` (rotate and retry once) and `PRICE_CHANGED` (new total). SR30: check `isPayPalApprovalUrl` before navigating.
 - The rate limit (30/hour/IP) and the per-client cap (3 open orders) are live under `SHELFIE_TEST` too, so a cart e2e should vary `X-Forwarded-For` or start its own server.
+
+## WP3b: item sheet, cart and phone bar
+
+Built: `shop/cart.ts` (pure: lines, join to the menu, storage, checkout body, SR27 request ids, refusal actions), `shop/cart-menu.ts` (server: `orderable` state, price text), `shop/use-cart-state.ts`, `shop/use-history-param.ts` (`?item=`/`?order=1`, built on `afterHistoryMove`), `shop/ItemSheet.tsx`, `shop/CartView.tsx`, `shop/QtyStepper.tsx`, `Sheet`'s `media` and `titleRef` props, the dock and phone bar in `ShopAssistant.tsx`, and clearing in `Receipt.tsx`. `pricing.ts` is not imported by client code; `MAX_LINES`/`MAX_QTY_PER_LINE` are copied and held equal by a test. Tests: `tests/cart/cart.test.ts`, `tests/cart/cart-menu.test.ts`, `e2e/cart.spec.ts` (checkout stubbed in the browser). Existing tests edited: none.
+
+| Where | What | Why |
+|---|---|---|
+| Add sound | `data-add-press` on a single-option `+` and the sheet's Add: `Tactile` skips its tick there, `cart.add` plays `feedback('add')` | WP1B flagged a tick and then a warm tick on one press; the addendum calls the add sound "a slightly warmer tick", so one sound. A `+` that opens the sheet ticks as usual. |
+| Dock header | An `Assistant` button in the cart panel's header (from 1024 px only) | With the cart docked the hero and compact order buttons are hidden, so nothing else reaches the assistant. Phones have the bar's `Assistant` pill. |
+| Assistant header | No `View order` switch in the assistant's own header | Would change the WP2 header; the assistant is left exactly as it was. A buyer docked in the assistant reaches the cart by closing it. |
+| Desktop order buttons | With items the hero and compact buttons read `View order · 3  $19.00` and open the cart; they say `Order with an assistant` with an empty cart | Addendum: "With items, use Phone bar below, and from 1024 px open the cart". |
+| `?order=1` from 1024 px | Set with `replaceState`, history moves leave the dock alone (`docked()`, as the assistant) | One entry per open dock; Back in the section tabs must not close it. |
+| Phone cart sheet | The `assistant-sheet` box (fixed height, side sheet from 640) | "Shared by the desktop panel and the phone sheet", same geometry as the assistant. |
+| Totals row | `Shipping` shows only when shipping is chosen | As the receipt; a `$0.00` line under Pickup is noise. |
+| Empty state | The panel's own header says `Your order`; the body has the one sentence | Avoids two `Your order` lines. |
+| Live region | Inside the phone cart sheet while it is open, in the page otherwise; one at a time | Everything behind a modal dialog is inert to a screen reader, so a region outside it wouldn't announce. |
+| Line limit | A 16th line refuses, with `An order can hold 15 different items.` in the status line and a toast | Matches `ORDER_LIMITS`; a silent `+` would look broken. Addendum gives no copy. |
+| Restore notice | The notice also shows as a toast | A cart emptied by the join has no cart view to show it in. |
+| `useOptionalToast` | Added to `ui/toast.tsx` | Components rendered on their own in tests have no `ToastProvider`. |
+| `router.refresh` | Called from `CartView`, not `useCartState` | `useRouter` throws where no app router is mounted; `ShopAssistant` is rendered alone in unit tests. |
+| Copy | `’` instead of `'` | As the rest of the shop's copy. |
+| A real payment | Not run by this WP | Checkout is stubbed in `e2e/cart.spec.ts`; the real capture with the US sandbox buyer is the WP8 gate. |

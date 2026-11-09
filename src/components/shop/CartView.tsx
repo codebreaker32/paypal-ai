@@ -77,7 +77,7 @@ export function CartView({ cart, data, titleId, titleRef, onClose, onAssistant }
         <IconButton icon={X} label="Close your order" iconSize="md" onClick={onClose} className="-mr-2" />
       </div>
 
-      <div className="overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-gutter:stable]">
+      <div className="overflow-y-auto overscroll-contain px-5 py-4">
         {cart.notice && (
           <p data-cart-notice="" className="mb-3 rounded-(--card-radius) bg-note-soft px-3 py-2 text-[0.9375rem] text-ink">
             {cart.notice}
@@ -85,7 +85,6 @@ export function CartView({ cart, data, titleId, titleRef, onClose, onAssistant }
         )}
         {views.length === 0 ? (
           <div data-cart-empty="" className="flex h-full flex-col justify-center gap-1 text-center">
-            <p className="type-heading">Your order</p>
             <p className="text-ink-soft">Add something from the menu and it shows up here.</p>
             {cart.error && (
               <p role="alert" className="mt-2 text-[0.9375rem] font-medium text-error">

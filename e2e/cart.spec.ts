@@ -147,6 +147,18 @@ test.describe('cart on a phone', () => {
     await expect(bar(page).getByRole('button', { name: /View order · 1/ })).toBeVisible();
   });
 
+  test('an add control answers with one warm sound, not a tick and then the warm one', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await page.evaluate(() => {
+      const w = window as unknown as { heard: string[] };
+      w.heard = [];
+      window.addEventListener('shelfie:feedback', (e) => w.heard.push((e as CustomEvent<{ event: string }>).detail.event));
+    });
+    await addPlus(page).click();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { heard: string[] }).heard)).toEqual(['add']);
+  });
+
   test('removing the last line returns the bar to its empty form', async ({ page }) => {
     await clearCart(page);
     await hydrate(page);
