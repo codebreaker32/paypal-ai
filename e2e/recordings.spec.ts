@@ -129,6 +129,65 @@ for (const size of SIZES) {
     });
   });
 
+  // Run 5: the assistant attaches to a viewport edge, and opening and closing it never moves the page's place.
+  test(`assistant open and close ${size.label}`, async ({ browser }) => {
+    await record(browser, `assistant-${size.label}`, size.viewport, async (page) => {
+      await page.goto(`/s/${DEMO_SHOP.slug}`);
+      await page.waitForTimeout(1_500);
+      const open = () => page.getByRole('button', { name: 'Order with an assistant' }).filter({ visible: true }).first();
+      const close = () => page.getByRole('button', { name: 'Close the assistant' }).filter({ visible: true });
+      for (const scroll of [0, 900, 1_800]) {
+        await page.evaluate((y) => window.scrollTo({ top: y, behavior: 'instant' }), scroll);
+        await page.waitForTimeout(700);
+        await open().click();
+        await expect(close()).toBeVisible();
+        await page.waitForTimeout(1_600);
+        await close().click();
+        await page.waitForTimeout(1_000);
+      }
+    });
+  });
+
+  // Run 5: every control answers a press. Slow, deliberate presses so each frame of the response is visible.
+  test(`pressing controls ${size.label}`, async ({ browser, baseURL }) => {
+    const f: FixtureShop = createFixtureShop('Juniper Press Co');
+    seedAllStates(f);
+    const hold = async (page: Page, target: ReturnType<Page['locator']>) => {
+      await target.scrollIntoViewIfNeeded();
+      const box = (await target.boundingBox())!;
+      await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 8 });
+      await page.waitForTimeout(350);
+      await page.mouse.down();
+      await page.waitForTimeout(400);
+      await page.mouse.up();
+      await page.waitForTimeout(700);
+    };
+    try {
+      await record(
+        browser,
+        `press-${size.label}`,
+        size.viewport,
+        async (page) => {
+          await page.goto(`/s/${DEMO_SHOP.slug}`);
+          await page.waitForTimeout(1_500);
+          await hold(page, page.getByRole('button', { name: /^Add .* to your order$/ }).first());
+          await hold(page, page.getByRole('button', { name: /^Add .* to your order$/ }).first());
+          await page.goto(`/shops/${f.shop.id}`);
+          await page.waitForTimeout(1_500);
+          const nav = page.getByRole('navigation', { name: 'Shop sections' }).filter({ visible: true });
+          await hold(page, nav.getByRole('link', { name: 'Menu' }));
+          await hold(page, nav.getByRole('link', { name: 'Share' }));
+          await hold(page, nav.getByRole('link', { name: 'Orders' }));
+          await hold(page, page.getByRole('switch', { name: /Pause agent orders/ }).filter({ visible: true }));
+          await hold(page, page.getByRole('switch', { name: /Pause agent orders/ }).filter({ visible: true }));
+        },
+        async (context) => signInAsOwner(context, f, baseURL!),
+      );
+    } finally {
+      getDb().prepare('DELETE FROM shops WHERE id = ?').run(f.shop.id);
+    }
+  });
+
   test(`dashboard ${size.label}`, async ({ browser, baseURL }) => {
     const f: FixtureShop = createFixtureShop('Juniper Loaf Co');
     const states = seedAllStates(f);
