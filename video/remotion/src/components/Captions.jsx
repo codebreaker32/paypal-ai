@@ -393,13 +393,19 @@ const ShortsCaptions = ({ words, theme, t, fps, width, height, placement = "defa
  * Bottom by default; a scene can set "captionPlacement": "top" when its screen
  * has something important along the bottom edge. No blur, glow or karaoke colour.
  */
-const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement }) => {
+const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats }) => {
   const s = typeScale(width, height);
   const active = groupPhrases(words).find((p) => t >= p.showSec && t < p.hideSec);
   if (!active) return null;
   // Large and on a solid ink box, low in the frame (the footage's key UI is
   // zoomed toward the middle); "top" sits just under the chapter bar.
-  const pos = scenePlacement === "top" ? { top: Math.round(104 * s) } : { bottom: Math.round(30 * s) };
+  // A beat's captionPlacement wins over the scene's, from that beat on.
+  let placement = scenePlacement;
+  for (const b of beats ?? []) {
+    if (t < b.atSec) break;
+    if (b.captionPlacement) placement = b.captionPlacement;
+  }
+  const pos = placement === "top" ? { top: Math.round(104 * s) } : { bottom: Math.round(30 * s) };
   return (
     <div
       style={{
@@ -439,7 +445,7 @@ export const Captions = ({ words, theme, offsetSec = 0, style = "clean", placeme
 
   if (style === "shelfie") {
     return (
-      <ShelfieCaptions words={words} theme={theme} t={t} width={width} height={height} scenePlacement={scenePlacement} />
+      <ShelfieCaptions words={words} theme={theme} t={t} width={width} height={height} scenePlacement={scenePlacement} beats={beats} />
     );
   }
 
