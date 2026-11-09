@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Download, Printer } from 'lucide-react';
+import { setRecoveryUnsaved } from '@/components/app/shell-store';
 import { Button } from '@/components/ui/button';
 import { CopyButton } from '@/components/ui/copy-button';
 import { markRecoverySaved } from '@/lib/client/auth';
@@ -46,9 +47,12 @@ export function RecoveryKeyStep({ recoveryKey, email, next, appUrl }: RecoveryKe
   const noteSaved = () => {
     if (noted.current) return;
     noted.current = true;
-    markRecoverySaved().catch(() => {
-      noted.current = false;
-    });
+    markRecoverySaved().then(
+      () => setRecoveryUnsaved(false),
+      () => {
+        noted.current = false;
+      },
+    );
   };
 
   const onDownload = () => {

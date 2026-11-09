@@ -99,3 +99,21 @@ Not done or not verified (for the coordinator):
 - `method="post"` keeps fields out of the URL, but a pre-hydration submit still POSTs to the page, which re-renders it empty. Not tested in a browser here.
 
 No existing test was edited. New test: `tests/client/started-session.test.ts`.
+
+## Review round 1, second pass
+
+All four items were real and are fixed. A failing test came first for each one.
+
+- **Text typed before hydration (`FINDING-LATE-HYDRATION`):** React leaves the DOM alone while hydrating, then its next update writes the empty state over it. `useKeepTypedValue` in `components/auth/fields.tsx` copies what is in the input at mount into state. It covers every `EmailField` and `PasswordField`, plus the recovery key input.
+- **A submit before hydration:** the submit button on the three auth forms and on `RecoverySection` is `disabled` until React has hydrated (`ready` from `useAuthForm`), which also blocks Enter. Nothing is sent, the entries stay, and the button enables itself. **Deviation, for the coordinator:** with JavaScript off the button never enables, so `(auth)/layout.tsx` has a `<noscript>` line saying JavaScript is needed. `/account` has no such line. `method="post"` stays as the second guard.
+- **Banner after Back (`FINDING-BACK-BANNER`):** `setRecoveryUnsaved` in `shell-store.ts` applies to every shop the tab knows, and it corrects a kept payload for a shop opened later. `RecoveryKeyStep` calls it only after the PATCH succeeds. `RecoverySection` also calls it with `true` when a new key is created, because the server has just set that key to unsaved and the same Back would otherwise hide the warning (SR22).
+- **Abandoned payee password:** `PayeeForm` clears the password whenever the field is not needed. The password also goes if the email is briefly invalid during an edit, because the field is hidden then too. Keeping a visible password across a direct email edit is unchanged.
+- **`TEST-SHELL-DATA`:** see below.
+
+**Existing test edited:** `tests/app/shell-data.test.ts`. It now mocks `next/headers` with an empty cookie jar, renames the false title `is null until accounts exist`, and adds an assertion that `console.error` is not called. The original assertion stays. This goes beyond selectors and copy because the review asked for it.
+
+**Tests added:** three in `e2e/accounts.spec.ts` (`review round 1`) and a `setRecoveryUnsaved` block in `tests/app/shell-store.test.ts`. With the hydration and banner fixes switched off, their e2e tests failed on the reported symptoms: an empty email field, and banner count 1.
+
+**Results on the final code:** `npm test` 1995 passed. `npm run typecheck` and `npm run lint` clean. `e2e/accounts.spec.ts` and `e2e/app-shell.spec.ts` 73 passed.
+
+**Not tested:** the signup, recover and `/account` forms in the late-hydration case. The e2e test drives `/login` only; the others share the same code. The `<noscript>` line has no test either.

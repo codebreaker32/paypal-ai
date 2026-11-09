@@ -1,6 +1,6 @@
 // The shell's live values: a tiny external store (never React context), keyed to one shop at a time.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { patchShell, resetShellForTests, seedShell, shellSnapshot, subscribeShell, type ShellValues } from '@/components/app/shell-store';
+import { patchShell, resetShellForTests, seedShell, setRecoveryUnsaved, shellSnapshot, subscribeShell, type ShellValues } from '@/components/app/shell-store';
 
 const base: ShellValues = { toPrepare: 2, status: 'live', logoUrl: null, coverUrl: null, payeeMissing: false, paypalDown: false, recoveryUnsaved: false };
 
@@ -102,5 +102,57 @@ describe('shell store', () => {
       seedShell('shp_1', { ...base, payeeMissing: true }, 9_000);
       expect(shellSnapshot('shp_1', base)).toMatchObject({ payeeEmail: 'a@example.com', payeeMissing: false });
     });
+  });
+});
+
+describe('setRecoveryUnsaved: the recovery key belongs to the account, not to one shop', () => {
+  const unsaved: ShellValues = { ...base, recoveryUnsaved: true };
+
+  beforeEach(() => resetShellForTests());
+
+  it('changes every shop this tab already knows and tells the readers', () => {
+    seedShell('shp_1', unsaved);
+    seedShell('shp_2', unsaved);
+    const fn = vi.fn();
+    subscribeShell(fn);
+    setRecoveryUnsaved(false);
+    expect(shellSnapshot('shp_1', base).recoveryUnsaved).toBe(false);
+    expect(shellSnapshot('shp_2', base).recoveryUnsaved).toBe(false);
+    expect(fn).toHaveBeenCalled();
+  });
+
+  it('is not undone by the payload Back restores', () => {
+    const readAt = Date.now() - 60_000;
+    seedShell('shp_1', unsaved, readAt);
+    setRecoveryUnsaved(false);
+    seedShell('shp_1', unsaved, readAt);
+    expect(shellSnapshot('shp_1', base).recoveryUnsaved).toBe(false);
+  });
+
+  it('corrects a kept payload for a shop first opened after the change', () => {
+    setRecoveryUnsaved(false);
+    seedShell('shp_new', unsaved, Date.now() - 60_000);
+    expect(shellSnapshot('shp_new', base)).toMatchObject({ recoveryUnsaved: false, toPrepare: 2 });
+  });
+
+  it('believes a server read made after the change', () => {
+    setRecoveryUnsaved(false);
+    seedShell('shp_new', unsaved, Date.now() + 60_000);
+    expect(shellSnapshot('shp_new', base).recoveryUnsaved).toBe(true);
+  });
+
+  it('brings the banner back for a new key that is not saved yet', () => {
+    seedShell('shp_1', base);
+    setRecoveryUnsaved(true);
+    expect(shellSnapshot('shp_1', base).recoveryUnsaved).toBe(true);
+    seedShell('shp_new', base, Date.now() - 60_000);
+    expect(shellSnapshot('shp_new', base).recoveryUnsaved).toBe(true);
+  });
+
+  it('forgets the change between tests', () => {
+    setRecoveryUnsaved(false);
+    resetShellForTests();
+    seedShell('shp_1', unsaved, Date.now() - 60_000);
+    expect(shellSnapshot('shp_1', base).recoveryUnsaved).toBe(true);
   });
 });

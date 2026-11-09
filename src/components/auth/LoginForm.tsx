@@ -15,7 +15,7 @@ const IDS = { email: 'login-email', password: 'current-password' };
 export function LoginForm({ next }: { next: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { problem, busy, submit, clearProblem } = useAuthForm(IDS);
+  const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
 
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -60,7 +60,7 @@ export function LoginForm({ next }: { next: string | null }) {
           </TextLink>
         </div>
         <FormProblem problem={problem} />
-        <Button type="submit" variant="primary" size="lg" fullWidth loading={busy} loadingLabel="Logging in...">
+        <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Logging in...">
           Log in
         </Button>
       </form>

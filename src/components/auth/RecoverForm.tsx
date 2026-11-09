@@ -9,7 +9,7 @@ import { recover, type KeyAndNext } from '@/lib/client/auth';
 import { checkRecover, passwordHint, recoverProblem } from '@/lib/client/auth-copy';
 import { AuthHeading } from './AuthHeading';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
-import { EmailField, PasswordField } from './fields';
+import { EmailField, PasswordField, useKeepTypedValue } from './fields';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
 import { announceSession } from '@/lib/client/started-session';
 import { useAuthForm } from './use-auth-form';
@@ -21,7 +21,8 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
   const [recoveryKey, setRecoveryKey] = useState('');
   const [password, setPassword] = useState('');
   const [done, setDone] = useState<KeyAndNext | null>(null);
-  const { problem, busy, submit, clearProblem } = useAuthForm(IDS);
+  const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
+  const keyInput = useKeepTypedValue(recoveryKey, setRecoveryKey);
 
   if (done) return <RecoveryKeyStep recoveryKey={done.recoveryKey} email={email.trim().toLowerCase()} next={done.next} appUrl={appUrl} />;
 
@@ -59,6 +60,7 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
           {(control) => (
             <Input
               {...control}
+              ref={keyInput}
               name={IDS.recoveryKey}
               type="text"
               autoComplete="off"
@@ -88,7 +90,7 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
           error={problem?.field === 'password' ? <AuthProblemText problem={problem} /> : undefined}
         />
         <FormProblem problem={problem} />
-        <Button type="submit" variant="primary" size="lg" fullWidth loading={busy} loadingLabel="Saving...">
+        <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Saving...">
           Set new password
         </Button>
       </form>
