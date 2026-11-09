@@ -23,3 +23,6 @@ All confirmed findings fixed at the root; no item rejected.
 - `e2e/sounds.spec.ts`: `getByRole('tab', {name})` -> nav links (`sectionLink`), the WP4 change; added `a section link`; `a tab` now targets the real tab in `AgentDoor` on `/s/{slug}#agent-door`; the footer toggle checks at the end of `none when off` and in the axe test moved to `/`, where the toggle shows (it is hidden in the shell), keeping the assertions.
 - `tests/app/shell-store.test.ts`, `tests/app/shell-data.test.ts`, `tests/catalog/setup.test.ts`, `tests/ui/working-screens-type.test.ts`, `e2e/app-shell.spec.ts`: additions only.
 - New: `tests/ui/card-name-size.test.ts`.
+
+## Test edit by the coordinator (session 6)
+`e2e/dashboard.spec.ts` "Add tracking on an order row": the expected form top goes from 16 to 72. WP4's sticky 56 px top bar and its `scroll-padding-top` (brief, WP4 tokens) move the landing point by exactly the bar's height, so 16 would mean the form sits under the bar. The assertion stays; only the number follows the brief.
