@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 17:18 IST (run 5, session 9 hand-off)_
+_Last updated: 2026-11-09 17:20 IST (run 5, session 10)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -42,6 +42,7 @@ _Last updated: 2026-11-09 17:18 IST (run 5, session 9 hand-off)_
   1. **S1 (`.claude/worktrees/s1`, branch `s1`, 7 commits, not merged):** built by a single worker with unit tests only (`npm test` 2265 passed at `92c33b9`; typecheck and lint passed on its last commit). Its screens have never been viewed in a browser. `e2e/delete.spec.ts` + `other-pages`: 18 passed on `s1`'s head (`.scratch/s9/s1-e2e.log`). **No independent review yet, and nobody has looked at its screens.** It starts next session through `.scratch/s9/run5-wp.js` with args from `.scratch/s9/args-s1.json` (`startTask: 2`, real `lenses`, new stop times). It deletes accounts and shops, so run the security lens (SR19 and the deletion paths) before merging. Note: an edit in `e2e/other-pages.spec.ts` (copy target) and a deletion of a shop leaves its products in the PayPal sandbox catalog.
   2. **S3, S4, S5, S6** in order, each separately revertible; S5 carries round 12's "one Example photo line above the list". Stop by 16:00 IST on Tue 10 Nov.
   3. The final **full e2e with the capture gate** on the final code (the green run was before `713138f` and S1), `test:sandbox`, then re-record any clip whose screen an S-item changed (S4's receipt is in the `paypal` scene), full render, full-size frame check, clarity test, then the completion steps (merge to `main` only if WP8's checks are green).
+- **Session 10 (17:17 to about 19:15 IST, 9 Nov), started.** Two workflows in worktrees: S1's review (security of deletion and password paths, correctness, the screens seen in a browser; `s1` now contains the run branch) and S3 to S6 built in order on `s3-6`, one commit prefix each so each is revertible, then reviewed. Script `.scratch/s10/run5-wp.js`. Next after they merge: the final full e2e with the capture gate, re-record the clips whose screens S4, S5 and S6 changed, full render, full-size frame check, clarity test 7, completion.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
