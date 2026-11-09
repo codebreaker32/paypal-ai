@@ -62,8 +62,24 @@ async function createDraftShop(
     assertUnderShopLimit(db, accountId);
     return shops.create(db, { name: `draft ${newId('shp', 8).slice(4)}`, accountId });
   })();
-  const menuPhotoPaths = await savePhotos(shop.id);
+  const menuPhotoPaths = await savePhotos(shop.id).finally(() => assertShopOutlivedWrites(db, shop.id));
   return { shop: shops.update(db, shop.id, { name, menuPhotoPaths }), ownerToken };
+}
+
+/** Writes every page and waits for them all, so a failed page can't leave another still writing after the cleanup. */
+async function writePages(shopId: string, pages: { name: string; jpeg: Buffer }[]): Promise<string[]> {
+  const written = await Promise.allSettled(pages.map(({ name, jpeg }) => writeUpload(shopId, name, jpeg)));
+  return written.map((page) => {
+    if (page.status === 'rejected') throw page.reason;
+    return page.value;
+  });
+}
+
+/** A delete can commit while photos are being written, and writing them recreates the folder it removed. */
+async function assertShopOutlivedWrites(db: Db, shopId: string): Promise<void> {
+  if (shops.byId(db, shopId)) return;
+  await removeFiles([uploadFilePath(shopId)]);
+  throw new EditError('NOT_FOUND', 404, 'No such shop.');
 }
 
 /** `photos` are raw uploads; each is normalised (and rejected if it isn't a photo) before the shop exists. */
@@ -72,7 +88,7 @@ export async function createShopFromPhotos(db: Db, photos: Buffer[], accountId: 
   return createDraftShop(
     db,
     PLACEHOLDER_NAME,
-    (id) => Promise.all(jpegs.map((jpeg, i) => writeUpload(id, `page-${i + 1}.jpg`, jpeg))),
+    (id) => writePages(id, jpegs.map((jpeg, i) => ({ name: `page-${i + 1}.jpg`, jpeg }))),
     accountId,
   );
 }
@@ -80,7 +96,7 @@ export async function createShopFromPhotos(db: Db, photos: Buffer[], accountId: 
 /** The sample's photo is copied into the shop's folder; its file name remembers which sample it was. */
 export async function createShopFromSample(db: Db, sample: SampleId, accountId: string | null = null): Promise<CreatedShop> {
   const jpeg = await normalizePhoto(await fs.readFile(samplePhotoPath(sample)));
-  return createDraftShop(db, SAMPLES[sample].name, async (id) => [await writeUpload(id, `sample-${sample}.jpg`, jpeg)], accountId);
+  return createDraftShop(db, SAMPLES[sample].name, (id) => writePages(id, [{ name: `sample-${sample}.jpg`, jpeg }]), accountId);
 }
 
 /**
@@ -94,14 +110,10 @@ export async function setShopPhotos(db: Db, shop: Shop, photos: Buffer[], mode: 
   const jpegs = await Promise.all(photos.map((p) => normalizePhoto(p)));
   // A fresh name per upload, so a retaken page never collides with (or caches as) the old one.
   const stamp = Date.now().toString(36);
-  const added = await Promise.all(
-    jpegs.map((jpeg, i) => writeUpload(shop.id, `page-${kept.length + i + 1}-${stamp}.jpg`, jpeg)),
-  );
-  // The delete can commit while the photos decode, and writing them recreates the folder it removed.
-  if (!shops.byId(db, shop.id)) {
-    await removeFiles([uploadFilePath(shop.id)]);
-    throw new EditError('NOT_FOUND', 404, 'No such shop.');
-  }
+  const added = await writePages(
+    shop.id,
+    jpegs.map((jpeg, i) => ({ name: `page-${kept.length + i + 1}-${stamp}.jpg`, jpeg })),
+  ).finally(() => assertShopOutlivedWrites(db, shop.id));
   return shops.update(db, shop.id, { menuPhotoPaths: [...kept, ...added] });
 }
 
