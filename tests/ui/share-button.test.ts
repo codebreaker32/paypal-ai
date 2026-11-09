@@ -47,4 +47,43 @@ describe('shareAndReport', () => {
     });
     expect(toast).toHaveBeenCalledExactlyOnceWith(failed);
   });
+
+  describe('a second tap while a share is open', () => {
+    const inFlight = () => ({ current: false });
+    const stillOpen = () => new DOMException('An earlier share has not yet completed.', 'InvalidStateError');
+
+    it('never reaches the share sheet and shows no toast', async () => {
+      const toast = vi.fn();
+      let finish = () => {};
+      const share = vi.fn(() => new Promise<void>((resolve) => (finish = resolve)));
+      const pending = inFlight();
+
+      const first = shareAndReport(data, toast, share, pending);
+      await shareAndReport(data, toast, () => Promise.reject(stillOpen()), pending);
+      await shareAndReport(data, toast, share, pending);
+
+      expect(share).toHaveBeenCalledTimes(1);
+      expect(toast).not.toHaveBeenCalled();
+      finish();
+      await first;
+    });
+
+    it('lets the next share through once the first one ends, however it ended', async () => {
+      const endings: Array<() => Promise<void>> = [
+        async () => {},
+        () => Promise.reject(new DOMException('Share canceled', 'AbortError')),
+        () => Promise.reject(new TypeError('bad data')),
+        () => {
+          throw new TypeError('not callable');
+        },
+      ];
+      for (const ending of endings) {
+        const pending = inFlight();
+        await shareAndReport(data, vi.fn(), ending, pending);
+        const share = vi.fn(async () => {});
+        await shareAndReport(data, vi.fn(), share, pending);
+        expect(share).toHaveBeenCalledTimes(1);
+      }
+    });
+  });
 });

@@ -226,6 +226,25 @@ test.describe('Share… on the shop-link row', () => {
       await expect(toasts(page).first()).toContainText('Couldn’t copy');
     });
 
+    test('a second tap while the sheet is opening is ignored, with no failure toast', async ({ page, context }) => {
+      await signIn(context, live.shop.id, live.ownerToken);
+      await page.addInitScript(() => {
+        // As the Web Share spec has it: one share at a time, and a later call is refused until the first one ends.
+        let calls = 0;
+        Object.assign(window, { shareCount: () => calls });
+        Object.defineProperty(navigator, 'share', {
+          configurable: true,
+          value: () => (++calls === 1 ? new Promise(() => {}) : Promise.reject(new DOMException('An earlier share has not yet completed.', 'InvalidStateError'))),
+        });
+      });
+      await page.goto(`/shops/${live.shop.id}?tab=share`);
+      await shareButton(page).click();
+      await shareButton(page).click();
+      await page.waitForTimeout(300);
+      expect(await page.evaluate(() => (window as unknown as { shareCount: () => number }).shareCount())).toBe(1);
+      await expect(toasts(page)).toHaveCount(0);
+    });
+
     test('no share sheet, no button', async ({ page, context }) => {
       await signIn(context, live.shop.id, live.ownerToken);
       await page.addInitScript(() => Object.defineProperty(navigator, 'share', { configurable: true, value: undefined }));
