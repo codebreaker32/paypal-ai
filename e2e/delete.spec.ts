@@ -122,11 +122,14 @@ test('the right name deletes it: gone from /shops, its page is a 404, and its ad
 
   const firstId = await startShop(page, name);
   const firstHref = await publish(page, firstId);
+  // /shops sends an account with no shops on to /shops/new, so a second shop keeps the list there to look at.
+  await startShop(page, `Delete Keeper ${Date.now()}`);
 
   const sheet = await openSheet(page, firstId);
   await confirm(sheet, name, PASSWORD);
   await page.waitForURL('**/shops');
-  await expect(page.getByTestId('shop-row')).toHaveCount(0);
+  await expect(page.getByTestId('shop-row')).toHaveCount(1);
+  await expect(page.getByTestId('shop-row').first()).not.toContainText(name);
   expect((await page.goto(firstHref))?.status()).toBe(404);
 
   const secondId = await startShop(page, name);
