@@ -76,3 +76,26 @@ Results, on the code as committed:
 - **No product change was needed**, and **no existing test was edited.**
 
 Seen in the logs, not a product bug: a hydration warning on `/shops/new` for `caret-color: transparent` on the photo input. Playwright's screenshot sets that style, and it landed before hydration.
+
+## Review round 1
+
+Stopped for time at 13:25 IST. All findings have a code fix (commit e7dca15), but only part of it was verified.
+
+Fixes:
+
+- **SR23, credentials in the URL before hydration:** `method="post"` on LoginForm, SignupForm, RecoverForm and RecoverySection, so a submit before hydration no longer puts fields in the query string.
+- **Password error moving to the email field:** `failureIsPassword` in `PayeeForm` remembers that the last failure was about the password, so retyping no longer opens the email field's guard.
+- **`PayPal email changed on` lost between sections:** `onSaved` now also passes the change date, and Dashboard holds it in state.
+- **Key step header:** `src/lib/client/started-session.ts` gives `HeaderNav` the account once sign-up or recovery starts a session. `router.refresh()` is not usable: the /signup page redirects a logged-in visitor, which loses the key.
+- **Outside click focus:** the selector now ignores `tabindex="-1"` wrappers.
+- **ShopRow:** `content-center` on the grid.
+
+Not done or not verified (for the coordinator):
+
+- **`e2e/accounts.spec.ts` and `e2e/app-shell.spec.ts` were NOT run after these fixes.**
+- **No regression e2e was added** for any finding, including the JS-off test the security reviewer asked for. These fixes are unproven in a browser.
+- TDD was followed only for `started-session` (test seen failing first). The other fixes are component changes with no failing test first.
+- `npm run typecheck` and `npm run lint` printed no errors. `npm test` ran, but its pass/fail summary was cut off in the output, so its result is unknown.
+- `method="post"` keeps fields out of the URL, but a pre-hydration submit still POSTs to the page, which re-renders it empty. Not tested in a browser here.
+
+No existing test was edited. New test: `tests/client/started-session.test.ts`.
