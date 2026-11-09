@@ -87,6 +87,14 @@ export function byClientRequestId(db: Db, shopId: string, key: string): Order | 
 }
 
 /** A shop's orders, newest first; `limit`: only the newest that many (their lines are read only for those). */
+/** How many paid orders (waiting to be prepared) each of an account's shops has. A shop with none is absent. */
+export function paidCountsByAccount(db: Db, accountId: string): Map<string, number> {
+  const rows = db
+    .prepare("SELECT o.shop_id AS shopId, COUNT(*) AS n FROM orders o JOIN shops s ON s.id = o.shop_id WHERE s.account_id = ? AND o.status = 'paid' GROUP BY o.shop_id")
+    .all(accountId) as { shopId: string; n: number }[];
+  return new Map(rows.map((r) => [r.shopId, r.n]));
+}
+
 export function listByShop(db: Db, shopId: string, opts: { status?: OrderStatus[]; limit?: number } = {}): Order[] {
   const statuses = opts.status ?? [];
   const where = statuses.length ? ` AND status IN (${statuses.map(() => '?').join(',')})` : '';
