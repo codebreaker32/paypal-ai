@@ -8,8 +8,10 @@ import { Field, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { TextLink } from '@/components/ui/text-link';
 import { parsePayeeEmail } from '@/lib/domain/payee';
+import { setFeedbackOn, useFeedbackOn } from '@/lib/feedback/prefs';
 import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
+import { Switch } from './Switch';
 
 export interface SettingsPanelProps {
   shopId: string;
@@ -137,12 +139,28 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<Settings
   );
 }
 
+/** One switch for this device's click sounds, order chime and vibration. */
+function SoundSwitch() {
+  const on = useFeedbackOn();
+  return (
+    <Switch
+      checked={on}
+      onChange={setFeedbackOn}
+      label="Play sounds and vibrate"
+      description="Saved on this device. Keep this page open, and tap it once after opening, to hear order chimes."
+    />
+  );
+}
+
 /** Settings: where you get paid, your logo, and how you sign in, each a titled row of its own. */
 export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, ...payee }: SettingsPanelProps) {
   return (
     <div className="flex flex-col">
       <SettingsSection title="Where you get paid" description="Buyers pay straight into the PayPal account with this email.">
         <PayeeForm {...payee} />
+      </SettingsSection>
+      <SettingsSection title="Sound and vibration">
+        <SoundSwitch />
       </SettingsSection>
       <SettingsSection title="Your logo">
         <LogoPicker shopId={payee.shopId} shopName={shopName} logoUrl={logoUrl} onChange={onLogoChange} titled={false} />

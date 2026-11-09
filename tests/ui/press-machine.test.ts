@@ -184,3 +184,105 @@ describe('press machine', () => {
     });
   });
 });
+
+describe('press machine: the press that counts (the tick)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function counted() {
+    const log = { presses: 0, pressedWhenCounted: [] as boolean[] };
+    let pressed = false;
+    const machine = createPressMachine({
+      apply: () => {
+        pressed = true;
+      },
+      clear: () => {
+        pressed = false;
+      },
+      press: () => {
+        log.presses += 1;
+        log.pressedWhenCounted.push(pressed);
+      },
+    });
+    return { machine, log };
+  }
+
+  it.each(['mouse', 'keyboard'] as const)('%s counts once, the moment the press shows', (input) => {
+    const { machine, log } = counted();
+    machine.down(input);
+    expect(log.presses).toBe(1);
+    expect(log.pressedWhenCounted).toEqual([true]);
+    machine.up();
+    vi.advanceTimersByTime(500);
+    expect(log.presses).toBe(1);
+  });
+
+  it('a second click while the first still shows counts too', () => {
+    const { machine, log } = counted();
+    machine.down('mouse');
+    vi.advanceTimersByTime(20);
+    machine.up();
+    vi.advanceTimersByTime(40);
+    machine.down('mouse');
+    expect(log.presses).toBe(2);
+  });
+
+  describe.each(['touch', 'pen'] as const)('%s', (input) => {
+    it('counts a quick tap once, on lift', () => {
+      const { machine, log } = counted();
+      machine.down(input);
+      vi.advanceTimersByTime(20);
+      expect(log.presses).toBe(0);
+      machine.up();
+      expect(log.presses).toBe(1);
+    });
+
+    it('does not count a finger still resting after the press shows: it may yet be a scroll', () => {
+      const { machine, log } = counted();
+      machine.down(input);
+      vi.advanceTimersByTime(300);
+      expect(log.presses).toBe(0);
+      machine.up();
+      expect(log.presses).toBe(1);
+    });
+
+    it('never counts a finger that turned into a scroll, before or after the press showed', () => {
+      const early = counted();
+      early.machine.down(input);
+      vi.advanceTimersByTime(20);
+      early.machine.cancel();
+
+      const late = counted();
+      late.machine.down(input);
+      vi.advanceTimersByTime(120);
+      late.machine.cancel();
+      late.machine.up();
+
+      expect([early.log.presses, late.log.presses]).toEqual([0, 0]);
+    });
+
+    it('counts a second tap while the first still shows, once each', () => {
+      const { machine, log } = counted();
+      machine.down(input);
+      vi.advanceTimersByTime(60);
+      machine.up();
+      machine.down(input);
+      vi.advanceTimersByTime(20);
+      machine.up();
+      machine.up();
+      expect(log.presses).toBe(2);
+    });
+  });
+
+  it('works with no press effect', () => {
+    const machine = createPressMachine({ apply: () => {}, clear: () => {} });
+    expect(() => {
+      machine.down('mouse');
+      machine.up();
+    }).not.toThrow();
+  });
+});

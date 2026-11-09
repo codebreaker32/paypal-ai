@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 import { preventClick } from '@/components/ui/button-status';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
+import { feedback } from '@/lib/feedback';
 
 export interface SwitchProps {
   checked: boolean;
@@ -50,7 +51,14 @@ export function Switch({ checked, onChange, label, description, busy, disabled, 
         aria-busy={busy || undefined}
         aria-disabled={unavailable || undefined}
         data-nope={failed || undefined}
-        onClick={unavailable ? preventClick : () => onChange(!checked)}
+        onClick={
+          unavailable
+            ? preventClick
+            : () => {
+                onChange(!checked);
+                feedback('flip');
+              }
+        }
         className={cx(
           'press-switch group inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center rounded-full',
           busy ? 'cursor-progress' : disabled && 'cursor-not-allowed',

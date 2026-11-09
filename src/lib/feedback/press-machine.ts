@@ -15,6 +15,11 @@ export type PressInput = 'mouse' | 'touch' | 'pen' | 'keyboard';
 export interface PressEffects {
   apply: () => void;
   clear: () => void;
+  /**
+   * A real press landed: once per press, for the tick. A mouse or key counts at once, with the press showing. A finger
+   * counts on lift, because a finger resting past ARM_MS shows as pressed but may still turn into a scroll.
+   */
+  press?: () => void;
 }
 
 export interface PressMachine {
@@ -25,8 +30,9 @@ export interface PressMachine {
   cancel: () => void;
 }
 
-export function createPressMachine({ apply, clear }: PressEffects): PressMachine {
+export function createPressMachine({ apply, clear, press }: PressEffects): PressMachine {
   let phase: 'idle' | 'armed' | 'held' | 'lingering' = 'idle';
+  let awaitingLift = false;
   let appliedAt = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -50,14 +56,17 @@ export function createPressMachine({ apply, clear }: PressEffects): PressMachine
   return {
     down(input) {
       stopTimer();
+      awaitingLift = input === 'touch' || input === 'pen';
       if (phase === 'held' || phase === 'lingering') {
         // Already showing as pressed: keep it up, and count the hold from this press.
         appliedAt = Date.now();
         phase = 'held';
+        if (!awaitingLift) press?.();
         return;
       }
-      if (input === 'mouse' || input === 'keyboard') {
+      if (!awaitingLift) {
         hold();
+        press?.();
         return;
       }
       phase = 'armed';
@@ -65,6 +74,8 @@ export function createPressMachine({ apply, clear }: PressEffects): PressMachine
     },
 
     up() {
+      if (awaitingLift) press?.();
+      awaitingLift = false;
       if (phase === 'armed') {
         stopTimer();
         hold();
@@ -80,6 +91,7 @@ export function createPressMachine({ apply, clear }: PressEffects): PressMachine
     },
 
     cancel() {
+      awaitingLift = false;
       if (phase === 'idle') return;
       if (phase === 'armed') {
         stopTimer();
