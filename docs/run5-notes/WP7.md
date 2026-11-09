@@ -11,11 +11,26 @@
 - Footer page links use `prefetch={false}`: buyers on phones should not fetch the legal pages.
 - `agents.txt` and `llms.txt` are the visible link text for those two routes.
 
+## Other pages step
+- Built: `src/app/not-found.tsx` (logged-in and logged-out actions), `src/app/error.tsx` (`Try again` calls `retry`), `src/app/global-error.tsx` (own `<html>`/`<body>`, inline styles, system font, `Reload`), the `/claim/<bad>` 404 HTML, `/help`, `/terms`, `/privacy`. Terms and Privacy carry a code comment flagging them as templates for human review; governing law is omitted.
+- Shared: `src/components/brand/DocPage.tsx` (the three reading pages), `src/lib/brand/contact.ts` (SUPPORT_EMAIL, else GitHub Issues built from `REPO_URL`, which came from the README's clone command).
+- Tests added: `tests/brand/contact.test.ts`, `tests/auth/claim-not-found.test.ts`, `e2e/other-pages.spec.ts` (axe and no sideways scroll at 390 and 1440 for Help, Terms, Privacy, 404).
+- Forced failures, checked once on a production build with temporary code that is not committed: a page that throws rendered `error.tsx` inside the header and footer, and `Try again` recovered it (acceptance 5); a root layout that throws answered 500 with `global-error.tsx`, and `Reload` reloaded. No committed e2e covers these two, because a test-only route that throws would ship.
+
+### Choices the brief left open
+- `#get-paid` has no copy in the brief. Written from the payee rules in CLAUDE.md (paid to the shop's PayPal email, a change affects new orders only, an email with no PayPal account stays pending).
+- `/terms` and `/privacy` headings: the H1 is the page name with `Early-access draft, last updated 8 November 2026` on its own line inside the same heading, so each page has one H1 and the draft line is still a heading.
+- `global-error.tsx`'s heading repeats `That page didn’t load`; the brief gives only the `Reload` label. `Reload` is a full page reload, not `retry`, because the root layout itself failed.
+- `global-error.tsx`'s button has the `press` class so `tests/ui/press-coverage.test.ts` passes unedited. It has no effect when the stylesheet is gone.
+- `/claim/<bad>` also sends `referrer-policy: no-referrer` and `noindex`, since a mistyped owner link is close to a real token. Its page is a constant, so it never repeats the token.
+- Copy uses typographic apostrophes, matching the rest of the app; the brief's straight ones are markdown.
+- `#delete` and the Privacy deletion line stay `contact us` because `/account` has no deletion yet (S1).
+- The impeccable skill's interview has no PRODUCT.md and no user in this subagent: the brief and `docs/DESIGN.md` were used instead.
+
 ## Tests edited
-None. No existing test file was changed.
+None, in either step. No existing test file was changed; `npm test` passed without any copy or selector edit, because no unit test followed the old landing or 404 copy.
 
 ## Open for the coordinator
-- **Not built in this step:** `/help`, `/terms`, `/privacy`. The footer links to them, so they 404 until those pages land.
 - **Gate not flipped, e2e not moved (as instructed).** `/` no longer has the photo input or sample chips, so the specs that use them from `/` (`e2e/{start,flow,recordings,screenshots}.spec.ts`) and `scripts/clips/record.ts` need the planned move to `/shops/new`. Those specs were not run here.
 - **FAQ sentence for S1:** `You can delete your shop or account whenever you like.` is not appended, because `/account` has no deletion yet.
 - **Several owner cookies:** `dashboardHref` in `src/lib/brand/header.ts` returns `/` for a browser holding 2+ unattached owner cookies, and null on `/`, on the grounds that the start page lists them. With `WelcomeBack` gone it no longer does, so that link leads nowhere (seed and harness browsers only). `tests/brand/header.test.ts` asserts the current behaviour, so it was left alone.

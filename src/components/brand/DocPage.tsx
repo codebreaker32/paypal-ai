@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import Link from 'next/link';
+import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 /** The reading pages (Help, Terms, Privacy): one column at reading width, in line with the logo above it. */
@@ -30,4 +31,9 @@ export function DocSection({ id, title, className, children }: { id?: string; ti
 /** A plain bulleted list inside a section. */
 export function DocList({ children }: { children: ReactNode }) {
   return <ul className="flex list-disc flex-col gap-2 pl-5">{children}</ul>;
+}
+
+/** A link inside a sentence: it keeps the line's height, unlike the 44 px `TextLink` that stands on its own. */
+export function DocLink({ className, ...rest }: ComponentProps<typeof Link>) {
+  return <Link className={cn('press-text font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink', className)} {...rest} />;
 }

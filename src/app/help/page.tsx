@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DocPage, DocSection } from '@/components/brand/DocPage';
+import { DocLink, DocPage, DocSection } from '@/components/brand/DocPage';
 import { TextLink } from '@/components/ui/text-link';
 import { contactFor } from '@/lib/brand/contact';
 import { getConfig } from '@/lib/config';
@@ -43,9 +43,7 @@ export default function HelpPage() {
       <DocSection id="delete" title="Deleting your shop or account">
         <p>
           To delete your shop or account,{' '}
-          <TextLink href="#contact" className="font-normal min-h-0">
-            contact us
-          </TextLink>
+          <DocLink href="#contact">contact us</DocLink>
           .
         </p>
       </DocSection>
@@ -53,9 +51,7 @@ export default function HelpPage() {
       <DocSection id="contact" title="Contact">
         <p>
           {contact.kind === 'email' ? 'Write to ' : 'Open an issue on '}
-          <a href={contact.href} className="press-text font-semibold underline decoration-line-strong decoration-2 underline-offset-4 hover:decoration-ink">
-            {contact.label}
-          </a>
+          <DocLink href={contact.href}>{contact.label}</DocLink>
           .
         </p>
       </DocSection>

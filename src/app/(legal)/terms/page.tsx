@@ -1,8 +1,7 @@
 // TEMPLATE FOR HUMAN REVIEW: these terms are an early-access draft, not advice from a lawyer. Have someone qualified
 // read them before Shelfie takes real payments. Governing law is left out on purpose until that happens.
 import type { Metadata } from 'next';
-import { DocPage, DocSection } from '@/components/brand/DocPage';
-import { TextLink } from '@/components/ui/text-link';
+import { DocLink, DocPage, DocSection } from '@/components/brand/DocPage';
 
 export const metadata: Metadata = { title: 'Terms · Shelfie' };
 
@@ -42,9 +41,7 @@ export default function TermsPage() {
       <DocSection title="Closing an account">
         <p>
           You can close your account by{' '}
-          <TextLink href="/help#contact" className="font-normal min-h-0">
-            contacting us
-          </TextLink>
+          <DocLink href="/help#contact">contacting us</DocLink>
           . We may close or suspend an account or shop that misuses Shelfie, breaks the law or harms buyers.
         </p>
       </DocSection>

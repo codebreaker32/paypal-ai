@@ -1,8 +1,7 @@
 // TEMPLATE FOR HUMAN REVIEW: this policy is an early-access draft, not advice from a lawyer. It lists what the code
 // stores and sends today; re-check it against the code, and have someone qualified read it, before real use.
 import type { Metadata } from 'next';
-import { DocList, DocPage, DocSection } from '@/components/brand/DocPage';
-import { TextLink } from '@/components/ui/text-link';
+import { DocLink, DocList, DocPage, DocSection } from '@/components/brand/DocPage';
 
 export const metadata: Metadata = { title: 'Privacy · Shelfie' };
 
@@ -39,9 +38,7 @@ export default function PrivacyPage() {
       <DocSection title="Deleting your data">
         <p>
           To delete your shop or account,{' '}
-          <TextLink href="/help#contact" className="font-normal min-h-0">
-            contact us
-          </TextLink>
+          <DocLink href="/help#contact">contact us</DocLink>
           .
         </p>
       </DocSection>
