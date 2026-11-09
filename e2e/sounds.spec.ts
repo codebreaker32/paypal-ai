@@ -3,7 +3,7 @@
 //
 // Run: E2E_PORT=3271 npx playwright test e2e/sounds.spec.ts
 import { expect, test, type BrowserContext, type Locator, type Page } from '@playwright/test';
-import { a11y, DESKTOP, PHONE, settle } from './helpers';
+import { a11y, appNav, DESKTOP, PHONE, settle } from './helpers';
 import { addFixtureOrder, createFixtureShop, signInAsOwner, type FixtureShop } from './task8-fixtures';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -55,6 +55,8 @@ const paidPickup = () =>
   });
 const markButton = (page: Page, number: string) => page.locator(`[data-order="${number}"] button`);
 const soundToggle = (page: Page) => page.getByRole('button', { name: 'Sound', exact: true });
+/** A dashboard section in the seller nav (the sections were tabs before the app shell). */
+const sectionLink = (page: Page, name: string) => appNav(page).getByRole('link', { name, exact: false });
 
 /** Hydrated (Tactile's listener is on) and the target finished its entrance, so a press lands where its box says. */
 async function ready(page: Page, target: Locator) {
@@ -133,9 +135,14 @@ for (const [label, viewport, touch] of SIZES) {
       await expectOneTick(page, link);
     });
 
-    test('a tab', async ({ page }) => {
+    test('a section link', async ({ page }) => {
       await page.goto(dashboard());
-      await expectOneTick(page, page.getByRole('tab', { name: 'Menu' }));
+      await expectOneTick(page, sectionLink(page, 'Menu'));
+    });
+
+    test('a tab', async ({ page }) => {
+      await page.goto(`/s/${shop.shop.slug}#agent-door`);
+      await expectOneTick(page, page.getByRole('tab').last());
     });
 
     test('a switch', async ({ page }) => {
@@ -149,11 +156,12 @@ for (const [label, viewport, touch] of SIZES) {
       const order = paidPickup();
       for (const path of ['/', `/s/${shop.shop.slug}`, `/o/${order.id}`, dashboard()]) {
         await page.goto(path);
-        await ready(page, soundToggle(page));
+        // The footer toggle is public chrome; inside the seller shell the section links are what's there.
+        await ready(page, path === dashboard() ? sectionLink(page, 'Menu') : soundToggle(page));
         await page.waitForTimeout(200);
         expect(await spyOf(page), path).toEqual({ contexts: 0, starts: [], orderEvents: 0 });
       }
-      await press(page, page.getByRole('tab', { name: 'Menu' }));
+      await press(page, sectionLink(page, 'Menu'));
       await expect.poll(async () => (await spyOf(page)).contexts).toBe(1);
     });
   });
@@ -210,7 +218,7 @@ test.describe('at 1440 with a mouse', () => {
 
   test('a key press ticks once, however long the key is held', async ({ page }) => {
     await page.goto(dashboard());
-    const tab = page.getByRole('tab', { name: 'Menu' });
+    const tab = sectionLink(page, 'Menu');
     await ready(page, tab);
     await tab.focus();
     await page.keyboard.down('Enter');
@@ -247,13 +255,16 @@ test.describe('at 1440 with a mouse', () => {
     await expect(sellerSwitch).toHaveAttribute('aria-checked', 'false');
     await sellerSwitch.click();
     await expect(sellerSwitch).toHaveAttribute('aria-checked', 'true');
+    // The footer toggle is hidden inside the shell, so it is read where it shows.
+    await page.goto('/');
+    await ready(page, soundToggle(page));
     await expect(soundToggle(page)).toHaveAttribute('aria-pressed', 'true');
     expect(await page.evaluate((key) => localStorage.getItem(key), KEY)).toBe('true');
   });
 
   test('new paid orders chime once for the whole poll batch', async ({ page }) => {
     await page.goto(dashboard());
-    await ready(page, page.getByRole('tab', { name: 'Orders' }));
+    await ready(page, sectionLink(page, 'Orders'));
     await unlock(page);
 
     paidPickup();
@@ -333,7 +344,11 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expect(page.getByRole('heading', { name: 'Sound and vibration' })).toBeVisible();
       await a11y(page);
 
-      await soundToggle(page).click();
+      // The footer toggle is hidden in the shell: the seller's switch is the same setting, and the toggle shows it on /.
+      await page.getByRole('switch', { name: 'Play sounds and vibrate' }).click();
+      await page.goto('/');
+      await settle(page);
+      await soundToggle(page).waitFor({ state: 'visible' });
       await expect(soundToggle(page)).toHaveAttribute('aria-pressed', 'false');
       await a11y(page);
     });

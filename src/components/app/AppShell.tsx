@@ -46,7 +46,7 @@ function ShopSwitcher({ data, values, account }: { data: ShellData; values: Shel
 }
 
 function ViewShopLink({ data, status }: { data: ShellData; status: ShopStatus }) {
-  const row = 'press flex min-h-tap items-center gap-2.5 rounded-md px-3 text-sm font-medium text-ink-soft hover:bg-surface-sunken hover:text-ink';
+  const row = 'press flex min-h-tap items-center gap-3 rounded-md px-3 text-sm font-medium text-ink-soft hover:bg-surface-sunken hover:text-ink';
   if (status === 'draft') {
     return (
       <Link href={`/shops/${data.shopId}/setup`} className={row}>
@@ -56,7 +56,7 @@ function ViewShopLink({ data, status }: { data: ShellData; status: ShopStatus })
   }
   return (
     <Link href={`/s/${data.slug}`} className={row}>
-      <Icon icon={ExternalLink} size="sm" />
+      <Icon icon={ExternalLink} />
       View your shop
     </Link>
   );
@@ -81,8 +81,8 @@ export function AppShell({ data, account, children }: { data: ShellData; account
 
   // Before the dashboard's effects run, so its first patch lands on this shop.
   useLayoutEffect(() => {
-    seedShell(data.shopId, data.values);
-  }, [data.shopId, data.values]);
+    seedShell(data.shopId, data.values, data.readAt);
+  }, [data.shopId, data.values, data.readAt]);
 
   const home = account ? '/shops' : '/';
 

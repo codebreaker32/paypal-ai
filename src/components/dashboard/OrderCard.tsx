@@ -84,7 +84,7 @@ export function OrderCard({
         PANEL_ROW,
         'hover:bg-surface-subtle',
         // The one-line layout needs the list's real width (the sidebar takes 15rem), so it is a container query, not `lg`.
-        '@[60rem]:grid-cols-[3.5rem_12rem_minmax(0,1fr)_7rem_10rem_10.5rem] @[60rem]:items-center',
+        '@[60rem]:grid-cols-[3.5rem_14rem_minmax(0,1fr)_7rem_8.5rem_10.5rem] @[60rem]:items-center',
         fresh && 'animate-rise-in motion-reduce:animate-none',
       )}
     >
@@ -113,10 +113,12 @@ export function OrderCard({
             {order.number}
           </Link>
         </h3>
-        {/* The buyer's name gives way last: "via ..." truncates first. */}
-        <p className="flex min-w-0 gap-1 text-sm text-ink-muted">
-          <span className="max-w-full shrink-0 truncate font-medium text-ink-soft">{buyerLabel(order)}</span>
-          <span className="min-w-0 truncate"> · via {agentLabel(order.agentName)}</span>
+        {/* Who placed the order is the point of this row, so "via ..." gets its own line when there's no room beside the buyer. */}
+        <p className="flex min-w-0 flex-col text-sm text-ink-muted @[60rem]:flex-row @[60rem]:gap-1">
+          <span className="truncate font-medium text-ink-soft @[60rem]:shrink-0">{buyerLabel(order)}</span>
+          <span className="min-w-0 truncate" title={`via ${agentLabel(order.agentName)}`}>
+            <span className="@max-[60rem]:hidden"> · </span>via {agentLabel(order.agentName)}
+          </span>
         </p>
       </div>
 

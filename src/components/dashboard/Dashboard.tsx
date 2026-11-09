@@ -52,11 +52,10 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const section = sectionFromTab(useSearchParams().get('tab'));
   const [orders, setOrders] = useState(initialOrders);
   const [items, setItems] = useState(initialItems);
-  const [coverUrl, setCoverUrl] = useState(shop.coverUrl ?? null);
-  const [logoUrl, setLogoUrl] = useState(shop.logoUrl ?? null);
   const kind = shop.kind ?? 'food';
   const [paypalReachable, setPaypalReachable] = useState(initialPaypalReachable);
-  // Status lives in the shell's store: its banner can resume the shop from any section.
+  // What the seller changes here lives in the shell's store: its banner can resume the shop from any section, and on
+  // Back this page comes back with the props of its first load, so the store is what still knows the latest.
   const [serverShell] = useState<ShellValues>(() => ({
     toPrepare: initialOrders.filter((o) => o.status === 'paid').length,
     status: shop.status,
@@ -66,9 +65,10 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     paypalDown: !initialPaypalReachable,
     recoveryUnsaved: false,
   }));
-  const status = useShellValues(shop.id, serverShell).status;
-  const [payeeEmail, setPayeeEmail] = useState(shop.payeeEmail);
-  const [payeeChangedAt, setPayeeChangedAt] = useState(shop.payeeChangedAt ?? null);
+  const live = useShellValues(shop.id, serverShell);
+  const { status, coverUrl, logoUrl } = live;
+  const payeeEmail = live.payeeEmail === undefined ? shop.payeeEmail : live.payeeEmail;
+  const payeeChangedAt = live.payeeChangedAt === undefined ? (shop.payeeChangedAt ?? null) : live.payeeChangedAt;
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
@@ -184,14 +184,13 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   };
 
   const toPrepare = orders.filter((o) => o.status === 'paid').length;
-  const payeeMissing = !canBePaid({ slug: shop.slug, payeeEmail });
   const photos = itemPictures(items, kind);
   const paused = status === 'paused';
 
-  // The shell reads these; a change here (a poll, an upload, a save) reaches it without touching this tree.
+  // The shell reads these; what a poll finds reaches it without touching this tree.
   useEffect(() => {
-    patchShell(shop.id, { toPrepare, coverUrl, logoUrl, payeeMissing, paypalDown: !paypalReachable });
-  }, [shop.id, toPrepare, coverUrl, logoUrl, payeeMissing, paypalReachable]);
+    patchShell(shop.id, { toPrepare, paypalDown: !paypalReachable });
+  }, [shop.id, toPrepare, paypalReachable]);
 
   // Back and Forward change the section too, so the tab's title follows the URL rather than the click.
   useEffect(() => {
@@ -248,7 +247,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           />
         )}
         {section === 'menu' && (
-          <MenuPanel items={items} shopId={shop.id} shopKind={kind} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={setCoverUrl} />
+          <MenuPanel items={items} shopId={shop.id} shopKind={kind} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={(url) => patchShell(shop.id, { coverUrl: url })} />
         )}
         {section === 'share' && <SharePanel shopId={shop.id} status={status} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} qr={shareQr} />}
         {section === 'settings' && (
@@ -258,12 +257,15 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             payeeEmail={payeeEmail}
             isDemo={shop.isDemo}
             draft={status === 'draft'}
-            onSaved={(email, changedAt) => {
-              setPayeeEmail(email);
-              if (changedAt) setPayeeChangedAt(changedAt);
-            }}
+            onSaved={(email, changedAt) =>
+              patchShell(shop.id, {
+                payeeEmail: email,
+                payeeMissing: !canBePaid({ slug: shop.slug, payeeEmail: email }),
+                ...(changedAt ? { payeeChangedAt: changedAt } : {}),
+              })
+            }
             logoUrl={logoUrl}
-            onLogoChange={setLogoUrl}
+            onLogoChange={(url) => patchShell(shop.id, { logoUrl: url })}
             accountEmail={accountEmail}
             accountOwned={shop.accountOwned ?? false}
             payeeChangedAt={payeeChangedAt}

@@ -14,9 +14,15 @@ export interface ShellValues {
   payeeMissing: boolean;
   paypalDown: boolean;
   recoveryUnsaved: boolean;
+  /** Only once the seller edits it in Settings: until then the dashboard's own prop is the answer. */
+  payeeEmail?: string | null;
+  /** Same: when the seller last changed it, once they do. */
+  payeeChangedAt?: string | null;
 }
 
-let current: { shopId: string; values: ShellValues } | null = null;
+// Per shop, so a shop reopened from the router's cache still knows what happened to it.
+// `stamp`: when these values were last known true, the later of the server's read and the last change here.
+const shops = new Map<string, { values: ShellValues; stamp: number }>();
 const listeners = new Set<() => void>();
 
 const notify = () => listeners.forEach((fn) => fn());
@@ -30,26 +36,33 @@ export function subscribeShell(fn: () => void): () => void {
 
 /** The shop's live values, or `server` (what the page rendered with) until the shop is seeded. */
 export function shellSnapshot(shopId: string, server: ShellValues): ShellValues {
-  return current?.shopId === shopId ? current.values : server;
+  return shops.get(shopId)?.values ?? server;
 }
 
-/** Called with what the server just read (the shell's first render, or a refresh). */
-export function seedShell(shopId: string, values: ShellValues): void {
-  current = { shopId, values };
+/**
+ * Called with what the server read (the shell's mount, or a refresh). `readAt` is when: the router can hand us a payload
+ * it kept (a prefetched layout, or the one Back restores), and that must not undo what the seller has done since. A
+ * wrong device clock costs little: at worst a kept payload lands or a fresh one waits for the next full load.
+ */
+export function seedShell(shopId: string, values: ShellValues, readAt?: number): void {
+  const held = shops.get(shopId);
+  if (held && readAt !== undefined && readAt <= held.stamp) return;
+  shops.set(shopId, { values, stamp: readAt ?? Date.now() });
   notify();
 }
 
 /** Merges a change. Keeps the same object when nothing changed, so readers don't re-render. */
 export function patchShell(shopId: string, patch: Partial<ShellValues>): void {
-  if (current?.shopId !== shopId) return;
-  const changed = (Object.keys(patch) as (keyof ShellValues)[]).some((k) => patch[k] !== current!.values[k]);
+  const held = shops.get(shopId);
+  if (!held) return;
+  const changed = (Object.keys(patch) as (keyof ShellValues)[]).some((k) => patch[k] !== held.values[k]);
   if (!changed) return;
-  current = { shopId, values: { ...current.values, ...patch } };
+  shops.set(shopId, { values: { ...held.values, ...patch }, stamp: Date.now() });
   notify();
 }
 
 export function resetShellForTests(): void {
-  current = null;
+  shops.clear();
   listeners.clear();
 }
 

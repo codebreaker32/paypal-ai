@@ -4,11 +4,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function OrderDetailLoading() {
   return (
-    <div aria-busy="true" className="mx-auto grid w-full max-w-wide items-start gap-8 px-gutter pt-4 pb-section lg:grid-cols-[21rem_minmax(0,1fr)] lg:pt-8">
+    <div aria-busy="true" className="grid w-full items-start gap-8 xl:grid-cols-[20rem_minmax(0,1fr)]">
       <span role="status" className="sr-only">
         Loading this order
       </span>
-      <div className="hidden flex-col gap-0.5 border-r border-line pr-3 lg:flex">
+      <div className="hidden flex-col gap-0.5 border-r border-line pr-3 xl:flex">
         {[0, 1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center gap-3 px-3 py-2.5">
             <Skeleton className="size-10 shrink-0" rounded="md" />

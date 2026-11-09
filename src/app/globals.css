@@ -663,6 +663,13 @@ body:has([data-app-shell]) [data-site-chrome] { display:none; }
     -webkit-tap-highlight-color: transparent;
     scrollbar-color: var(--color-line-strong) transparent;
   }
+  /* The browser's own stylesheet resets these to auto, which brings the hinted spacing back on every real button. */
+  button,
+  input,
+  select,
+  textarea {
+    text-rendering: inherit;
+  }
   body {
     min-height: 100dvh;
     font-size: var(--text-base);

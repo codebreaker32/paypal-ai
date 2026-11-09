@@ -187,6 +187,33 @@ test.describe('at 1440', () => {
     expect(await page.evaluate(() => (window as unknown as Marked).__marker)).toBe(1);
   });
 
+  test('the sidebar rows share one text edge, and copy labels sit level with the button beside them', async ({ page }) => {
+    await page.goto(`/shops/${shop.shop.id}`);
+    const textX = (el: Element) => {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent!.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP) });
+      const node = walker.nextNode()!;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return range.getBoundingClientRect().left;
+    };
+    const nav = await appNav(page).getByRole('link', { name: 'Settings' }).evaluate(textX);
+    const view = await page.getByRole('link', { name: 'View your shop' }).evaluate(textX);
+    expect(Math.abs(nav - view)).toBeLessThanOrEqual(0.5);
+
+    await page.goto(`/shops/${shop.shop.id}?tab=share`);
+    const centre = (el: Element) => {
+      const b = el.getBoundingClientRect();
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.textContent!.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP) });
+      const range = document.createRange();
+      range.selectNodeContents(walker.nextNode()!);
+      const r = range.getBoundingClientRect();
+      return r.top + r.height / 2 - (b.top + b.height / 2);
+    };
+    const copy = await page.getByRole('button', { name: 'Copy agent door link' }).evaluate(centre);
+    const open = await page.getByRole('link', { name: 'Open', exact: true }).evaluate(centre);
+    expect(Math.abs(copy - open)).toBeLessThanOrEqual(1);
+  });
+
   test('no sideways scroll at 1024 and 1440', async ({ page }) => {
     for (const width of [1024, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -278,6 +305,46 @@ test.describe('Orders and Menu at 390', () => {
     await a11y(page);
   });
 
+  test('a busy shop\'s filters stay inside their pill and the buyer and agent are both readable', async ({ page, context }) => {
+    const busy = createFixtureShop('Busy Filters Bakery');
+    for (let i = 0; i < 15; i += 1) seedAllStates(busy);
+    await signInAsOwner(context, busy, BASE);
+    await page.goto(`/shops/${busy.shop.id}`);
+    const group = page.getByRole('group', { name: 'Show orders' });
+    await expect(group.getByRole('button').first()).toBeVisible();
+    const track = await group.locator('> div').boundingBox();
+    for (const b of await group.getByRole('button').all()) {
+      const box = await b.boundingBox();
+      expect(box!.x).toBeGreaterThanOrEqual(track!.x);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(track!.x + track!.width + 0.5);
+      expect(box!.x + box!.width).toBeLessThanOrEqual(390);
+    }
+    await expect(group.getByRole('button', { name: /All.*135/ })).toHaveCount(1);
+    const clipped = await page.locator('li[data-order] p span.min-w-0.truncate').evaluateAll((els) =>
+      els.filter((el) => el.scrollWidth > el.clientWidth).map((el) => el.textContent),
+    );
+    expect(clipped).toEqual([]);
+  });
+
+  test('the counter card keeps its whole content inside the card, however long the name', async ({ page, context }) => {
+    for (const name of ["Rosa's Weekend Bakehouse", 'The Corner Bakery and Coffee Shop', 'The Very Long Named Neighbourhood Bakery, Coffee Roastery and Weekend Sandwich Counter']) {
+      const f = createFixtureShop(name);
+      await signInAsOwner(context, f, BASE);
+      await page.goto(`/shops/${f.shop.id}/card`);
+      const card = page.locator('[data-print-alone]');
+      await expect(card).toBeVisible();
+      const m = await card.evaluate((el) => {
+        const qr = el.querySelector('[data-testid="card-qr"] svg')!.getBoundingClientRect();
+        const box = el.getBoundingClientRect();
+        const door = el.querySelector('[data-testid="card-door-url"]')!.getBoundingClientRect();
+        return { over: el.scrollHeight - el.clientHeight, qrH: qr.height, doorBottom: door.bottom, cardBottom: box.bottom };
+      });
+      expect(m.over, name).toBeLessThanOrEqual(1);
+      expect(m.doorBottom, name).toBeLessThanOrEqual(m.cardBottom);
+      expect(m.qrH, name).toBeGreaterThan(90);
+    }
+  });
+
   test('Photos in one go leads the Menu only while some items lack the seller\'s own photo', async ({ page, context }) => {
     const order = async () => {
       const list = (await page.locator('li[data-item]').first().boundingBox())!.y;
@@ -342,6 +409,68 @@ test.describe('banners', () => {
     await banner.getByRole('button', { name: 'Resume' }).click();
     expect((await sent).postDataJSON()).toMatchObject({ status: 'live' });
     await expect(banner).toBeHidden();
+  });
+
+  test('Resume keeps focus and says it worked', async ({ page, context }) => {
+    const f = createFixtureShop('Resume Focus Bakery');
+    await signInAsOwner(context, f, BASE);
+    await page.goto(`/shops/${f.shop.id}`);
+    await page.getByRole('switch', { name: 'Pause agent orders' }).click();
+    await expect(shellBanner(page)).toHaveCount(1);
+    await page.getByRole('button', { name: 'Resume' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(shellBanner(page)).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeFocused();
+    await expect(page.getByRole('status').filter({ hasText: 'Agent orders are on again.' })).toHaveCount(1);
+  });
+
+  test('Back after pausing keeps the banner and the switch: the store outlives a cached page', async ({ page, context }) => {
+    const f = createFixtureShop('Back Paused Bakery');
+    await signInAsOwner(context, f, BASE);
+    await page.goto(`/shops/${f.shop.id}`);
+    const pause = page.getByRole('switch', { name: 'Pause agent orders' });
+    const saved = page.waitForResponse((r) => r.request().method() === 'PATCH' && r.url().endsWith(`/api/shops/${f.shop.id}`));
+    await pause.click();
+    await saved;
+    await expect(shellBanner(page)).toHaveCount(1);
+    await page.getByRole('link', { name: 'View your shop' }).click();
+    await page.waitForURL(`**/s/${f.shop.slug}`);
+    await page.goBack();
+    await expect(page.locator('[data-app-shell]')).toBeVisible();
+    await expect(shellBanner(page)).toHaveCount(1);
+    await expect(pause).toHaveAttribute('aria-checked', 'true');
+    expect(shopsRepo.byId(getDb(), f.shop.id)!.status).toBe('paused');
+  });
+
+  test('Back restores no missing-payee banner or lost logo after they were saved', async ({ page, context }) => {
+    const f = createFixtureShop('Back Payee Bakery', { payeeEmail: null });
+    seedAllStates(f);
+    await signInAsOwner(context, f, BASE);
+    await page.goto(`/shops/${f.shop.id}?tab=settings`);
+    await expect(page.getByText('Not taking orders: add your PayPal email.')).toBeVisible();
+    await page.getByRole('textbox', { name: /PayPal email/i }).fill('seller@example.com');
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(shellBanner(page)).toHaveCount(0);
+    await appNav(page).getByRole('link', { name: /^Orders/ }).click();
+    await page.locator('li[data-order] a').first().click();
+    await page.waitForURL(`**/shops/${f.shop.id}/orders/*`);
+    await page.goBack();
+    await expect(page.locator('[data-section-panel]')).toBeVisible();
+    await page.waitForTimeout(1500);
+    await expect(shellBanner(page)).toHaveCount(0);
+    expect(shopsRepo.byId(getDb(), f.shop.id)!.payeeEmail).toBe('seller@example.com');
+  });
+
+  test('a shop whose orders cannot be read still shows the shell and the error state', async ({ page, context }) => {
+    const f = createFixtureShop('Broken Orders Bakery');
+    const order = addFixtureOrder(f, { status: 'paid', fulfillment: 'pickup', minutesAgo: 1, buyerName: 'Sam', lines: [['Morning bun', 1]] });
+    getDb().prepare("UPDATE orders SET brief_json = '{' WHERE id = ?").run(order.id);
+    await signInAsOwner(context, f, BASE);
+    await page.goto(`/shops/${f.shop.id}`);
+    await hideDevBadge(page);
+    await expect(page.locator('[data-app-shell]')).toBeVisible();
+    await expect(page.getByText('Your shop and orders are safe.')).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
   });
 
   test('a slow pause answer arriving after Resume does not bring the banner back', async ({ page, context }) => {
