@@ -6,7 +6,7 @@
 // Run: E2E_PORT=3201 npx playwright test e2e/discovery.spec.ts   (screenshots of the card: e2e/screenshots.spec.ts)
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, type BrowserContext } from '@playwright/test';
+import { expect, test, type BrowserContext, type Page } from '@playwright/test';
 import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { qrSvg } from '@/lib/discovery/qr';
@@ -176,5 +176,93 @@ test.describe('Share tab', () => {
     await page.getByRole('link', { name: 'Back to Share' }).click();
     await expect(appNav(page).getByRole('link', { name: 'Share' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeVisible();
+  });
+});
+
+test.describe('Share… on the shop-link row', () => {
+  const shareButton = (page: Page) => page.getByRole('button', { name: 'Share…' });
+  const toasts = (page: Page) => page.locator('[data-toast-region] > *');
+
+  /** Stands in for the phone's share sheet, recording what it was given and failing with `failWith` when set. */
+  const fakeShareSheet = (page: Page, failWith?: string) =>
+    page.addInitScript((name) => {
+      const calls: ShareData[] = [];
+      Object.assign(window, { shareCalls: calls });
+      Object.defineProperty(navigator, 'share', {
+        configurable: true,
+        value: async (data: ShareData) => {
+          calls.push(data);
+          if (name) throw new DOMException('from the test', name);
+        },
+      });
+    }, failWith);
+
+  test.describe('on a touch screen', () => {
+    test.use({ viewport: PHONE, hasTouch: true, isMobile: true });
+
+    test('shares the shop link', async ({ page, context }) => {
+      await signIn(context, live.shop.id, live.ownerToken);
+      await fakeShareSheet(page);
+      await page.goto(`/shops/${live.shop.id}?tab=share`);
+      await shareButton(page).click();
+      const calls = await page.evaluate(() => (window as unknown as { shareCalls: ShareData[] }).shareCalls);
+      expect(calls).toEqual([{ title: live.shop.name, url: shopUrl(live.shop) }]);
+      await expect(toasts(page)).toHaveCount(0);
+    });
+
+    test('closing the sheet is not an error; any other failure shows the toast', async ({ page, context }) => {
+      await signIn(context, live.shop.id, live.ownerToken);
+      await fakeShareSheet(page, 'AbortError');
+      await page.goto(`/shops/${live.shop.id}?tab=share`);
+      await shareButton(page).click();
+      await expect.poll(() => page.evaluate(() => (window as unknown as { shareCalls: ShareData[] }).shareCalls.length)).toBe(1);
+      await expect(toasts(page)).toHaveCount(0);
+
+      await page.reload();
+      await page.evaluate(() => {
+        Object.defineProperty(navigator, 'share', { configurable: true, value: async () => { throw new DOMException('from the test', 'NotAllowedError'); } });
+      });
+      await shareButton(page).click();
+      await expect(toasts(page).first()).toContainText('Couldn’t copy');
+    });
+
+    test('no share sheet, no button', async ({ page, context }) => {
+      await signIn(context, live.shop.id, live.ownerToken);
+      await page.addInitScript(() => Object.defineProperty(navigator, 'share', { configurable: true, value: undefined }));
+      await page.goto(`/shops/${live.shop.id}?tab=share`);
+      await expect(page.getByRole('button', { name: 'Copy Shop link' })).toBeVisible();
+      await expect(shareButton(page)).toHaveCount(0);
+    });
+  });
+
+  test.describe('with a mouse', () => {
+    test.use({ viewport: DESKTOP });
+
+    test('a browser with navigator.share still shows no button, and the server HTML never has one', async ({ page, context }) => {
+      await signIn(context, live.shop.id, live.ownerToken);
+      await fakeShareSheet(page);
+      const response = await page.goto(`/shops/${live.shop.id}?tab=share`);
+      expect(await response!.text()).not.toContain('Share…');
+      await expect(page.getByRole('button', { name: 'Copy Shop link' })).toBeVisible();
+      await expect(shareButton(page)).toHaveCount(0);
+    });
+  });
+});
+
+test.describe('Counter card miniature in Share', () => {
+  test.use({ viewport: PHONE });
+
+  test('the card, with the QR it prints, is one image to assistive tech and never prints alone', async ({ page, context }) => {
+    await signIn(context, live.shop.id, live.ownerToken);
+    await page.goto(`/shops/${live.shop.id}?tab=share`);
+    const region = page.getByRole('region', { name: 'Counter card' });
+    await expect(region.getByRole('img', { name: `QR code that opens localhost:${PORT}/s/${live.shop.slug}` })).toBeVisible();
+    await expect(region.getByTestId('share-qr').getByText(live.shop.name)).toBeVisible();
+    await expect(region.getByTestId('share-qr').getByText('Scan for the menu')).toBeVisible();
+    await expect(region.locator('path[stroke]')).toHaveAttribute('d', (await qrSvg(shopUrl(live.shop))).match(/<path[^>]*stroke[^>]*\bd="([^"]+)"/)?.[1] ?? '');
+    await expect(region.getByRole('heading')).toHaveCount(0);
+    await expect(page.locator('[data-print-alone]')).toHaveCount(0);
+    const box = await region.getByTestId('share-qr').boundingBox();
+    expect(Math.round((box!.width / box!.height) * 7)).toBe(5);
   });
 });

@@ -16,7 +16,11 @@ export interface CounterCardProps {
 /** The link as people type it: "https://shelfie.example/s/rosa" → "shelfie.example/s/rosa". */
 const asTyped = (url: string) => url.replace(/^https?:\/\//, '');
 
-/** The 5 × 7 in card. Every size is a share of its width (cqw), so the page, the miniature and the 5 in print are one layout. */
+/**
+ * The 5 × 7 in card. Every size is a share of its width (cqw), so the page, the miniature and the 5 in print are one
+ * layout. The miniature's two `leading` overrides are there because a line height the card inherits doesn't shrink with
+ * it: a long name's lines would otherwise spread apart and squeeze the QR.
+ */
 export function CounterCard({ name, coverUrl, shopUrl, doorUrl, qr, miniature = false }: CounterCardProps) {
   const Root = miniature ? 'div' : 'article';
   const Name = miniature ? 'p' : 'h2';
@@ -42,7 +46,7 @@ export function CounterCard({ name, coverUrl, shopUrl, doorUrl, qr, miniature = 
         <header className="flex flex-col items-center gap-[2.5cqw]">
           <Name
             id={miniature ? undefined : 'card-shop-name'}
-            className={cx('line-clamp-3 font-display leading-[1.04] font-extrabold tracking-display [overflow-wrap:anywhere]', cardNameSize(name))}
+            className={cx('line-clamp-3 font-display leading-[1.04] font-extrabold tracking-display [overflow-wrap:anywhere]', cardNameSize(name), miniature && 'leading-[1.04]')}
           >
             {name}
           </Name>
@@ -64,7 +68,7 @@ export function CounterCard({ name, coverUrl, shopUrl, doorUrl, qr, miniature = 
             />
           </div>
           <p className="mt-[0.8cqw] font-display text-[3.75cqw] leading-snug font-bold">Scan for the menu</p>
-          <p className="type-price text-[2.9cqw] text-ink-soft [overflow-wrap:anywhere]" data-testid={testId('card-shop-url')}>
+          <p className={cx('type-price text-[2.9cqw] text-ink-soft [overflow-wrap:anywhere]', miniature && 'leading-snug')} data-testid={testId('card-shop-url')}>
             {asTyped(shopUrl)}
           </p>
         </div>
