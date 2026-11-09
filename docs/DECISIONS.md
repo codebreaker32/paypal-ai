@@ -292,3 +292,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **A refused delete while a `payment_pending` order is held, and an unpaid order an agent left open, are kept as the brief specifies.** Reason: the verifiers dropped both claims: SR19 lists those states, and those orders expire or settle.
 - **S3 to S6's branch history was rewritten (unpushed, one notes-only commit on top) so each package reverts with a plain `git revert`.** Reason: all four shared one notes file, so every revert conflicted, and the brief wants each separately revertible.
 - **Deleting a shop leaves its products in the PayPal sandbox catalog.** Reason: PayPal's Catalog API has no delete, and the brief's copy promises deletion from Shelfie only.
+
+## Run 5, session 11 (2026-11-09 IST, from 19:17)
+- **Only the four clips whose screens S3 to S6 changed were re-recorded (03, 04, 06, 06b; 08 ran with 06), and their cut points and focus boxes were set by hand from viewed frames.** Reason: the pixel alignment tool cannot match a screen whose layout changed, and the other seven clips show unchanged screens.
+- **The clarity test ran on the first render; the final render differs only in caption placement on two beats.** Reason: the tester named those overlaps, and moving a caption cannot change an answer about what the product is; the changed frames were viewed and the rest compared by PSNR.
+

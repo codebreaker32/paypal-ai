@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 19:10 IST (run 5, session 10 hand-off)_
+_Last updated: 2026-11-09 20:40 IST (run 5 complete)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -48,6 +48,10 @@ _Last updated: 2026-11-09 19:10 IST (run 5, session 10 hand-off)_
   - **Verified on the merge `3c06e8e` (18:49 IST):** `npm test` 2325 passed (170 files), typecheck and lint exit 0. The final full e2e with the capture gate started at 18:50 IST (`.scratch/s10/e2e-1.log`).
   - **Next session, in order:** (1) if `.scratch/s10/e2e-1.log` has no result, `git checkout docs/judge/screenshots/capture` and run the full e2e again, alone on the machine; (2) `test:sandbox`; (3) re-record the clips whose screens changed: `06-console-order`, `06b-paypal-complete` (S3, S4), the review clip (S5), the Share clip (S6), then align cuts, one full render from the committed `demo.json` with the red callout moved off the terminal lines, full-size frame check, clarity test 7; (4) completion steps.
   - **Hand-off (19:10 IST):** the full e2e on `3c06e8e` was at 351 tests with one failure (`app-shell.spec.ts:123` at 1440, ?tab=menu deep-links, 1.6 s, first attempt) when this was written; the session ends before it finishes, so its result is unknown unless `.scratch/s10/e2e-1.log` ends with `e2e exit 0`. Check that spec alone before treating it as real (the machine may have been loaded by the run's start).
+- **Session 11 (from 19:17 IST, 9 Nov).** Session 10's full e2e was killed at test 515 by the session limit; run again from scratch.
+  - **Verified: final full e2e with the capture gate on `71639a4`: 530 passed, 33 skipped, 0 failed (29.9 min), three real captures COMPLETED** (seller `03E117375A935591K`, platform `24R445783P510712L`, cart `2DE60748XU6718018`). The `app-shell.spec.ts:123` failure from session 10 did not recur. The 33 skips are the on-request recordings and account screenshots, the hidden Other carrier and `dashboard-loading` (production build only). **On `2532da4` (no `src`, `tests` or `e2e` change):** `npm test` 2325 passed (170 files), typecheck and lint exit 0, `test:sandbox` 8 passed. Output: `docs/judge/run5-final-tests.txt`.
+  - **WP9, verified (20:34 IST):** re-recorded `03-review-publish`, `04-counter-card`, `06-console-order`, `06b-paypal-complete` (S3 to S6's screens; `08-dashboard-brief` ran with 06), 0 dup and 0 drop on each. Cut points and focus boxes set by hand from viewed frames. One full render from the committed `demo.json`: `video/out/shelfie-demo.mp4`, 159.90 s (2:39.9), 1920x1080, 30 fps, -14.0 LUFS, -1.0 dBTP, no black frames. Narration unchanged. Frame check `docs/judge/video-frames-check.md`: no secrets or private data. **Clarity test 7: pass, 6 of 6** (`docs/judge/video-clarity-7.md`), run on the render before two caption moves it asked for.
+  - **Secret check (20:34 IST):** no `.env` value longer than 7 characters appears in any tracked file.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
