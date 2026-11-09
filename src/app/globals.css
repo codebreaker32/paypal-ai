@@ -104,6 +104,7 @@
   /* Layers */
   --z-header: 20;
   --z-dock: 30;
+  --z-menu: 30;
   --z-sheet: 50;
   --z-toast: 60;
 }
@@ -430,6 +431,7 @@
   --sheet-radius: var(--radius-2xl);
   --sheet-shadow: var(--shadow-lg);
   --sheet-max-w: 32rem;
+  --auth-form-w: 26rem;
 
   /* Toast */
   --toast-bg: var(--color-ink);
