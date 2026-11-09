@@ -7,7 +7,7 @@ import { expect, test, type Locator, type Page } from '@playwright/test';
 import { recordedReading } from '@/lib/ai/samples';
 import { runReading } from '@/lib/catalog/setup';
 import { getDb } from '@/lib/db';
-import { DESKTOP, settle } from './helpers';
+import { DESKTOP, a11y, settle } from './helpers';
 
 config({ path: path.resolve(__dirname, '..', '.env'), quiet: true });
 const HAS_PAYPAL = Boolean(process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_SECRET_KEY);
@@ -134,4 +134,54 @@ test('the right name deletes it: gone from /shops, its page is a 404, and its ad
 
   const secondId = await startShop(page, name);
   expect(await publish(page, secondId)).toBe(`${firstHref}-2`);
+});
+
+test('a delete that takes longer than a dashboard poll still lands on /shops', async ({ page }) => {
+  test.setTimeout(120_000);
+  await signUp(page);
+  const name = `Delete Slow ${Date.now()}`;
+  const shopId = await startShop(page, name);
+  await startShop(page, `Delete Keeper ${Date.now()}`);
+
+  // The delete has committed but its answer is still on the way, while the dashboard polls (every 5 s) and gets 404.
+  await page.route(`**/api/shops/${shopId}`, async (route) => {
+    if (route.request().method() !== 'DELETE') return route.continue();
+    const response = await route.fetch();
+    await new Promise((done) => setTimeout(done, 6_000));
+    await route.fulfill({ response });
+  });
+  const sheet = await openSheet(page, shopId);
+  await confirm(sheet, name, PASSWORD);
+  await page.waitForURL('**/shops', { timeout: 30_000 });
+  await expect(page.getByTestId('shop-row')).toHaveCount(1);
+});
+
+test('a reading screen whose shop was deleted in another tab goes to the 404 instead of polling forever', async ({ page }) => {
+  test.setTimeout(120_000);
+  await signUp(page);
+  const created = await page.request.post('/api/shops', { data: { sample: 'marigold-bakehouse' } });
+  const { shopId } = (await created.json()) as { shopId: string };
+  const name = `Delete Reading ${Date.now()}`;
+  expect((await page.request.patch(`/api/shops/${shopId}`, { data: { name } })).status()).toBe(200);
+
+  const extract = `**/api/shops/${shopId}/extract`;
+  await page.route(extract, (route) => route.fulfill({ status: route.request().method() === 'POST' ? 202 : 200, json: { status: 'running' } }));
+  await page.goto(`/shops/${shopId}/setup`);
+  await expect(page.getByRole('heading', { level: 1, name: 'Reading your menu…' })).toBeVisible();
+
+  const removed = await page.request.delete(`/api/shops/${shopId}`, { data: { confirmName: name, currentPassword: PASSWORD } });
+  expect(removed.status()).toBe(204);
+  await page.unroute(extract);
+  await expect(page.getByRole('heading', { level: 1, name: 'We can’t find that page' })).toBeVisible({ timeout: 30_000 });
+});
+
+test('Settings passes axe at desktop width, with the shop switcher showing its status', async ({ page }) => {
+  test.setTimeout(120_000);
+  await signUp(page);
+  const shopId = await startShop(page, `Delete Axe ${Date.now()}`);
+  await page.goto(`/shops/${shopId}?tab=settings`);
+  await expect(page.getByRole('heading', { level: 2, name: 'Delete this shop' })).toBeVisible();
+  await expect(page.getByTestId('shop-switcher')).toBeVisible();
+  await settle(page);
+  await a11y(page);
 });
