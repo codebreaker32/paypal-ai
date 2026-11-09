@@ -284,3 +284,11 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **WP9 records before the should-haves, even though S4 and S5 touch screens the video shows.** Reason: WP9 is a must-have and usage is finite; a should-have that changes a filmed screen costs one clip's re-take.
 - **Round 12's pre-fix verdict stands in `round-12.md`; a narrow recheck of the failed check is appended there rather than a full round 13.** Reason: only one check failed, on two small fixes, and the brief says to avoid repeating full reviews when a narrower check will do.
 
+## Run 5, session 10 (2026-11-09 IST, from 17:17)
+- **S1 and S3 to S6 were reviewed in one session with two workflows, one per branch, each capped at two rounds.** Reason: usage is finite; the two rounds found 12 S1 findings and 1 S3-6 finding, all fixed, and the second rounds confirmed at most one minor each.
+- **A deleted shop's photos are also removed from Next's image cache (by the hash of their bytes).** Reason: the reviewer showed an optimizer copy kept serving for up to a year after the delete, and shortening the lifetime would not fix it because a stale entry is served while revalidating.
+- **A shop name is confirmed with apostrophe, quote and whitespace differences ignored, case kept** (`sameShopName`, client and server). Reason: a name with a curly apostrophe could not be typed on most keyboards, so the delete could never be confirmed.
+- **S5's corner mark did not exist; a small dark `Example` tag was added to the setup thumbnails.** Reason: the brief's one line says example photos are marked in the corner, and without a mark that sentence would be false.
+- **A refused delete while a `payment_pending` order is held, and an unpaid order an agent left open, are kept as the brief specifies.** Reason: the verifiers dropped both claims: SR19 lists those states, and those orders expire or settle.
+- **S3 to S6's branch history was rewritten (unpushed, one notes-only commit on top) so each package reverts with a plain `git revert`.** Reason: all four shared one notes file, so every revert conflicted, and the brief wants each separately revertible.
+- **Deleting a shop leaves its products in the PayPal sandbox catalog.** Reason: PayPal's Catalog API has no delete, and the brief's copy promises deletion from Shelfie only.

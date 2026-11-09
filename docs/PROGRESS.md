@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 17:20 IST (run 5, session 10)_
+_Last updated: 2026-11-09 18:50 IST (run 5, session 10)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -43,6 +43,10 @@ _Last updated: 2026-11-09 17:20 IST (run 5, session 10)_
   2. **S3, S4, S5, S6** in order, each separately revertible; S5 carries round 12's "one Example photo line above the list". Stop by 16:00 IST on Tue 10 Nov.
   3. The final **full e2e with the capture gate** on the final code (the green run was before `713138f` and S1), `test:sandbox`, then re-record any clip whose screen an S-item changed (S4's receipt is in the `paypal` scene), full render, full-size frame check, clarity test, then the completion steps (merge to `main` only if WP8's checks are green).
 - **Session 10 (17:17 to about 19:15 IST, 9 Nov), started.** Two workflows in worktrees: S1's review (security of deletion and password paths, correctness, the screens seen in a browser; `s1` now contains the run branch) and S3 to S6 built in order on `s3-6`, one commit prefix each so each is revertible, then reviewed. Script `.scratch/s10/run5-wp.js`. Next after they merge: the final full e2e with the capture gate, re-record the clips whose screens S4, S5 and S6 changed, full render, full-size frame check, clarity test 7, completion.
+  - **S1 merged at 18:46 IST.** Security, correctness and design review over two rounds, 12 findings confirmed, all fixed: optimizer copies of a deleted shop's photos, a cover or retake upload landing across a delete, photos orphaned by a re-read, the dashboard poller's 404 beating the redirect, the name confirmation on curly apostrophes, the reading screen polling forever, the README, a phone spacing gap, the switcher's accessible name, a photo left by an account delete during shop creation. Acceptance and SR19 pass in round 2. **Verified on `93fd1b3`:** `npm test` 2297, typecheck and lint exit 0, `delete` + `other-pages` + `accounts` e2e 49 passed. Reviewer screenshots at 390 and 1440 viewed by the design lens. No existing test had an assertion removed; edited tests are in `docs/run5-notes/S1.md`.
+  - **S3, S4, S5 and S6 merged at 18:46 IST (`3c06e8e`).** Each is separately revertible. Two review rounds, one finding (a second tap on `Share…` showing a false toast), fixed. **Verified on `05a1f52`:** `npm test` 2223, typecheck and lint exit 0, `shop` + `setup-review` + `app-shell` + `discovery` e2e 107 passed. `Share…` was tested against a stub, not on a real phone. `e2e/flow.spec.ts` read Activity differently (`allTextContents`; no assertion removed). Notes: `docs/run5-notes/S3-6.md`.
+  - **Verified on the merge `3c06e8e` (18:49 IST):** `npm test` 2325 passed (170 files), typecheck and lint exit 0. The final full e2e with the capture gate started at 18:50 IST (`.scratch/s10/e2e-1.log`).
+  - **Next session, in order:** (1) if `.scratch/s10/e2e-1.log` has no result, `git checkout docs/judge/screenshots/capture` and run the full e2e again, alone on the machine; (2) `test:sandbox`; (3) re-record the clips whose screens changed: `06-console-order`, `06b-paypal-complete` (S3, S4), the review clip (S5), the Share clip (S6), then align cuts, one full render from the committed `demo.json` with the red callout moved off the terminal lines, full-size frame check, clarity test 7; (4) completion steps.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
