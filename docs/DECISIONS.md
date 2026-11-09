@@ -268,3 +268,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The auto-growing composer stays with WP3, not WP2.** Reason: the brief lists it under WP3 and WP2's acceptance does not depend on it; WP2's own notes had named it as still to do.
 - **Session 3 runs four workflows side by side: WP1 review and gate, WP5 security re-check and gate, WP2's remaining behaviours, WP4's remaining screens.** Reason: they are in separate worktrees, and each work package's review, fix and gate has been cut off by the 120-minute session cap when done in sequence.
 - **WP3 and the cart (WP3b) are built as one package in one worktree.** Reason: the addendum replaces WP3's tile and its two acceptance items, so building the tile twice would be wasted work; one review covers both.
+
+## Run 5, session 8 (2026-11-09 IST, from 13:47)
+- **WP6 merges after one review round plus a green gate, without a second review of its four fixes.** Reason: all four were minor, each has a test that failed first, and usage is finite for the rest of the run.
+- **`/shops` lives in the route group `shops/(list)/`, not `shops/loading.tsx` as the brief says.** Reason: a `loading.tsx` at `shops/` would wrap every `/shops/[id]` page, and Next's streaming would turn a non-owner's real 404 into a 200.
+- **WP7's landing and public pages are built from `wp6`'s head before WP3 merges; the guest gate flips only after both are merged.** Reason: the flip moves e2e specs that WP3 and WP6 both changed, while the pages touch neither.
