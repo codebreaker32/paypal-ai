@@ -12,6 +12,7 @@ import { cx } from '@/components/ui/cx';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
 import { qrSvg } from '@/lib/discovery/qr';
+import { cardNameSize } from './name-size';
 import { PrintButton } from './PrintButton';
 
 export async function generateMetadata({ params }: PageProps<'/shops/[id]/card'>): Promise<Metadata> {
@@ -67,38 +68,41 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
             // eslint-disable-next-line @next/next/no-img-element -- a site-relative upload or bundled demo photo, printed as is
             <img src={shop.coverUrl} alt="" className="h-[17%] w-full shrink-0 object-cover" />
           )}
-          {/* Sizes follow the card's own width (container queries), so the preview at 5 in matches the print. */}
-          <div className={cx('flex w-full flex-1 flex-col items-center px-7 pb-6 sm:px-10 sm:pb-7', shop.coverUrl ? 'pt-6 sm:pt-7' : 'pt-10 sm:pt-12')}>
-            <header className="flex flex-col items-center gap-2.5 @md:gap-3">
+          {/* Every size is a share of the card's width (cqw), so the preview at any width and the 5 in print are one layout.
+              The QR takes the height that's left: a long name makes it smaller, never pushes the footer off the card. */}
+          <div className={cx('flex min-h-0 w-full flex-1 flex-col items-center px-[8.3cqw] pb-[5.8cqw]', shop.coverUrl ? 'pt-[5.8cqw]' : 'pt-[10cqw]')}>
+            <header className="flex flex-col items-center gap-[2.5cqw]">
               <h2
                 id="card-shop-name"
-                className="font-display text-4xl leading-[1.04] font-extrabold tracking-display [overflow-wrap:anywhere] @md:text-5xl"
+                className={cx('line-clamp-3 font-display leading-[1.04] font-extrabold tracking-display [overflow-wrap:anywhere]', cardNameSize(shop.name))}
               >
                 {shop.name}
               </h2>
-              <p className="text-lg leading-snug text-ink-soft @md:text-xl">
+              <p className="text-[4.15cqw] leading-snug text-ink-soft">
                 {/* Each phrase stays on one line where it fits, so the line breaks after the comma. */}
                 <span className="inline-block">Order ahead with any AI assistant,</span>{' '}
                 <span className="inline-block">pay with PayPal</span>
               </p>
             </header>
 
-            <div className="flex min-h-0 w-full flex-1 flex-col items-center justify-center gap-1.5 py-4">
-              <div
-                role="img"
-                aria-label={`QR code that opens ${asTyped(shopUrl)}`}
-                data-testid="card-qr"
-                className={cx('aspect-square [&>svg]:block [&>svg]:size-full', shop.coverUrl ? 'w-[36%] @md:w-[46%]' : 'w-[46%] @md:w-3/5')}
-                dangerouslySetInnerHTML={{ __html: qr }}
-              />
-              <p className="mt-1 type-heading">Scan for the menu</p>
-              <p className="type-price text-sm text-ink-soft [overflow-wrap:anywhere]" data-testid="card-shop-url">
+            <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-[1.2cqw] py-[3.3cqw]">
+              <div className="relative min-h-0 w-full flex-1">
+                <div
+                  role="img"
+                  aria-label={`QR code that opens ${asTyped(shopUrl)}`}
+                  data-testid="card-qr"
+                  className="absolute inset-0 [&>svg]:block [&>svg]:size-full"
+                  dangerouslySetInnerHTML={{ __html: qr }}
+                />
+              </div>
+              <p className="mt-[0.8cqw] font-display text-[3.75cqw] leading-snug font-bold">Scan for the menu</p>
+              <p className="type-price text-[2.9cqw] text-ink-soft [overflow-wrap:anywhere]" data-testid="card-shop-url">
                 {asTyped(shopUrl)}
               </p>
             </div>
 
-            <footer className="flex w-full items-end justify-between gap-4 border-t border-line pt-3 text-left">
-              <p className="min-w-0 type-meta text-ink-soft">
+            <footer className="flex w-full items-end justify-between gap-[3.3cqw] border-t border-line pt-[2.5cqw] text-left text-[2.7cqw] leading-snug">
+              <p className="min-w-0 text-ink-soft">
                 <span className="font-semibold text-ink">Agent door</span> for AI assistants
                 <span className="block type-price text-ink [overflow-wrap:anywhere]" data-testid="card-door-url">
                   {doorUrl}

@@ -48,7 +48,7 @@ export interface CopyButtonProps {
 function CopyLabel({ copied, label, size }: { copied: boolean; label: string; size: ButtonSize }) {
   const iconSize = size === 'lg' ? 'lg' : 'md';
   return (
-    <span className="inline-grid place-items-center [&>*]:[grid-area:1/1]">
+    <span className="grid place-items-center [&>*]:[grid-area:1/1]">
       <span className={cx('inline-flex items-center gap-2', copied && 'invisible opacity-0')}>
         <Icon icon={Copy} size={iconSize} />
         {label}

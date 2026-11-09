@@ -1,5 +1,5 @@
 // The shell's live values: a tiny external store (never React context), keyed to one shop at a time.
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { patchShell, resetShellForTests, seedShell, shellSnapshot, subscribeShell, type ShellValues } from '@/components/app/shell-store';
 
 const base: ShellValues = { toPrepare: 2, status: 'live', logoUrl: null, coverUrl: null, payeeMissing: false, paypalDown: false, recoveryUnsaved: false };
@@ -45,5 +45,62 @@ describe('shell store', () => {
     seedShell('shp_1', base);
     patchShell('shp_2', { toPrepare: 7 });
     expect(shellSnapshot('shp_1', base).toPrepare).toBe(2);
+  });
+
+  describe('a payload the router kept (a prefetched layout, the one Back restores)', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(10_000);
+    });
+    afterEach(() => vi.useRealTimers());
+
+    it('never undoes a change made after the payload was read', () => {
+      seedShell('shp_1', base, 9_000);
+      vi.setSystemTime(12_000);
+      patchShell('shp_1', { status: 'paused' });
+      seedShell('shp_1', base, 9_000);
+      expect(shellSnapshot('shp_1', base).status).toBe('paused');
+      seedShell('shp_1', { ...base, status: 'live', toPrepare: 8 }, 11_000);
+      expect(shellSnapshot('shp_1', base)).toMatchObject({ status: 'paused', toPrepare: 2 });
+    });
+
+    it('takes a payload read after the last change', () => {
+      seedShell('shp_1', base, 9_000);
+      vi.setSystemTime(12_000);
+      patchShell('shp_1', { status: 'paused' });
+      seedShell('shp_1', { ...base, status: 'live', toPrepare: 8 }, 13_000);
+      expect(shellSnapshot('shp_1', base)).toMatchObject({ status: 'live', toPrepare: 8 });
+    });
+
+    it('does not go back to a payload older than the one it holds', () => {
+      seedShell('shp_1', { ...base, toPrepare: 7 }, 9_000);
+      seedShell('shp_1', { ...base, toPrepare: 1 }, 8_000);
+      expect(shellSnapshot('shp_1', base).toPrepare).toBe(7);
+    });
+
+    it('keeps what it held for a shop while another shop was open', () => {
+      seedShell('shp_1', base, 9_000);
+      patchShell('shp_1', { status: 'paused' });
+      seedShell('shp_2', base, 11_000);
+      seedShell('shp_1', base, 9_000);
+      expect(shellSnapshot('shp_1', base).status).toBe('paused');
+      expect(shellSnapshot('shp_2', base).status).toBe('live');
+    });
+
+    it('a change that changes nothing is not a change', () => {
+      seedShell('shp_1', base, 9_000);
+      vi.setSystemTime(12_000);
+      patchShell('shp_1', { status: 'live' });
+      seedShell('shp_1', { ...base, toPrepare: 4 }, 11_000);
+      expect(shellSnapshot('shp_1', base).toPrepare).toBe(4);
+    });
+
+    it('holds an edited payee email through a stale seed', () => {
+      seedShell('shp_1', { ...base, payeeMissing: true }, 9_000);
+      vi.setSystemTime(12_000);
+      patchShell('shp_1', { payeeEmail: 'a@example.com', payeeMissing: false });
+      seedShell('shp_1', { ...base, payeeMissing: true }, 9_000);
+      expect(shellSnapshot('shp_1', base)).toMatchObject({ payeeEmail: 'a@example.com', payeeMissing: false });
+    });
   });
 });

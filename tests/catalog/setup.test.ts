@@ -126,6 +126,14 @@ describe('shop setup', () => {
       expect(after.kind).toBe('food');
     });
 
+    it('never hands a draft\'s throwaway address to the page', async () => {
+      const { shop } = await createShopFromPhotos(db, [photo]);
+      await runReading(deps(), shop.id);
+      const view = loadSetupView(db, shops.byId(db, shop.id)!, t);
+      expect(view).toMatchObject({ step: 'review' });
+      expect(JSON.stringify(view)).not.toContain(shop.slug);
+    });
+
     it("keeps details the seller already wrote", async () => {
       const { shop } = await createShopFromPhotos(db, [photo]);
       shops.update(db, shop.id, { name: 'Rosa Bakes', pickupNotes: 'Back door, ring twice' });

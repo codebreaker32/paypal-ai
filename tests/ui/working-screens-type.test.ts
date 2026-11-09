@@ -20,6 +20,9 @@ describe('working-screen type', () => {
     expect(files).toEqual(expect.arrayContaining(['src/components/dashboard/SharePanel.tsx', 'src/components/setup/LiveStep.tsx']));
     expect(files.length).toBeGreaterThan(10);
   });
+  it.each(['src/app/shops/[id]/(app)/orders/[orderId]/page.tsx', 'src/components/dashboard/BriefCard.tsx'])('%s keeps to the two working sizes', (file) => {
+    expect(readFileSync(file, 'utf8')).not.toMatch(/\btype-heading\b/);
+  });
   it.each(files)('%s uses no display type', (file) => {
     expect(readFileSync(file, 'utf8')).not.toMatch(BANNED);
   });
