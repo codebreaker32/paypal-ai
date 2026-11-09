@@ -46,3 +46,23 @@
 - **FAQ sentence for S1:** `You can delete your shop or account whenever you like.` is not appended, because `/account` has no deletion yet.
 - **Several owner cookies:** `dashboardHref` in `src/lib/brand/header.ts` returns `/` for a browser holding 2+ unattached owner cookies, and null on `/`, on the grounds that the start page lists them. With `WelcomeBack` gone it no longer does, so that link leads nowhere (seed and harness browsers only). `tests/brand/header.test.ts` asserts the current behaviour, so it was left alone.
 - `StartActions` props `samples="chips"` and `liveLink` now have no caller; left for the step that moves the e2e specs.
+
+## Flip the gate step
+- `guestShopsAllowed()` reads `SHELFIE_ALLOW_GUEST_SHOPS=1`, still false on Render (SR20; two more unit tests: no flag, value other than `1`). Set in `tests/setup.ts`, `playwright.config.ts`, `scripts/screenshots-prod.sh`, `scripts/clips/app.ts`. `.env.example` gained `SHELFIE_ALLOW_GUEST_SHOPS` and `SUPPORT_EMAIL`. `scripts/measure-photo-to-live.ts` starts drafts with no account, so its usage line now sets the flag.
+- `StartActions`: `samples="chips"` and `liveLink` had no caller left, so they are gone (and `samples` is now required).
+- **Deviation (smallest):** the brief says `scripts/clips/record.ts:216` opens `/shops/new`. That page needs an account, so the scene first makes a throwaway one with `page.request.post('/api/auth/signup')` (random password, never stored or printed). Not recorded here (no clips run); the Live screen of that clip now belongs to an account, so check the recovery-key banner does not cover anything when clips are re-recorded.
+
+### Test files edited (routes and selectors only, no assertion removed)
+- `e2e/helpers.ts`: new `signUpForShops`, because `/shops/new` requires an account.
+- `e2e/start.spec.ts`: the four tests that use the photo input, sample buttons or `Snap your price list` move to `/shops/new` after signing up. The axe, 44 px and hero-story tests stay on `/`.
+- `e2e/flow.spec.ts`: signs up, opens `/shops/new`, then picks the Marigold sample.
+- `e2e/screenshots.spec.ts`: `start`, `start-photos-ready`, `start-bad-file` move to `/shops/new`; the `alert` is scoped to `#main` (the `start-title` section no longer exists); `start-returning-owner` expects the `Dashboard` header link.
+- `tests/auth/guest.test.ts`: two tests added.
+- `e2e/recordings.spec.ts`: not edited. Its only `/` visit records the hero, which is still on `/`; it does not use the photo input or sample buttons. `e2e/sounds.spec.ts` likewise uses only the footer and header on `/`. Neither was run.
+
+### Acceptance coverage (`e2e/landing.spec.ts`, 25 tests)
+- 1, 3 already there. 2: adds no demo login on `/`, `/login`, `/signup`. 4: adds the buyer header check on `/s/<slug>` and `/o/<ref>`; `/terms`, `/privacy`, `/help` are in `e2e/other-pages.spec.ts`. 5: new, with no test-only route (one item row gets unreadable JSON, the shop page throws, `error.tsx` shows, the row is repaired, `Try again` loads the page). 6: `e2e/account-publish.spec.ts`. 7: adds sign-up, login, recover, the recovery step, Your shops, Add a shop, Account (axe, no sideways scroll, a screenshot in `test-results/wp7-*`); landing, Help, Terms, Privacy and 404 were already covered. 8: new, at both widths: buyer shop page, receipt, dashboard tabs, counter card, order detail, setup draft. 9 is the Lighthouse run recorded above.
+
+### Worth knowing
+- Two browsers on one dev server (`E2E_REUSE_SERVER=1`, two Playwright processes) put every page into a reload loop (`Compiled in Nms` then a full reload, repeating), which failed specs for no real reason. Run e2e one process at a time.
+- `dashboardHref` with 2+ unattached owner cookies, noted above, stays as it was.
