@@ -20,10 +20,18 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
         await noSideways(page);
         expect(await smallTargets(page, 'footer')).toEqual([]);
         await expect(page.locator('footer')).toContainText(TEST_MODE_LINE);
+        await page.screenshot({ path: `test-results/wp7${path.replace('/', '-')}-${label}.png`, fullPage: true });
       });
     }
   });
 }
+
+test('every footer list is named by its heading', async ({ page }) => {
+  await page.setViewportSize(DESKTOP);
+  await page.goto('/help');
+  const footer = page.locator('footer');
+  for (const name of ['Product', 'Help', 'For AI assistants', 'Legal']) await expect(footer.getByRole('list', { name, exact: true })).toHaveCount(1);
+});
 
 test('404, logged out: the brief’s copy with Go to Shelfie and Log in', async ({ page }) => {
   const res = await page.goto('/no-such-page');
@@ -73,7 +81,7 @@ test('Help has every anchor, the brief’s copy, and a contact', async ({ page }
 
 for (const [path, title, required] of [
   ['/terms', 'Terms', ['early access', 'PayPal sandbox', 'allergens', 'PayPal’s own terms', 'no warranty', 'close your account']],
-  ['/privacy', 'Privacy', ['hash of your password', 'hash of your recovery key', 'PayPal email', 'ship-to', 'hashed caller id', 'Anthropic', 'Pexels', 'session cookie', 'returning cookie', 'owner cookie', 'no analytics and no ads']],
+  ['/privacy', 'Privacy', ['hash of your password', 'hash of your recovery key', 'PayPal email', 'ship-to', 'hashed caller id', 'Conversations with the shop assistant', 'Anthropic', 'Pexels', 'session cookie', 'returning cookie', 'owner cookie', 'no analytics and no ads']],
 ] as const) {
   test(`${title} carries the draft heading and what the brief requires`, async ({ page }) => {
     await page.goto(path);

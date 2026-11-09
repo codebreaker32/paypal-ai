@@ -53,12 +53,12 @@ function SiteWideFooter() {
   return (
     <Frame className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-8 py-10 lg:grid-cols-12 lg:gap-x-10 lg:py-14">
       <nav aria-label="Footer" className="col-span-2 grid grid-cols-2 gap-x-6 gap-y-6 lg:col-span-7 lg:col-start-5 lg:row-start-1 lg:flex lg:justify-between">
-        {FOOTER_GROUPS.map((group) => (
+        {FOOTER_GROUPS.map((group, index) => (
           <div key={group.label}>
-            <p id={`footer-${group.label}`} className="type-label text-ink">
+            <p id={`footer-group-${index}`} className="type-label text-ink">
               {group.label}
             </p>
-            <ul aria-labelledby={`footer-${group.label}`} className="mt-1 text-sm">
+            <ul aria-labelledby={`footer-group-${index}`} className="mt-1 text-sm">
               {group.links.map((link) => (
                 <li key={link.href}>
                   <FooterAnchor link={link} />

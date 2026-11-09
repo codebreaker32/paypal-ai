@@ -13,6 +13,7 @@ export default function PrivacyPage() {
           <li>Your account: your email, a hash of your password, a hash of your recovery key, and when your sessions started and expire. We never keep the password or key itself.</li>
           <li>Your shop: its name, your PayPal email, and the photos you upload.</li>
           <li>Orders: the buyer’s and payer’s name and email, the ship-to address, and any note. The seller who took the order sees these.</li>
+          <li>Conversations with the shop assistant: what a buyer types and what the assistant answers, kept with the shop until the shop is deleted.</li>
           <li>A hashed caller id, which limits how many unpaid orders one caller can hold.</li>
         </DocList>
       </DocSection>
