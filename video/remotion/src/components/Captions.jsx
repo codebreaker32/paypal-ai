@@ -399,10 +399,11 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats
   if (!active) return null;
   // Large and on a solid ink box, low in the frame (the footage's key UI is
   // zoomed toward the middle); "top" sits just under the chapter bar.
-  // A beat's captionPlacement wins over the scene's, from that beat on.
+  // A beat's captionPlacement wins over the scene's, from that beat on. It is read
+  // at the phrase's start, so a phrase already on screen doesn't jump when a beat cuts in.
   let placement = scenePlacement;
   for (const b of beats ?? []) {
-    if (t < b.atSec) break;
+    if (active.showSec < b.atSec) break;
     if (b.captionPlacement) placement = b.captionPlacement;
   }
   const pos = placement === "top" ? { top: Math.round(104 * s) } : { bottom: Math.round(30 * s) };
