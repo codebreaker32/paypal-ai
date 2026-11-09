@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { afterHistoryMove, isOwnEntry, withOwnMark, withoutOwnMark } from '@/components/shop/assistant-history';
+import { afterHistoryMove, isOwnEntry, withOwnMark, withoutOwnMark, urlWithPanels } from '@/components/shop/assistant-history';
 
 describe('the mark on an entry the assistant pushed', () => {
   it('is added without touching what Next keeps there', () => {
@@ -74,5 +74,16 @@ describe('afterHistoryMove', () => {
     it('closes even if the entry underneath has the param, and cleans that entry', () => {
       expect(afterHistoryMove({ ...move, closing: true, open: true, inUrl: true })).toEqual({ open: false, ownEntry: false, fixUrl: true });
     });
+  });
+});
+
+describe('urlWithPanels', () => {
+  const base = 'https://x.test/s/a?tab=1';
+  it('puts back the params of what is showing', () => {
+    expect(urlWithPanels(base, { assistant: false, order: '1', item: null }).search).toBe('?tab=1&order=1');
+    expect(urlWithPanels(base, { assistant: true, order: null, item: 'itm' }).search).toBe('?tab=1&assistant=1&item=itm');
+  });
+  it('takes out what the stale URL still says', () => {
+    expect(urlWithPanels(`${base}&assistant=1&item=old`, { assistant: false, order: '1', item: null }).search).toBe('?tab=1&order=1');
   });
 });

@@ -100,7 +100,7 @@ A dimmed fallback tile (sold out, a cancelled or expired order) switches to surf
 
 | Role utility | Size and weight | Use |
 |---|---|---|
-| `type-hero` | 40 / 68 px, 800, −0.03em | Start headline, shop name |
+| `type-hero` | 40 / 68 px, 800, −0.03em | Start headline |
 | `type-display` | 30 / 40 px, 800, −0.03em | Page titles (Order SHF-…, receipt state) |
 | `type-title` | 20 / 24 px, 800 | Empty-state titles |
 | `type-heading` | 18 px, 700 | Section headings |
@@ -179,8 +179,9 @@ The shop's logo (a square upload), else its cover cropped square, else the first
 
 ## Screens
 
-- **Shop page:** a rounded cover with the avatar, the name in `type-hero`, a meta line ("Food · Pickup or shipping · **Paid with PayPal**") and underline section tabs.
-  - On desktop, items are 2-column horizontal cards with the photo on the right. On phones, items are thumbnail rows with a sticky black bar: "Order with an assistant · PayPal" (`[data-order-bar]`, under 1024 px, centred at `max-w-md` from 640).
+- **Shop page:** a rounded cover (`h-32`, `sm:h-44`, `lg:h-60`) with the avatar overlapping its lower edge, the name in `type-display`, a meta line ("Food · Pickup or shipping · **Paid with PayPal**") and underline section tabs. Pickup and shipping are always visible. Under 640 px the original price list is a 32 px thumb in the avatar's row; from 640 px it sits to the right of the pickup and shipping lines; once the page is 56rem wide the about text and those lines share one row, so the first row of photos clears the fold.
+  - **Menu tiles** (`shop/Menu.tsx`, `shop/menu-grid.css`): two tracks under 36rem of page width, three from 36 to 56rem, four from 56rem, by container query, because the page narrows when the assistant docks. Under 36rem a last odd tile spans the row, photo beside its text. Each tile is a 4:3 photo, then the name, the price and the description, with **no card background or shadow**: name 16/24 bold clamped to 2 lines, description 14/20 `ink-muted` clamped to 2, one or two options priced in full, three or more as `From $3.00 · 3 options`. The whole tile opens the item sheet, so every state responds to a tap. Orderable items carry a `+` in the photo's bottom-right corner (36 px white face, 44 px hit), which becomes a white `− 2 +` pill once in the order; sold out dims the photo and adds a white `Sold out today` pill, and no control shows while sold out, ask in person or not taking orders. Only the photo answers a hover (scale 1.03, transform only, never under reduced motion).
+  - The sticky black bar under 1024 px: "Order with an assistant · PayPal" (`[data-order-bar]`, centred at `max-w-md` from 640).
   - **Order button from 1024 px** (`shop/OrderCta.tsx`): `HeroOrderCta` at the right end of the name row, then `CompactOrderCta` fading in at the right end of the sticky section-tabs row once the hero wrapper's IntersectionObserver says it has scrolled out. Exactly one shows; neither while docked. No floating bubble. A shop with fewer than two sections has that sticky row at `lg` only for the button: it takes no space in the page and has no surface until the button shows.
   - The agent door sits behind one "Connect your own assistant" disclosure at the foot (`#agent-door` opens it).
 - **Buyer console:** one `AssistantShell` (`shop/assistant-shell.css`) attached to a viewport edge in all three forms, a bottom sheet under 640 px (12 px from the top, always the same height), a right side sheet from 640 to 1023, and a full-height dock from 1024 px that narrows the page beside it (no scrim, no scroll lock). Only the conversation scrolls; the header, and the footer with the composer, stay put. The order button is one at a time: the hero's button, then a compact one in the sticky tabs row after the hero scrolls out (only the button hands over, the `agent door` line under it stays in the page), the order bar under 1024 px, and none while docked.
@@ -189,6 +190,7 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - **Scrolling:** a new message always scrolls to it, a stream follows only within 96 px of the end and never past the start of its turn, an approval card always scrolls to the end. A wheel at the log's end never moves the page, docked included.
   - **Reduced motion:** the dock, the sheet and the scrim do not transition. The global rule names `::backdrop` itself, because `*` does not match it.
   - The empty state is a one-sentence greeting and starter prompts as tinted pills, resting directly above the composer.
+  - **Composer:** a one-row `textarea` that grows with its text to four lines (48 to 120 px), then scrolls. Enter sends, Shift+Enter is a new line, an input-method Enter only confirms the composition. The draft is the console's, so it survives closing and reopening; `openWithDraft` fills it from an item and never sends.
   - The Activity panel and the approval card are grey wells, not outlined boxes.
 - **Seller shell (`components/app/AppShell`):** the chrome on every `/shops/[id]/**` screen, replacing the public header and footer.
   - From `lg`: a white 15rem sidebar with one rule on its right: logo, the shop switcher (picture, name in a two-line clamp, the state as a dot and a word), Orders · Menu · Share · Settings, `View your shop`, then the test-mode line and the account slot at the foot.
@@ -206,6 +208,14 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - Left column: the AI brief as the one slate note well (`note-soft`), then Items and What happened. Right column: the action (hand over, add tracking, the explanation), Buyer and PayPal.
   - Sections are divided by rules on the white page. Copy is trimmed to one line where a seller would otherwise be stuck.
 - **Receipt `/o/[ref]`:** the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), beside a grey summary panel. The panel shows the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
+
+### Item sheet and cart (`shop/ItemSheet.tsx`, `shop/CartView.tsx`)
+
+The item sheet is `Sheet` with `media` (the 4:3 photo full-bleed, the close button solid white over it, the footer pinned). Its URL is `?item=<id>`, pushed by a tap, so Back closes it. Unavailable items end in one plain line instead of a button.
+
+The cart is one view in the assistant's boxes: the same right-edge dock from 1024 px (one panel at a time, with an `Assistant` switch in its header), the assistant's side and bottom sheets below it. A cart line is only `{itemId, optionId, qty}`; names and prices are joined from the menu the server sent, and client totals are for display only. The phone bar keeps its one button with an empty cart and becomes `Assistant` plus `View order · 3  $19.00` with items.
+
+Cart states: while checkout is in flight the button reads `Opening PayPal…` and every control is disabled; over the shop's cap the button is disabled with the limit as an inline line; every refusal is one `role="alert"` line under the button, in `error`, and keeps the cart unless the item itself has gone. Changes are announced by one polite status line. An unavailable item's sheet ends in one plain line with no button. `e2e/screenshots.spec.ts` captures `item-sheet`, `cart` and `cart-error` at both widths.
 
 ## Rules
 

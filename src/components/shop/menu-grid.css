@@ -1,0 +1,8 @@
+.menu-grid { --tile-gap-x:.75rem; --tile-gap-y:1.25rem; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--tile-gap-y) var(--tile-gap-x); }
+@container shop (width < 36rem) {
+  .menu-grid > li:last-child:nth-child(odd) { grid-column:span 2; display:flex; align-items:center; gap:var(--tile-gap-x); }
+  .menu-grid > li:last-child:nth-child(odd) .tile-photo { flex:0 0 calc((100% - var(--tile-gap-x)) / 2); }
+  .menu-grid > li:last-child:nth-child(odd) .tile-text { flex:1; min-width:0; }
+}
+@container shop (width >= 36rem) { .menu-grid { --tile-gap-x:1rem; --tile-gap-y:1.75rem; grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@container shop (width >= 56rem) { .menu-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }

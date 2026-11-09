@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import {
   CircleAlert,
   CircleCheck,
@@ -17,7 +17,7 @@ import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type { OrderStatus } from '@/lib/domain/types';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { PayPalLink } from '@/components/ui/paypal-link';
-import { FieldError, TextInput } from '@/components/ui/field';
+import { FieldError, TextArea } from '@/components/ui/field';
 import { CountUp } from '@/components/motion/count-up';
 import { StatusSwap } from '@/components/motion/status-swap';
 import { EASE_OUT, MOTION_S } from '@/components/motion/tokens';
@@ -41,6 +41,7 @@ import {
   type ConsoleState,
   type Entry,
 } from './console-state';
+import { composerHeight, draftWithItem, MAX_MESSAGE_CHARS, sendsOnEnter } from './console-draft';
 import { nearBottom, noteEntries, scrollCause, scrollTarget, type ScrollCause, type SeenEntries } from './console-scroll';
 import { RichText } from './RichText';
 import './console-motion.css';
@@ -54,6 +55,20 @@ export interface BuyerConsoleApi {
   state: ConsoleState;
   send: (text: string) => void;
   reset: () => void;
+  /** The message box's text. It lives here so an item can be drafted into a console that isn't showing yet. */
+  draft: string;
+  setDraft: (text: string) => void;
+  /** Opens the console with the item in the message box (appended to a draft that exists). Never sends. */
+  openWithDraft: (itemName: string) => void;
+  /** Goes up on every `openWithDraft`, so the console can place the caret once the draft is in the box. */
+  draftRevision: number;
+}
+
+export interface BuyerConsoleOptions {
+  /** False for a shop that isn't taking orders: an item drafts a question, not an order. */
+  takesOrders: boolean;
+  /** Shows the console; `openWithDraft` calls it, whether or not the console is already open. */
+  onOpen: () => void;
 }
 
 /**
@@ -61,8 +76,10 @@ export interface BuyerConsoleApi {
  * follow their order: the hook re-reads each open order from the receipt API after a reload and whenever the page is
  * shown again, so a paid order never still offers "Approve on PayPal".
  */
-export function useBuyerConsole(slug: string): BuyerConsoleApi {
+export function useBuyerConsole(slug: string, { takesOrders, onOpen }: BuyerConsoleOptions): BuyerConsoleApi {
   const [state, dispatch] = useReducer(consoleReducer, initialConsoleState);
+  const [draft, setDraft] = useState('');
+  const [draftRevision, setDraftRevision] = useState(0);
   const storageKey = `shelfie:console:${slug}`;
   const latest = useRef(state);
   const loaded = useRef(false);
@@ -148,7 +165,7 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
 
   const send = useCallback(
     (raw: string) => {
-      const text = raw.trim().slice(0, 500);
+      const text = raw.trim().slice(0, MAX_MESSAGE_CHARS);
       if (!text || latest.current.busy) return;
       const sessionId = latest.current.sessionId;
       dispatch({ type: 'send', text });
@@ -185,7 +202,17 @@ export function useBuyerConsole(slug: string): BuyerConsoleApi {
   );
 
   const reset = useCallback(() => dispatch({ type: 'reset' }), []);
-  return { state, send, reset };
+
+  const openWithDraft = useCallback(
+    (itemName: string) => {
+      setDraft((current) => draftWithItem(current, itemName, takesOrders));
+      setDraftRevision((n) => n + 1);
+      onOpen();
+    },
+    [takesOrders, onOpen],
+  );
+
+  return { state, send, reset, draft, setDraft, openWithDraft, draftRevision };
 }
 
 async function* readNdjson(body: ReadableStream<Uint8Array>): AsyncGenerator<ConsoleEvent> {
@@ -421,7 +448,7 @@ function useConversationScroll(state: ConsoleState, inputRef: RefObject<HTMLElem
 }
 
 /** The chat: an empty state with starter prompts, the turns with their Activity, approval cards, and a status line. */
-export function ConsoleConversation({ api, shopName, starters, takesOrders, inputRef }: ConsoleConversationProps) {
+function Conversation({ api, shopName, starters, takesOrders, inputRef }: ConsoleConversationProps) {
   const { state, send, reset } = api;
   const { end, log } = useConversationScroll(state, inputRef);
   const last = state.entries.at(-1);
@@ -487,6 +514,15 @@ export function ConsoleConversation({ api, shopName, starters, takesOrders, inpu
   );
 }
 
+/**
+ * The draft lives beside the conversation, so without this every keystroke would re-render every message. Only `state`
+ * of the api is compared: `send` and `reset` always do the same thing, however new the object around them.
+ */
+export const ConsoleConversation = memo(
+  Conversation,
+  (a, b) => a.api.state === b.api.state && a.shopName === b.shopName && a.starters === b.starters && a.takesOrders === b.takesOrders && a.inputRef === b.inputRef,
+);
+
 function isConversationFull(state: ConsoleState): boolean {
   const last = state.entries.at(-1);
   return last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
@@ -523,34 +559,81 @@ function scrollParentOf(el: HTMLElement): HTMLElement | null {
   return null;
 }
 
-/** The message box. Enter sends. Typing ahead is fine while the assistant works; sending waits. */
-export function ConsoleComposer({ api, inputRef }: { api: BuyerConsoleApi; inputRef?: RefObject<HTMLInputElement | null> }) {
-  const [text, setText] = useState('');
+/** Sets the box to its text's height. A closed sheet has no size to measure: `ConsoleComposer` comes back when it opens. */
+function fitToText(el: HTMLTextAreaElement): void {
+  if (!el.clientWidth) return;
+  el.style.height = 'auto';
+  const css = getComputedStyle(el);
+  const { height, scrolls } = composerHeight({
+    scrollHeight: el.scrollHeight,
+    lineHeight: parseFloat(css.lineHeight),
+    paddingY: parseFloat(css.paddingTop) + parseFloat(css.paddingBottom),
+    borderY: parseFloat(css.borderTopWidth) + parseFloat(css.borderBottomWidth),
+  });
+  el.style.height = `${height}px`;
+  el.style.overflowY = scrolls ? 'auto' : 'hidden';
+}
+
+/** The message box: grows to four lines, Enter sends, Shift+Enter is a new line. Typing ahead is fine while the assistant works; sending waits. */
+export function ConsoleComposer({ api, inputRef }: { api: BuyerConsoleApi; inputRef?: RefObject<HTMLTextAreaElement | null> }) {
+  const { draft, setDraft, send } = api;
   const id = useId();
+  const ownRef = useRef<HTMLTextAreaElement>(null);
+  const box = inputRef ?? ownRef;
   const busy = api.state.busy;
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!text.trim() || busy) return;
-    api.send(text);
-    setText('');
+
+  useLayoutEffect(() => {
+    if (box.current) fitToText(box.current);
+  }, [draft, box]);
+
+  // The same text wraps differently at a new width, and a sheet that was closed gets its first width on opening.
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    let width = el.clientWidth;
+    const resized = new ResizeObserver(() => {
+      if (el.clientWidth === width) return;
+      width = el.clientWidth;
+      fitToText(el);
+    });
+    resized.observe(el);
+    return () => resized.disconnect();
+  }, [box]);
+
+  const submit = () => {
+    if (!draft.trim() || busy) return;
+    send(draft);
+    setDraft('');
   };
+  const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!sendsOnEnter({ key: e.key, shiftKey: e.shiftKey, isComposing: e.nativeEvent.isComposing, keyCode: e.keyCode })) return;
+    e.preventDefault();
+    submit();
+  };
+  const onSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    submit();
+  };
+
   return (
-    <form onSubmit={submit} className="flex items-center gap-2">
+    <form onSubmit={onSubmit} className="flex items-end gap-2">
       <label htmlFor={id} className="sr-only">
         Message to the assistant
       </label>
-      <TextInput
-        ref={inputRef}
+      <TextArea
+        ref={box}
         id={id}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        maxLength={500}
+        rows={1}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={onKeyDown}
+        maxLength={MAX_MESSAGE_CHARS}
         autoComplete="off"
         enterKeyHint="send"
         placeholder="Message the assistant"
-        className="min-w-0 flex-1"
+        className="block min-w-0 flex-1 resize-none overscroll-contain py-[11px]"
       />
-      <Button type="submit" icon={SendHorizontal} loading={busy} disabled={!text.trim()} className="shrink-0">
+      <Button type="submit" icon={SendHorizontal} loading={busy} disabled={!draft.trim()} className="shrink-0">
         Send
       </Button>
     </form>

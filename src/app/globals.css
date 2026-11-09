@@ -95,6 +95,12 @@
   --shop-tabs-h: 3rem;
   --shop-bar-h: 5.25rem;
 
+  /* Menu tiles: the grid's gaps (shop/menu-grid.css retunes them by the page's width) and the add control's hit area and face. */
+  --tile-gap-x: 0.75rem;
+  --tile-gap-y: 1.25rem;
+  --add-hit: 2.75rem;
+  --add-face: 2.25rem;
+
   /* The buyer's assistant: docked beside the page from 1024 px, a side sheet from 640 px, a bottom sheet below. */
   --assistant-w: clamp(23.75rem, 30vw, 27.5rem);
   --assistant-sheet-w: 27.5rem;
@@ -107,6 +113,14 @@
   --z-menu: 30;
   --z-sheet: 50;
   --z-toast: 60;
+}
+
+/* Menu tile gaps from 640 px. */
+@media (width >= 40rem) {
+  :root {
+    --tile-gap-x: 1rem;
+    --tile-gap-y: 1.75rem;
+  }
 }
 
 /* From 1024 px the tabs row also holds the 44 px compact order button, so it gets room around it. */
