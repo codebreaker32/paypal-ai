@@ -132,13 +132,22 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
 }
 
 /**
- * A card's buttons. Under 640 px a row that ends in Remove keeps one line: two equal actions and the bin. Other rows
- * still wrap, because two long labels (Set today’s price, Ask in person) don't fit side by side on a phone; so does this
- * row under 360 px, where its three buttons no longer fit in a card.
+ * A card's buttons. Under 640 px every row is the two-actions-and-a-bin grid. A label too long for its track wraps inside
+ * its button: on rows with no bin (Set today’s price, Ask in person) at any phone width, on rows with the bin only under
+ * 360 px, so Looks right stays on one line where it fits. With no bin, the second action takes the third track, so the
+ * row has no hole on its right.
  */
 function Actions({ withRemove, children }: { withRemove?: boolean; children: ReactNode }) {
   return (
-    <div className={cx('flex flex-wrap items-center gap-3', withRemove && 'min-[360px]:max-sm:grid min-[360px]:max-sm:grid-cols-[1fr_1fr_auto] max-sm:gap-2 max-sm:[&>button]:px-3')}>
+    <div
+      className={cx(
+        'flex flex-wrap items-center gap-3 max-sm:grid max-sm:grid-cols-[1fr_1fr_auto] max-sm:gap-2',
+        'max-sm:[&>button]:px-3',
+        withRemove
+          ? 'max-[359px]:[&>button]:whitespace-normal'
+          : 'max-sm:[&>button]:whitespace-normal max-sm:[&>button:nth-child(2):last-child]:col-span-2',
+      )}
+    >
       {children}
     </div>
   );
