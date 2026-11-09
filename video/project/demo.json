@@ -357,7 +357,8 @@
             "w": 1880,
             "h": 250,
             "zoom": 1.0,
-            "label": "Finds the agent door on the page"
+            "label": "Finds the agent door on the page",
+              "labelPlacement": "below"
           }
         },
         {

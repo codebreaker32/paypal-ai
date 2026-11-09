@@ -40,10 +40,12 @@ export const FocusLayer = ({ focus, theme, children }) => {
   const showBox = focus.box !== false && focus.w > 2 && focus.h > 2;
 
   // Label: above the box when there is room, else below it, else inside its top edge.
+  // labelPlacement: "below" forces it under the box, for when the lines above the box are the point.
   const labelH = Math.round(70 * s);
   const gap = Math.round(14 * s);
   let ly;
-  if (by - gap - labelH > 30) ly = by - gap - labelH;
+  if (focus.labelPlacement === "below") ly = by + bh + gap;
+  else if (by - gap - labelH > 30) ly = by - gap - labelH;
   else if (by + bh + gap + labelH < H - 150) ly = by + bh + gap;
   else ly = by + gap;
   const lx = clamp(bx, 40, W - 40 - 900);
