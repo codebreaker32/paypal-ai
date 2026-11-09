@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { FieldError } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { TextLink } from '@/components/ui/text-link';
+import { ADD_SHOP_HREF, ADD_SHOP_SAMPLES_HREF } from '@/lib/brand/add-shop';
 import { startErrorMessage } from '@/lib/client/api';
 import { MAX_PHOTOS, checkNewPhotos } from '@/lib/client/photos';
 import { PhotoStrip } from './MenuPhotos';
@@ -103,7 +104,7 @@ export function RetakeStep({
           )}
         </div>
         {(problem || error) && <FieldError>{problem ?? error}</FieldError>}
-        <TextLink href="/" className="-my-1 self-start text-ink">
+        <TextLink href={ADD_SHOP_SAMPLES_HREF} className="-my-1 self-start text-ink">
           Try a sample menu instead
         </TextLink>
       </div>
@@ -121,7 +122,7 @@ export function FailedStep({ shopId, photoCount, message, onRetry }: { shopId: s
         <Button size="lg" icon={RotateCcw} onClick={onRetry}>
           Try again
         </Button>
-        <TextLink href="/" className="self-start text-ink sm:self-auto">
+        <TextLink href={ADD_SHOP_HREF} className="self-start text-ink sm:self-auto">
           Start over
         </TextLink>
       </div>
