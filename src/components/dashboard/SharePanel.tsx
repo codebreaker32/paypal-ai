@@ -7,11 +7,15 @@ import { Card } from '@/components/ui/card';
 import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
 import { PANEL_ROW, PanelList, PanelRow } from '@/components/ui/panel';
+import { ShareButton } from '@/components/ui/share-button';
 import { cn } from '@/lib/utils';
 import type { ShopStatus } from '@/lib/domain/types';
+import { CounterCard } from './CounterCard';
 
 export interface SharePanelProps {
   shopId: string;
+  shopName: string;
+  coverUrl: string | null;
   /** Live or paused shops have a web address; a draft's is replaced at first publish, so it never reaches this panel. */
   status: ShopStatus;
   shopUrl: string;
@@ -30,7 +34,7 @@ function LinkRowBody({ id, title, detail, url }: { id: string; title: string; de
     <div className="flex flex-col gap-1">
       <h2 className="type-section">{title}</h2>
       {detail && <p className="text-sm text-ink-soft">{detail}</p>}
-      <p className="type-price text-sm text-ink-soft [overflow-wrap:anywhere]" data-testid={id}>
+      <p id={id} className="type-price text-sm text-ink-soft [overflow-wrap:anywhere]" data-testid={id}>
         {url}
       </p>
     </div>
@@ -66,7 +70,7 @@ function ForDevelopers({ slug, doorUrl }: { slug: string; doorUrl: string }) {
   );
 }
 
-export function SharePanel({ shopId, status, shopUrl, doorUrl, slug, qr }: SharePanelProps) {
+export function SharePanel({ shopId, shopName, coverUrl, status, shopUrl, doorUrl, slug, qr }: SharePanelProps) {
   if (status === 'draft' || qr === null) {
     return (
       <div className="flex max-w-measure flex-col items-start gap-3">
@@ -84,8 +88,9 @@ export function SharePanel({ shopId, status, shopUrl, doorUrl, slug, qr }: Share
         </PanelRow>
         <PanelRow
           action={
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <CopyButton text={shopUrl} what="Shop link" className="flex-1 @xl:flex-none" />
+              <ShareButton title={shopName} url={shopUrl} describedBy="share-shop-url" className="flex-1 @xl:flex-none" />
               <ButtonLink href={`/s/${slug}`} variant="ghost" icon={ExternalLink} className="flex-1 @xl:flex-none">
                 Open
               </ButtonLink>
@@ -101,13 +106,10 @@ export function SharePanel({ shopId, status, shopUrl, doorUrl, slug, qr }: Share
       </PanelList>
 
       <Card as="section" aria-label="Counter card" className="flex flex-col items-center gap-4">
-        <div
-          role="img"
-          aria-label={`QR code that opens ${asTyped(shopUrl)}`}
-          data-testid="share-qr"
-          className="size-40 [&>svg]:block [&>svg]:size-full"
-          dangerouslySetInnerHTML={{ __html: qr.replace('<svg ', '<svg aria-hidden="true" ') }}
-        />
+        {/* One image to assistive tech: the card's own text is a picture of the printed card here. */}
+        <div role="img" aria-label={`QR code that opens ${asTyped(shopUrl)}`} data-testid="share-qr" className="w-full max-w-52">
+          <CounterCard name={shopName} coverUrl={coverUrl} shopUrl={shopUrl} doorUrl={doorUrl} qr={qr} miniature />
+        </div>
         <ButtonLink href={`/shops/${shopId}/card`} variant="secondary" icon={Printer} fullWidth>
           Print counter card
         </ButtonLink>
