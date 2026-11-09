@@ -290,3 +290,51 @@ test('review: each item takes a photo (add, replace, remove) and the shop takes 
   await expect(page.getByLabel('Add a cover photo')).toBeAttached();
   expect(shops.byId(getDb(), shopId)!.coverUrl).toBeNull();
 });
+
+test('on a phone: Check cards keep their actions on one line, and example photos are marked on the photo', async ({ page }) => {
+  const shopId = await shopWithReading(page, crafted());
+  // A photo-less row, so the list holds examples.
+  for (const it of items.listWithVariants(getDb(), shopId)) if (it.photoUrl) items.update(getDb(), it.id, { photoUrl: null });
+  await page.goto(`/shops/${shopId}/setup`);
+  await settle(page);
+
+  // Actions: the two actions and the bin share a row inside the card; the bin keeps its name.
+  const check = card(page, 'Focaccia – rosemary & sea salt');
+  const looks = (await check.getByRole('button', { name: 'Looks right' }).boundingBox())!;
+  const fix = (await check.getByRole('button', { name: 'Fix' }).boundingBox())!;
+  const remove = check.getByRole('button', { name: 'Remove', exact: true });
+  const bin = (await remove.boundingBox())!;
+  expect(Math.abs(looks.y - fix.y)).toBeLessThan(1);
+  expect(Math.abs(looks.y - bin.y)).toBeLessThan(1);
+  expect(bin.width).toBeGreaterThanOrEqual(44);
+  const inner = (await check.boundingBox())!;
+  expect(bin.x + bin.width).toBeLessThanOrEqual(inner.x + inner.width);
+  expect((await remove.getByText('Remove').first().boundingBox())!.width).toBeLessThanOrEqual(1); // an icon on a phone, its word for screen readers
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+  // Examples: the line, the corner mark on the photo, and the row's words only for screen readers.
+  await expect(page.getByText('Example photos are marked in the corner. Tap one to use your own.')).toBeVisible();
+  const ready = page.getByRole('region', { name: /Ready for PayPal/ });
+  const mark = ready.locator('[data-example-mark]').first();
+  await expect(mark).toBeVisible();
+  await expect(mark).toHaveText('Example');
+  const row = mark.locator('xpath=ancestor::li[1]');
+  const thumb = (await mark.locator('xpath=ancestor::label[1]').boundingBox())!;
+  const tag = (await mark.boundingBox())!;
+  expect(tag.x).toBeGreaterThanOrEqual(thumb.x - 1);
+  expect(tag.y).toBeGreaterThanOrEqual(thumb.y - 1);
+  expect(tag.x + tag.width).toBeLessThanOrEqual(thumb.x + thumb.width + 1);
+  expect(tag.y + tag.height).toBeLessThanOrEqual(thumb.y + thumb.height + 1);
+  const caption = (await row.locator('[data-example-caption]').boundingBox())!;
+  expect(caption.width).toBeLessThanOrEqual(1);
+  await expect(row.getByLabel(/^Add a photo of /)).toBeAttached();
+
+  // The narrowest phones keep the card's buttons inside the card.
+  for (const width of [360, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    const box = (await check.boundingBox())!;
+    const right = (await remove.boundingBox())!;
+    expect(right.x + right.width, `${width} px`).toBeLessThanOrEqual(box.x + box.width);
+    if (width === 360) expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true); // at 320 the guest header is wider than the page, whatever the cards do
+  }
+});

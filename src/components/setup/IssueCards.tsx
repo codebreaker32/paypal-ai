@@ -133,11 +133,12 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
 
 /**
  * A card's buttons. Under 640 px a row that ends in Remove keeps one line: two equal actions and the bin. Other rows
- * still wrap, because two long labels (Set today’s price, Ask in person) don't fit side by side on a phone.
+ * still wrap, because two long labels (Set today’s price, Ask in person) don't fit side by side on a phone; so does this
+ * row under 360 px, where its three buttons no longer fit in a card.
  */
 function Actions({ withRemove, children }: { withRemove?: boolean; children: ReactNode }) {
   return (
-    <div className={cx('flex flex-wrap items-center gap-3', withRemove && 'max-sm:grid max-sm:grid-cols-[1fr_1fr_auto] max-sm:gap-2 max-sm:[&>button]:px-3')}>
+    <div className={cx('flex flex-wrap items-center gap-3', withRemove && 'min-[360px]:max-sm:grid min-[360px]:max-sm:grid-cols-[1fr_1fr_auto] max-sm:gap-2 max-sm:[&>button]:px-3')}>
       {children}
     </div>
   );
