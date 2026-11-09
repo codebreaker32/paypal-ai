@@ -21,7 +21,7 @@ const LINKS = [
  * The one account menu (header and seller shell). A disclosure of plain links, not a `role="menu"`: Tab walks it, Esc or
  * a press outside closes it, and focus goes back to the button.
  */
-export function AccountMenu({ email, placement = 'down', className }: { email: string; placement?: 'up' | 'down'; className?: string }) {
+export function AccountMenu({ email, placement = 'down', className, panelClassName }: { email: string; placement?: 'up' | 'down'; className?: string; panelClassName?: string }) {
   const [open, setOpen] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const toast = useToast();
@@ -89,6 +89,7 @@ export function AccountMenu({ email, placement = 'down', className }: { email: s
           className={cn(
             'absolute z-(--z-menu) w-64 max-w-[calc(100vw-2*var(--spacing-gutter))] animate-fade-in rounded-lg bg-surface-raised p-1.5 shadow-md',
             placement === 'down' ? 'top-full right-0 mt-1.5' : 'bottom-full left-0 mb-1.5',
+            panelClassName,
           )}
         >
           <p title={email} className="truncate px-3 py-2 type-meta text-ink-muted">

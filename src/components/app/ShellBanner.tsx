@@ -1,29 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { CircleAlert, CirclePause, CloudOff, KeyRound, type LucideIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { CircleAlert, CirclePause, CloudOff } from 'lucide-react';
 import { setShopStatus } from '@/components/dashboard/api';
-import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toast';
 import { pickBanner, sectionHref } from '@/lib/seller/shell-view';
+import { Banner, BANNER_ACTION as ACTION } from './Banner';
+import { RecoveryBanner } from '@/components/shops/RecoveryBanner';
 import { SectionLink } from './SectionLink';
 import { patchShell, type ShellValues } from './shell-store';
-
-const ACTION = 'press-text inline-flex min-h-tap items-center font-semibold whitespace-nowrap text-warn underline decoration-2 underline-offset-4';
-
-function Banner({ icon, action, children }: { icon: LucideIcon; action?: ReactNode; children: ReactNode }) {
-  return (
-    <div role="status" data-shell-banner="" className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-(--card-radius) bg-warn-soft px-4 py-3 text-warn print:hidden">
-      <div className="flex min-w-0 flex-1 basis-64 items-start gap-3">
-        <Icon icon={icon} className="mt-0.5" />
-        <p>{children}</p>
-      </div>
-      {action}
-    </div>
-  );
-}
 
 function ResumeButton({ shopId }: { shopId: string }) {
   const toast = useToast();
@@ -76,18 +61,7 @@ export function ShellBanner({ shopId, values }: { shopId: string; values: ShellV
         </Banner>
       );
     case 'recovery-key':
-      return (
-        <Banner
-          icon={KeyRound}
-          action={
-            <Link href="/account#recovery-key" className={ACTION}>
-              Get a new key
-            </Link>
-          }
-        >
-          <span className="font-semibold">Save your recovery key.</span> Without it we can’t get you back into your account.
-        </Banner>
-      );
+      return <RecoveryBanner />;
     default:
       return null;
   }

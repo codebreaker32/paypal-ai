@@ -32,8 +32,15 @@ type ErrorState = null | { area: 'photos' | 'samples'; kind: StartErrorKind };
 
 const plural = (n: number) => `${n} photo${n === 1 ? '' : 's'}`;
 
+export interface StartActionsProps {
+  /** chips: the sample buttons with their pictures. plain: one line of text and the same three buttons. none: left out. */
+  samples?: 'chips' | 'plain' | 'none';
+  /** The `See a live shop` link (the landing page only). */
+  liveLink?: boolean;
+}
+
 /** Snap (primary), try a sample (secondary), see a live shop (tertiary). */
-export function StartActions() {
+export function StartActions({ samples = 'chips', liveLink = true }: StartActionsProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const nextKey = useRef(1);
@@ -206,61 +213,90 @@ export function StartActions() {
       </div>
 
       {/* Secondary: a sample menu, for anyone without a price list at hand */}
-      <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
-        <h2 id={samplesLabelId} className="type-label text-ink-muted">
-          Or try a sample menu
-        </h2>
-        <ul className="flex flex-wrap gap-2">
-          {SAMPLE_MENUS.map((s) => {
-            const loading = busy?.kind === 'sample' && busy.id === s.id;
-            return (
-              <li key={s.id}>
-                <button
-                  type="button"
-                  onClick={() => trySample(s.id)}
-                  disabled={busy !== null}
-                  aria-busy={loading || undefined}
-                  className={cx(
-                    'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left enabled:hover:bg-line',
-                    'disabled:cursor-not-allowed',
-                    busy !== null && !loading && 'opacity-50',
-                  )}
-                >
-                  <span className="relative block size-9 shrink-0 overflow-hidden rounded-full bg-surface">
-                    <Image
-                      src={s.image}
-                      alt=""
-                      width={240}
-                      height={180}
-                      sizes="36px"
-                      className="size-full object-cover"
-                    />
-                    {loading && (
-                      <span className="absolute inset-0 flex items-center justify-center bg-surface/80">
-                        <Icon icon={Loader2} size="sm" className="animate-spin text-ink" />
-                      </span>
+      {samples === 'chips' && (
+        <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
+          <h2 id={samplesLabelId} className="type-label text-ink-muted">
+            Or try a sample menu
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {SAMPLE_MENUS.map((s) => {
+              const loading = busy?.kind === 'sample' && busy.id === s.id;
+              return (
+                <li key={s.id}>
+                  <button
+                    type="button"
+                    onClick={() => trySample(s.id)}
+                    disabled={busy !== null}
+                    aria-busy={loading || undefined}
+                    className={cx(
+                      'press group flex min-h-tap items-center gap-2.5 rounded-full bg-surface-sunken py-1 pr-4 pl-1 text-left enabled:hover:bg-line',
+                      'disabled:cursor-not-allowed',
+                      busy !== null && !loading && 'opacity-50',
                     )}
-                  </span>
-                  <span className="flex flex-col">
-                    <span className="sr-only">Try the sample menu from </span>
-                    <span className="text-sm leading-5 font-semibold text-ink">
-                      {s.name}
+                  >
+                    <span className="relative block size-9 shrink-0 overflow-hidden rounded-full bg-surface">
+                      <Image
+                        src={s.image}
+                        alt=""
+                        width={240}
+                        height={180}
+                        sizes="36px"
+                        className="size-full object-cover"
+                      />
+                      {loading && (
+                        <span className="absolute inset-0 flex items-center justify-center bg-surface/80">
+                          <Icon icon={Loader2} size="sm" className="animate-spin text-ink" />
+                        </span>
+                      )}
                     </span>
-                    {loading && <span className="type-meta text-ink-muted">Opening…</span>}
-                  </span>
-                </button>
+                    <span className="flex flex-col">
+                      <span className="sr-only">Try the sample menu from </span>
+                      <span className="text-sm leading-5 font-semibold text-ink">
+                        {s.name}
+                      </span>
+                      {loading && <span className="type-meta text-ink-muted">Opening…</span>}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+          {error?.area === 'samples' && <FieldError>{startErrorMessage(error.kind)}</FieldError>}
+        </div>
+      )}
+
+      {samples === 'plain' && (
+        <div role="group" aria-labelledby={samplesLabelId} className="flex flex-col gap-3">
+          <p id={samplesLabelId} className="text-ink-soft">
+            No photo handy? Try a sample:
+          </p>
+          <ul className="flex flex-wrap gap-2">
+            {SAMPLE_MENUS.map((s) => (
+              <li key={s.id}>
+                <Button
+                  variant="secondary"
+                  loading={busy?.kind === 'sample' && busy.id === s.id}
+                  loadingLabel="Opening…"
+                  disabled={busy !== null}
+                  onClick={() => trySample(s.id)}
+                >
+                  <span className="sr-only">Try the sample menu from </span>
+                  {s.name}
+                </Button>
               </li>
-            );
-          })}
-        </ul>
-        {error?.area === 'samples' && <FieldError>{startErrorMessage(error.kind)}</FieldError>}
-      </div>
+            ))}
+          </ul>
+          {error?.area === 'samples' && <FieldError>{startErrorMessage(error.kind)}</FieldError>}
+        </div>
+      )}
 
       {/* Tertiary: see what a finished shop looks like */}
-      <TextLink href={LIVE_SHOP_HREF} className="-my-2 self-start text-sm text-ink-soft hover:text-ink">
-        See a live shop
-        <Icon icon={ArrowRight} size="sm" />
-      </TextLink>
+      {liveLink && (
+        <TextLink href={LIVE_SHOP_HREF} className="-my-2 self-start text-sm text-ink-soft hover:text-ink">
+          See a live shop
+          <Icon icon={ArrowRight} size="sm" />
+        </TextLink>
+      )}
     </div>
   );
 }

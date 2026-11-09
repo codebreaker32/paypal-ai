@@ -1,5 +1,7 @@
 // What the seller shell reads on the server (spec WP4). Pure rules live in shell-view.ts, which the browser can import.
+import { unstable_rethrow } from 'next/navigation';
 import type { ShellValues } from '@/components/app/shell-store';
+import { currentAccount } from '@/lib/auth/session';
 import { getDb, type Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
@@ -51,9 +53,17 @@ export function loadShellData(shop: Shop, db: Db = getDb()): ShellData {
   };
 }
 
-/** The signed-in account, for the shell's account slot. Null until accounts land (WP5/6): every branch works with null. */
+/** The signed-in account, for the shell's account slot and recovery banner. Null for an owner-link seller: every branch works with null. */
 export async function currentShellAccount(): Promise<ShellAccount | null> {
-  return null;
+  try {
+    const account = await currentAccount();
+    return account ? { email: account.email, recoveryUnsaved: account.recoverySavedAt === null } : null;
+  } catch (err) {
+    unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
+    // Like the public header: a storage problem only costs the account slot, the seller's page still renders.
+    console.error('Shell: could not read the account', err instanceof Error ? err.message : err);
+    return null;
+  }
 }
 
 /** Everything `AppShell` needs, read once per request by the (app) layout and the Live step. */
