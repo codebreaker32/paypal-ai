@@ -9,7 +9,7 @@ A small seller's shop should look like their store on Toast or Square: a white p
 - **One pomegranate accent**, used only for the logo, the active tab and filter, counts and the odd price emphasis. It never fills a button and never signals an error or a negative state: errors have their own vermilion, and "Sold out today" is ink.
 - **Black pill primary buttons** (like Toast's Pickup toggle). PayPal's own blue is used only on "Approve $X on PayPal".
 - **Status is a dot and a word** ("● Paid") in lists, not a boxed chip.
-- **Sections are separated by space and rules**, not outlined boxes. A raised card (soft shadow) is kept for things that really are cards: menu items and the order list's grouped rows.
+- **Sections are separated by space and rules**, not outlined boxes. A raised card (soft shadow) is kept for things that really are cards, such as the order list's grouped rows. Menu tiles on the shop page are not cards.
 - **One sans family, Figtree**, for everything, including prices (tabular figures, never monospace).
 
 Banned (rubric Part C): cream or beige backgrounds, serif display headlines, mustard or orange primaries, a hairline box around everything, dotted leaders, monospace prices, highlighter stripes, zig-zag receipt edges, a grey explanatory sentence under every element, an icon on every label, boxed status chips everywhere, walls of identical cards, and the stock tag logo.
@@ -130,7 +130,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | Component | Notes |
 |---|---|
 | `Button`, `ButtonLink`, `buttonClasses()` | Pills. `primary` is a near-black fill with white text; `secondary` is a grey fill; `ghost` has no fill; `paypal` is PayPal blue, only for "Approve $X on PayPal". 44 px (`md`) and 52 px (`lg`). One primary per screen. `loading` shows a spinner and sets `aria-busy`. |
-| `Card` | `raised`: white with `shadow-sm`, no border. `sunken`/`flat`: a grey well. `note`: the slate note well (the AI brief). Use it for menu items, grouped order rows and wells. Page sections are not cards: separate them with `border-t border-line` and space. Don't nest cards. |
+| `Card` | `raised`: white with `shadow-sm`, no border. `sunken`/`flat`: a grey well. `note`: the slate note well (the AI brief). Use it for grouped order rows and wells, not for the shop page's menu tiles. Page sections are not cards: separate them with `border-t border-line` and space. Don't nest cards. |
 | `Badge` | A soft pill with no outline. Tones: neutral, accent, ok, warn, error (`danger`), info, note. Use it sparingly, for one-off facts ("Sent to PayPal", "Allergy"). Never use it for order status in lists. |
 | `Tabs` | WAI-ARIA tabs with an ink underline under the active tab and a pomegranate count pill. |
 | `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
@@ -155,6 +155,8 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | `StatusSwap` | `value`, `className`, `children` | `AnimatePresence mode="popLayout"` crossfade with a 4 px rise when `value` changes; the leaving copy is aria-hidden. |
 
 **Press.** Every control answers a touch or click, and `tests/ui/press-coverage.test.ts` fails if one doesn't. Use a primitive (`Button`, `ButtonLink`, `IconButton`, `TextLink`, `Pressable`) or put one utility on a raw element, in place of a `transition-*` class: `press` (buttons, chips, segments, file pickers), `press-icon` (icon-only), `press-text` (text links, tabs, `summary`), `press-surface` (rows and cards, driven only by `data-pressed` so inner controls don't move them). `Tactile` (`components/motion/tactile.tsx`) sets `data-pressed` and `data-navigating`, with touch timing from `lib/feedback/press-machine.ts`. Pair an async button with `useAction` (`status`, `successLabel`). Never add `active:scale-*`, `active:translate-*`, or a `transition-[…transform…]` list.
+
+**Sound** (`lib/feedback`). Every real press plays a soft `tick`, fired by `Tactile` when `data-pressed` is applied, never on hover, focus or scroll. Add to order plays a warmer tick, and a paid order on the dashboard plays the chime. All of it is drawn with oscillators, and no `AudioContext` exists before the first gesture. Sound is never the only response to a press. One switch per device covers sound and vibration: the footer's `Sound` button, or `Sound and vibration` in Settings.
 
 
 Order status (`dashboard/status.tsx`): `OrderStatusText` is a coloured dot and the word, and it is the default everywhere. `OrderStatusBadge` remains for compatibility.

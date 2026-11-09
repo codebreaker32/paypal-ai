@@ -32,6 +32,10 @@ Time: about 20 minutes, most of it waiting for the first build.
    Don't set `APP_URL`. The app uses `RENDER_EXTERNAL_URL` (`https://<service>.onrender.com`), which Render sets on every web service. Set `APP_URL` only if you add a custom domain, and then to `https://your.domain`.
 
    `render.yaml` already sets `NODE_VERSION=22`, `PORT=10000`, `DATABASE_PATH=/var/data/shelfie.db` and `UPLOADS_DIR=/var/data/uploads`.
+
+   **Never set `SHELFIE_ALLOW_GUEST_SHOPS` or `SHELFIE_TEST` in production.** They are for test harnesses: the first lets anyone start a shop with no account, and the second turns off the setup rate limits. Shelfie ignores `SHELFIE_ALLOW_GUEST_SHOPS` when `RENDER` is set, which Render does for you; on any other host only your own configuration keeps it off.
+
+   `SUPPORT_EMAIL` is optional and isn't in the Blueprint. To show a contact address on `/help`, add it on the service's **Environment** page. Unset, Help points at GitHub Issues.
 4. Click **Apply**. Render runs `npm ci && npm run build` (about 3–5 minutes on Starter), then `npm start`. It routes traffic only after `GET /api/health` returns `{"ok":true}`.
 5. When the service shows **Live**, copy its URL from the top of the service page. The rest of this guide calls it `$BASE`, for example `https://shelfie-abcd.onrender.com`.
 
@@ -46,7 +50,7 @@ Later changes to secrets go on the service's **Environment** page; Render prompt
    npm run seed
    ```
 
-   It publishes Marigold Bakehouse's 9 products to your sandbox catalog and prints the shop link, the agent door link and, this one time only, the **owner link** (`/claim/<token>`). Keep the owner link private: it opens the seller dashboard. If the printed links say `localhost`, the Shell didn't get `RENDER_EXTERNAL_URL`; replace the origin with `$BASE` by hand (the links are otherwise right).
+   It publishes Marigold Bakehouse's 9 products to your sandbox catalog and prints the shop link, the agent door link and, this one time only, the **owner link** (`/claim/<token>`). Keep the owner link private: it opens the seller dashboard. The demo shop belongs to no account, so this link is the only way into its dashboard; everyone else signs up and makes their own shop. The landing page shows its "See an example shop" link only after this step. If the printed links say `localhost`, the Shell didn't get `RENDER_EXTERNAL_URL`; replace the origin with `$BASE` by hand (the links are otherwise right).
 3. Check the payee line the seed prints: either the seller account (masked) or "the app's own PayPal account".
 
 ## 3. Create the PayPal webhook
@@ -72,7 +76,7 @@ H='-H Content-Type:application/json -H Accept:application/json,text/event-stream
 ```
 
 1. **Health:** `curl -s $BASE/api/health` → `{"ok":true}`.
-2. **Pages:** open `$BASE` (the start page) and `$BASE/s/marigold-bakehouse` (the menu with its photo and the agent door block).
+2. **Pages:** open `$BASE` (the landing page), `$BASE/s/marigold-bakehouse` (the menu with its photo and the agent door block), `$BASE/help`, `$BASE/terms` and `$BASE/privacy`.
 3. **Discovery:**
    - `curl -s $BASE/s/marigold-bakehouse | grep -c 'application/ld+json'` → `1` or more;
    - `curl -s $BASE/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'` → a link whose `href` is `$DOOR`;
@@ -102,12 +106,16 @@ H='-H Content-Type:application/json -H Accept:application/json,text/event-stream
 8. **The seller side:** open the owner link from step 2 → the dashboard shows the order with its AI brief.
 9. **A hosted assistant:** in Claude (claude.ai) → **Settings** → **Connectors** → **Add custom connector**, paste `$DOOR`, then ask it to order from Marigold Bakehouse. It should call `get_shop_info`, `list_products` and, after you say yes, `create_order`, and give you a PayPal link.
 10. **Rate-limit key (review 2, X1):** from two different networks (for example a laptop on Wi-Fi and a phone on mobile data), each sends a few console turns. One network hitting the limit (20 turns an hour) must not block the other. Render's `X-Forwarded-For` ends in a shared Cloudflare address, so the app keys on `CF-Connecting-IP` when `RENDER` is set; this is the first time that runs for real.
+11. **Guest shops are off:** `curl -s -o /dev/null -w '%{http_code}\n' -X POST $BASE/api/shops -H 'Content-Type: application/json' -d '{"sample":"marigold-bakehouse"}'` → `401`.
+12. **An account:** open `$BASE`, tap **Add your shop** and sign up. Save the recovery key, tap **Continue**, publish a sample with a sandbox Business email, and check the shop appears at `$BASE/shops`. Log out, then log back in at `$BASE/login`.
+13. **The cart:** on the shop you just published, add an item, tap **View order**, then **Approve $… on PayPal**, and pay by logging in as the sandbox Personal account. The receipt says **Paid**.
 
 ## 5. After it passes
 
 - In `README.md`, replace "**Not yet run.**" under **Deploy to Render** with the URL and the date you verified it, and put the URL at the top of the README.
 - In `docs/SUBMISSION.md`, fill in the hosted demo URL.
 - In `docs/PROGRESS.md`, move "The Render deploy" and "Webhooks" from **Unverified** to **Verified** with the date and the order number you paid.
+- `/terms` and `/privacy` are templates, not legal advice. Review them before real sellers sign up.
 
 ## If something goes wrong
 
