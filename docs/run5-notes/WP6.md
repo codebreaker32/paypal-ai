@@ -57,3 +57,22 @@ Tests:
 - **No existing test was edited.**
 - Verified on the final code: `npm test` (1968 passed), typecheck, lint, `npm run build`, targeted e2e `accounts` and `dashboard`. `app-shell`, `auth-screens` and `start` passed before the last change, which only moved press classes.
 - **One failure I did not cause:** `e2e/dashboard.spec.ts:345` (Add tracking lands on the form) expects the form at 16 px from the top and gets 72 at 390, which is 16 plus the 56 px top bar. It fails the same way on the base commit 4417376, so it came in with the shell (WP4), and is not fixed here.
+
+## Third slice: e2e/accounts.spec.ts against acceptance 1 to 9
+
+The spec already covered 1 to 4 and 7 to 9. Acceptance 5 and 6 were only in `e2e/auth-screens.spec.ts`, so this slice added them, with a map from acceptance number to test at the top of the file.
+
+Added (new tests only, nothing already in the spec changed):
+
+- **5:** `/login` while logged in is a 307 to `landingPath` for no shops, one published shop, one draft and two shops; a safe `next` wins and a stray one is ignored.
+- **6:** `Forgot password?` reached with Tab alone from the top of the page, and Enter opens `/recover`. Every email and password field on `/signup`, `/login` and `/recover` has the required `autocomplete`, and no two forms share an `id` or a `name`.
+- **7:** the menu in the public header, and in the shell's top bar at 390 (opens downward). The sidebar case was already there.
+- **8:** Download on the sign-up key step clears the banner (the existing test goes through a new key on `/account`), and skipping Download leaves it.
+
+Results, on the code as committed:
+
+- `e2e/accounts.spec.ts`: 25 passed. `e2e/app-shell.spec.ts` and `e2e/auth-api.spec.ts`: 39 passed.
+- `npm test`, `npm run typecheck`, `npm run lint`: clean.
+- **No product change was needed**, and **no existing test was edited.**
+
+Seen in the logs, not a product bug: a hydration warning on `/shops/new` for `caret-color: transparent` on the photo input. Playwright's screenshot sets that style, and it landed before hydration.
