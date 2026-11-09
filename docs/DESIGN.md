@@ -190,6 +190,7 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - **Scrolling:** a new message always scrolls to it, a stream follows only within 96 px of the end and never past the start of its turn, an approval card always scrolls to the end. A wheel at the log's end never moves the page, docked included.
   - **Reduced motion:** the dock, the sheet and the scrim do not transition. The global rule names `::backdrop` itself, because `*` does not match it.
   - The empty state is a one-sentence greeting and starter prompts as tinted pills, resting directly above the composer.
+  - **Composer:** a one-row `textarea` that grows with its text to four lines (48 to 120 px), then scrolls. Enter sends, Shift+Enter is a new line, an input-method Enter only confirms the composition. The draft is the console's, so it survives closing and reopening; `openWithDraft` fills it from an item and never sends.
   - The Activity panel and the approval card are grey wells, not outlined boxes.
 - **Seller shell (`components/app/AppShell`):** the chrome on every `/shops/[id]/**` screen, replacing the public header and footer.
   - From `lg`: a white 15rem sidebar with one rule on its right: logo, the shop switcher (picture, name in a two-line clamp, the state as a dot and a word), Orders · Menu · Share · Settings, `View your shop`, then the test-mode line and the account slot at the foot.

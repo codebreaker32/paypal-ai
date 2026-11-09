@@ -19,7 +19,21 @@ Existing tests edited: none. Tests added: `tests/components/menu-tile.test.ts`, 
 | No-cover shops | The price list link stays below the pickup lines at every width | With no avatar over a cover there is no avatar row for it to join. |
 | Copy | `Some photos are examples, not the shop’s own.` uses `’` | As the rest of the page's copy. |
 
+## Draft and composer
+
+Built: `shop/console-draft.ts` (pure: `draftWithItem` with the exact strings and the 500-character guard, `sendsOnEnter`, `composerHeight`; `tests/components/console-draft.test.ts`), draft state and `openWithDraft` in `useBuyerConsole`, `ConsoleComposer` as an auto-growing `textarea`, and the `[data-order-item]` click delegate in `ShopAssistant`. `e2e/composer.spec.ts` covers the composer at 390 and 1440 and the draft path. Existing tests edited: none. `e2e/assistant-layout.spec.ts` passes unedited (67).
+
+| Where | What | Why |
+|---|---|---|
+| `useBuyerConsole(slug, { takesOrders, onOpen })` | The hook takes the shop's order state and how to open the console | The brief puts `openWithDraft` in the hook, but `open` and its history stay in `ShopAssistant`. |
+| `ConsoleConversation` | Wrapped in `memo`, comparing only `api.state` of the api | The draft moved up beside the conversation; without this every keystroke re-renders every message. |
+| `sendsOnEnter` | Also refuses key code 229 | Safari ends the composition before the confirming Enter's keydown, so `isComposing` alone would send it. |
+| Composer padding | `py-[11px]` instead of the Textarea's `py-2.5` | One line of 24 px then fills the 48 px control exactly, as the old input did. |
+| Start over | Leaves the draft alone | As before: `reset` never cleared what the buyer had typed. |
+
 ## For WP3b (cart and sheet)
+- The sheet's "Ask the assistant" control: put `data-order-item={item.name}` on it (the `ShopAssistant` delegate calls `openWithDraft`), or call `api.openWithDraft(name)` directly. A tile must not carry the attribute.
+- Close the item sheet as part of that press. `show` records `document.activeElement` as the opener and, on phones, pushes `?assistant=1`, so settle the `?item=` history entry first.
 
 - Provide `CartContext` (`shop/cart-context.ts`) from `ShopAssistant`, value `CartApi`: `quantity(itemId)`, `add(itemId, optionId)`, `decrement(itemId)`, `openItem(itemId, opener)`. Until then tile taps and `+` do nothing (inert default).
 - `AddControl` shows the `− n +` pill for any item in the order, including items with several options; `decrement` removes from that item's most recent line (the spec does not say which line).
