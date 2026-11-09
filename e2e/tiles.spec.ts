@@ -197,6 +197,68 @@ test('a paused shop has no add controls, and its prices still show', async ({ pa
   await expect(page.locator('[data-menu-item]').first()).toContainText('$3.50');
 });
 
+test.describe('a tile opens the sheet (addendum: 5 and 6)', () => {
+  test.use({ viewport: PHONE });
+  const sheet = (page: Page) => page.locator('dialog[open]');
+  const open = (page: Page, name: string) => page.locator(`[data-menu-item="${name}"] h4 button`).click();
+  const ready = (page: Page) =>
+    page.waitForFunction(() => {
+      const el = document.querySelector('li[data-menu-item] h4 button');
+      return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
+    });
+
+  test('on the demo shop a tile opens the sheet, and + adds with no sheet and no assistant call', async ({ page }) => {
+    let sent = 0;
+    page.on('request', (r) => {
+      if (r.url().includes('/api/assistant')) sent += 1;
+    });
+    await page.goto(`/s/${SLUG}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await ready(page);
+    await open(page, 'Almond croissant');
+    await expect(sheet(page).getByRole('heading', { name: 'Almond croissant' })).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(sheet(page)).toHaveCount(0);
+    await page.locator('[data-menu-item="Almond croissant"]').getByRole('button', { name: 'Add Almond croissant to your order' }).click();
+    await expect(sheet(page)).toHaveCount(0);
+    await expect(page.locator('[data-order-bar]').getByRole('button', { name: /View order · 1/ })).toBeVisible();
+    expect(sent).toBe(0);
+  });
+
+  test('a two-option + opens the sheet with the first option chosen, on 48 px rows', async ({ page }) => {
+    await page.goto(`/s/${fixtureSlug}`);
+    await ready(page);
+    await page.getByRole('button', { name: 'Choose options for Two options' }).click();
+    const group = sheet(page).getByRole('group', { name: 'Choose one' });
+    await expect(group.getByRole('radio')).toHaveCount(2);
+    await expect(group.getByRole('radio').first()).toBeChecked();
+    for (const row of await group.locator('label').all()) expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(48);
+  });
+
+  for (const [name, line] of [
+    ['Sold out one', 'Sold out today.'],
+    ['In person one', 'Ask in person: the shop sets this price on the day.'],
+  ] as const) {
+    test(`${name} opens the sheet, which ends in one plain line`, async ({ page }) => {
+      await page.goto(`/s/${fixtureSlug}`);
+      await ready(page);
+      await expect(page.locator(`[data-menu-item="${name}"] [data-add-control]`)).toHaveCount(0);
+      await open(page, name);
+      await expect(sheet(page)).toContainText(line);
+      await expect(sheet(page).getByRole('button', { name: /^Add to order/ })).toHaveCount(0);
+    });
+  }
+
+  test('a paused shop’s tile opens the sheet, which says it is not taking orders', async ({ page }) => {
+    await page.goto(`/s/${pausedSlug}`);
+    await ready(page);
+    await open(page, 'Today item 1');
+    await expect(sheet(page)).toContainText('Not taking orders right now.');
+    await expect(sheet(page).getByRole('button', { name: /^Add to order/ })).toHaveCount(0);
+  });
+});
+
 test('at 1024 docked the menu has two tracks (2)', async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto(`/s/${SLUG}?assistant=1`);

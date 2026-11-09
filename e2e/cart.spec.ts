@@ -5,6 +5,7 @@
 import { expect, test, type Page, type Route } from '@playwright/test';
 import { getConfig } from '../src/lib/config';
 import { getDb } from '../src/lib/db';
+import * as itemsRepo from '../src/lib/db/repos/items';
 import * as shopsRepo from '../src/lib/db/repos/shops';
 import { createFakePayPal } from '../src/lib/paypal/fake';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
@@ -14,9 +15,28 @@ const SLUG = DEMO_SHOP.slug;
 const SHOP = `/s/${SLUG}`;
 const ITEM = 'Almond croissant';
 
+const BIG_NAME = 'E2E Cart Big Shop';
+const BIG_ITEM = 'Wedding cake';
+let bigSlug = '';
+
 test.beforeAll(async () => {
   const db = getDb();
   if (!shopsRepo.bySlug(db, SLUG)) await seedDemoShop({ db, paypal: createFakePayPal(), uploadsDir: getConfig().uploadsDir });
+
+  // A pickup-or-shipping shop whose one item is dear enough that two pass the $500.00 cap.
+  for (const o of db.prepare('SELECT id FROM shops WHERE name = ?').all(BIG_NAME) as { id: string }[]) db.prepare('DELETE FROM shops WHERE id = ?').run(o.id);
+  const { shop } = shopsRepo.create(db, { name: BIG_NAME, about: 'A test shop.', fulfillment: 'both', pickupNotes: 'Fridays', shippingFeeCents: 800 });
+  const [item] = itemsRepo.replaceDrafts(db, shop.id, [
+    { section: 'Cakes', name: BIG_ITEM, description: 'Three tiers.', sourceText: BIG_ITEM, confidence: 'high' as const, kind: 'PHYSICAL' as const, issues: [], issueDetail: null, status: 'draft' as const, variants: [{ label: null, priceCents: 30000 }] },
+  ]);
+  itemsRepo.setPayPalProductId(db, item.id, `PROD-E2E-CART-${shop.id}`);
+  shopsRepo.publish(db, shop.id);
+  bigSlug = shopsRepo.update(db, shop.id, { payeeEmail: 'seller@example.com', orderCapCents: 50000 }).slug;
+});
+
+test.afterAll(() => {
+  const db = getDb();
+  for (const o of db.prepare('SELECT id FROM shops WHERE name = ?').all(BIG_NAME) as { id: string }[]) db.prepare('DELETE FROM shops WHERE id = ?').run(o.id);
 });
 
 const tile = (page: Page, name = ITEM) => page.locator(`li[data-menu-item="${name}"]`);
@@ -31,8 +51,8 @@ const clearCart = async (page: Page) => {
 };
 const saved = (page: Page, slug = SLUG) => page.evaluate((k) => localStorage.getItem(k), `shelfie:cart:${slug}`);
 
-async function hydrate(page: Page) {
-  await expect(tile(page)).toBeVisible();
+async function hydrate(page: Page, name = ITEM) {
+  await expect(tile(page, name)).toBeVisible();
   await page.waitForFunction(() => {
     const el = document.querySelector('li[data-menu-item] button');
     return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
@@ -238,6 +258,111 @@ test.describe('cart on a phone', () => {
     await expect(bar(page).getByRole('button', { name: /View order/ })).toHaveCount(0);
     await expect(page.locator('[data-toast-region]')).toContainText('no longer available, so we took it out');
     await expect.poll(async () => (await saved(page)) ?? '').not.toContain('gone');
+  });
+
+  test('a good approval URL leaves for PayPal, with the pending order saved and the cart kept', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    const approvalUrl = 'https://www.sandbox.paypal.com/checkoutnow?token=E2E-CART';
+    await page.route('https://www.sandbox.paypal.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<title>PayPal</title>' }));
+    await stubCheckout(page, (route) => route.fulfill({ status: 201, json: { orderRef: 'ord_e2e', number: '7', approvalUrl, totalCents: 100 } }));
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await page.waitForURL(approvalUrl);
+    // localStorage belongs to the shop's origin, so read it back there.
+    await page.goto(SHOP);
+    expect(await page.evaluate((k) => localStorage.getItem(k), `shelfie:cart:${SLUG}:pending`)).toBe('ord_e2e');
+    expect(await saved(page)).toContain('qty');
+  });
+
+  test('in flight: the button says Opening PayPal and the controls are disabled', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    let release = () => {};
+    const held = new Promise<void>((resolve) => (release = resolve));
+    await stubCheckout(page, async (route) => {
+      await held;
+      await route.fulfill({ status: 502, json: { error: { code: 'PAYPAL_UNAVAILABLE', message: 'We can’t reach PayPal right now.' } } });
+    });
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(sheet(page).getByRole('button', { name: /Opening PayPal/ })).toBeDisabled();
+    await expect(sheet(page).getByPlaceholder('Allergies, timing')).toBeDisabled();
+    await expect(sheet(page).getByRole('button', { name: `Add one ${ITEM}` })).toBeDisabled();
+    release();
+    await expect(sheet(page).getByRole('alert')).toContainText('can’t reach PayPal');
+    await expect(sheet(page).getByPlaceholder('Allergies, timing')).toBeEnabled();
+  });
+
+  test('the shop-wide open-order limit shows the line that does not blame the buyer (SR28)', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    const message = 'Marigold Bakehouse has a lot of orders waiting for payment right now. Try again in a few minutes. Your items are saved here.';
+    await stubCheckout(page, (route) => route.fulfill({ status: 409, json: { error: { code: 'TOO_MANY_OPEN_ORDERS', scope: 'shop', message } } }));
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(sheet(page).getByRole('alert')).toHaveText(message);
+    await expect(sheet(page).locator('[data-cart-line]')).toHaveCount(1);
+  });
+
+  test('UNKNOWN_ITEM takes the line out and says so', async ({ page }) => {
+    await clearCart(page);
+    await hydrate(page);
+    await addPlus(page).click();
+    const itemId = JSON.parse((await saved(page))!).lines[0].itemId;
+    await stubCheckout(page, (route) => route.fulfill({ status: 409, json: { error: { code: 'UNKNOWN_ITEM', message: `${ITEM} is no longer available, so we took it out.`, itemId } } }));
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+    await expect(sheet(page).getByRole('alert')).toContainText('so we took it out');
+    await expect(sheet(page).locator('[data-cart-line]')).toHaveCount(0);
+  });
+
+  for (const code of ['CHECKOUT_STALE', 'IDEMPOTENCY_CONFLICT'] as const) {
+    test(`${code} rotates the request id and retries once`, async ({ page }) => {
+      await clearCart(page);
+      await hydrate(page);
+      await addPlus(page).click();
+      const ids: string[] = [];
+      await stubCheckout(page, (route) => {
+        ids.push(route.request().postDataJSON().requestId);
+        return route.fulfill({ status: 409, json: { error: { code, message: 'Something changed. Try again.' } } });
+      });
+      await bar(page).getByRole('button', { name: /View order/ }).click();
+      await sheet(page).getByRole('button', { name: /on PayPal/ }).click();
+      await expect(sheet(page).getByRole('alert')).toContainText('Something changed');
+      expect(ids).toHaveLength(2);
+      expect(ids[1]).not.toBe(ids[0]);
+    });
+  }
+
+  test('over the order cap the button is disabled and the line says the limit', async ({ page }) => {
+    await page.goto(`/s/${bigSlug}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await hydrate(page, BIG_ITEM);
+    await addPlus(page, BIG_ITEM).click();
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await expect(sheet(page).getByRole('button', { name: /on PayPal/ })).toBeEnabled();
+    await sheet(page).getByRole('button', { name: `Add one ${BIG_ITEM}` }).click();
+    await expect(sheet(page).getByRole('button', { name: /on PayPal/ })).toBeDisabled();
+    await expect(sheet(page)).toContainText('This shop takes online orders up to $500.00.');
+  });
+
+  test('Pickup is preselected; Shipping adds its fee and says PayPal asks for the address', async ({ page }) => {
+    await page.goto(`/s/${bigSlug}`);
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await hydrate(page, BIG_ITEM);
+    await addPlus(page, BIG_ITEM).click();
+    await bar(page).getByRole('button', { name: /View order/ }).click();
+    await expect(sheet(page).getByRole('radio', { name: 'Pickup' })).toBeChecked();
+    await expect(sheet(page).getByRole('button', { name: 'Approve $300.00 on PayPal' })).toBeVisible();
+    await sheet(page).getByText('Shipping · $8.00').click();
+    await expect(sheet(page).getByRole('button', { name: 'Approve $308.00 on PayPal' })).toBeVisible();
+    await expect(sheet(page)).toContainText('PayPal asks for your address.');
   });
 
   test('axe is clean with the cart open', async ({ page }) => {
