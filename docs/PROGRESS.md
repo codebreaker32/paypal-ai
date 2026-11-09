@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-08 17:40 IST (run 5, session 2 under way)_
+_Last updated: 2026-11-09 11:50 IST (run 5, session 6 under way)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -14,6 +14,8 @@ _Last updated: 2026-11-08 17:40 IST (run 5, session 2 under way)_
 - **WP1 merged into `run-5-production` at 00:12 IST (`f7c43dc`).** Complete correctness review: 5 confirmed findings, all fixed with a test that failed first. **Verified on `baec916`:** `npm test` 1281 passed, typecheck and lint clean, `tactile` + `primitives` + `dashboard` + `shop` e2e 73 passed, 1 existing skip; acceptance 14 of 14 in both rounds. The merge adds only docs on top of `baec916`. Click sounds (WP1b) started in `.claude/worktrees/wp1b`.
 - **WP5 merged at 00:41 IST (`cefc071`).** Security re-check over two rounds by four lenses, each finding voted on by three independent verifiers: 4 confirmed (all minor), all fixed test-first; round 2 confirmed none. **Verified on the merged WP1 + WP5 tree:** `npm test` 1709 passed, typecheck and lint exit 0. WP5's own gate on `5f8ea75`: `auth-api`, `large-upload`, `start`, `dashboard` e2e 32 passed, 1 existing skip. **Not yet met, and waiting on WP6's screens:** SR18's "shown in Settings", SR21's `location.replace` in the forms, SR22's banner. No full e2e on the merge yet.
 - **Known limits the verifiers reproduced and the brief specifies (for the human, not fixed):** with SR11's numbers, about 130 failed requests from 10 addresses can block login and recovery for one email for up to an hour; a PayPal email change on a draft needs no password, including one that lands while publish is running (no audit row); SR20 covers the auth limits only, so `SHELFIE_TEST` with `RENDER` set still skips the setup limits.
+- **Sessions 4 and 5 (to 11:45 IST, 9 Nov), read from git:** WP2, WP4 and WP1b merged into `run-5-production` (`ec90b35`, 11:40 IST). WP4 and WP1b were merged before their reviews, which run on the merged tree. A targeted e2e gate on that merge (217 tests, `.scratch/s4/gate-merged.log`) was still running when session 6 began.
+- **Session 6 (11:45 to about 13:45 IST, 9 Nov), started.** Three workflows in worktrees, all branched from `ec90b35`: WP3 with the cart (`wp3`), WP6 (`wp6`), the WP4 + WP1b review and fixes (`s4-review`). Next, in order: merge these, WP7, WP8, WP9, then S1-S6. Feature freeze at 08:00 IST on Tue 10 Nov.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
