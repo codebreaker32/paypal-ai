@@ -6,6 +6,7 @@ import { AuthProblemText, FormProblem } from '@/components/auth/AuthProblemText'
 import { PasswordField } from '@/components/auth/fields';
 import { RecoveryKeyStep } from '@/components/auth/RecoveryKeyStep';
 import { useAuthForm } from '@/components/auth/use-auth-form';
+import { setRecoveryUnsaved } from '@/components/app/shell-store';
 import { LocalDay } from '@/components/dashboard/LocalTime';
 import { Button } from '@/components/ui/button';
 import { Icon } from '@/components/ui/icon';
@@ -27,7 +28,7 @@ export interface RecoverySectionProps {
 export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySectionProps) {
   const [password, setPassword] = useState('');
   const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
-  const { problem, busy, submit, clearProblem } = useAuthForm(IDS);
+  const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
 
   if (recoveryKey) return <RecoveryKeyStep recoveryKey={recoveryKey} email={email} next="/account" appUrl={appUrl} />;
 
@@ -37,6 +38,7 @@ export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySe
       checkCurrentPassword(password),
       async () => {
         const created = await createRecoveryKey(password);
+        setRecoveryUnsaved(true);
         setRecoveryKey(created.recoveryKey);
       },
       currentPasswordProblem,
@@ -77,7 +79,7 @@ export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySe
             error={problem?.field === 'password' ? <AuthProblemText problem={problem} /> : undefined}
           />
           <FormProblem problem={problem} />
-          <Button type="submit" variant="secondary" loading={busy} loadingLabel="Creating…" className="self-start">
+          <Button type="submit" variant="secondary" disabled={!ready} loading={busy} loadingLabel="Creating…" className="self-start">
             Create a new key
           </Button>
         </form>

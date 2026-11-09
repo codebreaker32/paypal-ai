@@ -1,13 +1,21 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useSyncExternalStore } from 'react';
 import type { AuthProblem, ProblemField } from '@/lib/client/auth-copy';
+
+const never = () => () => undefined;
 
 /** What every account form shares: one problem at a time, one request at a time, and focus on the field to fix. */
 export function useAuthForm(fieldIds: Partial<Record<ProblemField, string>>) {
   const [problem, setProblem] = useState<AuthProblem | null>(null);
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
+  // Before React arrives a submit would be a plain POST that comes back as a blank form, so the button waits for it.
+  const ready = useSyncExternalStore(
+    never,
+    () => true,
+    () => false,
+  );
 
   const fail = (next: AuthProblem) => {
     inFlight.current = false;
@@ -34,5 +42,5 @@ export function useAuthForm(fieldIds: Partial<Record<ProblemField, string>>) {
     }
   };
 
-  return { problem, busy, submit, clearProblem: () => setProblem(null) };
+  return { problem, busy, ready, submit, clearProblem: () => setProblem(null) };
 }

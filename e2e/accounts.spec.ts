@@ -461,3 +461,93 @@ test.describe('acceptance 8: Download at sign-up', () => {
     await expect(banner(page)).toBeVisible();
   });
 });
+
+test.describe('review round 1', () => {
+  test('text typed before React arrives is kept, and Log in waits for it instead of losing it', async ({ browser }) => {
+    const context = await freshContext(browser);
+    const held: (() => void)[] = [];
+    let hold = true;
+    await context.route('**/_next/**', (route) => {
+      if (hold && route.request().resourceType() === 'script') held.push(() => void route.continue());
+      else void route.continue();
+    });
+    const page = await context.newPage();
+    await page.goto('/login', { waitUntil: 'commit' });
+    const field = page.locator('#login-email');
+    const address = email('late');
+    await field.waitFor();
+    await field.fill(address);
+    await page.locator('#current-password').fill(PASSWORD);
+
+    // Before hydration a press and Enter send nothing: no POST that would come back as a blank form.
+    const button = page.getByRole('button', { name: 'Log in', exact: true });
+    await expect(button).toBeDisabled();
+    const posts: string[] = [];
+    page.on('request', (r) => {
+      if (r.method() === 'POST' && new URL(r.url()).pathname === '/login') posts.push(r.url());
+    });
+    await page.locator('#current-password').press('Enter');
+    expect(posts).toEqual([]);
+    await expect(field).toHaveValue(address);
+
+    hold = false;
+    held.forEach((go) => go());
+    await expect(button).toBeEnabled({ timeout: 60_000 });
+    await expect(field).toHaveValue(address);
+    await expect(page.locator('#current-password')).toHaveValue(PASSWORD);
+
+    const sent = page.waitForRequest((r) => r.method() === 'POST' && r.url().includes('/api/auth/login'));
+    await button.click();
+    const body = (await sent).postDataJSON() as { email: string; password: string };
+    expect(body.email).toBe(address);
+    expect(body.password).toBe(PASSWORD);
+    await context.close();
+  });
+
+  test('a Download then Back: the banner is gone without a reload', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    const address = await signUp(page, email('back'));
+    const f = ownedShop(address);
+    await page.goto(`/shops/${f.shop.id}`);
+    await expect(banner(page)).toBeVisible();
+    await page.getByRole('link', { name: 'Get a new key' }).click();
+    await page.waitForURL('**/account#recovery-key');
+    await page.locator('#account-current-password').fill(PASSWORD);
+    await page.getByRole('button', { name: 'Create a new key' }).click();
+    const saved = page.waitForResponse((r) => r.url().endsWith('/api/account/recovery-key') && r.request().method() === 'PATCH');
+    await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download' }).click()]);
+    expect((await saved).status()).toBe(204);
+
+    await page.goBack();
+    await page.waitForURL(`**/shops/${f.shop.id}`);
+    await expect(page.getByRole('link', { name: 'Menu' }).first()).toBeVisible();
+    await expect(banner(page)).toHaveCount(0);
+    await page.getByRole('link', { name: 'Menu' }).first().click();
+    await expect(banner(page)).toHaveCount(0);
+  });
+
+  test('a password typed for an abandoned PayPal email change does not come back', async ({ page }) => {
+    await page.setViewportSize(DESKTOP);
+    const address = await signUp(page, email('abandon'));
+    const f = ownedShop(address);
+    await saveKey(page, address);
+    await page.goto(`/shops/${f.shop.id}?tab=settings`);
+    const form = page.getByTestId('payee-form');
+    const emailBox = form.getByRole('textbox', { name: /Your PayPal email/ });
+    const passwordBox = form.locator('#payee-current-password');
+    const savedEmail = await emailBox.inputValue();
+
+    await emailBox.fill('typo@example.com');
+    await passwordBox.fill(PASSWORD);
+    await emailBox.fill(savedEmail);
+    await expect(passwordBox).toHaveCount(0);
+    await emailBox.fill('attacker@example.com');
+    await expect(passwordBox).toBeVisible();
+    await expect(passwordBox).toHaveValue('');
+
+    await form.getByRole('button', { name: 'Save' }).click();
+    await expect(form.getByText('Enter your Shelfie password to do that.')).toBeVisible();
+    const row = getDb().prepare('SELECT payee_email FROM shops WHERE id = ?').get(f.shop.id) as { payee_email: string };
+    expect(row.payee_email).toBe(savedEmail);
+  });
+});

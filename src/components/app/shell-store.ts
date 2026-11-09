@@ -23,6 +23,8 @@ export interface ShellValues {
 // Per shop, so a shop reopened from the router's cache still knows what happened to it.
 // `stamp`: when these values were last known true, the later of the server's read and the last change here.
 const shops = new Map<string, { values: ShellValues; stamp: number }>();
+// The recovery key belongs to the account, so one change here speaks for every shop, even one this tab hasn't opened yet.
+let recovery: { unsaved: boolean; stamp: number } | null = null;
 const listeners = new Set<() => void>();
 
 const notify = () => listeners.forEach((fn) => fn());
@@ -47,7 +49,8 @@ export function shellSnapshot(shopId: string, server: ShellValues): ShellValues 
 export function seedShell(shopId: string, values: ShellValues, readAt?: number): void {
   const held = shops.get(shopId);
   if (held && readAt !== undefined && readAt <= held.stamp) return;
-  shops.set(shopId, { values, stamp: readAt ?? Date.now() });
+  const kept = recovery !== null && readAt !== undefined && readAt <= recovery.stamp;
+  shops.set(shopId, { values: kept ? { ...values, recoveryUnsaved: recovery!.unsaved } : values, stamp: readAt ?? Date.now() });
   notify();
 }
 
@@ -61,8 +64,15 @@ export function patchShell(shopId: string, patch: Partial<ShellValues>): void {
   notify();
 }
 
+/** The recovery key was just saved, or replaced by one that isn't yet. The shell of a page Back restores must know. */
+export function setRecoveryUnsaved(unsaved: boolean): void {
+  recovery = { unsaved, stamp: Date.now() };
+  for (const shopId of shops.keys()) patchShell(shopId, { recoveryUnsaved: unsaved });
+}
+
 export function resetShellForTests(): void {
   shops.clear();
+  recovery = null;
   listeners.clear();
 }
 

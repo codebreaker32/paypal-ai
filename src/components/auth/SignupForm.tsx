@@ -19,7 +19,7 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [done, setDone] = useState<KeyAndNext | null>(null);
-  const { problem, busy, submit, clearProblem } = useAuthForm(IDS);
+  const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
 
   if (done) return <RecoveryKeyStep recoveryKey={done.recoveryKey} email={email.trim().toLowerCase()} next={done.next} appUrl={appUrl} />;
 
@@ -63,7 +63,7 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
           error={problem?.field === 'password' ? <AuthProblemText problem={problem} /> : undefined}
         />
         <FormProblem problem={problem} />
-        <Button type="submit" variant="primary" size="lg" fullWidth loading={busy} loadingLabel="Creating your account...">
+        <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Creating your account...">
           Create account
         </Button>
         <p className="type-meta text-ink-muted">

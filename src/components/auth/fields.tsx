@@ -1,10 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useEffectEvent, useRef, useState, type ReactNode } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Field } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { Input } from '@/components/ui/input';
+
+/**
+ * For a controlled input on a server-rendered form: what was typed or autofilled before React arrived is still in the
+ * DOM at mount, and React's next update would write the empty state over it. Attach the returned ref to the input.
+ */
+export function useKeepTypedValue(value: string, onChange: (value: string) => void) {
+  const input = useRef<HTMLInputElement>(null);
+  const adopt = useEffectEvent(() => {
+    const typed = input.current?.value;
+    if (typed && typed !== value) onChange(typed);
+  });
+  useEffect(() => adopt(), [input]);
+  return input;
+}
 
 /** The login email of a form: the same keyboard and autofill everywhere, its own id and name per form. */
 export function EmailField({
@@ -18,11 +32,13 @@ export function EmailField({
   onChange: (value: string) => void;
   error?: ReactNode;
 }) {
+  const input = useKeepTypedValue(value, onChange);
   return (
     <Field label="Email" id={id} error={error}>
       {(control) => (
         <Input
           {...control}
+          ref={input}
           name={id}
           type="email"
           autoComplete="username"
@@ -52,7 +68,7 @@ export interface PasswordFieldProps {
 /** A password input with a show button. Paste is allowed; the password goes back to hidden when the form submits. */
 export function PasswordField({ id, label, autoComplete, value, onChange, hint, liveHint, error }: PasswordFieldProps) {
   const [shown, setShown] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
+  const input = useKeepTypedValue(value, onChange);
 
   // A browser only offers to save a password from a real password field, and nothing typed should stay on show.
   useEffect(() => {

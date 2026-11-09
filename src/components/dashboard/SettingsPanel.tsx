@@ -79,6 +79,10 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved, accountOwned, p
   const [failureIsPassword, setFailureIsPassword] = useState(false);
   const needsPassword = payeeChangeNeedsPassword({ accountOwned, status: draft ? 'draft' : 'live', changes: !invalid && !unchanged });
 
+  // The field goes away when the seller backs out of a change, and what was typed in it goes too: it must not come
+  // back filled in for the next email.
+  if (!needsPassword && password) setPassword('');
+
   const { status, run, error } = useAction(async () => {
     try {
       return await setPayeeEmail(shopId, next, needsPassword ? password : undefined);

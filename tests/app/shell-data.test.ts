@@ -8,6 +8,9 @@ import { createOrderForShop, type OrderDeps } from '@/lib/orders/service';
 import { currentShellAccount, loadShellData } from '@/lib/seller/shell';
 import { seedShop } from '../helpers/shop';
 
+// An empty cookie jar: without a request scope cookies() throws, and the null would only be the shell's catch.
+vi.mock('next/headers', () => ({ cookies: async () => ({ get: () => undefined }) }));
+
 describe('loadShellData', () => {
   it('reads the shop, its picture sources and the values the shell watches', async () => {
     const db = createTestDb();
@@ -65,7 +68,10 @@ describe('loadShellData when the orders cannot be read', () => {
 });
 
 describe('currentShellAccount', () => {
-  it('is null until accounts exist', async () => {
+  it('is null for a visitor with no session, without reaching the error path', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     await expect(currentShellAccount()).resolves.toBeNull();
+    expect(error).not.toHaveBeenCalled();
+    error.mockRestore();
   });
 });
