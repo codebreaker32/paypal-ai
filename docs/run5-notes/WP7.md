@@ -66,3 +66,6 @@
 ### Worth knowing
 - A hand-started dev server with two Playwright processes attached (`E2E_REUSE_SERVER=1`) put every page into a reload loop (`Compiled in Nms` then a full reload, repeating), which failed specs for no real reason. The cause was not established: it kept looping for a moment after one process finished. The same specs passed one process at a time on Playwright's own server, so run them that way.
 - `dashboardHref` with 2+ unattached owner cookies, noted above, stays as it was.
+
+### Results of this step
+On the final code: `npm test` 2195 passed, typecheck and lint clean. Each run on Playwright's own server, one at a time: `e2e/start` 9 passed, `e2e/landing` 25, `e2e/other-pages` + `accounts` + `account-publish` 47, `e2e/flow` 1 (real Claude and PayPal sandbox, to the approval link). `e2e/screenshots.spec.ts -g start` 8 passed; the rest of that spec, `e2e/recordings` and `e2e/sounds` were not run (the coordinator's full e2e covers them). `scripts/clips/record.ts` was typechecked but not run.
