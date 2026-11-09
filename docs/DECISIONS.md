@@ -278,3 +278,9 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **WP7 merges into `run-5-production` before its final gate's e2e completed.** Reason: the gate ran out of time rather than failing, the worker's own run of the same specs passed, and `main` is untouched; the full e2e comes first next session and covers all three merges.
 - **`dashboardHref` keeps sending a browser with 2+ unattached owner cookies to `/`.** Reason: only seed and harness browsers can reach that state, and `tests/brand/header.test.ts` asserts it.
 - **Clips sign up a throwaway account (random password) to reach `/shops/new`.** Reason: the gate flip makes that page need an account, and the recorder has to go through it.
+
+## Run 5, session 9 (2026-11-09 IST, from 15:34)
+- **Judge round 12's "one Example photo line above the review list" is left to S5, which the brief already specifies.** Reason: S5 does exactly that under its own revertible commit, and the round's blocker (lone words, the order bar) did not depend on it.
+- **WP9 records before the should-haves, even though S4 and S5 touch screens the video shows.** Reason: WP9 is a must-have and usage is finite; a should-have that changes a filmed screen costs one clip's re-take.
+- **Round 12's pre-fix verdict stands in `round-12.md`; a narrow recheck of the failed check is appended there rather than a full round 13.** Reason: only one check failed, on two small fixes, and the brief says to avoid repeating full reviews when a narrower check will do.
+
