@@ -33,14 +33,21 @@ export interface CreateShopInput {
   accountId?: string | null;
 }
 
-/** A slug from `name` that no other shop uses (`exceptId`'s own slug doesn't count as taken). */
+/** Whether `slug` is used by a shop other than `exceptId`, or belonged to a deleted shop (SR19). */
+export function slugTaken(db: Db, slug: string, exceptId: string | null = null): boolean {
+  return (
+    db.prepare('SELECT 1 FROM shops WHERE slug = ? AND id IS NOT ?').get(slug, exceptId) !== undefined ||
+    db.prepare('SELECT 1 FROM retired_slugs WHERE slug = ?').get(slug) !== undefined
+  );
+}
+
+/** A slug from `name` that no other shop uses and no deleted shop used (`exceptId`'s own slug doesn't count as taken). */
 function uniqueSlug(db: Db, name: string, exceptId: string | null = null): string {
   const base = slugify(name);
-  const taken = db.prepare('SELECT 1 FROM shops WHERE slug = ? AND id IS NOT ?');
-  if (!taken.get(base, exceptId)) return base;
+  if (!slugTaken(db, base, exceptId)) return base;
   for (let n = 2; ; n++) {
     const candidate = `${base}-${n}`;
-    if (!taken.get(candidate, exceptId)) return candidate;
+    if (!slugTaken(db, candidate, exceptId)) return candidate;
   }
 }
 
