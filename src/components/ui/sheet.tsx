@@ -26,6 +26,10 @@ interface TitledSheet extends SheetBase {
   description?: ReactNode;
   /** Actions pinned to the bottom, e.g. a primary Button. */
   footer?: ReactNode;
+  /** Full-bleed above the content (an item's photo), with the close button over it, solid white. */
+  media?: ReactNode;
+  /** The visible heading, for a caller that moves focus to it on open. */
+  titleRef?: RefObject<HTMLHeadingElement | null>;
   labelledBy?: undefined;
 }
 
@@ -37,6 +41,8 @@ interface BareSheet extends SheetBase {
   title?: undefined;
   description?: undefined;
   footer?: undefined;
+  media?: undefined;
+  titleRef?: undefined;
 }
 
 export type SheetProps = TitledSheet | BareSheet;
@@ -45,7 +51,7 @@ export type SheetProps = TitledSheet | BareSheet;
  * Bottom sheet on phones, centred dialog from 640 px up. Built on the native modal <dialog>:
  * the page behind is inert (focus stays inside), Esc closes it, and focus returns to the opener.
  */
-export function Sheet({ open, onClose, title, description, children, footer, className, bare, labelledBy, initialFocusRef, fallbackFocusRef, dialogRef }: SheetProps) {
+export function Sheet({ open, onClose, title, description, children, footer, media, titleRef, className, bare, labelledBy, initialFocusRef, fallbackFocusRef, dialogRef }: SheetProps) {
   const ownRef = useRef<HTMLDialogElement>(null);
   const ref = dialogRef ?? ownRef;
   const opener = useRef<HTMLElement | null>(null);
@@ -110,6 +116,26 @@ export function Sheet({ open, onClose, title, description, children, footer, cla
     >
       {bare ? (
         children
+      ) : media ? (
+        // The photo scrolls away with the words on a short screen; the close button and the footer stay put.
+        <div className="relative flex max-h-[90dvh] flex-col pb-[env(safe-area-inset-bottom)]">
+          <IconButton icon={X} label="Close" iconSize="md" onClick={onClose} className="absolute top-3 right-3 z-10 bg-surface text-ink shadow-(--card-shadow) hover:bg-surface" />
+          <div className="min-h-0 overflow-y-auto overscroll-contain">
+            {media}
+            <div className="px-5 pt-4 sm:px-6">
+              <h2 ref={titleRef} id={titleId} tabIndex={-1} className="type-title outline-none [overflow-wrap:anywhere]">
+                {title}
+              </h2>
+              {description && (
+                <div id={descId} className="mt-1">
+                  {description}
+                </div>
+              )}
+            </div>
+            <div className="px-5 py-4 sm:px-6">{children}</div>
+          </div>
+          {footer && <div className="border-t border-line px-5 py-4 sm:px-6">{footer}</div>}
+        </div>
       ) : (
         <div className="flex max-h-[90dvh] flex-col pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-start gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
