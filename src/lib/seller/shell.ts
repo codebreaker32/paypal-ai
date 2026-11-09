@@ -20,6 +20,8 @@ export interface ShellData {
     items: { category: ItemCategory | null; name: string; section: string | null; description: string | null }[];
   };
   values: ShellValues;
+  /** When this was read: the client's router can keep this payload, so the store needs to know how old it is. */
+  readAt: number;
 }
 
 export interface ShellAccount {
@@ -27,8 +29,22 @@ export interface ShellAccount {
   recoveryUnsaved: boolean;
 }
 
+/**
+ * The order-derived values, or safe defaults. This runs in the layout, above `(app)/error.tsx`: a throw here would skip
+ * that boundary and leave a bare error page, while the page below reads the same orders and fails inside the shell.
+ */
+function orderValues(shop: Shop, db: Db): { toPrepare: number; paypalDown: boolean } {
+  try {
+    const orders = ordersRepo.listByShop(db, shop.id);
+    return { toPrepare: orders.filter((o) => o.status === 'paid').length, paypalDown: paypalLooksUnreachable(db, orders) };
+  } catch (e) {
+    console.warn(`[shelfie] shell could not read orders for shop ${shop.id}: ${e instanceof Error ? e.message : String(e)}`);
+    return { toPrepare: 0, paypalDown: false };
+  }
+}
+
 export function loadShellData(shop: Shop, db: Db = getDb()): ShellData {
-  const orders = ordersRepo.listByShop(db, shop.id);
+  const { toPrepare, paypalDown } = orderValues(shop, db);
   return {
     shopId: shop.id,
     name: shop.name,
@@ -40,14 +56,15 @@ export function loadShellData(shop: Shop, db: Db = getDb()): ShellData {
       items: itemsRepo.avatarItems(db, shop.id),
     },
     values: {
-      toPrepare: orders.filter((o) => o.status === 'paid').length,
+      toPrepare,
       status: shop.status,
       logoUrl: shop.logoUrl,
       coverUrl: shop.coverUrl,
       payeeMissing: !canBePaid(shop),
-      paypalDown: paypalLooksUnreachable(db, orders),
+      paypalDown,
       recoveryUnsaved: false,
     },
+    readAt: Date.now(),
   };
 }
 

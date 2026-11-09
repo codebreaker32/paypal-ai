@@ -361,7 +361,8 @@ test.describe('dashboard', () => {
     const form = page.locator('#tracking');
     await expect(form).toBeVisible();
 
-    await expect.poll(() => form.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(16);
+    // 56 px top bar (scroll-padding-top, WP4) + the section's 16 px scroll margin: the form stops clear of the bar.
+    await expect.poll(() => form.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(72);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   });
 

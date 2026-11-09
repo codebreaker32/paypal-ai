@@ -1,6 +1,7 @@
 // The seller's setup journey on the server: create a draft shop from photos or a sample, read the
 // menu with Claude (or a recorded reading for samples without a key), and work out which step the
 // setup page should show. Route handlers and the page stay thin; this module holds the rules.
+import { isDemoShop } from '@/lib/domain/payee';
 import fs from 'node:fs/promises';
 import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
@@ -294,7 +295,8 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     ...base,
     step: 'review',
     shop: {
-      id: shop.id, slug: shop.slug, name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
+      // Only the demo shop's reserved slug means anything to the page (`canBePaid`); a draft's address must not reach it.
+      id: shop.id, slug: isDemoShop(shop) ? shop.slug : '', name: shop.name, about: shop.about, pickupNotes: shop.pickupNotes,
       fulfillment: shop.fulfillment, shippingFeeCents: shop.shippingFeeCents, kind: shop.kind, payeeEmail: shop.payeeEmail,
       coverUrl: shop.coverUrl, logoUrl: shop.logoUrl,
     },

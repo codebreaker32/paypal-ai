@@ -57,6 +57,17 @@ function EmptyState({ shopId, slug, onShowShare }: { shopId: string; slug: strin
   );
 }
 
+/** Over 99 a phone shows "99+", so four segments always fit; the full number stays for screen readers and wider screens. */
+function SegmentCount({ n }: { n: number }) {
+  if (n <= 99) return n;
+  return (
+    <>
+      <span aria-hidden="true" className="sm:hidden">99+</span>
+      <span className="max-sm:sr-only">{n}</span>
+    </>
+  );
+}
+
 /** The selected segment's fill, on a pseudo-element so it fades and scales in behind the label. */
 const SEGMENT_THUMB =
   'before:absolute before:inset-0 before:-z-10 before:rounded-full before:bg-(--segment-on) before:shadow-(--card-shadow) ' +
@@ -102,7 +113,8 @@ export function OrdersPanel({
       ) : (
         <>
           <div role="group" aria-label="Show orders" className="no-scrollbar -mx-gutter overflow-x-auto px-gutter sm:mx-0 sm:px-0">
-            <div className="flex w-full gap-1 rounded-full bg-(--segment-track) p-1 sm:inline-flex sm:w-auto">
+            {/* `w-max min-w-full`: on a phone too narrow for the labels the pill grows with them and scrolls whole, nothing pokes out. */}
+            <div className="flex w-max min-w-full gap-1 rounded-full bg-(--segment-track) p-1 sm:inline-flex sm:w-auto sm:min-w-0">
               {segments.map(([id, label, n]) => (
                 <button
                   key={id}
@@ -110,13 +122,15 @@ export function OrdersPanel({
                   aria-pressed={filter === id}
                   onClick={() => setFilter(id)}
                   className={cx(
-                    'press relative isolate inline-flex min-h-tap flex-auto items-center justify-center gap-1.5 rounded-full px-2 text-sm font-semibold whitespace-nowrap sm:flex-initial sm:gap-2 sm:px-4',
+                    'press relative isolate inline-flex min-h-tap flex-auto items-center justify-center gap-1 rounded-full px-1 text-sm font-semibold whitespace-nowrap sm:flex-initial sm:gap-2 sm:px-4',
                     SEGMENT_THUMB,
                     filter === id ? 'text-ink before:scale-100 before:opacity-100' : 'text-ink-soft hover:text-ink',
                   )}
                 >
                   <span>{label}</span>
-                  <span className={cx('type-figures', filter === id && id === 'prepare' && n > 0 ? 'text-accent-ink' : 'text-ink-muted')}>{n}</span>
+                  <span className={cx('type-figures max-sm:text-xs', filter === id && id === 'prepare' && n > 0 ? 'text-accent-ink' : 'text-ink-muted')}>
+                    <SegmentCount n={n} />
+                  </span>
                 </button>
               ))}
             </div>

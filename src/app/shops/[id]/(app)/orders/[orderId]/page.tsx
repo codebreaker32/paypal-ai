@@ -41,7 +41,7 @@ const SECTION = 'flex flex-col gap-3 border-t border-line pt-5';
 
 function SectionTitle({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="type-heading">
+    <h2 id={id} className="type-section">
       {children}
     </h2>
   );

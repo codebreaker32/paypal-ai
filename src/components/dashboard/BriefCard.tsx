@@ -41,7 +41,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
 
       {!brief && paid && (
         <div aria-busy="true" className="flex flex-col gap-3">
-          <p className="flex items-center gap-2 type-heading">
+          <p className="flex items-center gap-2 type-section">
             <Icon icon={Loader2} className="animate-spin text-ink-muted" />
             Writing the brief…
           </p>
@@ -55,7 +55,7 @@ export function BriefCard({ order, className }: { order: Order; className?: stri
 
       {brief && (
         <>
-          <p className="type-heading" data-testid="brief-headline">
+          <p className="type-section" data-testid="brief-headline">
             {brief.headline}
           </p>
           {order.briefSource === 'template' && (

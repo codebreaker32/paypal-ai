@@ -1,5 +1,5 @@
 // What the seller shell reads on the server: the shop's picture, counts and states for the sidebar and banners.
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestDb } from '@/lib/db';
 import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
@@ -37,6 +37,30 @@ describe('loadShellData', () => {
     const s = seedShop(db);
     const data = loadShellData({ ...shops.byId(db, s.shop.id)!, slug: 'rosa-bakes', payeeEmail: null, status: 'live' }, db);
     expect(data.values.payeeMissing).toBe(true);
+  });
+});
+
+describe('loadShellData when the orders cannot be read', () => {
+  it('still gives the shell its frame: a page-level failure then shows inside it', async () => {
+    const db = createTestDb();
+    const s = seedShop(db);
+    const deps: OrderDeps = { db, paypal: createFakePayPal(), appUrl: 'http://localhost:3000' };
+    const placed = await createOrderForShop(deps, s.shop, { lines: [{ itemId: s.item['Almond croissant'].id, quantity: 1 }], fulfillment: 'pickup' });
+    db.prepare("UPDATE orders SET brief_json = '{' WHERE id = ?").run(placed.id);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    const data = loadShellData(shops.byId(db, s.shop.id)!, db);
+    expect(data.values).toMatchObject({ toPrepare: 0, paypalDown: false });
+    expect(data.name).toBe(s.shop.name);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('stamps the payload with when it was read', () => {
+    const db = createTestDb();
+    const before = Date.now();
+    const data = loadShellData(shops.byId(db, seedShop(db).shop.id)!, db);
+    expect(data.readAt).toBeGreaterThanOrEqual(before);
   });
 });
 
