@@ -7,7 +7,7 @@ import { ApiError } from './http';
 /** One piece of a message: plain words, or words that link somewhere. */
 export type MessageBit = string | { text: string; href: string };
 
-export type ProblemField = 'email' | 'password' | 'recoveryKey' | 'form';
+export type ProblemField = 'email' | 'password' | 'newPassword' | 'name' | 'recoveryKey' | 'form';
 
 export interface AuthProblem {
   field: ProblemField;
@@ -100,6 +100,18 @@ export function currentPasswordProblem(err: unknown): AuthProblem {
   }
 }
 
+/** Changing the password on `/account`: the current one goes under its field, a weak new one under the new field. */
+export function changePasswordProblem(err: unknown): AuthProblem {
+  if (err instanceof ApiError && err.code === 'WEAK_PASSWORD') return problem('newPassword', err.message);
+  return currentPasswordProblem(err);
+}
+
+/** The delete sheet. An `OPEN_ORDERS` refusal keeps the server's sentence, which counts the orders. */
+export function deleteShopProblem(err: unknown): AuthProblem {
+  if (err instanceof ApiError && err.code === 'NAME_MISMATCH') return problem('name', err.message);
+  return currentPasswordProblem(err);
+}
+
 const emailProblem = (email: string): AuthProblem | null => (parsePayeeEmail(email).ok ? null : problem('email', EMAIL_TEXT));
 const newPasswordProblem = (password: string): AuthProblem | null =>
   passwordLength(password) < MIN_PASSWORD_LENGTH ? problem('password', SHORT_PASSWORD_TEXT) : null;
@@ -119,6 +131,16 @@ export function checkLogin(email: string, password: string): AuthProblem | null 
 
 export function checkCurrentPassword(password: string): AuthProblem | null {
   return password ? null : problem('password', 'Enter your password.');
+}
+
+export function checkChangePassword(currentPassword: string, newPassword: string): AuthProblem | null {
+  return checkCurrentPassword(currentPassword) ?? (passwordLength(newPassword) < MIN_PASSWORD_LENGTH ? problem('newPassword', SHORT_PASSWORD_TEXT) : null);
+}
+
+/** The same comparison as the server's: exact apart from spaces around it. The name is checked first, as it is there. */
+export function checkDeleteShop(typedName: string, shopName: string, currentPassword: string): AuthProblem | null {
+  if (typedName.trim() !== shopName.trim()) return problem('name', 'Type the shop’s name exactly as it appears.');
+  return checkCurrentPassword(currentPassword);
 }
 
 export function checkRecover(email: string, recoveryKey: string, newPassword: string): AuthProblem | null {

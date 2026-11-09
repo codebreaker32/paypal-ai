@@ -8,7 +8,7 @@ import { Icon } from './icon';
 
 export type { ButtonStatus };
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'paypal';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'paypal' | 'danger';
 export type ButtonSize = 'md' | 'lg';
 
 // shadcn's button pattern (cva variants, data-slot), with Shelfie's pills and heights.
@@ -30,6 +30,10 @@ const VARIANT = {
   paypal:
     'bg-(--button-paypal-bg) text-(--button-paypal-fg) shadow-xs hover:bg-(--button-paypal-bg-hover) ' +
     'active:bg-(--button-paypal-bg-active) data-pressed:bg-(--button-paypal-bg-active)',
+  // Only for the last step of something that can't be undone: the sheet that asks first.
+  danger:
+    'bg-(--button-danger-bg) text-(--button-danger-fg) hover:bg-(--button-danger-bg-hover) active:bg-(--button-danger-bg-active) ' +
+    'data-pressed:bg-(--button-danger-bg-active)',
 } satisfies Record<ButtonVariant, string>;
 
 const SIZE = {

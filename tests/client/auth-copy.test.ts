@@ -3,11 +3,15 @@ import { describe, expect, it } from 'vitest';
 import {
   type AuthProblem,
   BUSY_TEXT,
+  changePasswordProblem,
+  checkChangePassword,
   checkCurrentPassword,
+  checkDeleteShop,
   checkLogin,
   checkRecover,
   checkSignup,
   currentPasswordProblem,
+  deleteShopProblem,
   loginProblem,
   passwordHint,
   recoverProblem,
@@ -167,5 +171,47 @@ describe('the current-password check on /account', () => {
     expect(currentPasswordProblem(new ApiError(503, 'BUSY', 'x'))).toEqual({ field: 'form', message: ['Shelfie is busy. Try again in a few seconds.'] });
     expect(currentPasswordProblem(new ApiError(0, 'NETWORK', 'x')).field).toBe('form');
     expect(currentPasswordProblem(new ApiError(429, 'RATE_LIMITED', 'Slow down.'))).toEqual({ field: 'password', message: ['Slow down.'] });
+  });
+});
+
+describe('the /account forms and the delete sheet (S1)', () => {
+  it('asks for the current password first, then a long enough new one', () => {
+    expect(checkChangePassword('', 'a long enough new sentence')).toMatchObject({ field: 'password' });
+    expect(text(checkChangePassword('', 'a long enough new sentence')!)).toBe('Enter your password.');
+    expect(checkChangePassword('old', 'short')).toMatchObject({ field: 'newPassword' });
+    expect(text(checkChangePassword('old', 'short')!)).toBe('Use at least 15 characters.');
+    expect(checkChangePassword('old', 'a long enough new sentence')).toBeNull();
+  });
+
+  it('puts a weak new password under the new field and a wrong current one under the current field', () => {
+    expect(changePasswordProblem(err('WEAK_PASSWORD', 'Too common.'))).toEqual({ field: 'newPassword', message: ['Too common.'] });
+    expect(changePasswordProblem(err('PASSWORD_WRONG'))).toMatchObject({ field: 'password' });
+    expect(text(changePasswordProblem(err('PASSWORD_WRONG')))).toBe('That password doesn’t match.');
+    expect(changePasswordProblem(err('BUSY', 'x', 503))).toMatchObject({ field: 'form' });
+  });
+
+  it('blocks a shop delete when the typed name differs, before asking for the password', () => {
+    expect(checkDeleteShop('Marigold', 'Rosa’s Bakery', '')).toMatchObject({ field: 'name' });
+    expect(text(checkDeleteShop('Marigold', 'Rosa’s Bakery', '')!)).toBe('Type the shop’s name exactly as it appears.');
+    expect(checkDeleteShop('rosa’s bakery', 'Rosa’s Bakery', 'pw')).toMatchObject({ field: 'name' });
+  });
+
+  it('accepts the exact name with stray spaces, as the server does, then needs the password', () => {
+    expect(checkDeleteShop('  Rosa’s Bakery ', 'Rosa’s Bakery', '')).toMatchObject({ field: 'password' });
+    expect(checkDeleteShop('  Rosa’s Bakery ', 'Rosa’s Bakery', 'pw')).toBeNull();
+  });
+
+  it('says a refused delete where it belongs, keeping the server’s open-orders sentence', () => {
+    const open = '2 orders are still open. Hand them over, or wait for unpaid ones to expire (up to an hour), then try again.';
+    expect(deleteShopProblem(err('OPEN_ORDERS', open, 409))).toEqual({ field: 'form', message: [open] });
+    expect(deleteShopProblem(err('NAME_MISMATCH', 'Type it.'))).toEqual({ field: 'name', message: ['Type it.'] });
+    expect(deleteShopProblem(err('PASSWORD_WRONG', 'x', 403))).toMatchObject({ field: 'password' });
+  });
+
+  it('lets an account delete name the blocked shops, on the form', () => {
+    expect(currentPasswordProblem(err('OPEN_ORDERS', 'Rosa’s Bakery has 2 open orders.', 409))).toEqual({
+      field: 'form',
+      message: ['Rosa’s Bakery has 2 open orders.'],
+    });
   });
 });

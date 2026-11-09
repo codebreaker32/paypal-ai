@@ -13,6 +13,7 @@ import { parsePayeeEmail, payeeChangeNeedsPassword } from '@/lib/domain/payee';
 import { setFeedbackOn, useFeedbackOn } from '@/lib/feedback/prefs';
 import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
+import { DeleteShop } from './DeleteShop';
 import { LocalDay } from './LocalTime';
 import { Switch } from './Switch';
 
@@ -243,6 +244,12 @@ export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, .
           </ButtonLink>
         )}
       </SettingsSection>
+      {/* The demo shop can't be deleted, and a shop with no account has no password to confirm with. */}
+      {payee.accountOwned && !payee.isDemo && (
+        <SettingsSection title="Delete this shop">
+          <DeleteShop shopId={payee.shopId} shopName={shopName} />
+        </SettingsSection>
+      )}
     </div>
   );
 }

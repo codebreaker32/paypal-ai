@@ -16,7 +16,7 @@ const QUESTIONS = [
   },
   {
     q: 'What happens to my photos and orders?',
-    a: 'Menu photos go to Anthropic’s Claude to be read, and items and orders go to PayPal to take payment. We don’t sell your data.',
+    a: 'Menu photos go to Anthropic’s Claude to be read, and items and orders go to PayPal to take payment. We don’t sell your data. You can delete your shop or account whenever you like.',
   },
   {
     q: 'What if I forget my password?',

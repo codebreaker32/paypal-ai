@@ -75,7 +75,7 @@ test('Help has every anchor, the brief’s copy, and a contact', async ({ page }
   await expect(page.locator('#locked-out')).toContainText(
     'Without your password and recovery key we can’t confirm the account is yours, so we can’t reset it for you yet. Your shop keeps running.',
   );
-  await expect(page.locator('#delete')).toContainText('To delete your shop or account, contact us.');
+  await expect(page.locator('#delete')).toContainText('To delete a shop, open its Settings and go to Delete this shop at the foot of the page.');
   await expect(page.locator('#contact a')).toHaveAttribute('href', /^(mailto:.+|https:\/\/github\.com\/codebreaker32\/paypal-ai\/issues)$/);
 });
 

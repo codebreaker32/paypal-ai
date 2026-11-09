@@ -36,3 +36,21 @@ export const createRecoveryKey = (currentPassword: string) =>
 export async function markRecoverySaved(): Promise<void> {
   await call('/api/account/recovery-key', { method: 'PATCH' });
 }
+
+/** Sets a new password. Every other device is logged out; this one stays. */
+export async function changePassword(currentPassword: string, password: string): Promise<void> {
+  await call('/api/account/password', post({ currentPassword, password }));
+}
+
+export async function logOutOtherDevices(): Promise<void> {
+  await call('/api/account/sessions', { method: 'DELETE' });
+}
+
+/** Deletes the account and its shops. The session cookie goes with it, so the caller leaves with window.location.replace. */
+export async function deleteAccount(currentPassword: string): Promise<void> {
+  await call('/api/account', { ...post({ currentPassword }), method: 'DELETE' });
+}
+
+export async function deleteShop(shopId: string, confirmName: string, currentPassword: string): Promise<void> {
+  await call(`/api/shops/${shopId}`, { ...post({ confirmName, currentPassword }), method: 'DELETE' });
+}

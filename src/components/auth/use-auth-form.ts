@@ -42,5 +42,11 @@ export function useAuthForm(fieldIds: Partial<Record<ProblemField, string>>) {
     }
   };
 
-  return { problem, busy, ready, submit, clearProblem: () => setProblem(null) };
+  /** For a form that stays on the page after a success (most move on, and stay busy until they have). */
+  const finish = () => {
+    inFlight.current = false;
+    setBusy(false);
+  };
+
+  return { problem, busy, ready, submit, finish, clearProblem: () => setProblem(null) };
 }

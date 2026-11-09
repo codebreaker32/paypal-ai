@@ -140,7 +140,7 @@ export function Sheet({ open, onClose, title, description, children, footer, med
         <div className="flex max-h-[90dvh] flex-col pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-start gap-3 px-5 pt-5 sm:px-6 sm:pt-6">
             <div className="flex-1 pt-1.5">
-              <h2 id={titleId} className="type-heading">
+              <h2 id={titleId} className="type-heading [overflow-wrap:anywhere]">
                 {title}
               </h2>
               {description && (

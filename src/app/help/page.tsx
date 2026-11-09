@@ -41,11 +41,12 @@ export default function HelpPage() {
       </DocSection>
 
       <DocSection id="delete" title="Deleting your shop or account">
+        <p>To delete a shop, open its Settings and go to Delete this shop at the foot of the page. You type the shop’s name and your password to confirm.</p>
         <p>
-          To delete your shop or account,{' '}
-          <DocLink href="#contact">contact us</DocLink>
-          .
+          To delete your account and every shop in it, go to <DocLink href="/account">Account</DocLink> and enter your password.
         </p>
+        <p>Your shop page and agent door stop working, and the menu, photos and orders are deleted from Shelfie. Buyers keep their PayPal receipts. This can’t be undone.</p>
+        <p>If a shop has open orders, hand them over or wait for unpaid ones to expire (up to an hour), then try again.</p>
       </DocSection>
 
       <DocSection id="contact" title="Contact">
