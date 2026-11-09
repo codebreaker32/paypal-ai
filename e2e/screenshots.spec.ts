@@ -34,7 +34,7 @@ import type { Order, OrderBrief } from '@/lib/domain/types';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
-import { DESKTOP, PHONE, appNav, holdNavigation, samplePhoto, settle, streamThenHold } from './helpers';
+import { DESKTOP, PHONE, appNav, holdNavigation, samplePhoto, settle, signUpForShops, streamThenHold } from './helpers';
 import { E2E_DB, FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
 const OUT = process.env.SCREENSHOTS_DIR
@@ -414,14 +414,16 @@ const SCREENS: Screen[] = [
   {
     name: 'start',
     run: async (page) => {
-      await page.goto('/');
+      await signUpForShops(page, 'shot');
+      await page.goto('/shops/new');
       await expect(page.getByRole('button', { name: 'Snap your price list' })).toBeVisible();
     },
   },
   {
     name: 'start-photos-ready',
     run: async (page) => {
-      await page.goto('/');
+      await signUpForShops(page, 'shot');
+      await page.goto('/shops/new');
       await page.getByTestId('photo-input').setInputFiles([samplePhoto('marigold-bakehouse.jpg', 'page-1.jpg'), samplePhoto('tia-lupe-chalkboard.jpg', 'page-2.jpg')]);
       await expect(page.getByRole('button', { name: 'Read my menu' })).toBeVisible();
     },
@@ -429,9 +431,10 @@ const SCREENS: Screen[] = [
   {
     name: 'start-bad-file',
     run: async (page) => {
-      await page.goto('/');
+      await signUpForShops(page, 'shot');
+      await page.goto('/shops/new');
       await page.getByTestId('photo-input').setInputFiles([{ name: 'menu.heic', mimeType: 'image/heic', buffer: Buffer.from('not a jpg') }]);
-      await expect(page.locator('section[aria-labelledby="start-title"]').getByRole('alert')).toHaveText("We couldn’t open that photo. Try a JPG or PNG.");
+      await expect(page.locator('#main').getByRole('alert')).toHaveText("We couldn’t open that photo. Try a JPG or PNG.");
     },
   },
   {
@@ -439,7 +442,7 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
       await page.goto('/');
-      await expect(page.getByRole('link', { name: 'Open your dashboard' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
     },
   },
   // Setup

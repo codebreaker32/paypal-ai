@@ -24,8 +24,9 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --port ${PORT}`,
     url: `http://localhost:${PORT}`,
-    // SHELFIE_TEST: no background order poller (fixture orders carry fake PayPal ids).
-    env: { PORT: String(PORT), SHELFIE_TEST: '1', APP_URL: process.env.APP_URL as string },
+    // SHELFIE_TEST: no background order poller (fixture orders carry fake PayPal ids). SHELFIE_ALLOW_GUEST_SHOPS: specs
+    // that start a draft through /api/shops without an account.
+    env: { PORT: String(PORT), SHELFIE_TEST: '1', SHELFIE_ALLOW_GUEST_SHOPS: '1', APP_URL: process.env.APP_URL as string },
     // Never attach to someone else's server on the same port unless asked to.
     reuseExistingServer: Boolean(process.env.E2E_REUSE_SERVER),
     timeout: 180_000,

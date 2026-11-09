@@ -213,7 +213,12 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
   const stage = await openStage(display, 'phone', { origin: app.origin, profileDir: path.join(WORK, 'profile-phone'), initScripts: [redactorScript(LOGINS)] });
   try {
     const f = stage.app;
-    await goApp(stage, `${app.origin}/`);
+    // /shops/new needs an account: a fresh one for this run, whose password nobody needs again.
+    const signup = await stage.page.request.post(`${app.origin}/api/auth/signup`, {
+      data: { email: `clips-${Date.now()}@example.com`, password: crypto.randomUUID() },
+    });
+    if (signup.status() !== 201) throw new Error(`clip sign-up failed with ${signup.status()}`);
+    await goApp(stage, `${app.origin}/shops/new`);
     await f.getByRole('button', { name: /Snap your price list/ }).waitFor();
     await fontsReady(f);
     await sleep(800);

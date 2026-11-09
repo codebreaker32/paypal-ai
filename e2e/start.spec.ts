@@ -1,7 +1,7 @@
 // Start page behaviour and accessibility. /api/shops is mocked; the real route arrives in Task 6.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
-import { DESKTOP, PHONE, samplePhoto } from './helpers';
+import { DESKTOP, PHONE, samplePhoto, signUpForShops } from './helpers';
 
 for (const [label, viewport] of [
   ['phone', PHONE],
@@ -37,7 +37,8 @@ test('photos upload as multipart and open the setup page', async ({ page }) => {
     photoCount = (body.match(/name="photos"/g) ?? []).length;
     await route.fulfill({ status: 201, json: { shopId: 'shp_test123' } });
   });
-  await page.goto('/');
+  await signUpForShops(page);
+  await page.goto('/shops/new');
   await page.getByTestId('photo-input').setInputFiles([samplePhoto('marigold-bakehouse.jpg')]);
   await page.getByTestId('photo-input').setInputFiles([samplePhoto('ravi-bike-repair.jpg')]);
   await expect(page.getByRole('list', { name: 'Photos to read' }).getByRole('img')).toHaveCount(2);
@@ -52,21 +53,24 @@ test('a sample menu posts its id and opens the setup page', async ({ page }) => 
     sent = route.request().postDataJSON();
     await route.fulfill({ status: 201, json: { shopId: 'shp_sample1' } });
   });
-  await page.goto('/');
+  await signUpForShops(page);
+  await page.goto('/shops/new');
   await page.getByRole('button', { name: /Ravi’s Bike Repair/ }).click();
   await page.waitForURL('**/shops/shp_sample1/setup');
   expect(sent).toEqual({ sample: 'ravi-bike-repair' });
 });
 
 test('a removed photo can be replaced, and the primary action returns to Snap', async ({ page }) => {
-  await page.goto('/');
+  await signUpForShops(page);
+  await page.goto('/shops/new');
   await page.getByTestId('photo-input').setInputFiles([samplePhoto('marigold-bakehouse.jpg')]);
   await page.getByRole('button', { name: 'Remove page 1' }).click();
   await expect(page.getByRole('button', { name: 'Snap your price list' })).toBeVisible();
 });
 
 test('the primary action is reachable by keyboard and shows a focus ring', async ({ page }) => {
-  await page.goto('/');
+  await signUpForShops(page);
+  await page.goto('/shops/new');
   const snap = page.getByRole('button', { name: 'Snap your price list' });
   for (let i = 0; i < 10 && !(await snap.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press('Tab');

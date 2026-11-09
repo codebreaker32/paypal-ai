@@ -8,6 +8,13 @@ export const DESKTOP = { width: 1440, height: 900 };
 
 const SAMPLES = path.resolve(__dirname, '..', 'public', 'samples');
 
+/** A new account for this page's browser: /shops/new, where the photo input and the samples live, needs one. */
+export async function signUpForShops(page: Page, tag = 'start') {
+  const email = `e2e-${tag}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@example.com`;
+  const res = await page.request.post('/api/auth/signup', { data: { email, password: 'a long sentence only this test says' } });
+  if (res.status() !== 201) throw new Error(`sign-up failed with ${res.status()}`);
+}
+
 /** A real JPG from public/samples, as a Playwright file payload. */
 export function samplePhoto(file: string, name = file) {
   return { name, mimeType: 'image/jpeg', buffer: fs.readFileSync(path.join(SAMPLES, file)) };

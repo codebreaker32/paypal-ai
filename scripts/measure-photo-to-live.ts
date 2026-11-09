@@ -3,7 +3,7 @@
 //   PATCH /items -> PATCH the shop's PayPal email (PAYPAL_SANDBOX_SELLER_EMAIL or seller@example.com) ->
 //   POST /publish (real PayPal sandbox catalog) -> shop live.
 // Usage (app and script must share DATABASE_PATH; the script reads item ids from that SQLite file):
-//   DATABASE_PATH=data/measure/m.db UPLOADS_DIR=data/measure/up npx next dev --port 3109
+//   SHELFIE_ALLOW_GUEST_SHOPS=1 DATABASE_PATH=data/measure/m.db UPLOADS_DIR=data/measure/up npx next dev --port 3109
 //   DATABASE_PATH=data/measure/m.db BASE_URL=http://localhost:3109 npx tsx scripts/measure-photo-to-live.ts [runs=2]
 // Human review time is not included: flagged items are resolved instantly by rule.
 import { readFileSync } from 'node:fs';

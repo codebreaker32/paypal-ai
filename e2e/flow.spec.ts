@@ -9,7 +9,7 @@ import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
 import { config } from 'dotenv';
 import { expect, test, type Locator, type Page } from '@playwright/test';
-import { DESKTOP, PHONE, appNav, settle } from './helpers';
+import { DESKTOP, PHONE, appNav, settle, signUpForShops } from './helpers';
 
 config({ path: path.resolve(__dirname, '..', '.env'), quiet: true });
 const HAS_KEYS = Boolean(process.env.ANTHROPIC_API_KEY && process.env.PAYPAL_CLIENT_ID && process.env.PAYPAL_SECRET_KEY);
@@ -41,7 +41,8 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
 
   // Start → sample
   await page.setViewportSize(PHONE);
-  await page.goto('/');
+  await signUpForShops(page, 'flow');
+  await page.goto('/shops/new');
   await page.getByRole('button', { name: /Marigold Bakehouse/ }).click();
   await page.waitForURL(/\/shops\/shp_[a-z0-9]+\/setup$/);
 
