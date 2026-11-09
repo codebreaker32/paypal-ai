@@ -6,8 +6,8 @@ import { formatUSD } from '@/lib/domain/money';
 import { feedback } from '@/lib/feedback';
 import { isPayPalApprovalUrl } from './activity-format';
 import {
-  MAX_LINES,
   addLine,
+  addRefusal,
   cartAnnouncement,
   cartNotice,
   cartTotals,
@@ -39,6 +39,8 @@ export interface CartState {
   shippingCents: number;
   totalCents: number;
   overCap: boolean;
+  /** The shop isn't taking orders: the lines are kept and shown, and nothing can be approved until it is back. */
+  paused: boolean;
   fulfillment: CheckoutChoice;
   note: string;
   busy: boolean;
@@ -68,6 +70,12 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
   const [error, setError] = useState<string | null>(null);
   const linesRef = useRef(lines);
   const requestId = useRef<RequestId | null>(null);
+  /** The order on its way to PayPal is the one on screen: nothing changes it until the answer. */
+  const busyRef = useRef(false);
+  const setBusyNow = useCallback((on: boolean) => {
+    busyRef.current = on;
+    setBusy(on);
+  }, []);
 
   const apply = useCallback((next: CartLine[]) => {
     linesRef.current = next;
@@ -114,11 +122,11 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
   // Back from PayPal through the browser's back-forward cache: the page wakes up as it was left, mid-redirect.
   useEffect(() => {
     const onShow = (e: PageTransitionEvent) => {
-      if (e.persisted) setBusy(false);
+      if (e.persisted) setBusyNow(false);
     };
     window.addEventListener('pageshow', onShow);
     return () => window.removeEventListener('pageshow', onShow);
-  }, []);
+  }, [setBusyNow]);
 
   const shippingCents = fulfillment === 'shipping' ? data.shippingCents : 0;
   const totals = cartTotals(joined.views, shippingCents);
@@ -134,11 +142,13 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
 
   const add = useCallback(
     (itemId: string, optionId: string, qty = 1) => {
+      if (busyRef.current) return;
       const next = addLine(linesRef.current, itemId, optionId, qty);
       if (next === linesRef.current) {
-        const message = `An order can hold ${MAX_LINES} different items.`;
+        const message = addRefusal(next, itemId, optionId);
         setAnnouncement(message);
         toast?.({ title: message });
+        feedback('tick'); // A press on a live control still answers; this add control leaves its tick to us.
         return;
       }
       apply(next);
@@ -151,6 +161,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
 
   const decrement = useCallback(
     (itemId: string) => {
+      if (busyRef.current) return;
       const next = decrementItem(linesRef.current, itemId);
       apply(next);
       announce(itemId, 'removed', next);
@@ -160,6 +171,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
 
   const setQty = useCallback(
     (itemId: string, optionId: string, qty: number) => {
+      if (busyRef.current) return;
       const before = linesRef.current.find((l) => l.itemId === itemId && l.optionId === optionId)?.qty ?? 0;
       const next = setLineQty(linesRef.current, itemId, optionId, qty);
       apply(next);
@@ -169,10 +181,12 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
   );
 
   const setFulfillment = useCallback((f: CheckoutChoice) => {
+    if (busyRef.current) return;
     setFulfillmentState(f);
     setError(null);
   }, []);
   const setNote = useCallback((n: string) => {
+    if (busyRef.current) return;
     setNoteState(n);
     setError(null);
   }, []);
@@ -180,14 +194,16 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
   const quantity = useCallback((itemId: string) => itemQuantity(lines, itemId), [lines]);
 
   const checkout = useCallback((refresh: () => void) => {
-    if (busy) return;
+    if (busyRef.current) return;
+    // One order, priced once: a retry sends exactly what the first attempt sent, with the total it was worked out from.
+    const input = { lines: linesRef.current, fulfillment, note };
+    const expectedTotalCents = totals.totalCents;
     const attempt = async (retried: boolean): Promise<void> => {
-      const input = { lines: linesRef.current, fulfillment, note };
       requestId.current = requestIdFor(requestId.current, input);
-      setBusy(true);
+      setBusyNow(true);
       setError(null);
       const fail = (message: string) => {
-        setBusy(false);
+        setBusyNow(false);
         setError(message);
         feedback('error');
       };
@@ -196,7 +212,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
         res = await fetch(`/api/checkout/${encodeURIComponent(slug)}`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify(checkoutBody({ ...input, expectedTotalCents: totals.totalCents, requestId: requestId.current.id })),
+          body: JSON.stringify(checkoutBody({ ...input, expectedTotalCents, requestId: requestId.current.id })),
         });
       } catch {
         return fail(PAYPAL_DOWN);
@@ -238,13 +254,14 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
       fail(message);
     };
     void attempt(false);
-  }, [announce, busy, fulfillment, note, slug, totals.totalCents]);
+  }, [announce, fulfillment, note, setBusyNow, slug, totals.totalCents]);
 
   return {
     lines,
     views: joined.views,
     ...totals,
     overCap: totals.totalCents > data.orderCapCents,
+    paused: joined.paused,
     fulfillment,
     note,
     busy,

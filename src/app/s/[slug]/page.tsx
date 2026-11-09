@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 /* eslint-disable @next/next/no-img-element -- cover photos are site-relative files of unknown size */
@@ -43,6 +44,18 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Prom
 }
 
 const KIND: Record<Shop['kind'], string> = { food: 'Food', goods: 'Goods', services: 'Services' };
+
+/** A meta item after the first: its `·` hangs in the gap before it, so a line break hides the dot past the row's clipped edge. */
+function MetaItem({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <span className={cx('relative', className)}>
+      <span aria-hidden="true" className="absolute -left-3">
+        ·
+      </span>
+      {children}
+    </span>
+  );
+}
 
 /** Pickup and shipping, one compact line each: the label in bold, the details beside it. */
 function HowToGetIt({ shop }: { shop: Shop }) {
@@ -97,23 +110,21 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
 function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariants[]; photoCount: number }) {
   const hasCover = !!shop.coverUrl || items.filter((i) => i.photoUrl).length >= 2;
   const avatar = { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') };
-  // Under 640 px the price list link moves up beside the avatar (when a cover carries one); from 640 px it is at the right of the pickup lines.
+  // Under 640 px the price list link moves up beside the avatar; from 640 px it is at the right of the pickup lines.
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-4 sm:gap-y-5 @[56rem]/shop:grid-cols-[minmax(0,1fr)_auto_auto] @[56rem]/shop:gap-x-8">
       {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
           stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
       {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 col-start-1 -mt-16 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20 sm:-mb-1" />}
       {/* The name row: from 1024 px the order button sits at its right end, bottom-aligned with the meta line. */}
-      <div className="col-span-2 flex items-start gap-4 lg:items-end @[56rem]/shop:col-span-3">
+      <div className={cx('col-span-2 flex items-start gap-4 lg:items-end @[56rem]/shop:col-span-3', !hasCover && photoCount > 0 && 'max-sm:col-span-1')}>
         {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" className="lg:self-start" />}
         <div className="min-w-0 flex-1">
           <h1 className="type-display [overflow-wrap:anywhere]">{shop.name}</h1>
-          <p className="mt-2 flex flex-wrap items-center gap-x-2 text-[0.9375rem] text-ink-muted">
+          <p className="mt-2 flex flex-wrap items-center gap-x-5 overflow-hidden text-[0.9375rem] text-ink-muted">
             <span>{KIND[shop.kind]}</span>
-            <span aria-hidden="true">·</span>
-            <span>{shop.fulfillment === 'both' ? 'Pickup or shipping' : shop.fulfillment === 'pickup' ? 'Pickup' : 'Shipping'}</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-semibold text-ink">Paid with PayPal</span>
+            <MetaItem>{shop.fulfillment === 'both' ? 'Pickup or shipping' : shop.fulfillment === 'pickup' ? 'Pickup' : 'Shipping'}</MetaItem>
+            <MetaItem className="font-semibold text-ink">Paid with PayPal</MetaItem>
           </p>
         </div>
         <HeroOrderCta />
@@ -136,7 +147,8 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
           rel="noopener"
           className={cx(
             'group press-text inline-flex min-h-tap min-w-tap shrink-0 items-center justify-center gap-3 self-start rounded-(--card-radius) font-semibold no-underline sm:justify-start sm:self-center sm:pr-2',
-            hasCover ? 'max-sm:col-start-2 max-sm:row-start-1 max-sm:-mt-5' : 'max-sm:col-span-2 max-sm:justify-self-start',
+            'max-sm:col-start-2 max-sm:row-start-1',
+            hasCover && 'max-sm:-mt-5',
           )}
         >
           <Image

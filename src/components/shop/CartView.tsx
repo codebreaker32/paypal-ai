@@ -21,14 +21,17 @@ export interface CartViewProps {
   data: ShopCartData;
   titleId: string;
   titleRef: RefObject<HTMLHeadingElement | null>;
+  shopName: string;
   onClose: () => void;
+  /** Runs just before the menu is re-read from the server, which rewrites the URL (see `ShopAssistant`). */
+  onRefresh?: () => void;
   /** From 1024 px, where this and the assistant share one dock: how to switch to the assistant. */
   onAssistant?: () => void;
 }
 
 function Segment({ value, checked, disabled, onChange, children }: { value: CheckoutChoice; checked: boolean; disabled: boolean; onChange: (v: CheckoutChoice) => void; children: string }) {
   return (
-    <label className={cx('press-text flex min-h-tap flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-[0.9375rem] font-semibold', checked ? 'bg-surface text-ink shadow-xs' : 'text-ink-soft', disabled && 'cursor-not-allowed opacity-60')}>
+    <label className={cx('press-text flex min-h-tap flex-1 cursor-pointer items-center justify-center rounded-full px-3 text-[0.9375rem] font-semibold outline-ink has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-[-2px]', checked ? 'bg-surface text-ink shadow-xs' : 'text-ink-soft', disabled && 'cursor-not-allowed opacity-60')}>
       <input type="radio" name="cart-fulfillment" value={value} checked={checked} disabled={disabled} onChange={() => onChange(value)} className="sr-only" />
       {children}
     </label>
@@ -47,7 +50,7 @@ function Line({ line, disabled, onChange }: { line: CartLineView; disabled: bool
           <p className="shrink-0 font-semibold type-figures">{formatUSD(line.lineCents)}</p>
         </div>
         {line.optionLabel && <p className="type-meta text-ink-muted">{line.optionLabel}</p>}
-        <QtyStepper value={line.qty} min={0} max={MAX_QTY_PER_LINE} label={`How many ${line.name}`} lessLabel={`Remove one ${line.name}`} moreLabel={`Add one ${line.name}`} disabled={disabled} onChange={onChange} className="mt-1 -ml-1.5" />
+        <QtyStepper value={line.qty} min={0} max={MAX_QTY_PER_LINE} label={`How many ${line.name}`} lessLabel={`Remove one ${line.name}`} moreLabel={`Add one ${line.name}`} disabled={disabled} onChange={onChange} className="mt-1" />
       </div>
     </li>
   );
@@ -57,7 +60,7 @@ function Line({ line, disabled, onChange }: { line: CartLineView; disabled: bool
  * The buyer's order: the same view in the desktop dock and the phone sheet, in the assistant's box (header, one
  * scrolling middle, a footer that never moves). Every figure here is for display; the server prices the order.
  */
-export function CartView({ cart, data, titleId, titleRef, onClose, onAssistant }: CartViewProps) {
+export function CartView({ cart, data, titleId, titleRef, shopName, onClose, onRefresh, onAssistant }: CartViewProps) {
   const router = useRouter();
   const { views, busy, fulfillment, overCap } = cart;
   const both = data.fulfillment === 'both';
@@ -70,11 +73,11 @@ export function CartView({ cart, data, titleId, titleRef, onClose, onAssistant }
           Your order
         </h2>
         {onAssistant && (
-          <Button variant="secondary" size="md" onClick={onAssistant}>
+          <Button variant="secondary" size="md" disabled={busy} onClick={onAssistant}>
             Assistant
           </Button>
         )}
-        <IconButton icon={X} label="Close your order" iconSize="md" onClick={onClose} className="-mr-2" />
+        <IconButton icon={X} label="Close your order" iconSize="md" disabled={busy} onClick={onClose} className="-mr-2" />
       </div>
 
       <div className="overflow-y-auto overscroll-contain px-5 py-4">
@@ -148,10 +151,14 @@ export function CartView({ cart, data, titleId, titleRef, onClose, onAssistant }
 
       {views.length > 0 && (
         <div data-assistant-footer="" className="flex flex-col gap-2 border-t border-line bg-surface px-5 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-          <Button variant="paypal" size="lg" fullWidth loading={busy} loadingLabel="Opening PayPal…" disabled={overCap} onClick={() => cart.checkout(() => router.refresh())}>
+          <Button variant="paypal" size="lg" fullWidth loading={busy} loadingLabel="Opening PayPal…" disabled={overCap || cart.paused} onClick={() => cart.checkout(() => {
+            onRefresh?.();
+            router.refresh();
+          })}>
             Approve {formatUSD(cart.totalCents)} on PayPal
           </Button>
           {overCap && <p className="text-sm font-medium text-error">This shop takes online orders up to {formatUSD(data.orderCapCents)}.</p>}
+          {cart.paused && <p className="text-sm font-medium text-ink">{shopName} isn’t taking orders right now. Your items are saved here.</p>}
           {cart.error && (
             <p role="alert" className="text-sm font-medium text-error">
               {cart.error}

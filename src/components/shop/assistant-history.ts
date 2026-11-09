@@ -16,6 +16,19 @@ export function withoutOwnMark(state: unknown): unknown {
   return rest;
 }
 
+/**
+ * The URL with its panel params saying what the page shows. `router.refresh()` writes back the URL Next last knew, and
+ * Next never hears about these params (they go through the browser's own `history` methods), so they must be put back.
+ */
+export function urlWithPanels(href: string, panels: { assistant: boolean; order: string | null; item: string | null }): URL {
+  const url = new URL(href);
+  const put = (name: string, value: string | null) => (value === null ? url.searchParams.delete(name) : url.searchParams.set(name, value));
+  put('assistant', panels.assistant ? '1' : null);
+  put('order', panels.order);
+  put('item', panels.item);
+  return url;
+}
+
 export interface HistoryMove {
   /** This page called `history.back()` to close the assistant, and this is the move it asked for. */
   closing: boolean;

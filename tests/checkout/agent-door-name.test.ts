@@ -55,6 +55,9 @@ describe('the reserved storefront name at the agent door (SR29)', () => {
     '?agent=%20shelfie-storefront%20',
     '?agent=shelfie%00-storefront',
     '?agent=shelfie_storefront',
+    '?agent=Your%20shop%20page',
+    '?agent=your-shop-page',
+    '?agent=%E2%80%8Byour%20%E2%80%8Bshop%20%E2%80%8Bpage',
   ])('%s is stored as no name, with the normal 60-minute window', async (query) => {
     const order = await viaHttp(query, `203.0.113.${Math.floor(Math.random() * 200) + 1}`);
     expect(order.agentName).toBeNull();

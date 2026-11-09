@@ -50,9 +50,9 @@ function Prices({ item }: { item: ItemWithVariants }) {
   return (
     <ul className={cx('type-price flex flex-wrap gap-x-3 text-[0.9375rem] font-semibold', tone)}>
       {price.options.map((option) => (
-        <li key={option.id} className="whitespace-nowrap">
+        <li key={option.id} className="min-w-0 [overflow-wrap:anywhere]">
           {option.label && <span className="mr-1 font-medium text-ink-muted">{option.label}</span>}
-          {formatUSD(option.cents)}
+          <span className="whitespace-nowrap">{formatUSD(option.cents)}</span>
         </li>
       ))}
     </ul>

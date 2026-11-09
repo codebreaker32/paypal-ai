@@ -6,6 +6,8 @@ import { createContext, useContext } from 'react';
 export interface CartApi {
   /** How many of this item are in the order, across its options. */
   quantity(itemId: string): number;
+  /** Checkout is on its way to PayPal: the order can't change until it answers. */
+  busy: boolean;
   add(itemId: string, optionId: string, qty?: number): void;
   /** One fewer of this item; with several options, off its most recently added line. */
   decrement(itemId: string): void;
@@ -16,6 +18,7 @@ export interface CartApi {
 /** With no provider a tile renders as an item with nothing in the order, and its controls do nothing. */
 export const INERT_CART: CartApi = {
   quantity: () => 0,
+  busy: false,
   add: () => {},
   decrement: () => {},
   openItem: () => {},

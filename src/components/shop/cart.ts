@@ -31,6 +31,8 @@ export interface CartMenuItem {
   state: CartItemState;
   /** What can be ordered; empty unless `state` is `orderable`. */
   options: CartMenuOption[];
+  /** `not_taking` only: what a cart saved before the pause still shows. Never added from: the shop is only paused. */
+  heldOptions?: CartMenuOption[];
   /** The price line in the item sheet: `$3.00`, `S $3.00  L $4.00`, `From $3.00 · 3 options`; null for "ask in person". */
   priceText: string | null;
   picture: ItemPicture;
@@ -63,13 +65,17 @@ export interface RemovedLine {
 
 const capQty = (qty: number) => Math.min(MAX_QTY_PER_LINE, qty);
 
-/** Adds to the line of that option, or starts one. A full order (15 lines) comes back unchanged. */
+/** Adds to the line of that option, or starts one. With no room left (a line at 20, an order of 15 lines) it comes back unchanged. */
 export function addLine(lines: CartLine[], itemId: string, optionId: string, qty = 1): CartLine[] {
   const at = lines.findIndex((l) => l.itemId === itemId && l.optionId === optionId);
-  if (at >= 0) return lines.map((l, i) => (i === at ? { ...l, qty: capQty(l.qty + qty) } : l));
+  if (at >= 0) return lines[at].qty >= MAX_QTY_PER_LINE ? lines : lines.map((l, i) => (i === at ? { ...l, qty: capQty(l.qty + qty) } : l));
   if (lines.length >= MAX_LINES) return lines;
   return [...lines, { itemId, optionId, qty: capQty(qty) }];
 }
+
+/** Why `addLine` came back unchanged, in the buyer's words. */
+export const addRefusal = (lines: CartLine[], itemId: string, optionId: string): string =>
+  lines.some((l) => l.itemId === itemId && l.optionId === optionId) ? `An order can hold ${MAX_QTY_PER_LINE} of each item.` : `An order can hold ${MAX_LINES} different items.`;
 
 /** One fewer of an item, off its most recently added line. */
 export function decrementItem(lines: CartLine[], itemId: string): CartLine[] {
@@ -88,23 +94,29 @@ export const removeItem = (lines: CartLine[], itemId: string): CartLine[] => lin
 
 export const itemQuantity = (lines: CartLine[], itemId: string): number => lines.reduce((sum, l) => (l.itemId === itemId ? sum + l.qty : sum), 0);
 
-/** Lines joined to the menu. What can no longer be ordered is dropped and reported. */
-export function joinCart(lines: CartLine[], menu: CartMenuItem[]): { lines: CartLine[]; views: CartLineView[]; removed: RemovedLine[] } {
+/**
+ * Lines joined to the menu. What can no longer be ordered is dropped and reported. A shop that isn't taking orders has
+ * lost nothing: its lines stay, shown from `heldOptions`, and `paused` says the order can't go through yet.
+ */
+export function joinCart(lines: CartLine[], menu: CartMenuItem[]): { lines: CartLine[]; views: CartLineView[]; removed: RemovedLine[]; paused: boolean } {
   const byId = new Map(menu.map((item) => [item.id, item]));
   const kept: CartLine[] = [];
   const views: CartLineView[] = [];
   const removed: RemovedLine[] = [];
+  let paused = false;
   for (const line of lines) {
     const item = byId.get(line.itemId);
-    const option = item?.state === 'orderable' ? item.options.find((o) => o.id === line.optionId) : undefined;
+    const offered = item?.state === 'orderable' ? item.options : item?.state === 'not_taking' ? (item.heldOptions ?? []) : [];
+    const option = offered.find((o) => o.id === line.optionId);
     if (!item || !option) {
       removed.push({ name: item?.name ?? null, reason: item?.state === 'sold_out' ? 'sold_out' : 'unavailable' });
       continue;
     }
+    if (item.state === 'not_taking') paused = true;
     kept.push(line);
     views.push({ ...line, name: item.name, optionLabel: option.label, unitCents: option.cents, lineCents: option.cents * line.qty, picture: item.picture, tone: item.tone });
   }
-  return { lines: kept, views, removed };
+  return { lines: kept, views, removed, paused };
 }
 
 /** One line, however many were taken out. */
@@ -160,10 +172,11 @@ export function loadCart(slug: string, storage: CartStorage, now = Date.now()): 
   }
 }
 
+/** Unchanged lines keep their `savedAt`, so opening the page doesn't renew the 24 hours. */
 export function saveCart(slug: string, lines: CartLine[], storage: CartStorage, now = Date.now()): void {
   try {
-    if (lines.length) storage.setItem(cartKey(slug), serializeCart(lines, now));
-    else storage.removeItem(cartKey(slug));
+    if (!lines.length) storage.removeItem(cartKey(slug));
+    else if (JSON.stringify(parseCart(storage.getItem(cartKey(slug)), now)) !== JSON.stringify(lines.map(({ itemId, optionId, qty }) => ({ itemId, optionId, qty })))) storage.setItem(cartKey(slug), serializeCart(lines, now));
   } catch {
     // Private mode or a full disk: the cart still works until the page closes.
   }

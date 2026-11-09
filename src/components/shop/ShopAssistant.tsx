@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { formatUSD } from '@/lib/domain/money';
@@ -12,7 +12,7 @@ import { CartStatus, CartView } from './CartView';
 import { ItemSheet } from './ItemSheet';
 import { useCartState, viewOrderLabel } from './use-cart-state';
 import { useHistoryParam } from './use-history-param';
-import { afterHistoryMove, isOwnEntry, withOwnMark, withoutOwnMark } from './assistant-history';
+import { afterHistoryMove, isOwnEntry, urlWithPanels, withOwnMark, withoutOwnMark } from './assistant-history';
 import { useBuyerConsole, type BuyerConsoleApi } from './BuyerConsole';
 import { OrderCtaContext, orderCtaShown } from './OrderCta';
 import { useKeyboardViewport } from './use-keyboard-viewport';
@@ -176,10 +176,12 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     setAssistantParam(false);
     ownEntry.current = false;
   }, [openCartParam]);
+  const cartBusy = cart.busy;
   const hideCart = useCallback(() => {
+    if (cartBusy) return; // The controls are disabled; Esc and the backdrop don't get round them.
     if (isDocked()) keepPlace(() => closeCartParam());
     else closeCartParam();
-  }, [closeCartParam]);
+  }, [closeCartParam, cartBusy]);
   // The dock's switch: the assistant replaces the cart, nothing to go back to.
   const switchToAssistant = useCallback(() => {
     cartOpener.current = null;
@@ -289,15 +291,35 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const wasCartOpen = useRef(cartOpen);
   useEffect(() => {
     if (isDesktop && cartOpen && !wasCartOpen.current) cartTitleRef.current?.focus();
-    if (isDesktop && !cartOpen && wasCartOpen.current && !open) {
+    // A phone sheet returns focus itself, except when the last line went: it unmounts with the closing, open, so no `close` event fires.
+    if ((isDesktop || (isDesktop === false && !hasItems)) && !cartOpen && wasCartOpen.current && !open) {
       const back = cartOpener.current;
       cartOpener.current = null;
       [back !== document.body ? back : null, heroInView ? heroButton.current : null, compactButton.current, orderBarRef.current].find(canTakeFocus)?.focus();
     }
     wasCartOpen.current = cartOpen;
-  }, [cartOpen, isDesktop, heroInView, open]);
+  }, [cartOpen, isDesktop, heroInView, open, hasItems]);
 
-  const { add, decrement, quantity } = cart;
+  // `router.refresh()` writes back the URL and entry state Next last knew, without the panels' params and own-entry mark.
+  // New props are the refresh arriving, in the same commit as that write, so the URL says what the page shows before paint.
+  const refreshing = useRef(false);
+  const seenCartData = useRef(cartData);
+  const itemOwnEntry = itemParam.isOwn;
+  const cartOwnEntry = cartParam.isOwn;
+  useLayoutEffect(() => {
+    if (seenCartData.current === cartData) return;
+    seenCartData.current = cartData;
+    if (!refreshing.current) return;
+    refreshing.current = false;
+    const url = urlWithPanels(window.location.href, { assistant: open, order: cartParam.value, item: itemParam.value });
+    const state = ownEntry.current || cartOwnEntry() || itemOwnEntry() ? withOwnMark(window.history.state) : window.history.state;
+    History.prototype.replaceState.call(window.history, state, '', url);
+  });
+  const onRefresh = useCallback(() => {
+    refreshing.current = true;
+  }, []);
+
+  const { add, decrement, quantity, busy } = cart;
   const itemOpener = useRef<HTMLElement | null>(null);
   const openItemSheet = itemParam.open;
   const cartApi = useMemo<CartApi>(
@@ -305,12 +327,13 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       add,
       decrement,
       quantity,
+      busy,
       openItem: (itemId, openedBy) => {
         itemOpener.current = openedBy;
         openItemSheet(itemId, true);
       },
     }),
-    [add, decrement, quantity, openItemSheet],
+    [add, decrement, quantity, busy, openItemSheet],
   );
 
   // The sheet keeps its last item while it animates shut. Each opening is a fresh mount, so it starts at 1 and the first option.
@@ -331,6 +354,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const askAboutItem = () => {
     if (sheetItem) closeItemParam(() => openWithDraft(sheetItem.name));
   };
+  const lines = cart.lines;
+  const qtyInOrder = useCallback((optionId: string) => lines.find((l) => l.itemId === sheetItem?.id && l.optionId === optionId)?.qty ?? 0, [lines, sheetItem?.id]);
   const addFromSheet = (optionId: string, qty: number) => {
     if (!sheetItem) return;
     add(sheetItem.id, optionId, qty);
@@ -358,12 +383,13 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
         <div className="mx-auto w-full sm:max-w-md">
           {hasItems ? (
             <div className="flex gap-2">
-              <Button variant="secondary" size="lg" aria-label={title} onClick={show} className="shrink-0">
+              <Button variant="secondary" size="lg" aria-label={title} onClick={show} className="shrink-0 px-4 text-base">
                 Assistant
               </Button>
-              <Button ref={orderBarRef} size="lg" fullWidth onClick={showCart} className="min-w-0 flex-1">
-                View order · {cart.count}
-                <span className="ml-3 type-figures">{formatUSD(cart.itemsCents)}</span>
+              {/* On a very narrow phone the words give way, never the total. */}
+              <Button ref={orderBarRef} size="lg" fullWidth aria-label={viewOrderLabel(cart.count, cart.itemsCents)} onClick={showCart} className="min-w-0 flex-1 px-4 text-base [&>span]:flex [&>span]:min-w-0 [&>span]:items-baseline [&>span]:gap-2">
+                <span className="min-w-0 truncate">View order · {cart.count}</span>
+                <span className="shrink-0 type-figures">{formatUSD(cart.itemsCents)}</span>
               </Button>
             </div>
           ) : (
@@ -385,7 +411,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
             if (e.key === 'Escape') (cartOpen ? hideCart : hide)();
           }}
         >
-          {cartOpen ? <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} onClose={hideCart} onAssistant={switchToAssistant} /> : shell}
+          {cartOpen ? <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} onAssistant={switchToAssistant} /> : shell}
         </aside>
       )}
 
@@ -398,7 +424,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       {/* Mounted only with something to show: an empty page keeps one dialog, the assistant's. */}
       {isDesktop === false && (cartOpen || hasItems) && (
         <Sheet bare dialogRef={cartDialogRef} labelledBy={cartTitleId} open={cartOpen} onClose={hideCart} className="assistant-sheet text-ink" initialFocusRef={cartTitleRef} fallbackFocusRef={orderBarRef}>
-          <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} onClose={hideCart} />
+          <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} />
           {cartOpen && <CartStatus cart={cart} />}
         </Sheet>
       )}
@@ -414,6 +440,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
           onAdd={addFromSheet}
           onAsk={askAboutItem}
           openerRef={itemOpener}
+          inOrder={qtyInOrder}
+          busy={cart.busy}
         />
       )}
     </CartContext.Provider>

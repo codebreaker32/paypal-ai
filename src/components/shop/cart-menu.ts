@@ -19,6 +19,8 @@ function itemState(item: ItemWithVariants, takesOrders: boolean): CartItemState 
   return orderableOptions(item, takesOrders).length ? 'orderable' : 'in_person';
 }
 
+const option = (v: ItemWithVariants['variants'][number]) => ({ id: v.id, label: v.label, cents: v.priceCents! });
+
 function priceText(item: ItemWithVariants): string | null {
   const price = tilePrice(item);
   if (!price) return null;
@@ -41,7 +43,8 @@ export function shopCartData(shop: Shop, sections: Section[], kind: ShopKind, ta
         name: item.name,
         description: item.description ?? '',
         state,
-        options: state === 'orderable' ? orderableOptions(item, takesOrders).map((v) => ({ id: v.id, label: v.label, cents: v.priceCents! })) : [],
+        options: state === 'orderable' ? orderableOptions(item, takesOrders).map(option) : [],
+        heldOptions: state === 'not_taking' ? orderableOptions(item, true).map(option) : [],
         priceText: priceText(item),
         picture,
         tone,

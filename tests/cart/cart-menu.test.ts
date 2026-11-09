@@ -24,6 +24,11 @@ describe('shopCartData', () => {
     expect(items[0].options).toEqual([]);
     expect(items[0].priceText).toBe('$3.00');
   });
+  it('keeps the prices of a paused item aside, so a saved cart can still be shown', () => {
+    const { items } = data([item('a'), item('b', { soldOut: true })], false);
+    expect(items[0].heldOptions).toEqual([{ id: 'a-a', label: null, cents: 300 }]);
+    expect(items[1].heldOptions).toEqual([]);
+  });
   it('writes the price line', () => {
     const { items } = data([
       item('a', { variants: [variant('s', 300, 'S'), variant('l', 400, 'L')] }),

@@ -97,5 +97,8 @@ export function useHistoryParam(param: string, docked?: () => boolean) {
     set(null);
   }, [param, set]);
 
-  return { value, open, close, dismiss };
+  /** This param's entry was pushed by this page, so it carries the own-entry mark. */
+  const isOwn = useCallback(() => ownEntry.current, []);
+
+  return { value, open, close, dismiss, isOwn };
 }

@@ -23,16 +23,23 @@ export interface ItemSheetProps {
   onAsk: () => void;
   /** Where focus goes on close when the browser didn't record an opener. */
   openerRef: RefObject<HTMLElement | null>;
+  /** How many of an option are already in the order: a line holds 20. */
+  inOrder: (optionId: string) => number;
+  /** Checkout is on its way to PayPal: the order can't change. */
+  busy: boolean;
 }
 
 /** One item in full: photo, name, price, whole description, and how to order it. Mounted fresh for each opening. */
-export function ItemSheet({ item, open, onClose, onAdd, onAsk, openerRef }: ItemSheetProps) {
+export function ItemSheet({ item, open, onClose, onAdd, onAsk, openerRef, inOrder, busy }: ItemSheetProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const qtyLabel = useId();
   const [optionId, setOptionId] = useState(item.options[0]?.id ?? null);
   const [qty, setQty] = useState(1);
   const option = item.options.find((o) => o.id === optionId) ?? null;
   const orderable = item.state === 'orderable' && option !== null;
+  // What the footer says is what gets added, so the stepper stops at the room left on the line.
+  const room = option ? MAX_QTY_PER_LINE - inOrder(option.id) : 0;
+  const shownQty = Math.min(qty, Math.max(room, 1));
 
   const media = (
     <div>
@@ -43,10 +50,12 @@ export function ItemSheet({ item, open, onClose, onAdd, onAsk, openerRef }: Item
     </div>
   );
 
-  const footer = orderable ? (
-    <Button size="lg" fullWidth data-add-press="" onClick={() => onAdd(option.id, qty)}>
-      Add to order · <span className="type-figures">{formatUSD(option.cents * qty)}</span>
+  const footer = orderable && room > 0 ? (
+    <Button size="lg" fullWidth data-add-press="" disabled={busy} onClick={() => onAdd(option.id, shownQty)}>
+      Add to order · <span className="type-figures">{formatUSD(option.cents * shownQty)}</span>
     </Button>
+  ) : orderable ? (
+    <p className="text-[0.9375rem] font-semibold text-ink-soft">An order can hold {MAX_QTY_PER_LINE} of each item.</p>
   ) : (
     <p className="text-[0.9375rem] font-semibold text-ink-soft">{FOOTER_LINE[item.state === 'orderable' ? 'in_person' : item.state]}</p>
   );
@@ -82,12 +91,12 @@ export function ItemSheet({ item, open, onClose, onAdd, onAsk, openerRef }: Item
             ))}
           </fieldset>
         )}
-        {orderable && (
+        {orderable && room > 0 && (
           <div className="flex items-center justify-between gap-3">
             <span id={qtyLabel} className="text-[0.9375rem] font-bold">
               How many
             </span>
-            <QtyStepper value={qty} min={1} max={MAX_QTY_PER_LINE} labelledBy={qtyLabel} lessLabel="One fewer" moreLabel="One more" onChange={setQty} />
+            <QtyStepper value={shownQty} min={1} max={room} labelledBy={qtyLabel} lessLabel="One fewer" moreLabel="One more" onChange={setQty} />
           </div>
         )}
         <div>

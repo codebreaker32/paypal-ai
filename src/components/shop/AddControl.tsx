@@ -7,7 +7,7 @@ import { cx } from '@/components/ui/cx';
 import { useCart } from './cart-context';
 
 /** A 44 px hit area round a 36 px face. Both sit above the tile's own button (`after:inset-0`). */
-const HIT = 'press-icon relative flex size-(--add-hit) shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink';
+const HIT = 'press-icon relative flex size-(--add-hit) shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-40';
 const FACE = 'flex size-(--add-face) items-center justify-center rounded-full';
 
 /**
@@ -36,7 +36,7 @@ export function AddControl({ itemId, itemName, optionId }: { itemId: string; ite
       {inOrder && (
         <>
           <span aria-hidden="true" data-add-pill="" className="absolute inset-1 rounded-full bg-surface shadow-(--card-shadow)" />
-          <button type="button" aria-label={`Remove one ${itemName}`} onClick={onMinus} className={HIT}>
+          <button type="button" aria-label={`Remove one ${itemName}`} onClick={onMinus} disabled={cart.busy} className={HIT}>
             <Icon icon={Minus} size="sm" />
           </button>
           <span className="relative w-9 text-center text-sm font-bold type-figures">
@@ -52,6 +52,7 @@ export function AddControl({ itemId, itemName, optionId }: { itemId: string; ite
         aria-haspopup={optionId ? undefined : 'dialog'}
         data-add-press={optionId ? '' : undefined}
         onClick={onPlus}
+        disabled={cart.busy}
         className={HIT}
       >
         <span className={cx(FACE, !inOrder && 'bg-surface shadow-(--card-shadow)')}>

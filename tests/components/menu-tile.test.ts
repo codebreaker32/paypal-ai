@@ -45,6 +45,16 @@ describe('tilePrice', () => {
   });
 });
 
+describe('a long option label', () => {
+  it('can wrap inside its tile, and only the price stays on one line', () => {
+    const html = tile(item({ variants: [variant('v1', 'Small (serves 4 to 6 people)', 6500), variant('v2', 'Large (serves 10 to 12 people)', 12800)] }));
+    const li = html.match(/<li class="([^"]*)">[^<]*<span[^>]*>Small/)!;
+    expect(li[1]).not.toContain('whitespace-nowrap');
+    expect(li[1]).toContain('[overflow-wrap:anywhere]');
+    expect(html).toMatch(/<span class="[^"]*whitespace-nowrap[^"]*">\$65\.00<\/span>/);
+  });
+});
+
 describe('orderableOptions', () => {
   it.each([
     ['live', item()],

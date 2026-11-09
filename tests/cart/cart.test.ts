@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   CART_TTL_MS,
+  MAX_QTY_PER_LINE,
   addLine,
+  addRefusal,
   cartAnnouncement,
   cartKey,
   cartNotice,
@@ -58,6 +60,17 @@ describe('lines', () => {
     expect(addLine(lines, 'b', 'b-o')).toEqual([L('a', 3), L('b', 1)]);
   });
 
+  it('comes back unchanged when the line is already at 20, so the press can be refused', () => {
+    const full = [L('a', MAX_QTY_PER_LINE)];
+    expect(addLine(full, 'a', 'a-o')).toBe(full);
+    expect(addRefusal(full, 'a', 'a-o')).toBe('An order can hold 20 of each item.');
+  });
+
+  it('names the line limit when a new line has no room', () => {
+    const full = Array.from({ length: 15 }, (_, i) => L(`i${i}`));
+    expect(addRefusal(full, 'x', 'x-o')).toBe('An order can hold 15 different items.');
+  });
+
   it('refuses a sixteenth line', () => {
     const full = Array.from({ length: 15 }, (_, i) => L(`i${i}`));
     expect(addLine(full, 'x', 'x-o')).toBe(full);
@@ -84,13 +97,30 @@ describe('lines', () => {
 
 describe('joinCart', () => {
   it('prices lines from the menu and drops what can no longer be ordered', () => {
-    const menu = [item('a', { options: [{ id: 'a-o', label: 'Large', cents: 450 }] }), item('sold', { name: 'Seeded rye', state: 'sold_out', options: [] }), item('paused', { state: 'not_taking', options: [] })];
-    const { views, lines, removed } = joinCart([L('a', 2), L('sold'), L('paused'), L('gone')], menu);
+    const menu = [item('a', { options: [{ id: 'a-o', label: 'Large', cents: 450 }] }), item('sold', { name: 'Seeded rye', state: 'sold_out', options: [] }), item('asked', { state: 'in_person', options: [] })];
+    const { views, lines, removed } = joinCart([L('a', 2), L('sold'), L('asked'), L('gone')], menu);
     expect(lines).toEqual([L('a', 2)]);
     expect(views).toEqual([expect.objectContaining({ itemId: 'a', optionLabel: 'Large', unitCents: 450, lineCents: 900, qty: 2 })]);
     expect(removed.map((r) => r.reason)).toEqual(['sold_out', 'unavailable', 'unavailable']);
     expect(removed[0].name).toBe('Seeded rye');
     expect(removed[2].name).toBeNull();
+  });
+
+  it('keeps every line while the shop is only not taking orders, and says nothing (a pause must not lose the cart)', () => {
+    const menu = [item('p', { state: 'not_taking', options: [], heldOptions: [{ id: 'p-o', label: 'Large', cents: 450 }] })];
+    const { lines, views, removed, paused } = joinCart([L('p', 2)], menu);
+    expect(lines).toEqual([L('p', 2)]);
+    expect(views).toEqual([expect.objectContaining({ itemId: 'p', optionLabel: 'Large', lineCents: 900 })]);
+    expect(removed).toEqual([]);
+    expect(paused).toBe(true);
+  });
+
+  it('is not paused when everything can be ordered, and a paused shop still loses what is really gone', () => {
+    expect(joinCart([L('a')], [item('a')]).paused).toBe(false);
+    const menu = [item('p', { state: 'not_taking', options: [], heldOptions: [{ id: 'p-o', label: null, cents: 300 }] }), item('sold', { state: 'sold_out', options: [] })];
+    const { lines, removed } = joinCart([L('p'), L('sold'), L('p', 1, 'old-option')], menu);
+    expect(lines).toEqual([L('p')]);
+    expect(removed.map((r) => r.reason)).toEqual(['sold_out', 'unavailable']);
   });
 
   it('drops a line whose option is gone', () => {
@@ -134,6 +164,18 @@ describe('storage', () => {
     expect(loadCart('marigold', s, now)).toEqual([L('a')]);
     saveCart('marigold', [], s, now);
     expect(s.map.has(cartKey('marigold'))).toBe(false);
+  });
+  it('does not renew the 24 hours when the lines have not changed', () => {
+    const s = storage();
+    saveCart('marigold', [L('a', 2)], s, now);
+    saveCart('marigold', [L('a', 2)], s, now + 23 * 60 * 60 * 1000);
+    expect(JSON.parse(s.map.get(cartKey('marigold'))!).savedAt).toBe(now);
+  });
+  it('restarts the clock when the lines change', () => {
+    const s = storage();
+    saveCart('marigold', [L('a', 2)], s, now);
+    saveCart('marigold', [L('a', 3)], s, now + 1000);
+    expect(JSON.parse(s.map.get(cartKey('marigold'))!).savedAt).toBe(now + 1000);
   });
   it('never throws when storage does', () => {
     const bad = { getItem: () => { throw new Error('x'); }, setItem: () => { throw new Error('x'); }, removeItem: () => { throw new Error('x'); } };
