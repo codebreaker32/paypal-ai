@@ -1,0 +1,114 @@
+// The exact sentences of the sign-up, login and recovery forms (brief WP6). A route's failure arrives as an ApiError with
+// a `code`; each form turns it into one problem, naming the field it belongs under. Pure, so the copy is testable.
+import { MIN_PASSWORD_LENGTH, passwordLength } from '@/lib/auth/password-policy';
+import { parsePayeeEmail } from '@/lib/domain/payee';
+import { ApiError } from './http';
+
+/** One piece of a message: plain words, or words that link somewhere. */
+export type MessageBit = string | { text: string; href: string };
+
+export type ProblemField = 'email' | 'password' | 'recoveryKey' | 'form';
+
+export interface AuthProblem {
+  field: ProblemField;
+  message: MessageBit[];
+}
+
+export const EMAIL_TEXT = 'Enter your email, like rosa@example.com.';
+export const SHORT_PASSWORD_TEXT = 'Use at least 15 characters.';
+export const BUSY_TEXT = 'Shelfie is busy. Try again in a few seconds.';
+const NETWORK_TEXT = 'Couldn’t reach Shelfie. Check your connection and try again.';
+
+const problem = (field: ProblemField, ...message: MessageBit[]): AuthProblem => ({ field, message });
+
+/** The failures every form words the same way; null for the ones it words itself. */
+function common(err: unknown): AuthProblem | null {
+  if (!(err instanceof ApiError) || err.code === 'NETWORK') return problem('form', NETWORK_TEXT);
+  if (err.code === 'BUSY') return problem('form', BUSY_TEXT);
+  return null;
+}
+
+const unexpected = (err: unknown): AuthProblem => problem('form', (err as ApiError).message);
+
+export function signupProblem(err: unknown): AuthProblem {
+  const shared = common(err);
+  if (shared) return shared;
+  const e = err as ApiError;
+  switch (e.code) {
+    case 'INVALID_EMAIL':
+      return problem('email', EMAIL_TEXT);
+    case 'WEAK_PASSWORD':
+      return problem('password', e.message);
+    case 'EMAIL_TAKEN':
+      return problem(
+        'email',
+        'There’s already an account with this email. ',
+        { text: 'Log in', href: '/login' },
+        ' or ',
+        { text: 'use your recovery key', href: '/recover' },
+        '.',
+      );
+    case 'RATE_LIMITED':
+      return problem('form', 'Too many tries from this connection. Wait a few minutes and try again.');
+    default:
+      return unexpected(err);
+  }
+}
+
+export function loginProblem(err: unknown): AuthProblem {
+  const shared = common(err);
+  if (shared) return shared;
+  const e = err as ApiError;
+  switch (e.code) {
+    case 'BAD_CREDENTIALS':
+      return problem('form', 'That email and password don’t match. Try again, or ', { text: 'reset your password', href: '/recover' }, '.');
+    case 'RATE_LIMITED':
+      return problem('form', 'Too many tries. Wait 15 minutes, or ', { text: 'reset your password with your recovery key', href: '/recover' }, '.');
+    default:
+      return unexpected(err);
+  }
+}
+
+export function recoverProblem(err: unknown): AuthProblem {
+  const shared = common(err);
+  if (shared) return shared;
+  const e = err as ApiError;
+  switch (e.code) {
+    case 'BAD_RECOVERY':
+      return problem('form', 'That email and recovery key don’t match. Check for typos.');
+    case 'WEAK_PASSWORD':
+      return problem('password', e.message);
+    default:
+      return unexpected(err);
+  }
+}
+
+const emailProblem = (email: string): AuthProblem | null => (parsePayeeEmail(email).ok ? null : problem('email', EMAIL_TEXT));
+const newPasswordProblem = (password: string): AuthProblem | null =>
+  passwordLength(password) < MIN_PASSWORD_LENGTH ? problem('password', SHORT_PASSWORD_TEXT) : null;
+
+// The checks a form can make before asking the server: the server stays the authority (the blocklist is only there).
+
+export function checkSignup(email: string, password: string): AuthProblem | null {
+  return emailProblem(email) ?? newPasswordProblem(password);
+}
+
+/** Only that both are there: a typo is the server's to answer, and an older password may be any length. */
+export function checkLogin(email: string, password: string): AuthProblem | null {
+  if (!email.trim()) return problem('email', EMAIL_TEXT);
+  if (!password) return problem('password', 'Enter your password.');
+  return null;
+}
+
+export function checkRecover(email: string, recoveryKey: string, newPassword: string): AuthProblem | null {
+  if (!email.trim()) return problem('email', EMAIL_TEXT);
+  if (!recoveryKey.trim()) return problem('recoveryKey', 'Enter your recovery key.');
+  return newPasswordProblem(newPassword);
+}
+
+/** The line under a new password, updated as they type. */
+export function passwordHint(password: string): string {
+  const typed = passwordLength(password);
+  if (typed === 0) return 'At least 15 characters. A short sentence works well.';
+  return typed >= MIN_PASSWORD_LENGTH ? 'Long enough' : `${MIN_PASSWORD_LENGTH - typed} more to go`;
+}
