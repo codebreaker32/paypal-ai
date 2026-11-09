@@ -31,10 +31,7 @@ function CallRow({ call }: { call: ToolCall }) {
         <summary className="group/summary press-text flex min-h-tap list-none items-start gap-2.5 rounded-sm px-3 py-2.5 hover:bg-line [&::-webkit-details-marker]:hidden">
           <Icon icon={status.icon} size="sm" label={status.label} className={cx('mt-0.5', status.className)} />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-            <span className="flex items-baseline gap-2">
-              <code className="font-mono text-sm font-semibold text-ink">{call.name}</code>
-              {call.ms !== undefined && <span className="ml-auto type-meta type-price text-ink-muted">{call.ms} ms</span>}
-            </span>
+            <code className="font-mono text-sm font-semibold text-ink">{call.name}</code>
             <span className="type-meta text-ink-muted [overflow-wrap:anywhere]">
               {argSummary(call.name, call.input)}
               <span aria-hidden="true"> → </span>
@@ -45,6 +42,7 @@ function CallRow({ call }: { call: ToolCall }) {
           <Icon icon={ChevronRight} size="sm" className="mt-0.5 text-ink-muted transition-[rotate,color] duration-(--duration-fast) group-open:rotate-90 group-hover/summary:text-ink" />
         </summary>
         <div className="flex flex-col gap-2.5 px-3 pt-1 pb-3">
+          {call.ms !== undefined && <p className="type-meta type-price text-ink-muted">Took {call.ms} ms</p>}
           <Json label="MCP request">{requestJson(call.name, call.input)}</Json>
           {call.result !== undefined && <Json label="MCP response">{JSON.stringify(call.result, null, 2)}</Json>}
         </div>
@@ -53,26 +51,52 @@ function CallRow({ call }: { call: ToolCall }) {
   );
 }
 
-/**
- * The tool calls the assistant made through the shop's agent door in one step of the conversation: name, arguments,
- * result (or error code) and time, each expanding to the raw MCP request and response.
- */
-export function ActivityPanel({ calls }: { calls: ToolCall[] }) {
+function Heading({ calls }: { calls: ToolCall[] }) {
   const running = calls.some((c) => c.status === 'running');
+  return (
+    <>
+      <Icon icon={DoorOpen} size="sm" />
+      <span className="font-semibold text-ink-soft">Activity</span>
+      <span>
+        · {calls.length} {calls.length === 1 ? 'call' : 'calls'} to the agent door{running ? '…' : ''}
+      </span>
+    </>
+  );
+}
+
+function CallList({ calls }: { calls: ToolCall[] }) {
+  return (
+    <ol className="flex flex-col py-1">
+      {calls.map((call) => (
+        <CallRow key={call.id} call={call} />
+      ))}
+    </ol>
+  );
+}
+
+/**
+ * The tool calls the assistant made through the shop's agent door in one step of the conversation: name, arguments
+ * and result (or error code), each expanding to its time and the raw MCP request and response. `collapsed` folds the
+ * whole step to one line: its groups are named, because the rows inside are `group`s of their own.
+ */
+export function ActivityPanel({ calls, collapsed = false }: { calls: ToolCall[]; collapsed?: boolean }) {
+  if (collapsed) {
+    return (
+      <details role="group" aria-label="Activity" className="group/activity rounded-(--card-radius) bg-surface-sunken">
+        <summary className="group/activity-head press-text flex min-h-tap list-none items-center gap-2 rounded-(--card-radius) px-3 py-2.5 type-meta text-ink-muted hover:bg-line [&::-webkit-details-marker]:hidden">
+          <Heading calls={calls} />
+          <Icon icon={ChevronRight} size="sm" className="ml-auto text-ink-muted transition-[rotate,color] duration-(--duration-fast) group-open/activity:rotate-90 group-hover/activity-head:text-ink" />
+        </summary>
+        <CallList calls={calls} />
+      </details>
+    );
+  }
   return (
     <div role="group" aria-label="Activity" className="rounded-(--card-radius) bg-surface-sunken">
       <div className="flex items-center gap-2 px-3 pt-2.5 type-meta text-ink-muted">
-        <Icon icon={DoorOpen} size="sm" />
-        <span className="font-semibold text-ink-soft">Activity</span>
-        <span>
-          · {calls.length} {calls.length === 1 ? 'call' : 'calls'} to the agent door{running ? '…' : ''}
-        </span>
+        <Heading calls={calls} />
       </div>
-      <ol className="flex flex-col py-1">
-        {calls.map((call) => (
-          <CallRow key={call.id} call={call} />
-        ))}
-      </ol>
+      <CallList calls={calls} />
     </div>
   );
 }

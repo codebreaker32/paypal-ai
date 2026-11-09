@@ -26,6 +26,7 @@ import { ActivityPanel } from './ActivityPanel';
 import { isPayPalApprovalUrl } from './activity-format';
 import {
   approvalCard,
+  collapsedActivityKeys,
   CONFIRM_POLL_FOR_MS,
   CONFIRM_POLL_MS,
   confirmingWithPayPal,
@@ -314,14 +315,14 @@ function ApprovalCard({ entry, shopName, fresh }: { entry: Extract<Entry, { kind
   );
 }
 
-function EntryView({ entry, shopName, fresh }: { entry: Entry; shopName: string; fresh: boolean }) {
+function EntryView({ entry, shopName, fresh, collapsed }: { entry: Entry; shopName: string; fresh: boolean; collapsed: boolean }) {
   switch (entry.kind) {
     case 'user':
       return <UserBubble text={entry.text} />;
     case 'assistant':
       return <AssistantSays text={entry.text} />;
     case 'activity':
-      return <ActivityPanel calls={entry.calls} />;
+      return <ActivityPanel calls={entry.calls} collapsed={collapsed} />;
     case 'approval':
       return <ApprovalCard entry={entry} shopName={shopName} fresh={fresh} />;
     case 'error':
@@ -460,6 +461,7 @@ function Conversation({ api, shopName, starters, takesOrders, inputRef }: Consol
   const [shownAtOpen, setShownAtOpen] = useState(state.entries.length);
   if (shownAtOpen > 0 && state.entries.length === 0) setShownAtOpen(0);
   const freshFrom = firstFreshEntry(state, shownAtOpen);
+  const collapsedKeys = collapsedActivityKeys(state.entries);
 
   if (!state.entries.length) {
     return (
@@ -491,7 +493,7 @@ function Conversation({ api, shopName, starters, takesOrders, inputRef }: Consol
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: MOTION_S.base, ease: EASE_OUT }}
             >
-              <EntryView entry={entry} shopName={shopName} fresh={fresh} />
+              <EntryView entry={entry} shopName={shopName} fresh={fresh} collapsed={collapsedKeys.has(entry.key)} />
             </m.div>
           );
         })}

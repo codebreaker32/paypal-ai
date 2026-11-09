@@ -5,6 +5,7 @@ import type { ItemWithVariants } from '@/lib/domain/types';
 import { argSummary, isPayPalApprovalUrl, requestJson, resultSummary } from '@/components/shop/activity-format';
 import {
   approvalCard,
+  collapsedActivityKeys,
   CONFIRM_POLL_FOR_MS,
   CONFIRM_POLL_MS,
   confirmingWithPayPal,
@@ -16,6 +17,7 @@ import {
   refsToCheck,
   restoreConsoleState,
   turnStartIndex,
+  type CallStatus,
   type ConsoleState,
   type Entry,
 } from '@/components/shop/console-state';
@@ -185,6 +187,40 @@ describe('turnStartIndex', () => {
   it('is -1 for an empty conversation and 0 when there is no message', () => {
     expect(turnStartIndex([])).toBe(-1);
     expect(turnStartIndex([e('assistant', 1)])).toBe(0);
+  });
+});
+
+describe('collapsedActivityKeys', () => {
+  const user = (key: string): Entry => ({ kind: 'user', key, text: 'hi' });
+  const said = (key: string): Entry => ({ kind: 'assistant', key, text: 'ok' });
+  const activity = (key: string, ...statuses: CallStatus[]): Entry => ({
+    kind: 'activity',
+    key,
+    calls: statuses.map((status, i) => ({ id: `${key}-${i}`, name: 'list_products', input: {}, status })),
+  });
+  const collapsed = (...entries: Entry[]) => [...collapsedActivityKeys(entries)];
+
+  it('leaves the latest turn open', () => {
+    expect(collapsed(user('u1'), activity('a1', 'ok', 'ok'), said('s1'))).toEqual([]);
+  });
+  it('collapses a finished Activity entry as soon as a newer turn starts', () => {
+    expect(collapsed(user('u1'), activity('a1', 'ok', 'ok'), said('s1'), user('u2'))).toEqual(['a1']);
+  });
+  it('collapses every older entry, and only those', () => {
+    expect(collapsed(user('u1'), activity('a1', 'ok'), user('u2'), activity('a2', 'ok'), said('s2'), user('u3'), activity('a3', 'ok'))).toEqual(['a1', 'a2']);
+  });
+  it('never collapses an entry with an errored call, even beside calls that worked', () => {
+    expect(collapsed(user('u1'), activity('a1', 'ok', 'error'), user('u2'))).toEqual([]);
+  });
+  it('never collapses an entry with an interrupted call', () => {
+    expect(collapsed(user('u1'), activity('a1', 'interrupted', 'ok'), user('u2'))).toEqual([]);
+  });
+  it('never collapses a call that never got an answer (the turn failed while it ran)', () => {
+    expect(collapsed(user('u1'), activity('a1', 'running'), user('u2'))).toEqual([]);
+  });
+  it('is empty for a conversation with no messages', () => {
+    expect(collapsed()).toEqual([]);
+    expect(collapsed(activity('a1', 'ok'))).toEqual([]);
   });
 });
 

@@ -110,7 +110,7 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
   // The Activity panel shows the agent door calls, ending with create_order.
   const activity = region.getByRole('group', { name: 'Activity', exact: true });
   await expect(activity.first()).toBeVisible();
-  const calls = (await activity.allInnerTexts()).join('\n');
+  const calls = (await activity.allTextContents()).join('\n'); // textContent: an earlier turn's rows are folded away
   expect(calls).toMatch(/list_products/);
   expect(calls).toMatch(/create_order/);
   await expect(region.locator('summary', { hasText: 'create_order' }).last()).toContainText(/awaiting approval/);
