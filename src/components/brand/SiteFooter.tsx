@@ -68,7 +68,7 @@ function SiteWideFooter() {
           </div>
         ))}
       </nav>
-      <div className="flex flex-col gap-3 lg:col-span-4 lg:col-start-1 lg:row-start-1">
+      <div className="flex flex-col items-start gap-3 lg:col-span-4 lg:col-start-1 lg:row-start-1">
         <Logo />
         <p className="type-meta text-ink-muted">{TEST_MODE_LINE}</p>
       </div>

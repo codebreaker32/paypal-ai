@@ -109,6 +109,13 @@ function PaidOrder() {
         <span className="min-w-0 text-ink-soft">Dana R.</span>
         <OrderStatusText order={{ status: 'paid', fulfillment: 'shipping', captureRefused: false }} />
       </div>
+      <ul className="border-t border-line pt-3 type-receipt text-ink-soft">
+        {LINES.map((l) => (
+          <li key={l.name}>
+            {l.qty} × {l.name}
+          </li>
+        ))}
+      </ul>
       <p className="mt-3 rounded-md bg-note-soft p-3 text-sm text-note-ink lg:mt-auto">
         <span className="mr-1.5 font-bold text-note">AI brief</span>
         Ships to Austin. The almond croissants contain nuts, so pack them apart from the loaf.
@@ -121,7 +128,7 @@ function Step({ artefact, children }: { artefact: ReactNode; children: ReactNode
   return (
     <li>
       <figure className="flex h-full flex-col gap-4">
-        <div className="lg:h-88">{artefact}</div>
+        <div className="lg:h-80">{artefact}</div>
         <figcaption className="type-body text-ink-soft">{children}</figcaption>
       </figure>
     </li>
