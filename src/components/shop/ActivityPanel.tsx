@@ -56,9 +56,8 @@ function Heading({ calls }: { calls: ToolCall[] }) {
   return (
     <>
       <Icon icon={DoorOpen} size="sm" />
-      <span className="font-semibold text-ink-soft">Activity</span>
       <span>
-        · {calls.length} {calls.length === 1 ? 'call' : 'calls'} to the agent door{running ? '…' : ''}
+        <span className="font-semibold text-ink-soft">Activity</span> · {calls.length} {calls.length === 1 ? 'call' : 'calls'} to the agent door{running ? '…' : ''}
       </span>
     </>
   );
