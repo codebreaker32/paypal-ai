@@ -114,7 +114,7 @@ export function Menu({ sections, kind, takesOrders = true }: { sections: MenuSec
       {sections.length === 0 ? (
         <p className="text-ink-soft">Nothing on the menu yet.</p>
       ) : (
-        <div className="flex flex-col gap-10 @[56rem]/shop:gap-14">
+        <div className="flex flex-col gap-10 min-[56rem]:gap-14">
           {sections.map((section, i) => (
             <div
               key={section.name}

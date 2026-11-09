@@ -69,13 +69,18 @@ function keepPlace(change: () => void): void {
   // At the top nothing needs holding: the hero re-flows below the buyer, and scrolling would take the header away.
   if (window.scrollY < AT_TOP_PX) return flushSync(change);
   const anchor = Array.from(document.querySelectorAll('main h3, main li')).find((el) => el.getBoundingClientRect().bottom > SITE_TOP_PX);
-  const before = anchor?.getBoundingClientRect().top;
+  // Measured at its middle: a tile changes height with the tracks, and this shares that between it and the heading under it.
+  const middle = (el: Element) => {
+    const r = el.getBoundingClientRect();
+    return r.top + r.height / 2;
+  };
+  const before = anchor ? middle(anchor) : undefined;
   // The browser's own scroll anchoring would correct the same shift a second time.
   const root = document.documentElement.style;
   root.overflowAnchor = 'none';
   flushSync(change);
   if (anchor?.isConnected && before !== undefined) {
-    const delta = anchor.getBoundingClientRect().top - before;
+    const delta = middle(anchor) - before;
     if (delta) window.scrollBy({ top: delta, behavior: 'instant' });
   }
   requestAnimationFrame(() => root.removeProperty('overflow-anchor'));
@@ -204,7 +209,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       <OrderCtaContext.Provider value={cta}>
         {cover}
         <div data-page-frame="" className="mx-auto w-full max-w-page px-gutter pt-6 pb-10 lg:pt-8 lg:pb-section">
-          <div className="@container/shop flex min-w-0 flex-col gap-8 @[56rem]/shop:gap-6">
+          <div className="@container/shop flex min-w-0 flex-col gap-8 transition-none @[56rem]/shop:gap-6">
             {intro}
             {menu}
             {door}

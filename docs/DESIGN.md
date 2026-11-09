@@ -100,7 +100,7 @@ A dimmed fallback tile (sold out, a cancelled or expired order) switches to surf
 
 | Role utility | Size and weight | Use |
 |---|---|---|
-| `type-hero` | 40 / 68 px, 800, −0.03em | Start headline, shop name |
+| `type-hero` | 40 / 68 px, 800, −0.03em | Start headline |
 | `type-display` | 30 / 40 px, 800, −0.03em | Page titles (Order SHF-…, receipt state) |
 | `type-title` | 20 / 24 px, 800 | Empty-state titles |
 | `type-heading` | 18 px, 700 | Section headings |
