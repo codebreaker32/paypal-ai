@@ -1,0 +1,34 @@
+Final WP8 test output (run 5, session 11, 9 Nov 2026 IST). e2e on 71639a4; src, tests and e2e are unchanged on 2532da4, where the unit, typecheck, lint and sandbox runs were made.
+
+== Full e2e with the capture gate (SHELFIE_SCREENSHOTS=1) ==
+[capture-gate] shop shp_yq7kolgfh22tyjt3 live at /s/marigold-bakehouse-7: 6 PayPal sandbox products (PROD-1RP03192EF257381F, PROD-9ER03161ML305651K, PROD-8U7469980K505332V…)
+[capture-gate] [seller] order SHF-APY7PD (ord_xhzfmxepzkthrsg6) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [seller] PayPal order 0T002774VK447143A
+[capture-gate] [seller] capture 03E117375A935591K COMPLETED at PayPal, $27.00, payee = PAYPAL_SANDBOX_SELLER_EMAIL
+[capture-gate] [seller] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Wants it by 
+[capture-gate] [seller] tracking 9400111179423261083936 saved in Shelfie (no PayPal call)
+[capture-gate] [seller] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179423261083936.
+[capture-gate] [platform] demo shop shp_xjd6csurhjw5mexl live at /s/marigold-bakehouse: 9 published now, paid to the platform
+[capture-gate] [platform] order SHF-3JJALS (ord_gnhoagucmj75yeht) $27.00: 2 × Almond croissant, 1 × Country sourdough loaf + shipping
+[capture-gate] [platform] PayPal order 84H22691JT8467141
+[capture-gate] [platform] capture 24R445783P510712L COMPLETED at PayPal, $27.00, payee = the app's own account
+[capture-gate] [platform] brief (agent): "Ship 2 almond croissants + 1 country sourdough · San Jose, CA"; requests [{"kind":"allergy","text":"Nut allergy in the house; pack away from anything with nuts"},{"kind":"timing","text":"Wants it b
+[capture-gate] [platform] PayPal tracker 24R445783P510712L-9400111179423265840835 USPS SHIPPED
+[capture-gate] [platform] get_order_status: fulfilled · Shipped with USPS, tracking number 9400111179423265840835.
+[capture-gate] shop shp_lziwkzhguurah6wr live at /s/marigold-bakehouse-8: 6 PayPal sandbox products (PROD-5DU53842E5561720C, PROD-72U26788HX6082948, PROD-2P986614CG1617434…)
+[capture-gate] [cart] order SHF-SJA6UX (ord_f25sl3hp6iblwfff) $19.50 from the shop page
+[capture-gate] [cart] capture 2DE60748XU6718018 COMPLETED at PayPal, $19.50, payee = PAYPAL_SANDBOX_SELLER_EMAIL
+[capture-gate] [cart] brief (agent): "Pickup: 1 country sourdough loaf + 1 seeded rye · Sat or Sun at 14 Alder St"
+  33 skipped
+  530 passed (29.9m)
+e2e exit 0
+
+== Skipped (33): on-request recordings and account screenshots, the hidden Other carrier, dashboard-loading (production build only) ==
+
+== npm test ==
+ Test Files  170 passed (170)
+      Tests  2325 passed (2325)
+typecheck exit 0, lint exit 0
+
+== npm run test:sandbox ==
+8 passed (8)
