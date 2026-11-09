@@ -47,6 +47,9 @@ const { ownerCookieName } = await import('@/lib/auth/owner');
 const { sessionCookieName, startSession } = await import('@/lib/auth/session');
 const { hashToken } = await import('@/lib/domain/ids');
 const { DELETE: deleteShop } = await import('@/app/api/shops/[id]/route');
+const { POST: changePassword } = await import('@/app/api/account/password/route');
+const { DELETE: logOutOthers } = await import('@/app/api/account/sessions/route');
+const { DELETE: deleteAccount } = await import('@/app/api/account/route');
 
 const draft = (name: string): DraftItem => ({
   section: 'Pastries', name, description: null, sourceText: name, confidence: 'high', kind: 'PHYSICAL',
@@ -330,4 +333,263 @@ describe('DELETE /api/shops/[id]', () => {
   });
 });
 
-void [NEW_PASSWORD, sessionCookieName, hashToken];
+describe('the account routes', () => {
+  let account: ReturnType<typeof newAccount>;
+  const OTHER = 'hash-of-another-device';
+  const addOtherDevice = () =>
+    sessions.create(state.db, { tokenHash: OTHER, accountId: account.id, expiresAt: new Date(Date.now() + 86_400_000).toISOString() });
+  const mine = () => hashToken(state.jar.get(sessionCookieName())!);
+  const hashNow = () => accounts.byId(state.db, account.id)!.passwordHash;
+  const post = (body: unknown, headers: Record<string, string> = {}) =>
+    new Request('http://localhost/api/account/password', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', ...headers },
+      body: JSON.stringify(body),
+    });
+
+  beforeEach(async () => {
+    account = newAccount();
+    await startSession(account.id);
+    addOtherDevice();
+  });
+
+  describe('POST /api/account/password', () => {
+    const change = (body: unknown = { currentPassword: PASSWORD, password: NEW_PASSWORD }, headers?: Record<string, string>) =>
+      changePassword(post(body, headers));
+
+    it('changes the password, ends other sessions and keeps this one', async () => {
+      const token = mine();
+      const res = await change();
+      expect(res.status).toBe(204);
+      expect(hashNow()).toBe(`fake$${NEW_PASSWORD}`);
+      expect(sessions.byTokenHash(state.db, OTHER)).toBeNull();
+      expect(sessions.byTokenHash(state.db, token)).not.toBeNull();
+      expect(res.headers.get('cache-control')).toBe('no-store');
+    });
+
+    it('moves password_changed_at', async () => {
+      state.db.prepare('UPDATE accounts SET password_changed_at = ? WHERE id = ?').run('2020-01-01T00:00:00.000Z', account.id);
+      await change();
+      expect(accounts.byId(state.db, account.id)!.passwordChangedAt).not.toBe('2020-01-01T00:00:00.000Z');
+    });
+
+    it('refuses a cross-site request', async () => {
+      const res = await change(undefined, { origin: 'https://evil.example' });
+      expect((await errorOf(res)).code).toBe('BAD_ORIGIN');
+      expect(hashNow()).toBe(`fake$${PASSWORD}`);
+    });
+
+    it('is 401 with no session', async () => {
+      state.jar.clear();
+      expect((await change()).status).toBe(401);
+      expect(hashes.verify).not.toHaveBeenCalled();
+    });
+
+    it('refuses a weak new password before any hash', async () => {
+      const res = await change({ currentPassword: PASSWORD, password: 'short' });
+      expect(res.status).toBe(400);
+      expect((await errorOf(res)).code).toBe('WEAK_PASSWORD');
+      expect(hashes.verify).not.toHaveBeenCalled();
+      expect(hashes.hash).not.toHaveBeenCalled();
+    });
+
+    it('refuses the account email as the new password', async () => {
+      const email = 'rosa.longer.address@example.com';
+      accounts.create(state.db, { email, passwordHash: `fake$${PASSWORD}`, recoveryHash: 'r2', termsVersion: 'v1' });
+      state.jar.clear();
+      await startSession(accounts.byEmail(state.db, email)!.id);
+      const res = await change({ currentPassword: PASSWORD, password: email });
+      expect((await errorOf(res)).code).toBe('WEAK_PASSWORD');
+    });
+
+    it('needs the current password', async () => {
+      const res = await change({ password: NEW_PASSWORD });
+      expect((await errorOf(res)).code).toBe('PASSWORD_REQUIRED');
+      expect(hashes.hash).not.toHaveBeenCalled();
+    });
+
+    it('leaves everything alone on a wrong password', async () => {
+      const res = await change({ currentPassword: 'not the password at all', password: NEW_PASSWORD });
+      expect((await errorOf(res)).code).toBe('PASSWORD_WRONG');
+      expect(hashes.hash).not.toHaveBeenCalled();
+      expect(hashNow()).toBe(`fake$${PASSWORD}`);
+      expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
+    });
+
+    it('stops hashing after ten wrong passwords (SR8, SR11)', async () => {
+      vi.stubEnv('SHELFIE_TEST', '');
+      for (let i = 0; i < 10; i++) await change({ currentPassword: 'not the password at all', password: NEW_PASSWORD });
+      hashes.verify.mockClear();
+      const res = await change();
+      expect(res.status).toBe(429);
+      expect(hashes.verify).not.toHaveBeenCalled();
+      expect(hashes.hash).not.toHaveBeenCalled();
+    });
+
+    it('answers 503 BUSY when the new hash cannot run (SR7)', async () => {
+      hashes.hash.mockRejectedValueOnce(new password.HashBusyError());
+      const res = await change();
+      expect(res.status).toBe(503);
+      expect(hashNow()).toBe(`fake$${PASSWORD}`);
+      expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
+    });
+
+    it('writes nothing when a recovery swapped the password during the hash', async () => {
+      hashes.hash.mockImplementationOnce(async (p: string) => {
+        accounts.setPasswordHash(state.db, account.id, 'fake$from a recovery');
+        return `fake$${p}`;
+      });
+      const res = await change();
+      expect((await errorOf(res)).code).toBe('PASSWORD_WRONG');
+      expect(hashNow()).toBe('fake$from a recovery');
+      expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
+    });
+
+    it('writes nothing when this session ended during the hash', async () => {
+      hashes.hash.mockImplementationOnce(async (p: string) => {
+        sessions.deleteByTokenHash(state.db, mine());
+        return `fake$${p}`;
+      });
+      expect((await change()).status).toBe(401);
+      expect(hashNow()).toBe(`fake$${PASSWORD}`);
+    });
+  });
+
+  describe('DELETE /api/account/sessions', () => {
+    const endOthers = (headers: Record<string, string> = {}) =>
+      logOutOthers(new Request('http://localhost/api/account/sessions', { method: 'DELETE', headers }));
+
+    it('ends the other sessions and keeps this one', async () => {
+      const token = mine();
+      expect((await endOthers()).status).toBe(204);
+      expect(sessions.byTokenHash(state.db, OTHER)).toBeNull();
+      expect(sessions.byTokenHash(state.db, token)).not.toBeNull();
+    });
+
+    it('leaves another account alone', async () => {
+      const other = newAccount('other@example.com');
+      sessions.create(state.db, { tokenHash: 'theirs', accountId: other.id, expiresAt: new Date(Date.now() + 86_400_000).toISOString() });
+      await endOthers();
+      expect(sessions.byTokenHash(state.db, 'theirs')).not.toBeNull();
+    });
+
+    it('is 401 with no session', async () => {
+      state.jar.clear();
+      expect((await endOthers()).status).toBe(401);
+      expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
+    });
+
+    it('refuses a cross-site request', async () => {
+      expect((await errorOf(await endOthers({ origin: 'https://evil.example' }))).code).toBe('BAD_ORIGIN');
+      expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
+    });
+  });
+
+  describe('DELETE /api/account', () => {
+    const close = (body: unknown = { currentPassword: PASSWORD }, headers?: Record<string, string>) =>
+      deleteAccount(del('/api/account', body, headers));
+
+    it('removes the account, its shops, files and sessions, retires the slugs and clears the cookie', async () => {
+      const a = liveShop('Shop One', account.id).shop;
+      const b = liveShop('Shop Two', account.id).shop;
+      fs.mkdirSync(path.join(uploads, a.id));
+      const res = await close();
+      expect(res.status).toBe(204);
+      expect(accounts.byId(state.db, account.id)).toBeNull();
+      expect(shops.byId(state.db, a.id)).toBeNull();
+      expect(shops.byId(state.db, b.id)).toBeNull();
+      expect(state.db.prepare('select count(*) as n from sessions').get()).toEqual({ n: 0 });
+      expect(retired('shop-one')).toBe(true);
+      expect(retired('shop-two')).toBe(true);
+      expect(fs.existsSync(path.join(uploads, a.id))).toBe(false);
+      expect(state.jar.get(sessionCookieName())).toBe('');
+    });
+
+    it('frees the email and keeps the slug', async () => {
+      liveShop(NAME, account.id);
+      await close();
+      expect(accounts.byEmail(state.db, 'rosa@example.com')).toBeNull();
+      expect(shops.create(state.db, { name: NAME }).shop.slug).toBe(`${SLUG}-2`);
+    });
+
+    it('leaves other accounts alone', async () => {
+      const other = newAccount('other@example.com');
+      const theirs = liveShop('Their Shop', other.id).shop;
+      await close();
+      expect(accounts.byId(state.db, other.id)).not.toBeNull();
+      expect(shops.byId(state.db, theirs.id)).not.toBeNull();
+    });
+
+    it('is 409 OPEN_ORDERS naming only the shops with open orders, and deletes nothing', async () => {
+      const a = liveShop('Shop One', account.id).shop;
+      const b = liveShop('Shop Two', account.id).shop;
+      liveShop('Shop Three', account.id);
+      placeOrder(a.id, 'paid');
+      placeOrder(b.id, 'awaiting_approval');
+      const res = await close();
+      expect(res.status).toBe(409);
+      const error = await errorOf(res);
+      expect(error.code).toBe('OPEN_ORDERS');
+      expect(error.message).toContain('Shop One');
+      expect(error.message).toContain('Shop Two');
+      expect(error.message).not.toContain('Shop Three');
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+      expect(shopRows()).toBe(3);
+      expect(retired('shop-three')).toBe(false);
+    });
+
+    it('needs the current password', async () => {
+      const res = await close({});
+      expect((await errorOf(res)).code).toBe('PASSWORD_REQUIRED');
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('refuses a wrong password', async () => {
+      expect((await errorOf(await close({ currentPassword: 'not the password at all' }))).code).toBe('PASSWORD_WRONG');
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('stops hashing after ten wrong passwords (SR8, SR11)', async () => {
+      vi.stubEnv('SHELFIE_TEST', '');
+      for (let i = 0; i < 10; i++) await close({ currentPassword: 'not the password at all' });
+      hashes.verify.mockClear();
+      expect((await close()).status).toBe(429);
+      expect(hashes.verify).not.toHaveBeenCalled();
+    });
+
+    it('answers 503 BUSY when the hash gate is full (SR7)', async () => {
+      hashes.verify.mockRejectedValueOnce(new password.HashBusyError());
+      expect((await close()).status).toBe(503);
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('is 401 with no session', async () => {
+      state.jar.clear();
+      expect((await close()).status).toBe(401);
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('refuses a cross-site request', async () => {
+      expect((await errorOf(await close(undefined, { origin: 'https://evil.example' }))).code).toBe('BAD_ORIGIN');
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('writes nothing when a recovery swapped the password during the check', async () => {
+      hashes.verify.mockImplementationOnce(async () => {
+        accounts.setPasswordHash(state.db, account.id, 'fake$from a recovery');
+        return true;
+      });
+      expect((await errorOf(await close())).code).toBe('PASSWORD_WRONG');
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+
+    it('writes nothing when this session ended during the check', async () => {
+      hashes.verify.mockImplementationOnce(async () => {
+        sessions.deleteByTokenHash(state.db, mine());
+        return true;
+      });
+      expect((await close()).status).toBe(401);
+      expect(accounts.byId(state.db, account.id)).not.toBeNull();
+    });
+  });
+});

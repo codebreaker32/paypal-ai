@@ -3,7 +3,9 @@
 // /demo/ or /samples/ photo, and never the library cache other shops share.
 import fs from 'node:fs/promises';
 import type { Db } from '@/lib/db';
+import * as accounts from '@/lib/db/repos/accounts';
 import * as items from '@/lib/db/repos/items';
+import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
 import type { Shop } from '@/lib/domain/types';
 import { uploadFilePath } from '@/lib/uploads';
@@ -29,6 +31,26 @@ export function deleteShopRows(db: Db, shop: Shop): string[] {
   const paths = [...photos, uploadFilePath(shop.id)];
   shops.deleteAndRetireSlug(db, shop);
   return paths;
+}
+
+export type DeleteAccountOutcome = { blocked: string } | { paths: string[] };
+
+/**
+ * Removes the account, every shop it owns and its sessions, retiring each slug. Call inside a transaction. `blocked` is
+ * the message naming the shops with open orders, and nothing has changed; `paths` go to `removeFiles` after the commit.
+ */
+export function deleteAccountRows(db: Db, accountId: string): DeleteAccountOutcome {
+  const owned = shops.listByAccount(db, accountId);
+  const open = owned.flatMap((shop) => {
+    const n = orders.countUnfinished(db, shop.id);
+    return n > 0 ? [`${shop.name} (${n})`] : [];
+  });
+  if (open.length > 0) {
+    return { blocked: `Orders are still open at ${open.join(', ')}. Hand them over, or wait for unpaid ones to expire (up to an hour), then try again.` };
+  }
+  const paths = owned.flatMap((shop) => deleteShopRows(db, shop));
+  accounts.deleteRow(db, accountId);
+  return { paths };
 }
 
 /** Never throws: the rows are already gone, and a stale file is only disk space. */

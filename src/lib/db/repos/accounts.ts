@@ -86,6 +86,26 @@ export function replaceRecoveryHash(db: Db, id: string, recoveryHash: string, ve
   return changes === 1;
 }
 
+/**
+ * A seller's own password change: swaps the hash and ends every session but `keepTokenHash`, in one transaction. False,
+ * and nothing changed, if the row no longer holds the hash that was just verified.
+ */
+export function changePassword(db: Db, id: string, passwordHash: string, verifiedHash: string, keepTokenHash: string): boolean {
+  return db.transaction(() => {
+    const { changes } = db
+      .prepare('UPDATE accounts SET password_hash = ?, password_changed_at = ? WHERE id = ? AND password_hash = ?')
+      .run(passwordHash, now(), id, verifiedHash);
+    if (changes !== 1) return false;
+    sessions.deleteOthersForAccount(db, id, keepTokenHash);
+    return true;
+  })();
+}
+
+/** Deletes the account row; its sessions cascade. Delete its shops first (`shops.account_id` has no cascade). */
+export function deleteRow(db: Db, id: string): void {
+  db.prepare('DELETE FROM accounts WHERE id = ?').run(id);
+}
+
 export interface RecoverAccountInput {
   accountId: string;
   /** The hash of the key the seller typed; the row must still hold it. */
