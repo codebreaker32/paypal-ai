@@ -557,6 +557,17 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expectAccessible(page);
     });
 
+    test('one column: the state with its action first, the summary under it', async ({ page }) => {
+      await page.goto(`/o/${fx.awaiting.id}`);
+      await settle(page);
+      const heading = (await page.getByRole('heading', { level: 1 }).boundingBox())!;
+      const action = (await page.getByRole('link', { name: 'Approve $27.00 on PayPal' }).boundingBox())!;
+      const summary = (await page.getByRole('region', { name: 'Marigold Bakehouse' }).boundingBox())!;
+      expect(summary.y).toBeGreaterThanOrEqual(action.y + action.height);
+      expect(Math.abs(summary.x - heading.x)).toBeLessThanOrEqual(1);
+      expect(summary.width).toBeLessThanOrEqual(36 * 16);
+    });
+
     test('cancelled', async ({ page }) => {
       await page.goto(`/o/${fx.cancelled.id}`);
       await settle(page);
@@ -569,6 +580,20 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
 
 test.describe('receipt behaviour', () => {
   test.use({ viewport: PHONE });
+
+  for (const [viewport, size] of [['390', PHONE], ['a small phone', { width: 360, height: 640 }]] as const) {
+    test(`on ${viewport}, the primary action is on the first screen`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await page.goto(`/o/${fx.awaiting.id}`);
+      await settle(page);
+      const approve = (await page.getByRole('link', { name: 'Approve $27.00 on PayPal' }).boundingBox())!;
+      expect(approve.y + approve.height).toBeLessThanOrEqual(size.height);
+      await page.goto(`/o/${fx.paid.id}`);
+      await settle(page);
+      const back = (await page.getByRole('link', { name: 'Back to shop' }).boundingBox())!;
+      expect(back.y + back.height).toBeLessThanOrEqual(size.height);
+    });
+  }
 
   test('an unknown order says so with a 404', async ({ page }) => {
     const res = await page.goto('/o/ord_doesnotexist000');
