@@ -14,7 +14,7 @@ import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
 import { PAYEE_REQUIRED_MESSAGE, canBePaid } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
 import { IssueCard, PhotoContext, type OnUpdate } from './IssueCards';
-import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
+import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList, anyExamplePicture } from './ItemLists';
 import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
 import { PAYEE_FIELD_ID, ShopDetails } from './ShopDetails';
@@ -156,6 +156,7 @@ export function ReviewStep(props: ReviewProps) {
   // Example photos matched over the whole menu (not removed items), as the public shop page does.
   const pictures = useMemo(() => itemPictures(items.filter((i) => i.status !== 'removed'), shopKind), [items, shopKind]);
   const photoContext = useMemo(() => ({ shopId, shopKind, onPhoto, pictures }), [shopId, shopKind, onPhoto, pictures]);
+  const showsExample = anyExamplePicture([...ready, ...inPerson], shopKind, pictures);
 
   const makeItem = useCallback(
     async (input: { name: string; priceCents: number | null; sourceText: string }) => {
@@ -316,6 +317,7 @@ export function ReviewStep(props: ReviewProps) {
 
           <Reveal>
             <section aria-labelledby="ready-title" className="flex flex-col gap-4">
+              {showsExample && <p className="text-sm text-ink-soft">Example photos are marked in the corner. Tap one to use your own.</p>}
               <h2 id="ready-title" tabIndex={-1} className="type-title focus:outline-none focus-visible:outline-2">
                 Ready for PayPal <span className="type-figures text-ink-muted">({ready.length})</span>
               </h2>

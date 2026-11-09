@@ -10,7 +10,7 @@ import { cx } from './cx';
 
 const COPIED_MS = 2000;
 
-const COPY_FAILED: ToastInput = { title: 'Couldn’t copy', description: 'Select the text and copy it yourself.', tone: 'danger' };
+export const COPY_FAILED: ToastInput = { title: 'Couldn’t copy', description: 'Select the text and copy it yourself.', tone: 'danger' };
 
 /** Puts `text` on the clipboard. Success needs no toast (the button says so); a refused clipboard does. */
 export async function copyAndReport(

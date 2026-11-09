@@ -251,7 +251,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         {section === 'menu' && (
           <MenuPanel items={items} shopId={shop.id} shopKind={kind} shopName={shop.name} coverUrl={coverUrl} onItemsChange={setItems} onCoverChange={(url) => patchShell(shop.id, { coverUrl: url })} />
         )}
-        {section === 'share' && <SharePanel shopId={shop.id} status={status} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} qr={shareQr} />}
+        {section === 'share' && <SharePanel shopId={shop.id} shopName={shop.name} coverUrl={coverUrl} status={status} shopUrl={`${appUrl}/s/${shop.slug}`} doorUrl={`${appUrl}/s/${shop.slug}/mcp`} slug={shop.slug} qr={shareQr} />}
         {section === 'settings' && (
           <SettingsPanel
             shopId={shop.id}

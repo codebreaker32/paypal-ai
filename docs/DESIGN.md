@@ -209,7 +209,7 @@ The shop's logo (a square upload), else its cover cropped square, else the first
   - The header shows the number, the status dot and word, who placed it and the big total.
   - Left column: the AI brief as the one slate note well (`note-soft`), then Items and What happened. Right column: the action (hand over, add tracking, the explanation), Buyer and PayPal.
   - Sections are divided by rules on the white page. Copy is trimmed to one line where a seller would otherwise be stuck.
-- **Receipt `/o/[ref]`:** the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), beside a grey summary panel. The panel shows the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
+- **Receipt `/o/[ref]`:** one column at every width, `measure` wide and centred on the page, like the auth screens. First the state (an icon in a soft circle, a `type-display` title, one paragraph and the actions), which fits a phone's first screen down to its primary action. Under it, the one grey well on the page: the shop, the order number with a status dot and word, the lines and total, and who was paid. There is no stamp and no paper edge.
 
 ### Item sheet and cart (`shop/ItemSheet.tsx`, `shop/CartView.tsx`)
 

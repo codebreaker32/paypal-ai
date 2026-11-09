@@ -93,14 +93,14 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
   const approvalUrl = view.approve && order.approvalUrl && isPayPalApprovalUrl(order.approvalUrl) ? order.approvalUrl : null;
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,25rem)] lg:items-start lg:gap-16">
+    <div className="mx-auto flex w-full max-w-measure flex-col gap-10">
       <div className="flex flex-col gap-8">
         <div aria-live="polite" className="flex flex-col items-start gap-4">
           {/* Keyed by the state, so a change (Waiting → Paid) pops the new icon in again. */}
           <span key={view.title} className={cx('rc-pop inline-flex size-14 items-center justify-center rounded-full', TONE[view.tone])}>
             <Icon icon={view.icon} size="lg" className={cx(view.spin && 'animate-spin')} />
           </span>
-          <h1 className="rc-rise type-display" style={{ '--rc-delay': '60ms' } as CSSProperties}>
+          <h1 className="rc-rise type-display [overflow-wrap:anywhere]" style={{ '--rc-delay': '60ms' } as CSSProperties}>
             <StatusSwap value={view.title}>{view.title}</StatusSwap>
           </h1>
           <p className="rc-rise type-lead text-ink-soft" style={{ '--rc-delay': '120ms' } as CSSProperties}>
@@ -129,7 +129,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
       </div>
 
       {/* The order summary: a plain panel, like a store's order confirmation. Status as a dot and a word. */}
-      <Card as="section" aria-labelledby="receipt-title" tone="sunken" padding="lg" className="flex flex-col gap-5 lg:mt-2">
+      <Card as="section" aria-labelledby="receipt-title" tone="sunken" padding="lg" className="flex flex-col gap-5">
         <div className="flex flex-col gap-1">
           <h2 id="receipt-title" className="type-heading [overflow-wrap:anywhere]">
             {order.shopName}

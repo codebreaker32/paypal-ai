@@ -4,6 +4,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import { Check, CircleDollarSign, Copy, Hand, Merge, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { cx } from '@/components/ui/cx';
 import { Field, TextInput } from '@/components/ui/field';
 import type { IssueCode, ItemWithVariants } from '@/lib/domain/types';
 import { cardKindFor, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
@@ -59,6 +60,7 @@ function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (messag
       itemId={item.id}
       name={item.name}
       {...reviewPicture(item, photo.shopKind, photo.pictures)}
+      markExample
       size="sm"
       onChange={(url) => photo.onPhoto(item.id, url)}
       onError={onError}
@@ -129,14 +131,32 @@ function AsRead({ item, showPrice }: { item: ItemWithVariants; showPrice?: boole
   );
 }
 
-function Actions({ children }: { children: ReactNode }) {
-  return <div className="flex flex-wrap items-center gap-3">{children}</div>;
+/**
+ * A card's buttons. Under 640 px every row is the two-actions-and-a-bin grid. A label too long for its track wraps inside
+ * its button: on rows with no bin (Set today’s price, Ask in person) at any phone width, on rows with the bin only under
+ * 360 px, so Looks right stays on one line where it fits. With no bin, the second action takes the third track, so the
+ * row has no hole on its right.
+ */
+function Actions({ withRemove, children }: { withRemove?: boolean; children: ReactNode }) {
+  return (
+    <div
+      className={cx(
+        'flex flex-wrap items-center gap-3 max-sm:grid max-sm:grid-cols-[1fr_1fr_auto] max-sm:gap-2',
+        'max-sm:[&>button]:px-3',
+        withRemove
+          ? 'max-[359px]:[&>button]:whitespace-normal'
+          : 'max-sm:[&>button]:whitespace-normal max-sm:[&>button:nth-child(2):last-child]:col-span-2',
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 function RemoveButton({ item, onUpdate }: { item: ItemWithVariants; onUpdate: OnUpdate }) {
   return (
-    <Button variant="ghost" icon={Trash2} onClick={() => onUpdate({ itemId: item.id, status: 'removed' }, { resolved: true })}>
-      Remove
+    <Button variant="ghost" icon={Trash2} onClick={() => onUpdate({ itemId: item.id, status: 'removed' }, { resolved: true })} className="max-sm:col-start-3">
+      <span className="max-sm:sr-only">Remove</span>
     </Button>
   );
 }
@@ -159,8 +179,8 @@ function PriceCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants;
         }}
       >
         {price.fields}
-        <Actions>
-          <Button type="submit" variant="secondary" icon={Check}>
+        <Actions withRemove>
+          <Button type="submit" variant="secondary" icon={Check} className="max-sm:col-span-2">
             Save price
           </Button>
           <RemoveButton item={item} onUpdate={onUpdate} />
@@ -248,7 +268,7 @@ function CheckCard({ id, item, onUpdate }: { id: string; item: ItemWithVariants;
           </Actions>
         </form>
       ) : (
-        <Actions>
+        <Actions withRemove>
           <Button variant="secondary" icon={Check} onClick={() => onUpdate({ itemId: item.id, resolveIssues: true }, { resolved: true })}>
             Looks right
           </Button>

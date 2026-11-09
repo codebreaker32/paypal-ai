@@ -32,6 +32,11 @@ export function reviewPicture(item: ItemWithVariants, shopKind: ShopKind, pictur
   return pictureOf(item, shopKind, pictures?.get(item.id)?.exampleUrl);
 }
 
+/** Whether any of these rows shows a library example as its picture. */
+export function anyExamplePicture(items: ItemWithVariants[], shopKind: ShopKind, pictures?: ReadonlyMap<string, ItemPicture>): boolean {
+  return items.some((it) => pictureSource(reviewPicture(it, shopKind, pictures)) === 'example');
+}
+
 /** A dot and a word, the way the dashboard shows status. */
 function StatusText({ tone, children }: { tone: 'ok' | 'warn'; children: ReactNode }) {
   return (
@@ -75,6 +80,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto, pictures }:
           itemId={item.id}
           name={item.name}
           {...picture}
+          markExample
           tone={tone}
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
@@ -94,7 +100,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto, pictures }:
           ) : (
             <StatusText tone="warn">Needs a price</StatusText>
           )}
-          <ExampleCaption show={pictureSource(picture) === 'example'} />
+          <ExampleCaption show={pictureSource(picture) === 'example'} quiet />
         </div>
         {inPayPal ? (
           <StatusText tone="ok">In PayPal</StatusText>
@@ -177,12 +183,13 @@ function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto, pictures }: { 
           itemId={item.id}
           name={item.name}
           {...picture}
+          markExample
           onChange={(url) => onPhoto(item.id, url)}
           onError={setPhotoError}
         />
         <span className="flex flex-1 flex-col">
           <span className="font-semibold [overflow-wrap:anywhere]">{item.name}</span>
-          <ExampleCaption show={pictureSource(picture) === 'example'} />
+          <ExampleCaption show={pictureSource(picture) === 'example'} quiet />
         </span>
         {!open && (
           <Button variant="ghost" icon={CircleDollarSign} onClick={() => setOpen(true)}>

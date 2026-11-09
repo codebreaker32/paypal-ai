@@ -296,6 +296,68 @@ test.describe('console states', () => {
     await expect(door).toHaveAttribute('open', '');
   });
 
+  test('a newer turn folds the first turn\'s Activity to one line that opens again', async ({ page }) => {
+    await replayConsole(page);
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const region = await openConsole(page, false);
+    const activity = region.getByRole('group', { name: 'Activity', exact: true });
+    const firstRow = region.locator('summary', { hasText: 'get_shop_info' });
+
+    const input = region.getByRole('textbox', { name: 'Message to the assistant' });
+    await input.fill(FIXTURE.prompts[0]);
+    await region.getByRole('button', { name: 'Send' }).click();
+    await expect(region.getByText(/Should I place it\?/)).toBeVisible();
+    await expect(firstRow).toBeVisible();
+
+    await input.fill(FIXTURE.prompts[1]);
+    await region.getByRole('button', { name: 'Send' }).click();
+    await expect(region.getByRole('link', { name: 'Approve $27.00 on PayPal' })).toBeVisible();
+
+    await expect(activity).toHaveCount(2);
+    await expect(activity.first().locator('summary').first()).toHaveText('Activity · 3 calls to the agent door');
+    await expect(firstRow).toBeHidden();
+    await expect(region.locator('summary', { hasText: 'create_order' })).toBeVisible();
+
+    // Opened again, its rows are back, and each row's time is inside its own expansion.
+    await activity.first().locator('summary').first().click();
+    await expect(firstRow).toBeVisible();
+    await expect(activity.first().getByText(/^Took \d+ ms$/).first()).toBeHidden();
+    await firstRow.click();
+    await expect(activity.first().getByText(/^Took \d+ ms$/).first()).toBeVisible();
+    await expectAccessible(page);
+  });
+
+  test('a failed call stays in sight after a newer turn', async ({ page }) => {
+    const turns = [
+      [
+        { type: 'session', id: 'asst_failed' },
+        { type: 'tool_call', id: 'c1', name: 'create_order', input: {} },
+        { type: 'tool_result', id: 'c1', ok: false, result: { error: { code: 'OPTION_REQUIRED' } }, ms: 12 },
+        { type: 'text', text: 'Which size would you like?' },
+        { type: 'done' },
+      ],
+      [{ type: 'session', id: 'asst_failed' }, { type: 'text', text: 'Noted.' }, { type: 'done' }],
+    ];
+    let request = 0;
+    await page.route(`**/api/assistant/${SLUG}`, (route) =>
+      route.fulfill({ status: 200, contentType: 'application/x-ndjson', body: ndjson(turns[request++]) }),
+    );
+    await page.goto(`/s/${SLUG}`);
+    await settle(page);
+    const region = await openConsole(page, false);
+    const input = region.getByRole('textbox', { name: 'Message to the assistant' });
+    await input.fill('Two loaves');
+    await region.getByRole('button', { name: 'Send' }).click();
+    await expect(region.getByText('Which size would you like?')).toBeVisible();
+    await input.fill('Large');
+    await region.getByRole('button', { name: 'Send' }).click();
+    await expect(region.getByText('Noted.')).toBeVisible();
+
+    await expect(region.locator('summary', { hasText: 'OPTION_REQUIRED' })).toBeVisible();
+    await expect(region.locator('details[role="group"]')).toHaveCount(0);
+  });
+
   test('rate limited: a plain message', async ({ page }) => {
     await page.route(`**/api/assistant/${SLUG}`, (route) =>
       route.fulfill({ status: 429, json: { error: { code: 'RATE_LIMITED', message: "You’ve sent a lot of messages in the last hour. Try again later." } } }),
@@ -495,6 +557,17 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await expectAccessible(page);
     });
 
+    test('one column: the state with its action first, the summary under it', async ({ page }) => {
+      await page.goto(`/o/${fx.awaiting.id}`);
+      await settle(page);
+      const heading = (await page.getByRole('heading', { level: 1 }).boundingBox())!;
+      const action = (await page.getByRole('link', { name: 'Approve $27.00 on PayPal' }).boundingBox())!;
+      const summary = (await page.getByRole('region', { name: 'Marigold Bakehouse' }).boundingBox())!;
+      expect(summary.y).toBeGreaterThanOrEqual(action.y + action.height);
+      expect(Math.abs(summary.x - heading.x)).toBeLessThanOrEqual(1);
+      expect(summary.width).toBeLessThanOrEqual(36 * 16);
+    });
+
     test('cancelled', async ({ page }) => {
       await page.goto(`/o/${fx.cancelled.id}`);
       await settle(page);
@@ -507,6 +580,20 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
 
 test.describe('receipt behaviour', () => {
   test.use({ viewport: PHONE });
+
+  for (const [viewport, size] of [['390', PHONE], ['a small phone', { width: 360, height: 640 }]] as const) {
+    test(`on ${viewport}, the primary action is on the first screen`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await page.goto(`/o/${fx.awaiting.id}`);
+      await settle(page);
+      const approve = (await page.getByRole('link', { name: 'Approve $27.00 on PayPal' }).boundingBox())!;
+      expect(approve.y + approve.height).toBeLessThanOrEqual(size.height);
+      await page.goto(`/o/${fx.paid.id}`);
+      await settle(page);
+      const back = (await page.getByRole('link', { name: 'Back to shop' }).boundingBox())!;
+      expect(back.y + back.height).toBeLessThanOrEqual(size.height);
+    });
+  }
 
   test('an unknown order says so with a 404', async ({ page }) => {
     const res = await page.goto('/o/ord_doesnotexist000');

@@ -241,6 +241,20 @@ export function turnStartIndex(entries: Pick<Entry, 'kind'>[]): number {
   return user + 1 < entries.length ? user + 1 : user;
 }
 
+/**
+ * The Activity entries that fold away: every one from before the buyer's latest message, unless one of its calls did
+ * not finish well. An errored or interrupted call stays in sight, and so does a call a failed turn left running.
+ */
+export function collapsedActivityKeys(entries: Entry[]): Set<string> {
+  const latestMessage = entries.findLastIndex((e) => e.kind === 'user');
+  return new Set(
+    entries
+      .slice(0, Math.max(latestMessage, 0))
+      .filter((e) => e.kind === 'activity' && e.calls.every((c) => c.status === 'ok'))
+      .map((e) => e.key),
+  );
+}
+
 // ---- saving across page loads (sessionStorage) ---------------------------------------------------------
 
 const str = (v: unknown): v is string => typeof v === 'string';
