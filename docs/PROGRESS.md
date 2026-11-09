@@ -2,6 +2,24 @@
 
 _Last updated: 2026-11-09 20:40 IST (run 5 complete)_
 
+## Run 5 is complete (9 Nov 2026, 20:40 IST)
+**Final summary.** Every work package is on `main` (fast-forwarded from `run-5-production`): WP1-WP9, the cart (WP3b), the click sounds, and the should-haves S1, S3, S4, S5 and S6 (S2 became part of the click sounds).
+- **Verified on the final code (`docs/judge/run5-final-tests.txt`):** full e2e with the capture gate 530 passed, 33 skipped, 0 failed, with three real sandbox captures COMPLETED (seller, platform, cart). `npm test` 2325 passed, typecheck and lint exit 0, `test:sandbox` 8 passed. Since that run only the video edit and docs changed.
+- **Judging:** round 12: Part A 25, Part B 24, 0 Part C fails; five of six Proposed checks passed and the sixth, `Proper placing`, passed on recheck after its fix. Round 12 scored A5 from the old video and was run before S1 and S3-S6; no later full round was run, to save usage. The fixes it named that are left are the human's (public repo, upload, deploy).
+- **The video:** `~/paypal-ai/video/out/shelfie-demo.mp4`, **159.90 s (2:39.9)**, 1920x1080, 30 fps, -14.0 LUFS, -1.0 dBTP, narration unchanged, on the final UI. Clarity test 7: 6 of 6. Frame check: no secrets or private data. Not uploaded. Earlier cuts: `shelfie-demo-v2.mp4` (the 2:39.9 cut on the previous UI), `shelfie-demo-v1.mp4`.
+- **Not verified, needs a real device or a deployment:** iOS throughout (keyboard pinning, scroll lock, Safari `overlay` transition, press feel), Android Back beyond the `pushState` path, `Share…` on a real phone (tested against a stub), whether the vibrate patterns can be felt, the Render deploy and DEPLOY's new smoke steps, webhook delivery, the live Pexels search.
+- **Known limits, kept as the brief specifies:** with SR11's numbers, about 130 failed requests from 10 addresses can block login and recovery for one email for up to an hour; a draft's PayPal email changes without a password; `SHELFIE_TEST` with `RENDER` set still skips the setup limits (SR20 covers the auth limits only); deleting a shop leaves its products in the PayPal sandbox catalog.
+
+**Needs from human, from the brief (the full submission checklist is at the end of this file):**
+1. Approve the Rubric additions in the brief and paste them into `docs/JUDGING.md`, or say to drop them.
+2. Done by the addendum: the cart is in.
+3. Done by the addendum: click sounds are in.
+4. Five minutes on a real iPhone and Android phone: press feel, sheet with keyboard (composer above it), log scroll, Back, tab bar clears the home indicator, chime versus the silent switch, whether the vibrate patterns are perceptible.
+5. Review `/terms` and `/privacy` (templates, not legal advice); supply the legal entity, governing law and a `SUPPORT_EMAIL`. Until then Help points at GitHub Issues.
+6. Confirm any pricing or "stays when real payments start" claim, or it stays off the site.
+7. Before 12 Nov, 12:00 PT (13 Nov 01:30 IST): make the repo public, fill SUBMISSION, upload the video.
+8. If you submit a hosted URL, run `npm run seed` in Render's Shell and keep the printed owner link private. Judges use sign-up there.
+
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
 - **Verified, baseline on `75153e1` (15:47–16:01 IST):** 1145 unit tests, typecheck and lint clean; full e2e 185 passed, 9 skipped, 0 failed. `video/out/shelfie-demo-v2.mp4` saved (the 2:39.9 cut).
@@ -398,7 +416,7 @@ Run 3: see "Current phase" above.
 **One checklist, about 20 minutes, before 12 Nov 2026 12:00 PT.** Judge rounds 2–7 held A5 and B4 at 4 for these steps alone, and without steps 1 and 4 the entry fails Stage One. No worker can do them: they need your GitHub, Render, YouTube and Devpost accounts.
 1. **Make the repo public** (about 3 min). `gh auth login`, then `gh repo edit codebreaker32/paypal-ai --visibility public --accept-visibility-change-consequences`. Check with `gh repo view codebreaker32/paypal-ai --json visibility,licenseInfo` (expect `PUBLIC` and `mit`). The full-history secret scan was clean on 6 Nov (gitleaks: 393 commits, no leaks; every `.env` value: 0 hits in history and in tracked files).
 2. **Deploy to Render** (about 10 min, optional but it moves B4). Follow `docs/DEPLOY.md`: New → Blueprint from `render.yaml`, enter the env vars (include `PAYPAL_SANDBOX_SELLER_EMAIL`), run `npm run seed` in the service shell, create the PayPal webhook for the service URL and set `PAYPAL_WEBHOOK_ID`, then run the smoke test there. From any machine: `curl -s https://<service>/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'` and `curl -s https://<service>/llms.txt` should show the https door.
-3. **Upload the video** (about 5 min). It is rendered: `~/paypal-ai/video/out/shelfie-demo.mp4` (the clearer run-4 cut, 2:39.9, 1920x1080, captions burned in; the older 2:45.3 cut is `shelfie-demo-v1.mp4`, for comparison only; the SRT is `video/shelfie-demo.srt`, the poster `video/out/poster.png`). Upload it to YouTube as **public** (title e.g. "Shelfie: one photo of a paper menu, and AI shoppers can order and pay with PayPal"); optionally add the SRT as captions. No music is used.
+3. **Upload the video** (about 5 min). It is rendered: `~/paypal-ai/video/out/shelfie-demo.mp4` (run 5's cut on the final UI, 2:39.9, 1920x1080, captions burned in; `shelfie-demo-v2.mp4` and `shelfie-demo-v1.mp4` are older cuts, for comparison only; the SRT is `video/shelfie-demo.srt`, the poster `video/out/poster.png`). Upload it to YouTube as **public** (title e.g. "Shelfie: one photo of a paper menu, and AI shoppers can order and pay with PayPal"); optionally add the SRT as captions. No music is used.
 4. **Fill in the 3 TODOs** in `docs/SUBMISSION.md` (`## Links`: video, repo, hosted demo) and replace README "Deploy to Render" → "**Not yet run.**" with the URL and the date you checked it. Then submit on Devpost with `docs/SUBMISSION.md`.
 5. **GitHub About section** (1 min): description "Snap a photo of a price list: Claude builds a PayPal catalog and an agent door (MCP) any AI assistant can order through, paid with PayPal Orders v2."; topics `paypal`, `mcp`, `claude`, `agentic-commerce`, `nextjs`.
 

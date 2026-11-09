@@ -2,7 +2,7 @@
 
 **File:** 159.90 s (2:39.9), 1920x1080, H.264 at 30/1 fps, AAC audio at **-14.0 LUFS integrated, true peak -1.0 dBFS** (`ebur128`), no black frames (`blackdetect`). One full render from the committed `video/project/demo.json`, nothing spliced. Clips 03, 04, 06, 06b and 08 were re-recorded after S3 to S6; `03b` is not used by the cut.
 
-**Method:** one frame every 2 s (80 frames), six to a sheet at 960 px wide, every sheet viewed on the session's first render. The second and third renders moved two captions; the frames that changed were viewed at 960 px or larger, and every other frame compared by PSNR (no difference above the threshold of 38 dB; the third render has no changed sampled frame against the second).
+**Method:** one frame every 2 s (80 frames), six to a sheet at 960 px wide, every sheet viewed on the session's first render. The second and third renders moved two captions; the frames that changed were viewed at 960 px or larger, and every other sampled frame compared by PSNR (all at or above 38 dB, which means no visible change; the third render has no changed sampled frame against the second).
 
 | Check | Result |
 |---|---|
