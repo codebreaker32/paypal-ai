@@ -4,10 +4,10 @@
 // `draft-xxxxxxxx` address is replaced at first publish, so a card printed before then would never open the shop.
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { Logo } from '@/components/brand/Logo';
+import { PageHeader } from '@/components/app/PageHeader';
 import { Icon } from '@/components/ui/icon';
-import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
 import { getOwnedShop, requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
@@ -32,38 +32,31 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
   const qr = shop.status === 'draft' ? null : await qrSvg(shopUrl);
 
   return (
-    <div className="mx-auto flex w-full max-w-page flex-col items-center gap-8 px-gutter pt-6 pb-section lg:flex-row lg:items-start lg:justify-center lg:gap-16 lg:pt-12 print:p-0">
-      <div className="flex w-full max-w-measure flex-col gap-5 lg:pt-4 print:hidden">
-        <TextLink href={`/shops/${shop.id}?tab=share`} className="self-start text-ink">
-          <Icon icon={ArrowLeft} size="sm" />
-          Back to Share
-        </TextLink>
-        <div className="flex flex-col gap-3">
-          <h1 className="type-display">Counter card</h1>
-          <p className="type-lead text-ink-soft">Stand it by your till. A scan opens your menu, and any AI assistant can order from it.</p>
-        </div>
-        {qr === null ? (
-          <p className="flex items-start gap-2.5 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
-            <Icon icon={TriangleAlert} className="mt-0.5" />
-            <span>
-              Your counter card is ready once your shop is live.{' '}
-              <span className="font-normal">
-                Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
-                <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
-                  Finish setting up
-                </Link>
-              </span>
+    <div className="flex w-full flex-col print:p-0">
+      <PageHeader
+        title="Counter card"
+        description="Stand it by your till. A scan opens your menu, and any AI assistant can order from it."
+        back={{ href: `/shops/${shop.id}?tab=share`, label: 'Share' }}
+        actions={qr !== null ? <PrintButton /> : undefined}
+      />
+
+      {qr === null && (
+        <p className="flex max-w-measure items-start gap-2.5 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
+          <Icon icon={TriangleAlert} className="mt-0.5" />
+          <span>
+            Your counter card is ready once your shop is live.{' '}
+            <span className="font-normal">
+              Your shop gets its web address when you publish, and the card’s code opens that address.{' '}
+              <Link href={`/shops/${shop.id}/setup`} className="press-text font-semibold underline underline-offset-4 decoration-line-strong decoration-2 hover:decoration-ink">
+                Finish setting up
+              </Link>
             </span>
-          </p>
-        ) : (
-          <div className="flex flex-col gap-2">
-            <PrintButton />
-            <p className="type-meta text-ink-muted">Prints 5 × 7 inches on letter or A4 paper. Cut along the edge.</p>
-          </div>
-        )}
-      </div>
+          </span>
+        </p>
+      )}
 
       {qr !== null && (
+        <div className="flex flex-col items-center gap-3">
         <article
           data-print-alone
           aria-labelledby="card-shop-name"
@@ -95,7 +88,7 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
                 role="img"
                 aria-label={`QR code that opens ${asTyped(shopUrl)}`}
                 data-testid="card-qr"
-                className={cx('aspect-square [&>svg]:block [&>svg]:size-full', shop.coverUrl ? 'w-[46%]' : 'w-3/5')}
+                className={cx('aspect-square [&>svg]:block [&>svg]:size-full', shop.coverUrl ? 'w-[36%] @md:w-[46%]' : 'w-[46%] @md:w-3/5')}
                 dangerouslySetInnerHTML={{ __html: qr }}
               />
               <p className="mt-1 type-heading">Scan for the menu</p>
@@ -115,6 +108,8 @@ export default async function CounterCardPage({ params }: PageProps<'/shops/[id]
             </footer>
           </div>
         </article>
+        <p className="type-meta text-ink-muted print:hidden">Prints 5 × 7 inches on letter or A4 paper. Cut along the edge.</p>
+        </div>
       )}
     </div>
   );

@@ -34,7 +34,7 @@ import type { Order, OrderBrief } from '@/lib/domain/types';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { PayPalApiError } from '@/lib/paypal/types';
 import { DEMO_SHOP, seedDemoShop } from '../scripts/seed-demo';
-import { DESKTOP, PHONE, holdNavigation, samplePhoto, settle, streamThenHold } from './helpers';
+import { DESKTOP, PHONE, appNav, holdNavigation, samplePhoto, settle, streamThenHold } from './helpers';
 import { E2E_DB, FIXTURE_PAYEE, addFixtureOrder, createFixtureShop, fixtureFromShop, type FixtureShop } from './task8-fixtures';
 
 const OUT = process.env.SCREENSHOTS_DIR
@@ -487,14 +487,6 @@ const SCREENS: Screen[] = [
       await signIn(context, setups.live.shopId, setups.live.ownerToken);
       await page.goto(`/shops/${setups.live.shopId}/setup`);
       await expect(page.getByRole('heading', { level: 1, name: 'Your shop is live' })).toBeVisible();
-      // The owner link holds a throwaway e2e token, but a token on a committed screenshot reads like a leak: draw it
-      // masked, as the demo clips do.
-      await page
-        .locator('code')
-        .filter({ hasText: '/claim/' })
-        .evaluate((el) => {
-          el.textContent = (el.textContent ?? '').replace(/\/claim\/[A-Za-z0-9_-]+/, '/claim/••••••••');
-        });
     },
   },
   // Shop and buyer console
@@ -654,7 +646,7 @@ const SCREENS: Screen[] = [
       await signIn(context, demo.shop.id, demo.ownerToken);
       pollerJustChecked();
       await page.goto(`/shops/${demo.shop.id}?tab=menu`);
-      await expect(page.getByRole('tab', { name: 'Menu' })).toHaveAttribute('aria-selected', 'true');
+      await expect(appNav(page).getByRole('link', { name: 'Menu' })).toHaveAttribute('aria-current', 'page');
     },
   },
   {
@@ -757,7 +749,7 @@ const SCREENS: Screen[] = [
       test.skip(dev, 'Next prefetches links only in a production build (npm run screenshots:prod).');
       // A click before the router has stored the prefetch goes straight to the (held) page request and stays on the
       // order, so click again until the skeleton shows.
-      const back = page.getByRole('main').getByRole('link', { name: 'Orders', exact: true });
+      const back = page.getByRole('main').getByRole('link', { name: 'Back to Orders', exact: true });
       const skeleton = page.locator('[aria-busy="true"]').getByRole('status');
       await expect(async () => {
         if (await back.isVisible()) await back.click();

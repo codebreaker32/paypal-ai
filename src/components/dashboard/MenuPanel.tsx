@@ -6,8 +6,8 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
-import { TextLink } from '@/components/ui/text-link';
 import { cx } from '@/components/ui/cx';
+import { Panel, PanelList, PanelRow } from '@/components/ui/panel';
 import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
 import { formatUSD } from '@/lib/domain/money';
@@ -64,7 +64,29 @@ function MenuRow({
   const [photoError, setPhotoError] = useState<string | null>(null);
   const soldOut = item.status === 'live' && item.soldOut;
   return (
-    <li className="flex flex-col gap-1.5 py-3" data-item={item.name}>
+    <PanelRow
+      data-item={item.name}
+      className="gap-y-1"
+      action={
+        item.status === 'live' ? (
+          <div className="flex justify-end">
+            <Switch
+              label={
+                <>
+                  <span className="sr-only">{item.name}: Sold out today</span>
+                  <span aria-hidden="true">Sold out</span>
+                </>
+              }
+              checked={item.soldOut}
+              busy={busy}
+              failed={!!error}
+              onChange={onToggle}
+              inline
+            />
+          </div>
+        ) : undefined
+      }
+    >
       <div className="flex items-center gap-3 sm:gap-4">
         <ItemPhotoPicker
           shopId={shopId}
@@ -86,25 +108,10 @@ function MenuRow({
           </span>
           <ExampleCaption show={pictureSource(picture) === 'example'} />
         </div>
-        {item.status === 'live' && (
-          <Switch
-            label={
-              <>
-                <span className="sr-only">{item.name}: Sold out today</span>
-                <span aria-hidden="true">Sold out</span>
-              </>
-            }
-            checked={item.soldOut}
-            busy={busy}
-            failed={!!error}
-            onChange={onToggle}
-            inline
-          />
-        )}
       </div>
       <PhotoError error={photoError} />
       {error && <FieldError>{error}</FieldError>}
-    </li>
+    </PanelRow>
   );
 }
 
@@ -112,7 +119,6 @@ export function MenuPanel({
   items,
   shopId,
   shopKind,
-  slug,
   shopName,
   coverUrl,
   onItemsChange,
@@ -122,7 +128,8 @@ export function MenuPanel({
   shopId: string;
   /** Decides an item's drawing while it has no photo, as on the public menu (`itemCategory(item, shopKind)`). */
   shopKind: ShopKind;
-  slug: string;
+  /** Unused since the shop link moved to the page header. */
+  slug?: string;
   /** For the cover's alt text. */
   shopName?: string;
   /** The shop's cover, kept by the dashboard (like the items) so it survives switching tabs. */
@@ -133,7 +140,6 @@ export function MenuPanel({
   const [busy, setBusy] = useState<ReadonlySet<string>>(new Set());
   const [errors, setErrors] = useState<Record<string, string>>({});
   const listed = listedItems(items);
-  const photos = listed.filter((i) => i.photoUrl).length;
   const pictures = itemPictures(listed, shopKind);
 
   const setItem = (id: string, patch: Partial<ItemWithVariants>) =>
@@ -166,7 +172,7 @@ export function MenuPanel({
   if (listed.length === 0) {
     return (
       <div className="flex max-w-measure flex-col items-start gap-3 rounded-(--card-radius) bg-surface-sunken p-6">
-        <h2 className="type-heading">Nothing on your menu yet</h2>
+        <h2 className="type-section">Nothing on your menu yet</h2>
         <p className="text-ink-soft">Publish items from setup and they show up here.</p>
         <Link href={`/shops/${shopId}/setup`} className={buttonClasses({ variant: 'primary' })}>
           Go to setup
@@ -176,21 +182,12 @@ export function MenuPanel({
   }
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:grid-rows-[auto_1fr] lg:gap-x-14">
-      <div className="flex min-w-0 flex-col gap-8 lg:col-start-1 lg:row-span-2 lg:row-start-1">
-        <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-1">
-          <div className="flex flex-col gap-1">
-            <h2 className="type-title">Menu</h2>
-            <p className="type-figures text-ink-soft">
-              {listed.length} {listed.length === 1 ? 'item' : 'items'} · {photos} with photos
-            </p>
-          </div>
-          <TextLink href={`/s/${slug}`}>See it on your shop</TextLink>
-        </div>
+    // Two columns only from xl: at lg the sidebar already takes 15rem, and the rows need the width.
+    <div className="grid gap-10 xl:grid-cols-[minmax(0,1fr)_22rem] xl:grid-rows-[auto_1fr] xl:gap-x-14">
+      <div className="flex min-w-0 flex-col gap-8 xl:col-start-1 xl:row-span-2 xl:row-start-1">
         {bySection(listed).map(([section, sectionItems], n) => (
-          <section key={section} aria-label={section} className="flex flex-col gap-1">
-            <h3 className="type-heading">{section}</h3>
-            <ul className="flex flex-col divide-y divide-line">
+          <Panel key={section} heading={section}>
+            <PanelList>
               {sectionItems.map((item) => (
                 <MenuRow
                   key={item.id}
@@ -204,17 +201,20 @@ export function MenuPanel({
                   picture={pictures.get(item.id) ?? pictureOf(item, shopKind, null)}
                 />
               ))}
-            </ul>
-          </section>
+            </PanelList>
+          </Panel>
         ))}
       </div>
 
-      {/* Phones: the counter action first, the cover after the list. Desktop: both in the right-hand column. */}
+      {/* Below xl it leads while photos are missing; once every item has the seller's own, the list leads. */}
       <section
         aria-labelledby="counter-title"
-        className="order-first flex flex-col items-start gap-3 rounded-(--card-radius) bg-surface-sunken p-5 lg:order-none lg:col-start-2 lg:row-start-1"
+        className={cx(
+          'flex flex-col items-start gap-3 rounded-(--card-radius) bg-surface-sunken p-5 xl:order-none xl:col-start-2 xl:row-start-1',
+          listed.some((i) => !i.photoUrl) && 'order-first',
+        )}
       >
-        <h2 id="counter-title" className="type-heading">
+        <h2 id="counter-title" className="type-section">
           Photos in one go
         </h2>
         <p className="text-ink-soft">One photo of your display case: Claude crops a photo of each item it finds.</p>
@@ -224,8 +224,8 @@ export function MenuPanel({
           onPhoto={(itemId, photoUrl) => setItem(itemId, { photoUrl })}
         />
       </section>
-      <section aria-labelledby="cover-title" className="flex flex-col gap-3 lg:col-start-2 lg:row-start-2 lg:self-start">
-        <h2 id="cover-title" className="type-heading">
+      <section aria-labelledby="cover-title" className="flex flex-col gap-3 xl:col-start-2 xl:row-start-2 xl:self-start">
+        <h2 id="cover-title" className="type-section">
           Cover photo
         </h2>
         <CoverPicker shopId={shopId} shopName={shopName ?? 'Your shop'} coverUrl={coverUrl} onChange={onCoverChange} />

@@ -51,7 +51,7 @@ export function StepHeader({
       </ol>
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
         <div className="flex max-w-measure flex-col gap-2">
-          <h1 className="type-display">{title}</h1>
+          <h1 className="type-page">{title}</h1>
           {lead && <p className="type-lead text-ink-soft">{lead}</p>}
         </div>
         {aside}

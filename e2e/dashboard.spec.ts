@@ -5,7 +5,7 @@
 // Run: E2E_PORT=3111 npx playwright test e2e/dashboard.spec.ts
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
-import { DESKTOP, PHONE } from './helpers';
+import { DESKTOP, PHONE, appNav } from './helpers';
 import { formatUSD } from '@/lib/domain/money';
 import { getDb } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
@@ -72,8 +72,8 @@ test.describe('dashboard', () => {
     test(`orders grouped: to prepare, waiting (collapsed), done, accessible at ${label}`, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.goto(dashboard(full));
-      await expect(page.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' })).toBeVisible();
-      await expect(page.getByRole('tab', { name: /Orders/ })).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByRole('heading', { level: 1, name: 'Orders' })).toBeVisible();
+      await expect(appNav(page).getByRole('link', { name: /Orders/ })).toHaveAttribute('aria-current', 'page');
 
       const prepare = group(page, /To prepare/);
       await expect(prepare.getByRole('listitem')).toHaveCount(3);
@@ -222,7 +222,7 @@ test.describe('dashboard', () => {
       await route.fulfill({ json: { items: [] } });
     });
     await page.goto(dashboard(full, '?tab=menu'));
-    await expect(page.getByRole('tab', { name: 'Menu' })).toHaveAttribute('aria-selected', 'true');
+    await expect(appNav(page).getByRole('link', { name: 'Menu' })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('[data-item="Seeded rye"]')).toContainText('Sold out today');
     await expect(page.locator('[data-item="Celebration cake"]')).toContainText('Ask in person');
     const sw = page.getByRole('switch', { name: 'Almond croissant: Sold out today' });
@@ -234,7 +234,7 @@ test.describe('dashboard', () => {
 
   test('Share tab: the shop link and the agent door URL', async ({ page }) => {
     await page.goto(dashboard(full));
-    await page.getByRole('tab', { name: 'Share' }).click();
+    await appNav(page).getByRole('link', { name: 'Share' }).click();
     await expect(page).toHaveURL(/\?tab=share/);
     await expect(page.getByTestId('share-door-url')).toHaveText(`${APP_URL}/s/${full.shop.slug}/mcp`);
     await expect(page.getByTestId('share-shop-url')).toHaveText(`${APP_URL}/s/${full.shop.slug}`);
@@ -256,7 +256,7 @@ test.describe('dashboard', () => {
         return chain.join('<');
       };
       const sample = () => {
-        const panels = [...new Set(document.querySelectorAll('[role="tabpanel"], [id*="-panel-"]'))];
+        const panels = [...new Set(document.querySelectorAll('[data-section-panel], [id*="-panel-"]'))];
         const notes = [...document.querySelectorAll('[data-testid="demo-payee-note"]')];
         const n = Math.max(panels.length, notes.length);
         if (n > w.__panels.max) w.__panels = { max: n, where: [...panels, ...notes].map(where).join(' | ') };
@@ -271,20 +271,20 @@ test.describe('dashboard', () => {
     const most = async () => (await page.evaluate(() => (window as unknown as { __panels: { max: number; where: string } }).__panels));
     for (const tab of ['settings', 'share', 'menu']) {
       await page.goto(dashboard(full, `?tab=${tab}`));
-      await expect(page.getByRole('tabpanel')).toHaveCount(1);
+      await expect(page.locator('[data-section-panel]')).toHaveCount(1);
       await page.waitForTimeout(1000);
       const seen = await most();
       expect(seen.max, `panels at once after loading ?tab=${tab}: ${seen.where}`).toBe(1);
     }
     for (const name of ['Orders', 'Menu', 'Share', 'Settings', 'Orders', 'Settings', 'Share']) {
-      const tab = page.getByRole('tab', { name: new RegExp(`^${name}`) });
+      const tab = appNav(page).getByRole('link', { name: new RegExp(`^${name}`) });
       await tab.click();
-      await expect(tab).toHaveAttribute('aria-selected', 'true');
+      await expect(tab).toHaveAttribute('aria-current', 'page');
     }
     await page.waitForTimeout(1000);
     const seen = await most();
     expect(seen.max, `panels at once during quick tab switches: ${seen.where}`).toBe(1);
-    await expect(page.getByRole('tabpanel', { name: 'Share' })).toHaveCount(1);
+    await expect(page.locator('[data-section-panel]#section-panel-share')).toHaveCount(1);
   });
 
   test('Settings tab: Your PayPal email is checked on blur, saved through PATCH /api/shops/[id], and new orders use it', async ({ page, context }) => {
@@ -292,7 +292,7 @@ test.describe('dashboard', () => {
     const seller = createFixtureShop('Settings Test Bakery');
     await signInAsOwner(context, seller, BASE);
     await page.goto(dashboard(seller, '?tab=settings'));
-    await expect(page.getByRole('tab', { name: 'Settings', selected: true })).toBeVisible();
+    await expect(appNav(page).getByRole('link', { name: 'Settings' })).toHaveAttribute('aria-current', 'page');
     const field = page.getByLabel('Your PayPal email');
     await expect(field).toHaveValue(FIXTURE_PAYEE);
     await field.fill('rosa@example');

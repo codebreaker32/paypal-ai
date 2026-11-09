@@ -1,13 +1,16 @@
 // /shops/[id]/setup: Reading → Review → Publishing → Live on one route (spec §4, Setup row).
 // The step comes from the database on every request, so a refresh always lands on the right one.
 import type { Metadata } from 'next';
-import { cookies } from 'next/headers';
-import { ownerCookieName, requireOwner } from '@/lib/auth/owner';
+import { AppShell } from '@/components/app/AppShell';
+import { requireOwner } from '@/lib/auth/owner';
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as extractions from '@/lib/db/repos/extractions';
 import * as items from '@/lib/db/repos/items';
 import { loadSetupView } from '@/lib/catalog/setup';
+import { loadShell } from '@/lib/seller/shell';
+import { livePreview } from '@/lib/seller/live-preview';
+import { itemPictures } from '@/lib/library/picture';
 import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
 import { isPendingPublish } from '@/lib/catalog/rules';
 import { LiveStep } from '@/components/setup/LiveStep';
@@ -26,27 +29,28 @@ export default async function SetupPage({ params }: PageProps<'/shops/[id]/setup
 
   if (view.step === 'live') {
     const appUrl = getConfig().appUrl;
-    // An account-owned shop has no owner link (SR15, SR24), whatever cookie this browser still holds.
-    const token = shop.accountId ? undefined : (await cookies()).get(ownerCookieName(id))?.value;
     const all = items.listWithVariants(db, id);
+    const { data, account } = await loadShell(shop);
     return (
-      <LiveStep
-        shopId={id}
-        name={shop.name}
-        slug={shop.slug}
-        status={shop.status}
-        shopUrl={`${appUrl}/s/${shop.slug}`}
-        agentDoorUrl={`${appUrl}/s/${shop.slug}/mcp`}
-        ownerLink={token ? `${appUrl}/claim/${token}` : null}
-        liveCount={all.filter((i) => i.status === 'live').length}
-        inPersonCount={all.filter((i) => i.status === 'in_person').length}
-        pendingCount={all.filter(isPendingPublish).length}
-        pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
-        avatar={{
-          shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') },
-          items: items.avatarItems(db, id),
-        }}
-      />
+      <AppShell data={data} account={account}>
+        <LiveStep
+          shopId={id}
+          name={shop.name}
+          slug={shop.slug}
+          shell={data.values}
+          shopUrl={`${appUrl}/s/${shop.slug}`}
+          agentDoorUrl={`${appUrl}/s/${shop.slug}/mcp`}
+          liveCount={all.filter((i) => i.status === 'live').length}
+          inPersonCount={all.filter((i) => i.status === 'in_person').length}
+          pendingCount={all.filter(isPendingPublish).length}
+          pendingNames={all.filter(isPendingPublish).map((i) => i.name)}
+          avatar={{
+            shop: { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'owner') },
+            items: items.avatarItems(db, id),
+          }}
+          preview={livePreview(all, itemPictures(all, shop.kind), shop.coverUrl)}
+        />
+      </AppShell>
     );
   }
 

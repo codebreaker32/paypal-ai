@@ -11,7 +11,7 @@ import { getDb } from '@/lib/db';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { qrSvg } from '@/lib/discovery/qr';
 import type { Shop } from '@/lib/domain/types';
-import { DESKTOP, PHONE, settle } from './helpers';
+import { DESKTOP, PHONE, appNav, settle } from './helpers';
 import { createFixtureShop, type FixtureShop } from './task8-fixtures';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
@@ -131,7 +131,7 @@ test.describe('counter card', () => {
     await signIn(context, draft.shop.id, draft.ownerToken);
     await page.goto(`/shops/${draft.shop.id}/card`);
     await expect(page.getByText('Your counter card is ready once your shop is live.')).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
+    await expect(page.locator('#app-content').getByRole('link', { name: 'Finish setting up' })).toHaveAttribute('href', `/shops/${draft.shop.id}/setup`);
     await expect(page.getByTestId('card-qr')).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Print card' })).toHaveCount(0);
     expect(await page.content()).not.toContain(draft.shop.slug);
@@ -174,7 +174,7 @@ test.describe('Share tab', () => {
     await expect(page).toHaveURL(`${BASE}/shops/${live.shop.id}/card`);
     await expect(page.getByRole('heading', { level: 1, name: 'Counter card' })).toBeVisible();
     await page.getByRole('link', { name: 'Back to Share' }).click();
-    await expect(page.getByRole('tab', { name: 'Share' })).toHaveAttribute('aria-selected', 'true');
+    await expect(appNav(page).getByRole('link', { name: 'Share' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('button', { name: 'Copy agent door link' })).toBeVisible();
   });
 });

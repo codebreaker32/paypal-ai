@@ -136,6 +136,7 @@ Re-based on shadcn (new-york): `cva` recipes (`buttonVariants`, `badgeVariants`,
 | `Field`, `TextInput`, `TextArea`, `FieldError` | 48 px controls with 16 px text and `control` borders. Errors are inline, in `error`, and name the fix. `TextInput`/`TextArea` are shadcn's `Input` (`input.tsx`) and `Textarea` (`textarea.tsx`); the label is `Label` (`label.tsx`). |
 | `Sheet` | Native `<dialog>`: a bottom sheet on phones and a centred dialog from 640 px. It is used for the phone buyer console. |
 | `ToastProvider`, `useToast()` | An ink toast in a polite live region, which never takes focus. 28rem wide from `sm` up, so "New paid order SHF-XXXXXX · $27.00" fits one line; the dashboard scrolls a just-paid row clear of it. |
+| `Panel`, `PanelList`, `PanelRow`, `LinkRow` (`panel.tsx`) | The one row system for working screens: a `type-section` heading with an optional count and a right-aligned value, above a white raised list of `li` rows (`--row-pad-x`, `--row-pad-y`, `--row-min-h`). The list is a size container: a row's action sits beside its text from `@xl` (36rem of list width) and drops under it when narrower. `LinkRow` is a whole row that links somewhere. |
 | `Skeleton` | Shaped like the content it replaces, with a shimmer. |
 | `Icon` | Lucide, 16/20/24 px, stroke 1.75. Use icons on actions, not on every label. |
 
@@ -184,11 +185,16 @@ The shop's logo (a square upload), else its cover cropped square, else the first
 - **Buyer console:**
   - The empty state is a one-sentence greeting and starter prompts as tinted pills.
   - The Activity panel and the approval card are grey wells, not outlined boxes.
-- **Dashboard shell:**
-  - The shop's picture (`ShopAvatar`), its name in `type-display`, the live state as a dot and a word, "View your shop", and the pause switch on the right.
-  - Then the tabs: Orders · Menu · Share · Settings.
-  - Orders has a segmented filter (44 px) and groups (To prepare, Waiting for payment, collapsible, and Done), each with its subtotal.
-- **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid. On phones the buyer's name gives way last.
+- **Seller shell (`components/app/AppShell`):** the chrome on every `/shops/[id]/**` screen, replacing the public header and footer.
+  - From `lg`: a white 15rem sidebar with one rule on its right: logo, the shop switcher (picture, name in a two-line clamp, the state as a dot and a word), Orders · Menu · Share · Settings, `View your shop`, then the test-mode line and the account slot at the foot.
+  - Below `lg`: a top bar (mark, the shop's name in a one-line ellipsis, account) and a fixed four-column tab bar. The test-mode line is the last line of content.
+  - One banner slot at the top of the content, one banner at a time: PayPal unreachable, payee missing, paused, recovery key.
+  - Headings are only `type-page` (24/32) and `type-section` (16/24). `PageHeader` is the one header (title, description, back, status, actions). Rows are one system: `PanelList`, `PanelRow` and `LinkRow` in `ui/panel.tsx`, where an action drops under the text when the list is narrower than 36rem.
+- **Live:** rows on the left (Try your shop, with the screen's one black button, then the agent door, the shop link, the counter card) and a raised card of the actual shop on the right, with the cover or first photo at 16:9 and the first three live items. Below `xl` the card is a compact strip above the rows. The card carries the one celebratory beat (`LiveBeat`) when a shop goes live in this browser.
+- **Share:** one `PanelList` of links (agent door, the one primary; shop link; Try your shop; a For developers disclosure) beside a raised Counter card with the QR. A draft has no address, so it shows one sentence and `Finish setting up`.
+- **Settings:** each section is a heading on the left and its control on the right (`14rem` and a `max-w-lg` column from `lg`), divided by rules. No duplicate Pause: pausing lives on Orders and resuming in the banner.
+- **Orders:** a segmented filter (44 px) and groups (To prepare, Waiting for payment, collapsible, and Done), each with its subtotal. The empty state is left-aligned: `No orders yet`, one sentence, `Watch an AI order from you` and `Share your agent door`.
+- **Order rows:** a thumbnail, the number with the buyer, "via …", the items and the brief line, and the total with its time underneath in a column of their own (the time is never truncated). Then the status dot and word, and one action when the order is paid; status and action share one line. The six-column layout is a container query on the list (60rem), since the sidebar takes 15rem of the viewport. On phones the buyer's name gives way last.
 - **Order detail:**
   - On desktop, a master list on the left: rows on white with a rule on their right, and the open order on grey.
   - The header shows the number, the status dot and word, who placed it and the big total.
