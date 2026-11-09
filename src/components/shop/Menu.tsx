@@ -68,7 +68,7 @@ function MenuItem({ item, tone, picture, takesOrders }: { item: ItemWithVariants
   return (
     // No card: the tile is its photo and its words. Only the photo is rounded and only the photo answers a hover, inside
     // its own clip; the wrapper takes no z-index so the add control can sit over the tile's stretched button.
-    <Pressable as="li" lift={false} data-menu-item={item.name} className="group/tile grid grid-cols-[minmax(0,1fr)] gap-2 [--press-bg:transparent]">
+    <Pressable as="li" lift={false} data-menu-item={item.name} className="group/tile grid grid-cols-[minmax(0,1fr)] content-start gap-2 [--press-bg:transparent]">
       <div className="tile-photo relative aspect-[4/3] overflow-hidden rounded-(--photo-radius) bg-surface-sunken">
         <ItemPhoto
           name={item.name}
@@ -105,7 +105,7 @@ export function Menu({ sections, kind, takesOrders = true }: { sections: MenuSec
   );
   const anyExample = [...pictures.values()].some((picture) => pictureSource(picture) === 'example');
   return (
-    <section aria-labelledby="menu-title" className="flex flex-col gap-4 @[36rem]/shop:gap-6">
+    <section aria-labelledby="menu-title" className="flex flex-col gap-4">
       <h2 id="menu-title" className="sr-only">
         Menu
       </h2>

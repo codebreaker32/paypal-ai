@@ -204,7 +204,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
       <OrderCtaContext.Provider value={cta}>
         {cover}
         <div data-page-frame="" className="mx-auto w-full max-w-page px-gutter pt-6 pb-10 lg:pt-8 lg:pb-section">
-          <div className="@container/shop flex min-w-0 flex-col gap-8">
+          <div className="@container/shop flex min-w-0 flex-col gap-8 @[56rem]/shop:gap-6">
             {intro}
             {menu}
             {door}

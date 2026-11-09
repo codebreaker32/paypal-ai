@@ -77,7 +77,7 @@ function Cover({ shop, items }: { shop: Shop; items: ItemWithVariants[] }) {
   const strip = items.filter((i) => i.photoUrl).slice(0, 4);
   if (!shop.coverUrl && strip.length < 2) return null;
   return (
-    <div data-page-frame="" className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6">
+    <div data-page-frame="" className="mx-auto w-full max-w-page sm:px-gutter sm:pt-6 lg:pt-4">
       <div className="relative h-32 overflow-hidden bg-surface-sunken sm:h-44 sm:rounded-(--cover-radius) lg:h-60">
         {shop.coverUrl ? (
           <img src={shop.coverUrl} {...responsiveImage(shop.coverUrl, COVER_SIZES)} alt="" fetchPriority="high" className="size-full object-cover" />
@@ -98,12 +98,12 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
   const avatar = { logoUrl: shop.logoUrl, coverUrl: shop.coverUrl, kind: shop.kind, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') };
   // Under 640 px the price list link moves up beside the avatar (when a cover carries one); from 640 px it is at the right of the pickup lines.
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-4 sm:gap-y-5">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-4 sm:gap-y-5 @[56rem]/shop:grid-cols-[minmax(0,1fr)_auto_auto] @[56rem]/shop:gap-x-8">
       {/* With a cover, the shop's picture sits over its bottom edge, so a shop with photos keeps its identity too. Its own
           stacking layer (z-10) keeps it above the cover and above the menu's first card at every width. */}
       {hasCover && <ShopAvatar shop={avatar} items={items} size="xl" className="relative z-10 col-start-1 -mt-16 shadow-(--card-shadow) ring-4 ring-surface sm:-mt-20 sm:-mb-1" />}
       {/* The name row: from 1024 px the order button sits at its right end, bottom-aligned with the meta line. */}
-      <div className="col-span-2 flex items-start gap-4 lg:items-end">
+      <div className="col-span-2 flex items-start gap-4 lg:items-end @[56rem]/shop:col-span-3">
         {!hasCover && <ShopAvatar shop={avatar} items={items} size="lg" className="lg:self-start" />}
         <div className="min-w-0 flex-1">
           <h1 className="type-display [overflow-wrap:anywhere]">{shop.name}</h1>
@@ -117,14 +117,14 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
         </div>
         <HeroOrderCta />
       </div>
-      {shop.about && <p className="col-span-2 max-w-measure type-body text-ink-soft lg:type-lead">{shop.about}</p>}
       {/* Whenever the agent door would refuse an order (takesOrders): paused, or live with nowhere to be paid. */}
       {!takesOrders(shop) && (
-        <p role="status" className="col-span-2 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
+        <p role="status" className="col-span-2 @[56rem]/shop:col-span-3 rounded-(--card-radius) bg-warn-soft px-4 py-3 font-semibold text-warn">
           {shop.status === 'paused' ? 'Not taking orders right now.' : 'Not taking orders online yet.'}{' '}
           <span className="font-normal">You can still read the menu and ask the assistant about it.</span>
         </p>
       )}
+      {shop.about && <p className="col-span-2 max-w-measure type-body text-ink-soft lg:type-lead @[56rem]/shop:col-span-1">{shop.about}</p>}
       <div className={cx('sm:col-span-1', photoCount > 0 ? 'max-sm:col-span-2' : 'col-span-2')}>
         <HowToGetIt shop={shop} />
       </div>
