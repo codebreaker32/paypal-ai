@@ -30,6 +30,9 @@ export interface DashboardProps {
     id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null;
     /** The shop's logo and kind: the logo also shows in the shell. */
     logoUrl?: string | null; kind?: ShopKind;
+    /** Settings asks for the password before changing the PayPal email of an account-owned, published shop. */
+    accountOwned?: boolean;
+    payeeChangedAt?: string | null;
   };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
@@ -65,6 +68,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
   const live = useShellValues(shop.id, serverShell);
   const { status, coverUrl, logoUrl } = live;
   const payeeEmail = live.payeeEmail === undefined ? shop.payeeEmail : live.payeeEmail;
+  const payeeChangedAt = live.payeeChangedAt === undefined ? (shop.payeeChangedAt ?? null) : live.payeeChangedAt;
   const [pausing, setPausing] = useState(false);
   const [pauseError, setPauseError] = useState<string | null>(null);
   const [fresh, setFresh] = useState<ReadonlySet<string>>(new Set());
@@ -253,10 +257,18 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             payeeEmail={payeeEmail}
             isDemo={shop.isDemo}
             draft={status === 'draft'}
-            onSaved={(email) => patchShell(shop.id, { payeeEmail: email, payeeMissing: !canBePaid({ slug: shop.slug, payeeEmail: email }) })}
+            onSaved={(email, changedAt) =>
+              patchShell(shop.id, {
+                payeeEmail: email,
+                payeeMissing: !canBePaid({ slug: shop.slug, payeeEmail: email }),
+                ...(changedAt ? { payeeChangedAt: changedAt } : {}),
+              })
+            }
             logoUrl={logoUrl}
             onLogoChange={(url) => patchShell(shop.id, { logoUrl: url })}
             accountEmail={accountEmail}
+            accountOwned={shop.accountOwned ?? false}
+            payeeChangedAt={payeeChangedAt}
           />
         )}
       </div>

@@ -38,6 +38,10 @@ export interface CopyButtonProps {
   iconOnly?: boolean;
   /** The screen's one filled button. */
   primary?: boolean;
+  /** A quieter button with no fill, for a group that already has a primary. */
+  ghost?: boolean;
+  /** Runs after a successful copy (the recovery key notes that it was saved). */
+  onCopied?: () => void;
   size?: ButtonSize;
   /** The id of the element showing the text being copied. */
   describedBy?: string;
@@ -66,7 +70,7 @@ function CopyLabel({ copied, label, size }: { copied: boolean; label: string; si
  * same thing twice is fine, and a busy cursor or `aria-disabled` would claim otherwise. Announces through its own status
  * region; only a failure shows a toast.
  */
-export function CopyButton({ text, what, label, ariaLabel, iconOnly, primary, size = 'md', describedBy, className }: CopyButtonProps) {
+export function CopyButton({ text, what, label, ariaLabel, iconOnly, primary, ghost, onCopied, size = 'md', describedBy, className }: CopyButtonProps) {
   const toast = useToast();
   // A counter, not a boolean: copying again while it says Copied restarts the 2 s.
   const [copies, setCopies] = useState(0);
@@ -79,7 +83,10 @@ export function CopyButton({ text, what, label, ariaLabel, iconOnly, primary, si
   }, [copies]);
 
   const onCopy = async () => {
-    if (await copyAndReport(text, toast)) setCopies((n) => n + 1);
+    if (await copyAndReport(text, toast)) {
+      setCopies((n) => n + 1);
+      onCopied?.();
+    }
   };
 
   const done = `${what} copied`;
@@ -107,7 +114,7 @@ export function CopyButton({ text, what, label, ariaLabel, iconOnly, primary, si
   return (
     <>
       <Button
-        variant={primary ? 'primary' : 'secondary'}
+        variant={primary ? 'primary' : ghost ? 'ghost' : 'secondary'}
         size={size}
         onClick={onCopy}
         className={className}

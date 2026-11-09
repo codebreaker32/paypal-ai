@@ -15,9 +15,9 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
 import { PanelList, PanelRow } from '@/components/ui/panel';
 import { TextLink } from '@/components/ui/text-link';
-import { cx } from '@/components/ui/cx';
 import { pictureSource } from '@/lib/library/picture';
 import type { LivePreview, LivePreviewRow } from '@/lib/seller/live-preview';
+import { ShopStatusBadge } from '@/components/dashboard/shop-status';
 import { shopStatusWord } from '@/lib/seller/shell-view';
 import { PublishProgress, usePublish } from './Publishing';
 
@@ -61,7 +61,6 @@ function LiveBeat({ className, children }: { className?: string; children: React
   );
 }
 
-const TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
 
 /* eslint-disable @next/next/no-img-element -- the shop's cover: a site-relative upload or bundled photo of unknown size */
 function PreviewHero({ hero, shopName }: { hero: NonNullable<LivePreview['hero']>; shopName: string }) {
@@ -99,10 +98,7 @@ function ShopPreview({ p, status }: { p: LiveProps; status: ReturnType<typeof sh
           <ShopAvatar {...p.avatar} size="sm" />
           <div className="min-w-0 flex-1 basis-0">
             <p className="font-bold [overflow-wrap:anywhere]">{p.name}</p>
-            <p className={cx('inline-flex items-center gap-1.5 type-meta font-semibold', TONE[status.tone])}>
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-              {status.word}
-            </p>
+            <ShopStatusBadge tone={status.tone} word={status.word} />
           </div>
           {rows.length > 0 && <ul className="hidden w-full flex-col gap-3 border-t border-line pt-4 xl:flex">{rows.map((row) => <PreviewRow key={row.id} row={row} />)}</ul>}
           <TextLink href={`/s/${p.slug}`} className="shrink-0 text-sm">

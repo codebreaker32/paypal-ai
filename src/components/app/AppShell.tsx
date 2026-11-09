@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useLayoutEffect, type ReactNode } from 'react';
 import { ChevronsUpDown, CircleUserRound, ExternalLink } from 'lucide-react';
+import { AccountMenu } from '@/components/brand/AccountMenu';
 import { Logo, LogoMark } from '@/components/brand/Logo';
+import { ShopStatusBadge } from '@/components/dashboard/shop-status';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import { Icon } from '@/components/ui/icon';
 import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
@@ -14,8 +16,6 @@ import { AppNav } from './AppNav';
 import { ShellBanner } from './ShellBanner';
 import { seedShell, useShellValues, type ShellValues } from './shell-store';
 
-const STATUS_TONE = { ok: 'text-ok', warn: 'text-warn', neutral: 'text-ink-muted' } as const;
-
 function ShopSwitcher({ data, values, account }: { data: ShellData; values: ShellValues; account: ShellAccount | null }) {
   const { tone, word } = shopStatusWord(values.status, values.payeeMissing);
   const body = (
@@ -25,10 +25,7 @@ function ShopSwitcher({ data, values, account }: { data: ShellData; values: Shel
         <span title={data.name} className="line-clamp-2 text-sm font-bold [overflow-wrap:anywhere]">
           {data.name}
         </span>
-        <span className={`inline-flex items-center gap-1.5 type-meta font-semibold ${STATUS_TONE[tone]}`}>
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-current" />
-          {word}
-        </span>
+        <ShopStatusBadge tone={tone} word={word} />
       </span>
     </>
   );
@@ -66,21 +63,16 @@ function ViewShopLink({ data, status }: { data: ShellData; status: ShopStatus })
 }
 
 function AccountSlot({ account }: { account: ShellAccount | null }) {
-  const row = 'press-text flex min-h-tap items-center gap-3 rounded-md px-3 text-sm font-semibold';
   if (!account) {
     return (
-      <Link href="/login" className={row}>
+      <Link href="/login" className="press-text flex min-h-tap items-center gap-2.5 rounded-md px-3 text-sm font-semibold">
         <Icon icon={CircleUserRound} />
         Log in
       </Link>
     );
   }
-  return (
-    <Link href="/account" className={row}>
-      <Icon icon={CircleUserRound} />
-      <span className="min-w-0 truncate">{account.email}</span>
-    </Link>
-  );
+  // The sidebar scrolls, so its menu stays as wide as the sidebar rather than being clipped at 16rem.
+  return <AccountMenu email={account.email} placement="up" className="w-full" panelClassName="w-full" />;
 }
 
 /** The seller's product chrome around every /shops/[id] screen: a sidebar on desktop, top and tab bars on phones. */
@@ -132,9 +124,13 @@ export function AppShell({ data, account, children }: { data: ShellData; account
               {data.name}
             </p>
           )}
-          <Link href={account ? '/account' : '/login'} aria-label={account ? 'Account' : 'Log in'} className="press-icon -mr-2.5 flex size-tap shrink-0 items-center justify-center rounded-md hover:bg-surface-sunken">
-            <Icon icon={CircleUserRound} size="lg" />
-          </Link>
+          {account ? (
+            <AccountMenu email={account.email} placement="down" className="-mr-2.5 shrink-0" />
+          ) : (
+            <Link href="/login" aria-label="Log in" className="press-icon -mr-2.5 flex size-tap shrink-0 items-center justify-center rounded-md hover:bg-surface-sunken">
+              <Icon icon={CircleUserRound} size="lg" />
+            </Link>
+          )}
         </div>
 
         <div

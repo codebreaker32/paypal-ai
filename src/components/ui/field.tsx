@@ -16,7 +16,11 @@ export interface FieldControlProps {
 
 export interface FieldProps {
   label: ReactNode;
+  /** A stable id for the control (a form's password fields need it); generated otherwise. */
+  id?: string;
   hint?: ReactNode;
+  /** The hint changes as they type, so announce it politely. */
+  liveHint?: boolean;
   /** Say what went wrong and how to fix it: "Enter a price, like 4.50". */
   error?: ReactNode;
   required?: boolean;
@@ -27,8 +31,9 @@ export interface FieldProps {
 }
 
 /** Label, optional hint and inline error around one control. */
-export function Field({ label, hint, error, required, hideLabel, className, children }: FieldProps) {
-  const id = useId();
+export function Field({ label, id: givenId, hint, liveHint, error, required, hideLabel, className, children }: FieldProps) {
+  const generatedId = useId();
+  const id = givenId ?? generatedId;
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
@@ -41,7 +46,7 @@ export function Field({ label, hint, error, required, hideLabel, className, chil
       </Label>
       {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined, required })}
       {hint && (
-        <p id={hintId} className="type-meta text-ink-muted">
+        <p id={hintId} aria-live={liveHint ? 'polite' : undefined} className="type-meta text-ink-muted">
           {hint}
         </p>
       )}

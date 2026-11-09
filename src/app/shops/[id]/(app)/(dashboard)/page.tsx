@@ -9,6 +9,7 @@ import { currentShellAccount } from '@/lib/seller/shell';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';
+import * as payeeChanges from '@/lib/db/repos/payee-changes';
 import { paypalLooksUnreachable } from '@/lib/seller/health';
 import { isDemoShop } from '@/lib/domain/payee';
 import { sectionFromTab, sectionTitle } from '@/lib/seller/shell-view';
@@ -34,7 +35,7 @@ export default async function DashboardPage({ params }: PageProps<'/shops/[id]'>
 
   return (
     <Dashboard
-      shop={{ id: shop.id, name: shop.name, slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind }}
+      shop={{ id: shop.id, name: shop.name, slug, status: shop.status, payeeEmail: shop.payeeEmail, isDemo: isDemoShop(shop), coverUrl: shop.coverUrl, logoUrl: shop.logoUrl, kind: shop.kind, accountOwned: shop.accountId !== null, payeeChangedAt: payeeChanges.latest(db, shop.id)?.changedAt ?? null }}
       initialOrders={orders.map((o) => withFallbackBrief(o))}
       initialItems={items}
       initialPaypalReachable={!paypalLooksUnreachable(db, orders)}

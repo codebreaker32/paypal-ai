@@ -1,3 +1,4 @@
+import type { ShopStatus } from '@/lib/domain/types';
 // Where a shop's money goes (spec §8a): the seller's own PayPal account, named by the email they log in with.
 // Pure, so the setup and Settings screens can check an email in the browser with the same rule as the server.
 
@@ -70,3 +71,7 @@ export const isDemoShop = (shop: { slug: string }): boolean => shop.slug === RES
  * `listOrderableForIndex` repeats it in SQL.
  */
 export const canBePaid = (shop: { slug: string; payeeEmail: string | null }): boolean => shop.payeeEmail !== null || isDemoShop(shop);
+
+/** Whether changing a shop's PayPal email needs the owner's password (SR18). The route's own check is the authority. */
+export const payeeChangeNeedsPassword = ({ accountOwned, status, changes }: { accountOwned: boolean; status: ShopStatus; changes: boolean }): boolean =>
+  accountOwned && status !== 'draft' && changes;
