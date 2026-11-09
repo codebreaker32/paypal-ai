@@ -13,6 +13,7 @@ import { parsePayeeEmail, payeeChangeNeedsPassword } from '@/lib/domain/payee';
 import { setFeedbackOn, useFeedbackOn } from '@/lib/feedback/prefs';
 import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
+import { DeleteShop } from './DeleteShop';
 import { LocalDay } from './LocalTime';
 import { Switch } from './Switch';
 
@@ -23,6 +24,8 @@ const PASSWORD_ERRORS = new Set(['PASSWORD_WRONG', 'PASSWORD_REQUIRED', 'RATE_LI
 export interface SettingsPanelProps {
   shopId: string;
   shopName: string;
+  /** Tells the dashboard's poller to stand down: its 404 reload must not beat the move to /shops. */
+  onDeletingChange: (deleting: boolean) => void;
   /** The saved PayPal email (the owner sees it in full). */
   payeeEmail: string | null;
   /** Shelfie's demo shop: with no email it is paid to Shelfie's demo PayPal account (spec §8a). */
@@ -219,7 +222,7 @@ function SoundSwitch() {
 }
 
 /** Settings: where you get paid, your logo, and how you sign in, each a titled row of its own. */
-export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, ...payee }: SettingsPanelProps) {
+export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, onDeletingChange, ...payee }: SettingsPanelProps) {
   return (
     <div className="flex flex-col">
       <SettingsSection title="Where you get paid" description="Buyers pay straight into the PayPal account with this email.">
@@ -243,6 +246,12 @@ export function SettingsPanel({ shopName, logoUrl, onLogoChange, accountEmail, .
           </ButtonLink>
         )}
       </SettingsSection>
+      {/* The demo shop can't be deleted, and a shop with no account has no password to confirm with. */}
+      {payee.accountOwned && !payee.isDemo && (
+        <SettingsSection title="Delete this shop">
+          <DeleteShop shopId={payee.shopId} shopName={shopName} onDeletingChange={onDeletingChange} />
+        </SettingsSection>
+      )}
     </div>
   );
 }

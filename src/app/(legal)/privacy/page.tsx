@@ -38,10 +38,9 @@ export default function PrivacyPage() {
 
       <DocSection title="Deleting your data">
         <p>
-          To delete your shop or account,{' '}
-          <DocLink href="/help#contact">contact us</DocLink>
-          .
+          You can delete a shop in its Settings, or your whole account in <DocLink href="/account">Account</DocLink>. Its menu, photos, orders and assistant conversations are deleted from Shelfie. A shop with open orders has to finish them first.
         </p>
+        <p>What was already sent to PayPal stays in PayPal’s records, and buyers keep their PayPal receipts.</p>
       </DocSection>
     </DocPage>
   );

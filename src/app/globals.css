@@ -415,6 +415,10 @@
   --button-paypal-bg-hover: var(--color-paypal-hover);
   --button-paypal-bg-active: var(--color-paypal-active);
   --button-paypal-fg: var(--color-on-paypal);
+  --button-danger-bg: var(--color-error);
+  --button-danger-bg-hover: color-mix(in srgb, var(--color-error) 88%, black);
+  --button-danger-bg-active: color-mix(in srgb, var(--color-error) 78%, black);
+  --button-danger-fg: #ffffff;
 
   /* Card: white on white, lifted by a soft shadow, no outline */
   --card-bg: var(--color-surface-raised);

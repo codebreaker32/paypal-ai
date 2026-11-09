@@ -22,10 +22,12 @@ export interface RecoverySectionProps {
   appUrl: string;
   /** The rest of the account page, above this section: it gives way to the key step, which has the page's only H1. */
   children: ReactNode;
+  /** The rest of the account page, below this section. */
+  after?: ReactNode;
 }
 
 /** The recovery key's state and a new key, on `/account`. A new key is shown once, in place of the page. */
-export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySectionProps) {
+export function RecoverySection({ email, savedAt, appUrl, children, after }: RecoverySectionProps) {
   const [password, setPassword] = useState('');
   const [recoveryKey, setRecoveryKey] = useState<string | null>(null);
   const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
@@ -84,6 +86,7 @@ export function RecoverySection({ email, savedAt, appUrl, children }: RecoverySe
           </Button>
         </form>
       </section>
+      {after}
     </>
   );
 }

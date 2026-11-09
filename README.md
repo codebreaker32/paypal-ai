@@ -245,7 +245,7 @@ AI assistant --MCP--> /s/<slug>/mcp --> orders service --> PayPal Orders v2 (cre
 - USD only; no refunds or disputes UI; no tax; one flat shipping fee, no per-address rates.
 - Menu edits after launch are limited to sold-out and pause; products are not renamed in PayPal.
 - Sold-out is a toggle, not stock counts. Pickup time is a free-text note.
-- No email or SMS, so nothing verifies a sign-up address and a forgotten password needs the recovery key. Deleting a shop or account is by request (see `/help`). No MCP OAuth, no ACP/UCP adapters.
+- No email or SMS, so nothing verifies a sign-up address and a forgotten password needs the recovery key. Deleting a shop or account (Settings and `/account`, see `/help#delete`) removes it from Shelfie; products already published to the PayPal sandbox catalog stay there. No MCP OAuth, no ACP/UCP adapters.
 - Webhooks need a public URL and are not verified end to end; the 15 s poller covers local runs.
 - Paying the demo shop (the app's own India sandbox account) by PayPal login is unverified; a US buyer paying a US seller's shop by login is verified.
 

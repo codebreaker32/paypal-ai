@@ -119,6 +119,18 @@ export function countOpen(db: Db, shopId: string, nowIso: string = now()): numbe
   ).n;
 }
 
+/** Orders that block deleting the shop (SR19): money is moving or owed a handover. An awaiting_approval past its expiry doesn't count. */
+export function countUnfinished(db: Db, shopId: string, nowIso: string = now()): number {
+  return (
+    db
+      .prepare(
+        `SELECT COUNT(*) AS n FROM orders WHERE shop_id = ?
+         AND (status IN ('approved', 'paid', 'payment_pending') OR (status = 'awaiting_approval' AND expires_at > ?))`,
+      )
+      .get(shopId, nowIso) as { n: number }
+  ).n;
+}
+
 /** Unpaid, unexpired orders one caller (hashed rate-limit identity) has open at a shop. */
 export function countOpenForClient(db: Db, shopId: string, clientKey: string, nowIso: string = now()): number {
   return (

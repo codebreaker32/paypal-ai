@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AccountActions } from '@/components/account/AccountActions';
 import { RecoverySection } from '@/components/account/RecoverySection';
 import { PageHeader } from '@/components/app/PageHeader';
 import { requireAccount } from '@/lib/auth/session';
@@ -12,7 +13,7 @@ export default async function AccountPage() {
   return (
     <div className="mx-auto w-full max-w-page px-gutter pt-6 pb-12 lg:pt-10">
       <div className="max-w-measure">
-        <RecoverySection email={account.email} savedAt={account.recoverySavedAt} appUrl={getConfig().appUrl}>
+        <RecoverySection email={account.email} savedAt={account.recoverySavedAt} appUrl={getConfig().appUrl} after={<AccountActions />}>
           <PageHeader title="Account" />
           <section aria-labelledby="login-email-title" className="flex flex-col gap-1 pb-6">
             <h2 id="login-email-title" className="type-section">

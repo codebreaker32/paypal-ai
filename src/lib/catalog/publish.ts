@@ -119,7 +119,7 @@ function assignRealSlug(db: Db, shop: Shop): void {
   let slugFrom = shop.name;
   if (slugify(slugFrom) === RESERVED_SLUG) {
     let n = 2;
-    while (shops.bySlug(db, `${RESERVED_SLUG}-${n}`)) n++;
+    while (shops.slugTaken(db, `${RESERVED_SLUG}-${n}`, shop.id)) n++;
     slugFrom = `${RESERVED_SLUG}-${n}`;
   }
   shops.setSlug(db, shop.id, slugFrom);

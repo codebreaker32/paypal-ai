@@ -131,10 +131,12 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
     return () => cancelAnimationFrame(frame);
   }, [justPaid]);
 
+  const deletingRef = useRef(false);
+
   useEffect(() => {
     let stopped = false;
     const tick = async () => {
-      if (document.hidden) return;
+      if (document.hidden || deletingRef.current) return;
       try {
         const r = await fetchOrders(shop.id);
         if (stopped) return;
@@ -142,7 +144,7 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
         setPaypalReachable(r.paypalReachable !== false);
         setPollFailures(0);
       } catch (err) {
-        if (stopped) return;
+        if (stopped || deletingRef.current) return;
         if (isGone(err)) window.location.reload();
         else setPollFailures((n) => n + 1);
       }
@@ -254,6 +256,9 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
           <SettingsPanel
             shopId={shop.id}
             shopName={shop.name}
+            onDeletingChange={(deleting) => {
+              deletingRef.current = deleting;
+            }}
             payeeEmail={payeeEmail}
             isDemo={shop.isDemo}
             draft={status === 'draft'}

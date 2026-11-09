@@ -30,12 +30,21 @@ const cookieOptions = (maxAge: number) =>
  * build time has no disk.
  */
 export async function currentAccount(): Promise<accounts.Account | null> {
+  return (await currentSession())?.account ?? null;
+}
+
+/**
+ * `currentAccount` with the raw token, for a handler that writes after a wait: `accountIdOfSession(db, token)` inside the
+ * write's transaction tells it the session outlived the wait. The token stays in server memory; never log or return it.
+ */
+export async function currentSession(): Promise<{ account: accounts.Account; token: string } | null> {
   const jar = await cookies();
   const token = jar.get(sessionCookieName())?.value;
   if (!token) return null;
   const db = getDb();
   const accountId = accountIdOfSession(db, token);
-  return accountId ? accounts.byId(db, accountId) : null;
+  const account = accountId ? accounts.byId(db, accountId) : null;
+  return account ? { account, token } : null;
 }
 
 /** Whose session this token is right now, or null. Synchronous, so a write can ask inside its own transaction. */

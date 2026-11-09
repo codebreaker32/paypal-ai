@@ -36,6 +36,11 @@ export function deleteForAccount(db: Db, accountId: string): void {
   db.prepare('DELETE FROM sessions WHERE account_id = ?').run(accountId);
 }
 
+/** Logs out the account's other devices: every session but the one with this token hash. */
+export function deleteOthersForAccount(db: Db, accountId: string, keepTokenHash: string): void {
+  db.prepare('DELETE FROM sessions WHERE account_id = ? AND token_hash <> ?').run(accountId, keepTokenHash);
+}
+
 /** Removes rows at or past their expiry. `nowIso` is an ISO-8601 UTC string, which compares correctly as text. */
 export function purgeExpired(db: Db, nowIso: string): void {
   db.prepare('DELETE FROM sessions WHERE expires_at <= ?').run(nowIso);

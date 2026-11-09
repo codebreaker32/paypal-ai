@@ -51,6 +51,12 @@ CREATE TABLE IF NOT EXISTS shops (
   payee_email TEXT -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
 );
 
+-- Slugs of deleted shops (SR19): never handed out again, so an old link or agent door can't start reaching a new shop.
+CREATE TABLE IF NOT EXISTS retired_slugs (
+  slug TEXT PRIMARY KEY,
+  retired_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS extractions (
   id TEXT PRIMARY KEY,
   shop_id TEXT NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
