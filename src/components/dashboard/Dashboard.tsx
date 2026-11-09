@@ -30,6 +30,9 @@ export interface DashboardProps {
     id: string; name: string; slug: string; status: ShopStatus; payeeEmail: string | null; isDemo: boolean; coverUrl?: string | null;
     /** The shop's logo and kind: the logo also shows in the shell. */
     logoUrl?: string | null; kind?: ShopKind;
+    /** Settings asks for the password before changing the PayPal email of an account-owned, published shop. */
+    accountOwned?: boolean;
+    payeeChangedAt?: string | null;
   };
   initialOrders: Order[];
   initialItems: ItemWithVariants[];
@@ -258,6 +261,8 @@ export function Dashboard({ shop, initialOrders, initialItems, initialPaypalReac
             logoUrl={logoUrl}
             onLogoChange={setLogoUrl}
             accountEmail={accountEmail}
+            accountOwned={shop.accountOwned ?? false}
+            payeeChangedAt={shop.payeeChangedAt ?? null}
           />
         )}
       </div>

@@ -15,7 +15,6 @@ import { CopyButton } from '@/components/ui/copy-button';
 import { Icon } from '@/components/ui/icon';
 import { PanelList, PanelRow } from '@/components/ui/panel';
 import { TextLink } from '@/components/ui/text-link';
-import { cx } from '@/components/ui/cx';
 import { pictureSource } from '@/lib/library/picture';
 import type { LivePreview, LivePreviewRow } from '@/lib/seller/live-preview';
 import { ShopStatusBadge } from '@/components/dashboard/shop-status';

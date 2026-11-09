@@ -83,6 +83,23 @@ export function recoverProblem(err: unknown): AuthProblem {
   }
 }
 
+/** A sensitive action's password field (create a new recovery key). */
+export function currentPasswordProblem(err: unknown): AuthProblem {
+  const shared = common(err);
+  if (shared) return shared;
+  const e = err as ApiError;
+  switch (e.code) {
+    case 'PASSWORD_WRONG':
+      return problem('password', 'That password doesn’t match.');
+    case 'PASSWORD_REQUIRED':
+      return problem('password', 'Enter your password.');
+    case 'RATE_LIMITED':
+      return problem('password', e.message);
+    default:
+      return unexpected(err);
+  }
+}
+
 const emailProblem = (email: string): AuthProblem | null => (parsePayeeEmail(email).ok ? null : problem('email', EMAIL_TEXT));
 const newPasswordProblem = (password: string): AuthProblem | null =>
   passwordLength(password) < MIN_PASSWORD_LENGTH ? problem('password', SHORT_PASSWORD_TEXT) : null;
@@ -98,6 +115,10 @@ export function checkLogin(email: string, password: string): AuthProblem | null 
   if (!email.trim()) return problem('email', EMAIL_TEXT);
   if (!password) return problem('password', 'Enter your password.');
   return null;
+}
+
+export function checkCurrentPassword(password: string): AuthProblem | null {
+  return password ? null : problem('password', 'Enter your password.');
 }
 
 export function checkRecover(email: string, recoveryKey: string, newPassword: string): AuthProblem | null {

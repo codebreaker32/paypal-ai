@@ -3,9 +3,11 @@ import { describe, expect, it } from 'vitest';
 import {
   type AuthProblem,
   BUSY_TEXT,
+  checkCurrentPassword,
   checkLogin,
   checkRecover,
   checkSignup,
+  currentPasswordProblem,
   loginProblem,
   passwordHint,
   recoverProblem,
@@ -144,5 +146,26 @@ describe('passwordHint', () => {
   });
   it('counts an emoji as one character, like the server', () => {
     expect(passwordHint('😀'.repeat(14))).toBe('1 more to go');
+  });
+});
+
+describe('the current-password check on /account', () => {
+  it('needs something typed before it asks the server', () => {
+    expect(checkCurrentPassword('')).toEqual({ field: 'password', message: ['Enter your password.'] });
+    expect(checkCurrentPassword('any length')).toBeNull();
+  });
+
+  it('words a wrong password exactly, under the field', () => {
+    expect(currentPasswordProblem(new ApiError(403, 'PASSWORD_WRONG', 'x'))).toEqual({ field: 'password', message: ['That password doesn’t match.'] });
+  });
+
+  it('asks for a missing password under the field too', () => {
+    expect(currentPasswordProblem(new ApiError(403, 'PASSWORD_REQUIRED', 'x')).field).toBe('password');
+  });
+
+  it('keeps the shared busy and network wording, and the route’s words for a limit', () => {
+    expect(currentPasswordProblem(new ApiError(503, 'BUSY', 'x'))).toEqual({ field: 'form', message: ['Shelfie is busy. Try again in a few seconds.'] });
+    expect(currentPasswordProblem(new ApiError(0, 'NETWORK', 'x')).field).toBe('form');
+    expect(currentPasswordProblem(new ApiError(429, 'RATE_LIMITED', 'Slow down.'))).toEqual({ field: 'password', message: ['Slow down.'] });
   });
 });

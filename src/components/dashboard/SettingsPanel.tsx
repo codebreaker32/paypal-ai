@@ -2,16 +2,23 @@
 
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 import { CircleCheck, Info, TriangleAlert } from 'lucide-react';
+import { PasswordField } from '@/components/auth/fields';
 import { LogoPicker } from '@/components/setup/PhotoPicker';
 import { Button, ButtonLink } from '@/components/ui/button';
 import { Field, TextInput } from '@/components/ui/field';
 import { Icon } from '@/components/ui/icon';
 import { TextLink } from '@/components/ui/text-link';
-import { parsePayeeEmail } from '@/lib/domain/payee';
+import { ApiError } from '@/lib/client/http';
+import { parsePayeeEmail, payeeChangeNeedsPassword } from '@/lib/domain/payee';
 import { setFeedbackOn, useFeedbackOn } from '@/lib/feedback/prefs';
 import { useAction } from '@/lib/feedback/use-action';
 import { setPayeeEmail } from './api';
+import { LocalDay } from './LocalTime';
 import { Switch } from './Switch';
+
+const PASSWORD_ID = 'payee-current-password';
+/** Failures that are about the password, so they sit under its field rather than the email's. */
+const PASSWORD_ERRORS = new Set(['PASSWORD_WRONG', 'PASSWORD_REQUIRED', 'RATE_LIMITED']);
 
 export interface SettingsPanelProps {
   shopId: string;
@@ -27,6 +34,10 @@ export interface SettingsPanelProps {
   onLogoChange: (logoUrl: string | null) => void;
   /** The signed-in account's email, or null when there is none. */
   accountEmail: string | null;
+  /** The shop belongs to an account, so changing its PayPal email once published asks for the password. */
+  accountOwned: boolean;
+  /** When the PayPal email last changed, or null. */
+  payeeChangedAt: string | null;
 }
 
 /** A settings section: its name on the left, the control on the right. The first has no rule above it. */
@@ -46,7 +57,7 @@ function SettingsSection({ title, description, children }: { title: string; desc
 }
 
 /** Where the money goes: one field, one Save; checked on blur and on Save, with the same rule as the server. */
-function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<SettingsPanelProps, 'shopId' | 'payeeEmail' | 'isDemo' | 'draft' | 'onSaved'>) {
+function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved, accountOwned, payeeChangedAt }: Pick<SettingsPanelProps, 'shopId' | 'payeeEmail' | 'isDemo' | 'draft' | 'onSaved' | 'accountOwned' | 'payeeChangedAt'>) {
   const [saved, setSaved] = useState(payeeEmail);
   const [value, setValue] = useState(payeeEmail ?? '');
   const [touched, setTouched] = useState(false);
@@ -60,10 +71,22 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<Settings
   const next = blankAllowed ? null : parsed.ok ? parsed.email : null;
   const unchanged = !invalid && next === saved;
 
-  const { status, run, error } = useAction(() => setPayeeEmail(shopId, next));
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [changedAt, setChangedAt] = useState(payeeChangedAt);
+  const needsPassword = payeeChangeNeedsPassword({ accountOwned, status: draft ? 'draft' : 'live', changes: !invalid && !unchanged });
+
+  const { status, run, error } = useAction(async () => {
+    try {
+      return await setPayeeEmail(shopId, next, needsPassword ? password : undefined);
+    } catch (e) {
+      if (e instanceof ApiError && PASSWORD_ERRORS.has(e.code)) setPasswordError(e.message);
+      throw e;
+    }
+  });
   // Saved speaks for the value it saved: once the field differs, Save works again and the edit isn't dropped by the hold.
   const buttonStatus = status === 'success' && !unchanged ? 'idle' : status;
-  const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error ? error : undefined;
+  const fieldError = touched && invalid && !parsed.ok ? parsed.message : submitted && !unchanged && error && !passwordError ? error : undefined;
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
@@ -71,10 +94,21 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<Settings
     if (invalid) return;
     setSubmitted(true);
     if (unchanged) return; // already what PayPal gets; nothing to send
+    setPasswordError(null);
+    if (needsPassword && !password) {
+      setPasswordError('Enter your Shelfie password to do that.');
+      document.getElementById(PASSWORD_ID)?.focus();
+      return;
+    }
     const done = await run();
-    if (!done) return;
+    if (!done) {
+      if (needsPassword) document.getElementById(PASSWORD_ID)?.focus();
+      return;
+    }
     setSaved(done.shop.payeeEmail);
     setValue(done.shop.payeeEmail ?? '');
+    setPassword('');
+    if (!draft && done.shop.payeeEmail) setChangedAt(new Date().toISOString());
     onSaved(done.shop.payeeEmail);
   };
 
@@ -117,11 +151,25 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<Settings
             onChange={(e) => {
               setValue(e.currentTarget.value);
               setSubmitted(false);
+              setPasswordError(null);
             }}
             onBlur={() => setTouched(true)}
           />
         )}
       </Field>
+      {needsPassword && (
+        <PasswordField
+          id={PASSWORD_ID}
+          label="Your Shelfie password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(v) => {
+            setPassword(v);
+            setPasswordError(null);
+          }}
+          error={passwordError ?? undefined}
+        />
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Button type="submit" status={buttonStatus} loadingLabel="Saving…" successLabel="Saved" fullWidth className="sm:w-auto">
           Save
@@ -135,6 +183,11 @@ function PayeeForm({ shopId, payeeEmail, isDemo, draft, onSaved }: Pick<Settings
           )}
         </p>
       </div>
+      {changedAt && (
+        <p className="type-meta text-ink-muted">
+          PayPal email changed on <LocalDay iso={changedAt} />
+        </p>
+      )}
     </form>
   );
 }

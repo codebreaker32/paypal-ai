@@ -1,6 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import { dayLabel } from '@/lib/domain/day';
 
 const subscribe = () => () => {};
 
@@ -31,6 +32,16 @@ export function LocalTime({ iso, className }: { iso: string; className?: string 
   return (
     <time dateTime={iso} className={className}>
       {format(iso, hydrated ? undefined : 'UTC')}
+    </time>
+  );
+}
+
+/** A date in the viewer's own time zone: "8 Nov 2026". */
+export function LocalDay({ iso, className }: { iso: string; className?: string }) {
+  const hydrated = useHydrated();
+  return (
+    <time dateTime={iso} className={className}>
+      {dayLabel(iso, hydrated ? undefined : 'UTC')}
     </time>
   );
 }
