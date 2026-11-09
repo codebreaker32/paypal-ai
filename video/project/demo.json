@@ -502,7 +502,8 @@
         }
       ],
       "narrationSec": 6.896,
-      "durationSec": 8.546
+      "durationSec": 8.546,
+      "captionPlacement": "top"
     },
     {
       "id": "dashboard",
