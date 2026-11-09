@@ -131,6 +131,9 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
  * Returns toast(...) for news the person can't see where they are: a new paid order, tracking sent, picked up,
  * `Couldn’t copy`. Anything whose result is in view (a switch, a saved field, Copied) confirms in place instead.
  */
+/** The toast function, or null where no provider is mounted (a component rendered on its own). */
+export const useOptionalToast = (): ((t: ToastInput) => void) | null => useContext(ToastContext);
+
 export function useToast(): (t: ToastInput) => void {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast must be used inside <ToastProvider>');

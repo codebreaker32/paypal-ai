@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useToast } from '@/components/ui/toast';
+import { useOptionalToast } from '@/components/ui/toast';
 import { formatUSD } from '@/lib/domain/money';
 import { feedback } from '@/lib/feedback';
 import { isPayPalApprovalUrl } from './activity-format';
@@ -57,7 +57,7 @@ export interface CartState {
 
 /** The cart behind `CartContext`, the cart view and the order buttons. Saved to the device, joined to the menu on every load. */
 export function useCartState(slug: string, data: ShopCartData): CartState {
-  const toast = useToast();
+  const toast = useOptionalToast();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [restored, setRestored] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -99,7 +99,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the join needs the menu and the restored lines together
     setLines(joined.lines);
     setNotice(message);
-    if (message) toast({ title: message });
+    if (message) toast?.({ title: message });
   }, [restored, joined, toast]);
 
   useEffect(() => {
@@ -138,7 +138,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
       if (next === linesRef.current) {
         const message = `An order can hold ${MAX_LINES} different items.`;
         setAnnouncement(message);
-        toast({ title: message });
+        toast?.({ title: message });
         return;
       }
       apply(next);

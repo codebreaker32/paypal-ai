@@ -74,7 +74,7 @@ export function ItemSheet({ item, open, onClose, onAdd, onAsk, openerRef }: Item
           <fieldset className="flex flex-col gap-2">
             <legend className="mb-1 text-[0.9375rem] font-bold">Choose one</legend>
             {item.options.map((o) => (
-              <label key={o.id} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-(--card-radius) border border-line px-3 has-[:checked]:border-ink">
+              <label key={o.id} className="press-text flex min-h-12 cursor-pointer items-center gap-3 rounded-(--card-radius) border border-line px-3 has-[:checked]:border-ink">
                 <input type="radio" name="item-option" value={o.id} checked={o.id === optionId} onChange={() => setOptionId(o.id)} className="size-5 shrink-0 accent-ink" />
                 <span className="min-w-0 flex-1 font-medium [overflow-wrap:anywhere]">{o.label ?? 'Standard'}</span>
                 <span className="type-figures font-semibold">{formatUSD(o.cents)}</span>
