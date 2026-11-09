@@ -35,6 +35,7 @@
 - **Privacy:** `What we keep` now lists assistant conversations, kept with the shop until it is deleted.
 - **Acceptance 6:** `e2e/account-publish.spec.ts` signs up through the form, publishes the sample (real sandbox catalog; the reading is written directly, so no Claude), then opens the dashboard through `/`, `/shops` and the shop page.
 - **Acceptance 7:** `e2e/other-pages.spec.ts` writes full-page screenshots to `test-results/wp7-*-{390,1440}.png` for Help, Terms, Privacy and 404. They are run artefacts and not committed.
+- **Acceptance 9:** Lighthouse on `/s/marigold-bakehouse` (mobile preset, simulated throttling, production build of this branch, freshly seeded scratch DB, five runs at load about 2): 88, 90, 87, 90, 91, median **90** (LCP 2.9 s, TBT 250 ms, CLS 0). That meets the bar with no margin; the recorded baseline was median 91 over 89 to 92, so the difference is within the run-to-run spread and shows neither a regression nor its absence. Worth re-measuring on the final branch after the gate flip. `npx lighthouse@13` ran from a temporary directory, so no dependency was added. `docs/judge/evidence/lighthouse-shop-mobile.json` is not replaced.
 
 ## Tests edited
 - `e2e/other-pages.spec.ts`: added a screenshot in the loop, a footer list-name test and one required Privacy phrase. No assertion removed. (The first two steps edited no test file.)
