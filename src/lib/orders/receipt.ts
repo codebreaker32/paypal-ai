@@ -32,6 +32,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
   const awaiting = order.status === 'awaiting_approval';
   const events = awaiting || order.status === 'cancelled' ? eventsRepo.list(db, order.id) : [];
   const declined = awaiting && cardDeclined(order, events);
+  const minutes = approvalMinutes(order.agentName);
   return {
     number: order.number,
     status: order.status,
@@ -42,7 +43,7 @@ export function receiptView(db: Db, ref: string): ReceiptOrder | null {
     shopSlug: shop.slug,
     fulfillment: order.fulfillment,
     approvalUrl: awaiting ? order.approvalUrl : null,
-    approvalMinutes: approvalMinutes(order.agentName),
+    ...(minutes === approvalMinutes(null) ? {} : { approvalMinutes: minutes }),
     paidAt: order.paidAt,
     declined,
     cancelledByShop: cancelledByShop(order, events),
