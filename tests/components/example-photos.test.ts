@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import type { ItemWithVariants } from '@/lib/domain/types';
 
+vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {}, replace: () => {} }) }));
+
 vi.mock('@/lib/library/catalog', () => ({
   LIBRARY: [
     {
@@ -19,6 +21,7 @@ const { IssueCard, PhotoContext } = await import('@/components/setup/IssueCards'
 const { InPersonList, ReadyList } = await import('@/components/setup/ItemLists');
 const { Menu, menuSections } = await import('@/components/shop/Menu');
 const { ToastProvider } = await import('@/components/ui/toast');
+const { ReviewStep } = await import('@/components/setup/ReviewStep');
 const { itemPictures } = await import('@/lib/library/picture');
 
 const item = (over: Partial<ItemWithVariants> = {}): ItemWithVariants => ({
@@ -84,5 +87,70 @@ describe('example photos', () => {
     const own = render(item({ photoUrl: OWN }));
     expect(own).not.toContain('croissant-1.webp');
     expect(own).not.toContain(CAPTION);
+  });
+
+  describe('setup review on a phone (S5)', () => {
+    const LINE = 'Example photos are marked in the corner. Tap one to use your own.';
+    const captionTag = (html: string) => html.match(/<span[^>]*data-example-caption[^>]*>/)![0];
+    const screen = (items: ItemWithVariants[]) =>
+      renderToStaticMarkup(
+        createElement(ReviewStep, {
+          shopId: 'shp_1',
+          photoCount: 1,
+          shop: { id: 'shp_1', name: 'Rosa', about: '', pickupNotes: '', fulfillment: 'pickup', shippingFeeCents: 0, kind: 'food', slug: 'draft-abcdefgh', payeeEmail: 'rosa@example.com' },
+          items,
+          skipped: [],
+          warnings: [],
+          nonUsd: false,
+          recorded: false,
+        }),
+      );
+
+    it.each([
+      ['review ready row', review],
+      ['review in-person row', inPerson],
+    ] as const)('%s: the words go to screen readers only, and the mark on the photo says it', (_, render) => {
+      const html = render(item());
+      expect(captionTag(html)).toMatch(/\bsr-only\b/);
+      expect(html).toContain('data-example-mark');
+      const own = render(item({ photoUrl: OWN }));
+      expect(own).not.toContain('data-example-mark');
+    });
+
+    it.each([
+      ['Menu tab', menuTab],
+      ['review issue card', issueCard],
+    ] as const)('%s keeps its visible words', (_, render) => {
+      expect(captionTag(render(item()))).not.toMatch(/\bsr-only\b/);
+    });
+
+    it('marks the example on a flagged card too, so the line above the list is true of the whole screen', () => {
+      expect(issueCard(item())).toContain('data-example-mark');
+    });
+
+    it('a drawing carries no mark', () => {
+      expect(review(item({ name: 'Mystery thing', sourceText: 'Mystery thing', section: null }))).not.toContain('data-example-mark');
+    });
+
+    it('says the line only while an example shows in the list', () => {
+      const draft = item({ status: 'draft' });
+      expect(screen([draft])).toContain(LINE);
+      expect(screen([{ ...draft, status: 'in_person' }])).toContain(LINE);
+      expect(screen([{ ...draft, photoUrl: OWN }])).not.toContain(LINE);
+      expect(screen([{ ...draft, status: 'removed' }])).not.toContain(LINE);
+      expect(screen([{ ...draft, name: 'Mystery thing', sourceText: 'Mystery thing', section: null }])).not.toContain(LINE);
+    });
+
+    it('the line comes before the Ready for PayPal heading', () => {
+      const html = screen([item({ status: 'draft' })]);
+      expect(html.indexOf(LINE)).toBeLessThan(html.indexOf('Ready for PayPal'));
+    });
+
+    it('a flagged card fits Looks right, Fix and an icon-only Remove on one line under 640 px', () => {
+      const flagged = { ...item(), status: 'draft' as const, issues: ['CHECK' as const] };
+      const html = renderToStaticMarkup(createElement(IssueCard, { card: { kind: 'single', item: flagged }, id: 'c1', onUpdate: noop }));
+      expect(html).toContain('max-sm:grid-cols-[1fr_1fr_auto]');
+      expect(html).toMatch(/<span class="[^"]*max-sm:sr-only[^"]*">Remove<\/span>/);
+    });
   });
 });
