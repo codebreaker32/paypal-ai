@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 18:50 IST (run 5, session 10)_
+_Last updated: 2026-11-09 19:10 IST (run 5, session 10 hand-off)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -47,6 +47,7 @@ _Last updated: 2026-11-09 18:50 IST (run 5, session 10)_
   - **S3, S4, S5 and S6 merged at 18:46 IST (`3c06e8e`).** Each is separately revertible. Two review rounds, one finding (a second tap on `Share…` showing a false toast), fixed. **Verified on `05a1f52`:** `npm test` 2223, typecheck and lint exit 0, `shop` + `setup-review` + `app-shell` + `discovery` e2e 107 passed. `Share…` was tested against a stub, not on a real phone. `e2e/flow.spec.ts` read Activity differently (`allTextContents`; no assertion removed). Notes: `docs/run5-notes/S3-6.md`.
   - **Verified on the merge `3c06e8e` (18:49 IST):** `npm test` 2325 passed (170 files), typecheck and lint exit 0. The final full e2e with the capture gate started at 18:50 IST (`.scratch/s10/e2e-1.log`).
   - **Next session, in order:** (1) if `.scratch/s10/e2e-1.log` has no result, `git checkout docs/judge/screenshots/capture` and run the full e2e again, alone on the machine; (2) `test:sandbox`; (3) re-record the clips whose screens changed: `06-console-order`, `06b-paypal-complete` (S3, S4), the review clip (S5), the Share clip (S6), then align cuts, one full render from the committed `demo.json` with the red callout moved off the terminal lines, full-size frame check, clarity test 7; (4) completion steps.
+  - **Hand-off (19:10 IST):** the full e2e on `3c06e8e` was at 351 tests with one failure (`app-shell.spec.ts:123` at 1440, ?tab=menu deep-links, 1.6 s, first attempt) when this was written; the session ends before it finishes, so its result is unknown unless `.scratch/s10/e2e-1.log` ends with `e2e exit 0`. Check that spec alone before treating it as real (the machine may have been loaded by the run's start).
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
