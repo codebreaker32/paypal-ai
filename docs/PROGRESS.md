@@ -1,6 +1,6 @@
 # Progress
 
-_Last updated: 2026-11-09 13:40 IST (run 5, session 7 under way)_
+_Last updated: 2026-11-09 13:50 IST (run 5, session 8 under way)_
 
 ## Current phase
 **Run 5 (from 15:45 IST, 8 Nov 2026): the production pass.** Brief: `docs/superpowers/specs/2026-11-08-production-pass.md`. Hour 12 = 03:50 IST, 9 Nov; hour 16 = 07:50 IST. Work is on branch `run-5-production`; `main` stays the last good version.
@@ -24,6 +24,7 @@ _Last updated: 2026-11-09 13:40 IST (run 5, session 7 under way)_
   - **For WP6's fixer or the coordinator:** `tests/app/shell-data.test.ts` ("is null until accounts exist") now passes only through a catch in `currentShellAccount`; decide whether to add a `next/headers` mock or retire it.
   - **Late results (13:40 IST):** on `9074152` the targeted e2e passed, `accounts` + `app-shell` 63 of 63, after round 1's fixes. `wp3` now contains `run-5-production` (merged clean, `f33c9f8`; no tests run since). `wp6` does not: merging it conflicts in `AppShell.tsx`, `ShellBanner.tsx`, `Dashboard.tsx` and `copy-button.tsx`, so the merge was aborted. **Resolve those four first next session, then re-run WP6's specs before its security check.**
 - **Session 7 (13:35 to about 15:35 IST, 9 Nov), started.** `wp6` now contains `run-5-production` (`c52ed41`, four conflicts resolved: WP6's account slot and banner kept, the payee change date moved into the shell store so a cached payload can't undo it); `npm test` 1989 passed, typecheck and lint exit 0 on it. Two review workflows run side by side: WP6 (security lens, browser checks of round 1's fixes) and WP3 + cart (correctness, spec, checkout security, design). Next: merge WP6, then WP3, then WP7, WP8, WP9.
+- **Session 8 (13:47 to about 15:47 IST, 9 Nov), started.** Session 7 was cut off after about 13 minutes; only WP3's acceptance check finished (21 of 23 pass, `.scratch/s8/wp3-acc-r1.json`; the two fails are a live tile `+` while checkout is in flight on the dock, and a paused shop erasing the saved cart). Three workflows are running in worktrees: WP6 (security lens, browser checks of round 1's fixes), WP3 + cart (the two fails plus correctness, spec, checkout security and design), WP7's landing and public pages (`wp7`, from `wp6`'s head; the guest gate is flipped only after WP3 and WP6 are merged, because it moves e2e specs from both). Script: `.scratch/s8/run5-wp.js`.
 - **Needs from human:** the brief's list (`Needs from human`, items 1-8; items 2 and 3 are answered by the addendum); restated at the end of the run.
 
 ## Run 4
