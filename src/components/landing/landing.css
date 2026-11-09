@@ -1,0 +1,31 @@
+/* The home page's photo bands. Colours come from the tokens in globals.css. */
+.hero-wash {
+  background: linear-gradient(180deg, rgb(var(--blush-rgb) / 0.93) 0%, rgb(var(--blush-rgb) / 0.88) 48%, rgb(var(--blush-rgb) / 0.25) 76%, rgb(var(--blush-rgb) / 0.1) 100%);
+}
+@media (width >= 80rem) {
+  .hero-wash {
+    background: linear-gradient(90deg, rgb(var(--blush-rgb) / 0.94) 0%, rgb(var(--blush-rgb) / 0.9) 32%, rgb(var(--blush-rgb) / 0.3) 50%, rgb(var(--blush-rgb) / 0) 64%);
+  }
+}
+
+/* The photo settles once on load; transform only. */
+@keyframes hero-settle {
+  from {
+    transform: scale(1.07);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+.hero-photo {
+  animation: hero-settle 16s var(--ease-out) both;
+}
+
+.closing-fade {
+  background: linear-gradient(180deg, rgb(var(--cocoa-rgb) / 0.62) 0%, rgb(var(--cocoa-rgb) / 0.82) 100%);
+}
+@media (width >= 48rem) {
+  .closing-fade {
+    background: linear-gradient(90deg, rgb(var(--cocoa-rgb) / 0) 0%, rgb(var(--cocoa-rgb) / 0.08) 26%, rgb(var(--cocoa-rgb) / 0.95) 54%, rgb(var(--cocoa-rgb)) 66%);
+  }
+}

@@ -78,6 +78,17 @@
   --ill-pom: var(--pom-600);
   /* ── end illustrations ── */
 
+  /* Public site bands (home, help, legal). Blush is Radix Colors Ruby 2, 3 and 5; the pomegranate ramp above matches
+     Tailwind rose 700, 800 and 900 in lightness; charcoal and its soft text are Tailwind stone 800 and 300. */
+  --blush-2: #fff7f8;
+  --blush-3: #feeaed;
+  --blush-5: #ffced6;
+  --blush-rgb: 255 247 248;
+  --cocoa-800: #4a2d1f;
+  --cocoa-rgb: 74 45 31;
+  --stone-300: #d6d3d1;
+  --stone-800: #292524;
+
   /* PayPal brand blue: PayPal buttons only */
   --paypal-500: #0070ba;
   --paypal-700: #005ea6;
@@ -170,6 +181,14 @@
   --color-note-soft: var(--slate-50);
   --color-note-ink: var(--ink-900);
 
+  --color-blush: var(--blush-2);
+  --color-blush-band: var(--blush-3);
+  --color-blush-ring: var(--blush-5);
+  --color-cocoa: var(--cocoa-800);
+  --color-charcoal: var(--stone-800);
+  --color-on-dark: var(--white);
+  --color-on-dark-soft: var(--stone-300);
+
   --color-paypal: var(--paypal-500);
   --color-paypal-hover: var(--paypal-700);
   --color-paypal-active: var(--paypal-900);
@@ -243,7 +262,12 @@
   --spacing-tap: 2.75rem;
   --spacing-gutter: clamp(1.25rem, 4vw, 3rem);
   --spacing-section: clamp(3rem, 8vw, 6rem);
+  /* The public site's bands: one vertical padding for every band, one gutter for every band's content. */
+  --spacing-band: clamp(2.5rem, 5vw, 4.5rem);
+  --spacing-band-gutter: clamp(1.25rem, 2.4vw, 2.5rem);
+  --spacing-wave: clamp(3.5rem, 8vw, 7.5rem);
 
+  --container-site: 90rem;
   --container-page: 76rem;
   /* Operations screens (the dashboard, order detail) use more of a wide desktop */
   --container-wide: 88rem;
@@ -415,6 +439,15 @@
   --button-paypal-bg-hover: var(--color-paypal-hover);
   --button-paypal-bg-active: var(--color-paypal-active);
   --button-paypal-fg: var(--color-on-paypal);
+  /* The public site only: the pomegranate pill in its header, and the white pill on its photo and colour bands. */
+  --button-brand-bg: var(--color-accent);
+  --button-brand-bg-hover: var(--color-accent-hover);
+  --button-brand-bg-active: var(--color-accent-active);
+  --button-brand-fg: var(--color-on-accent);
+  --button-inverse-bg: var(--color-surface);
+  --button-inverse-bg-hover: var(--color-blush-band);
+  --button-inverse-bg-active: var(--color-blush-ring);
+  --button-inverse-fg: var(--color-accent-ink);
   --button-danger-bg: var(--color-error);
   --button-danger-bg-hover: color-mix(in srgb, var(--color-error) 88%, black);
   --button-danger-bg-active: color-mix(in srgb, var(--color-error) 78%, black);
@@ -482,6 +515,8 @@
 @utility type-page { font-family:var(--font-display); font-size:var(--text-2xl); line-height:var(--text-2xl--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
 @utility type-section { font-family:var(--font-display); font-size:var(--text-base); line-height:var(--text-base--line-height); font-weight:700; letter-spacing:var(--tracking-tight); }
 body:has([data-app-shell]) [data-site-chrome] { display:none; }
+/* The public site's sticky header: an in-page link lands below it. */
+html:has([data-band-header]) { scroll-padding-top:6rem; scroll-behavior:smooth; }
 @media (width < 64rem) {
   html:has([data-app-shell]) { scroll-padding-top:var(--app-topbar-h); scroll-padding-bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom)); }
   body:has([data-app-shell]) [data-toast-region] { bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom) + .75rem); padding-bottom:0; }
@@ -515,6 +550,40 @@ body:has([data-app-shell]) [data-site-chrome] { display:none; }
   @media (width >= 64rem) {
     font-size: var(--text-4xl);
     line-height: var(--text-4xl--line-height);
+  }
+}
+/* The public site's section headings and hero. */
+@utility type-band {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  @media (width >= 80rem) {
+    font-size: var(--text-5xl);
+  }
+}
+@utility type-band-closing {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  @media (width >= 80rem) {
+    font-size: 2.75rem;
+  }
+}
+@utility type-band-hero {
+  font-family: var(--font-display);
+  font-size: 2.25rem;
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: var(--tracking-display);
+  @media (width >= 48rem) {
+    font-size: var(--text-5xl);
+  }
+  @media (width >= 80rem) {
+    font-size: clamp(3rem, 3.9vw, 3.5rem);
   }
 }
 @utility type-title {
@@ -767,6 +836,14 @@ html[data-motion-off] [data-slot="status-swap"] > *,
 html[data-motion-off] [data-entrance] {
   opacity: 1 !important;
   transform: none !important;
+}
+
+/* The hero chain's beats are hidden in the server HTML. Reduced motion shows them at once, also before hydration. */
+@media (prefers-reduced-motion: reduce) {
+  [data-chain-beat] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* The link that was just followed: it dims if the next page takes a moment. An animation, not a transition, so the delay

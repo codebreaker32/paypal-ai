@@ -2,13 +2,13 @@ import { cx } from '@/components/ui/cx';
 import { LOCKUP, MARK, WORDMARK } from './logo-paths';
 
 export interface LogoProps {
-  size?: 'sm' | 'md';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
   /** Set when the logo stands alone and must name itself; leave it off inside a link that has its own label. */
   label?: string;
 }
 
-const LOCKUP_H = { sm: 'h-6', md: 'h-7' } as const;
+const LOCKUP_H = { sm: 'h-6', md: 'h-7', lg: 'h-9' } as const;
 
 /**
  * The Shelfie mark ("Awning"): a pomegranate scalloped shop awning over an ink instant print, whose deep chin is the

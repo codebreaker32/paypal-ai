@@ -5,17 +5,23 @@ import { usePathname } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { TextLink } from '@/components/ui/text-link';
+import { footerKind } from '@/lib/brand/footer';
 import { headerView } from '@/lib/brand/header';
 import { startedAccount, subscribeStartedSession } from '@/lib/client/started-session';
 import { AccountMenu } from './AccountMenu';
+import { BandHeader } from './BandHeader';
+import { Frame } from './Frame';
 import { Logo } from './Logo';
 
-/** The header's contents, which depend on the page (`lib/brand/header.ts` holds the table). */
+/** The header, which depends on the page (`lib/brand/header.ts` holds the table). Home, help and legal get the sticky band. */
 export function HeaderNav({ account, ownerShopIds }: { account: { email: string } | null; ownerShopIds: string[] }) {
   const started = useSyncExternalStore(subscribeStartedSession, startedAccount, () => null);
-  const view = headerView({ pathname: usePathname() ?? '/', account: account ?? started, ownerShopIds });
+  const pathname = usePathname() ?? '/';
+  const view = headerView({ pathname, account: account ?? started, ownerShopIds });
+  if (footerKind(pathname) === 'site' && (view.kind === 'public' || view.kind === 'account')) return <BandHeader view={view} />;
   return (
-    <>
+    <header data-site-chrome="" className="border-b border-line bg-surface">
+      <Frame className="flex h-16 items-center justify-between gap-3">
       <Link href={view.logoHref} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap items-center rounded-sm px-1">
         <Logo />
       </Link>
@@ -41,6 +47,7 @@ export function HeaderNav({ account, ownerShopIds }: { account: { email: string 
           </ButtonLink>
         </div>
       )}
-    </>
+      </Frame>
+    </header>
   );
 }

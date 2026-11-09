@@ -1,33 +1,36 @@
-import { StorePreview } from '@/app/_start/StorePreview';
-import { ButtonLink } from '@/components/ui/button';
-import { TextLink } from '@/components/ui/text-link';
-import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
+import Image from 'next/image';
+import { HeroChain } from './HeroChain';
+import './landing.css';
+
+/** The ribbon of pomegranate along the hero's foot, and the dome of the next band rising into it. */
+function Wave() {
+  return (
+    <svg aria-hidden="true" focusable="false" viewBox="0 0 1440 120" preserveAspectRatio="none" className="absolute inset-x-0 bottom-0 h-wave w-full">
+      <path className="fill-accent" d="M0 0C360 70 1080 80 1440 5V120C1080 70 360 70 0 100Z" />
+      <path className="fill-blush-band" d="M0 100C360 70 1080 70 1440 120H0Z" />
+    </svg>
+  );
+}
 
 export function Hero() {
   return (
-    <section
-      aria-labelledby="landing-title"
-      className="mx-auto grid w-full max-w-page items-start gap-12 px-gutter pt-8 lg:grid-cols-12 lg:items-center lg:gap-10 lg:pt-14"
-    >
-      <div className="lg:col-span-6">
-        <h1 id="landing-title" className="type-hero max-w-[12ch]">
-          Your price list, open to AI shoppers.
-        </h1>
-        <p className="mt-5 max-w-[30rem] type-lead text-ink-soft">
-          Snap the paper menu on your counter. Shelfie turns it into a PayPal shop any AI assistant can order from.
-        </p>
-        <div className="mt-8 flex flex-col items-center gap-x-6 gap-y-1 sm:flex-row">
-          <ButtonLink href="/signup" variant="primary" size="lg" className="w-full sm:w-auto">
-            Add your shop
-          </ButtonLink>
-          <TextLink href="/login">Log in</TextLink>
+    <section aria-labelledby="landing-title" className="relative isolate overflow-hidden">
+      <noscript>
+        <style>{'[data-entrance]{opacity:1!important;transform:none!important}'}</style>
+      </noscript>
+      <Image src="/demo/home/hero.webp" alt="" fill priority sizes="100vw" className="hero-photo -z-20 object-cover" />
+      <div aria-hidden="true" className="hero-wash absolute inset-0 -z-10" />
+      <div className="relative mx-auto grid w-full max-w-site gap-8 px-band-gutter pt-band pb-wave xl:grid-cols-[auto_minmax(0,1fr)] xl:items-center">
+        <div>
+          <h1 id="landing-title" className="type-band-hero text-ink">
+            Your price list, <br />
+            open to <span className="text-accent-ink">AI shoppers.</span>
+          </h1>
+          <p className="mt-3 text-2xl text-ink xl:mt-4 xl:text-3xl">Snap. Share. Get paid.</p>
         </div>
-        <p className="mt-4 type-meta text-ink-muted">{TEST_MODE_LINE}</p>
+        <HeroChain />
       </div>
-
-      <div className="lg:col-span-6">
-        <StorePreview />
-      </div>
+      <Wave />
     </section>
   );
 }

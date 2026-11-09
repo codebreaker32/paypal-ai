@@ -8,7 +8,7 @@ import { Icon } from './icon';
 
 export type { ButtonStatus };
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'paypal' | 'danger';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'paypal' | 'danger' | 'brand' | 'inverse';
 export type ButtonSize = 'md' | 'lg';
 
 // shadcn's button pattern (cva variants, data-slot), with Shelfie's pills and heights.
@@ -34,6 +34,13 @@ const VARIANT = {
   danger:
     'bg-(--button-danger-bg) text-(--button-danger-fg) hover:bg-(--button-danger-bg-hover) active:bg-(--button-danger-bg-active) ' +
     'data-pressed:bg-(--button-danger-bg-active)',
+  // The public site only (home, help, legal): the header's pomegranate pill and the white pill on a colour or photo band.
+  brand:
+    'bg-(--button-brand-bg) text-(--button-brand-fg) hover:bg-(--button-brand-bg-hover) active:bg-(--button-brand-bg-active) ' +
+    'data-pressed:bg-(--button-brand-bg-active)',
+  inverse:
+    'bg-(--button-inverse-bg) text-(--button-inverse-fg) shadow-md hover:bg-(--button-inverse-bg-hover) ' +
+    'active:bg-(--button-inverse-bg-active) data-pressed:bg-(--button-inverse-bg-active)',
 } satisfies Record<ButtonVariant, string>;
 
 const SIZE = {

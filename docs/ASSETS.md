@@ -248,3 +248,14 @@ Real photos of common item types (`public/library/<id>.webp`, catalogue in `src/
 | `tote-1` | A plain white canvas tote bag held out at arm's length | https://www.pexels.com/photo/a-person-holding-a-tote-bag-6787035/ | [Artem Podrez](https://www.pexels.com/@artempodrez/) | Pexels License |
 | `tote-2` | A rainbow-striped canvas tote bag carried on the shoulder | https://www.pexels.com/photo/a-person-holding-a-rainbow-tote-bag-8669455/ | [Mikhail Nilov](https://www.pexels.com/@mikhail-nilov/) | Pexels License |
 | `tote-3` | A patterned canvas tote bag carried on the shoulder | https://www.pexels.com/photo/side-view-of-a-person-walking-with-a-tote-bag-7735446/ | [Duygu Dolanbay](https://www.pexels.com/@duygu-dolanbay-49216457/) | Pexels License |
+
+## Home page photographs (`public/demo/home/`)
+
+All under the [Pexels License](https://www.pexels.com/license/), resized and compressed to WebP. No visible brand, label or face.
+
+| File | Shows | Pexels page | Processing | Licence |
+|---|---|---|---|---|
+| `hero.webp` | A bakery display case of croissants and pastries | https://www.pexels.com/photo/19498989/ (Valeria Boltneva, the same source as `public/samples/counter-case.jpg`) | Cropped, heavily blurred, brightened | Pexels License |
+| `closing.webp` | A row of frosted cupcakes on a counter | https://www.pexels.com/photo/photo-of-cupcakes-1028704/ (Acharaporn Kamornboonyarush) | Cropped, saturation raised | Pexels License |
+| `cupcake.webp` | A cupcake topped with a raspberry | https://www.pexels.com/photo/photograph-of-chocolate-cupcake-with-red-strawberry-toppings-1055272/ | Cropped square | Pexels License |
+

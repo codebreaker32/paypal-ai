@@ -297,8 +297,15 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **Only the four clips whose screens S3 to S6 changed were re-recorded (03, 04, 06, 06b; 08 ran with 06), and their cut points and focus boxes were set by hand from viewed frames.** Reason: the pixel alignment tool cannot match a screen whose layout changed, and the other seven clips show unchanged screens.
 - **The clarity test ran on the first render; the final render differs only in caption placement on two beats.** Reason: the tester named those overlaps, and moving a caption cannot change an answer about what the product is; the changed frames were viewed and the rest compared by PSNR.
 
+## Run 6: the home page built from the owner's reference (2026-11-10 IST)
 
-## Run 6: home page directions
-
-- `/preview/*` hides the site header and footer with a `<style>` in its own layout, so no global CSS changes and the skip link stays.
-- `impeccable`'s product interview and concept roll were replaced by the owner's written brief, which pins three directions and nobody can answer questions during this run.
+- **The `/preview` directions were discarded; only that route was removed.** Reason: the brief cancels them, and the six `.claude/worktrees` predate this run and hold no preview work.
+- **`impeccable`'s interview step was replaced by the owner's written brief.** Reason: the reference image pins the direction and nobody can answer during this run.
+- **The photos come from Pexels pages, fetched as plain public downloads, after the attempt on Unsplash's internal search endpoint was refused.** Reason: that endpoint is not a public API, and the Pexels Licence covers these photos.
+- **The hero chain plays once when it comes into view and again on return, and never loops.** Reason: endless motion needs a pause control (WCAG 2.2.2), and a replay on return keeps it alive.
+- **Arrows are drawn by sliding out of a clipped slot.** Reason: it reads as drawing while only transform moves, and leaves nothing broken if motion fails to load.
+- **The hero carries no button of its own; the sticky header holds `Log in` and `Add your shop`.** Reason: the reference has none there, and the header is always on screen.
+- **The band header and charcoal footer apply to `/`, `/help`, `/terms` and `/privacy` only.** Reason: buyer pages have their own sticky rows, and the brief keeps them and the seller shell as they are.
+- **The footer has a small second row (sandbox sentence, Privacy, agents.txt, llms.txt, Sound).** Reason: those links and the sound switch must stay reachable, and the reference's single row has four links only.
+- **The FAQ keeps six questions, dropping password recovery.** Reason: `/help` already answers it, and a seventh row makes the band much taller than the reference's.
+- **The hero uses `public/samples/counter-case.jpg`, heavily blurred.** Reason: of the eleven candidates viewed it was the warmest, and its price cards vanish under the blur.

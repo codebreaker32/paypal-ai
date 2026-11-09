@@ -28,11 +28,11 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       const hero = page.locator('main > section').first();
       await expect(hero.getByRole('heading', { level: 1, name: 'Your price list, open to AI shoppers.' })).toBeVisible();
       for (const name of ['Add your shop', 'Log in']) {
-        const box = await hero.getByRole('link', { name, exact: true }).boundingBox();
+        const box = await page.locator('body > header').getByRole('link', { name, exact: true }).boundingBox();
         expect(box, name).not.toBeNull();
         expect(box!.y + box!.height, name).toBeLessThanOrEqual(viewport.height);
       }
-      await expect(hero.getByText(TEST_MODE_LINE)).toBeVisible();
+      await expect(page.locator('body > footer').getByText(TEST_MODE_LINE)).toBeVisible();
 
       // Marigold's name only in the hero's picture; the others use its paper at most.
       for (const part of await page.locator('main > section').all()) {
@@ -50,17 +50,18 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
     test('the FAQ is native disclosures with the brief’s words', async ({ page }) => {
       await page.goto('/');
       await settle(page);
-      await expect(page.locator('main details')).toHaveCount(5);
+      await expect(page.locator('main details')).toHaveCount(6);
+      if (label === '390') await page.getByRole('button', { name: 'Frequently asked questions' }).click();
       await page.getByText('Do I need a website?').click();
       await expect(page.getByText('a card with a QR code you can print for the counter')).toBeVisible();
     });
 
-    test('footer kinds: groups on the landing page, the short row on a buyer page', async ({ page }) => {
+    test('footer kinds: the charcoal band on the landing page, the short row on a buyer page', async ({ page }) => {
       const shop = createFixtureShop('Footer Test Bakery');
       await page.goto('/');
       const footer = page.locator('body > footer');
       await expect(footer.getByText(TEST_MODE_LINE)).toBeVisible();
-      for (const name of ['Add your shop', 'Log in', 'Help', 'agents.txt', 'llms.txt', 'Terms', 'Privacy', 'Open source on GitHub']) {
+      for (const name of ['Product', 'Help', 'Legal', 'Open Source', 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
         await expect(footer.getByRole('link', { name, exact: true })).toBeVisible();
       }
       await expect(footer.getByRole('button', { name: 'Sound' })).toBeVisible();

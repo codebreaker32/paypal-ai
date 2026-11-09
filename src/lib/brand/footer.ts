@@ -12,11 +12,6 @@ export interface FooterLink {
   native?: boolean;
 }
 
-export interface FooterGroup {
-  label: string;
-  links: FooterLink[];
-}
-
 const SITE_PAGE = /^\/(help|terms|privacy)?\/?$/;
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
@@ -26,30 +21,19 @@ export function footerKind(pathname: string): FooterKind {
   return SITE_PAGE.test(pathname) ? 'site' : 'compact';
 }
 
-export const FOOTER_GROUPS: FooterGroup[] = [
-  {
-    label: 'Product',
-    links: [
-      { label: 'Add your shop', href: '/signup' },
-      { label: 'Log in', href: '/login' },
-    ],
-  },
-  { label: 'Help', links: [{ label: 'Help', href: '/help' }] },
-  {
-    label: 'For AI assistants',
-    links: [
-      { label: 'agents.txt', href: '/agents.txt', native: true },
-      { label: 'llms.txt', href: '/llms.txt', native: true },
-    ],
-  },
-  {
-    label: 'Legal',
-    links: [
-      { label: 'Terms', href: '/terms' },
-      { label: 'Privacy', href: '/privacy' },
-      { label: 'Open source on GitHub', href: REPO_URL, native: true },
-    ],
-  },
+/** The public site's main row. */
+export const FOOTER_NAV: FooterLink[] = [
+  { label: 'Product', href: '/#how-it-works' },
+  { label: 'Help', href: '/help' },
+  { label: 'Legal', href: '/terms' },
+  { label: 'Open Source', href: REPO_URL, native: true },
+];
+
+/** The public site's small row, beside the test-mode sentence. */
+export const FOOTER_SMALL: FooterLink[] = [
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'agents.txt', href: '/agents.txt', native: true },
+  { label: 'llms.txt', href: '/llms.txt', native: true },
 ];
 
 /** The links beside the sentence on buyer pages. */
