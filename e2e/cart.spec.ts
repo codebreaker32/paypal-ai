@@ -99,10 +99,15 @@ test.describe('item sheet', () => {
     await expect(sheet(page)).toHaveCount(0);
     await expect(page).not.toHaveURL(/item=/);
 
+    const warnings: string[] = [];
+    page.on('console', (m) => {
+      if (m.text().includes('flushSync')) warnings.push(m.text());
+    });
     await page.goto(`${SHOP}?item=nope`);
     await hydrate(page);
     await expect(sheet(page)).toHaveCount(0);
     await expect(page).not.toHaveURL(/item=/);
+    expect(warnings).toEqual([]);
   });
 
   test('quantity and Add close the sheet and count in the bar', async ({ page }) => {

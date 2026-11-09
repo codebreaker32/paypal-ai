@@ -128,6 +128,7 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const cartOpen = cartParam.value !== null;
   const itemParam = useHistoryParam('item');
   const closeItemParam = itemParam.close;
+  const dismissItemParam = itemParam.dismiss;
   const panelOpen = (open || cartOpen) && isDesktop !== false;
   useKeyboardViewport(dialogRef, open && isDesktop === false);
   useKeyboardViewport(cartDialogRef, cartOpen && isDesktop === false);
@@ -322,8 +323,9 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   // An id that isn't on this menu opens nothing, and the link is cleaned up.
   const unknownItem = itemParam.value !== null && !cartData.items.some((i) => i.id === itemParam.value);
   useEffect(() => {
-    if (unknownItem) closeItemParam();
-  }, [unknownItem, closeItemParam]);
+    // `dismiss`, not `close`: close flushes synchronously for the dialog's focus, which React refuses during an effect.
+    if (unknownItem) dismissItemParam();
+  }, [unknownItem, dismissItemParam]);
 
   const closeItem = useCallback(() => closeItemParam(), [closeItemParam]);
   const askAboutItem = () => {

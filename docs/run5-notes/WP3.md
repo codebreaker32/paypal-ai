@@ -85,3 +85,17 @@ Built: `shop/cart.ts` (pure: lines, join to the menu, storage, checkout body, SR
 | `router.refresh` | Called from `CartView`, not `useCartState` | `useRouter` throws where no app router is mounted; `ShopAssistant` is rendered alone in unit tests. |
 | Copy | `’` instead of `'` | As the rest of the shop's copy. |
 | A real payment | Not run by this WP | Checkout is stubbed in `e2e/cart.spec.ts`; the real capture with the US sandbox buyer is the WP8 gate. |
+
+## Acceptance e2e
+
+`e2e/tiles.spec.ts` now covers WP3 acceptance 1 to 4 and 8 and the addendum's replacements for 5 and 6: a tile opens the sheet, `+` adds with no sheet and no assistant call, a two-option `+` opens the sheet, and sold-out, ask-in-person and paused tiles have no add control but open a sheet ending in its plain line. Acceptance 7 is `e2e/shop.spec.ts:454`, passing unedited.
+
+`e2e/cart.spec.ts` adds: the mocked approval redirect (leaves for a sandbox PayPal URL, pending order saved, cart kept), in flight, over the cap, Pickup and Shipping totals, `UNKNOWN_ITEM`, the shop-wide `TOO_MANY_OPEN_ORDERS` line (SR28), and `CHECKOUT_STALE`/`IDEMPOTENCY_CONFLICT` rotating the request id and retrying once. `e2e/screenshots.spec.ts` gains `item-sheet`, `cart` and `cart-error`; these three were written but the screenshot run itself was not executed (it belongs with `screenshots:prod`).
+
+Existing tests edited: none outside this WP's own specs. Assertions were only added.
+
+| Where | What | Why |
+|---|---|---|
+| `ShopAssistant.tsx` unknown-id effect | Calls `itemParam.dismiss`, not `close` | Product bug found by the spec: `close` runs `flushSync`, which React refuses inside an effect, logging an error on every `?item=<unknown>` load. `e2e/cart.spec.ts` now asserts no such warning. |
+| Stubbed error copy | The refusal tests stub the route's `message`, so they prove the client shows it; the copy itself is unit-tested in `tests/api/checkout-route.test.ts` | Browser-side stub, as the rest of the spec. |
+

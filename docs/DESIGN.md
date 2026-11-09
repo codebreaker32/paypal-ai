@@ -215,6 +215,8 @@ The item sheet is `Sheet` with `media` (the 4:3 photo full-bleed, the close butt
 
 The cart is one view in the assistant's boxes: the same right-edge dock from 1024 px (one panel at a time, with an `Assistant` switch in its header), the assistant's side and bottom sheets below it. A cart line is only `{itemId, optionId, qty}`; names and prices are joined from the menu the server sent, and client totals are for display only. The phone bar keeps its one button with an empty cart and becomes `Assistant` plus `View order · 3  $19.00` with items.
 
+Cart states: while checkout is in flight the button reads `Opening PayPal…` and every control is disabled; over the shop's cap the button is disabled with the limit as an inline line; every refusal is one `role="alert"` line under the button, in `error`, and keeps the cart unless the item itself has gone. Changes are announced by one polite status line. An unavailable item's sheet ends in one plain line with no button. `e2e/screenshots.spec.ts` captures `item-sheet`, `cart` and `cart-error` at both widths.
+
 ## Rules
 
 - One primary (black) action per screen; PayPal blue only to approve a payment.
