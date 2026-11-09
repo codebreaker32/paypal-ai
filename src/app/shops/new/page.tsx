@@ -21,7 +21,7 @@ export default async function NewShopPage({ searchParams }: { searchParams: Prom
           title={first ? 'Add your shop' : 'Add a shop'}
           description="Take a photo of your price list. You’ll check it before anything goes live."
         />
-        <StartActions samples={addShopSamples(shopCount, samples)} liveLink={false} />
+        <StartActions samples={addShopSamples(shopCount, samples)} />
       </div>
     </div>
   );
