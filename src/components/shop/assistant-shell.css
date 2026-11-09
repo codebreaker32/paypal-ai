@@ -1,0 +1,63 @@
+/*
+ * The assistant's three boxes (one AssistantShell inside): docked from 1024 px, a side sheet from 640 to 1023, a bottom
+ * sheet below. It attaches to a viewport edge, never to the page flow, so header, footer and scroll cannot move it.
+ */
+.assistant-dock { display: none; }
+@media (min-width: 64rem) {
+  html:has([data-assistant-dock]) body { padding-inline-end: var(--assistant-w); }
+  html:has([data-assistant-dock]) [data-toast-region] { right: calc(var(--assistant-w) + 1.5rem); }
+  /* Stable left edge: the logo must not jump when the dock opens */
+  html:has([data-assistant-dock]) [data-page-frame] {
+    width: auto; margin-inline-start: max(0px, calc((100vw - var(--container-page)) / 2)); margin-inline-end: 0; }
+  .assistant-dock { display: block; position: fixed; inset-block: 0; right: 0; z-index: var(--z-dock); width: var(--assistant-w);
+    background: var(--color-surface); border-inline-start: 1px solid var(--color-line);
+    transition: transform var(--duration-base) var(--ease-out); }
+  @starting-style { .assistant-dock { transform: translateX(100%); } }
+}
+.assistant-sheet { position: fixed; inset: var(--assistant-top-gap) 0 auto 0; margin: 0; padding: 0;
+  width: 100%; max-width: 100%; max-height: none;
+  height: calc(var(--assistant-vh, 100dvh) - var(--assistant-top-gap));
+  translate: 0 var(--assistant-vy, 0);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  background: var(--sheet-bg); box-shadow: var(--sheet-shadow);
+  transform: translateY(100%);
+  transition: transform var(--duration-base) var(--ease-in),
+    overlay var(--duration-base) allow-discrete, display var(--duration-base) allow-discrete; }
+.assistant-sheet[open] { transform: none; transition-duration: var(--duration-slow); transition-timing-function: var(--ease-out); }
+@starting-style { .assistant-sheet[open] { transform: translateY(100%); } }
+.assistant-sheet::backdrop { opacity: 0; transition: opacity var(--duration-base) var(--ease-out); }
+.assistant-sheet[open]::backdrop { opacity: 1; }
+@starting-style { .assistant-sheet[open]::backdrop { opacity: 0; } }
+@media (min-width: 40rem) {
+  .assistant-sheet { inset: 0 0 0 auto; width: min(var(--assistant-sheet-w), 100vw);
+    height: var(--assistant-vh, 100dvh); border-radius: 0; transform: translateX(100%); }
+  .assistant-sheet[open] { transform: none; }
+  @starting-style { .assistant-sheet[open] { transform: translateX(100%); } }
+}
+.assistant-sheet [data-assistant-header], .assistant-sheet [data-assistant-footer] { touch-action: none; }
+@media (max-height: 26rem) {
+  .assistant-sheet { --assistant-header-h: 2.75rem; }
+  .assistant-sheet [data-assistant-subtitle] { display: none; }
+}
+@media print { html:has([data-assistant-dock]) body { padding: 0; } .assistant-dock { display: none; } }
+/* The global reduced-motion rule gives every element a 0.01 ms transition, which delays the dock's layout change by a
+   frame or two; keepPlace reads that layout straight after the change, so these two must not transition at all. */
+@media (prefers-reduced-motion: reduce) {
+  body, [data-page-frame] { transition: none !important; }
+}
+
+/* The compact order button (OrderCta.tsx) fades in after the hero scrolls out. Visibility flips at once on the way in,
+   so the button can take focus on the same frame, and only after the fade on the way out. */
+.compact-order-cta {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--duration-base) var(--ease-out), visibility 0s linear var(--duration-base);
+}
+.compact-order-cta[data-shown] {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--duration-base) var(--ease-out), visibility 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .compact-order-cta, .compact-order-cta[data-shown] { transition: none; }
+}

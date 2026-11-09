@@ -95,10 +95,24 @@
   --shop-tabs-h: 3rem;
   --shop-bar-h: 5.25rem;
 
+  /* The buyer's assistant: docked beside the page from 1024 px, a side sheet from 640 px, a bottom sheet below. */
+  --assistant-w: clamp(23.75rem, 30vw, 27.5rem);
+  --assistant-sheet-w: 27.5rem;
+  --assistant-top-gap: max(0.75rem, env(safe-area-inset-top));
+  --assistant-header-h: 4rem; /* equals SiteHeader h-16 */
+
   /* Layers */
   --z-header: 20;
+  --z-dock: 30;
   --z-sheet: 50;
   --z-toast: 60;
+}
+
+/* From 1024 px the tabs row also holds the 44 px compact order button, so it gets room around it. */
+@media (width >= 64rem) {
+  :root {
+    --shop-tabs-h: 3.5rem;
+  }
 }
 
 /* ───────────── 2. Semantic (Tailwind theme) ───────────── */
@@ -749,7 +763,8 @@ html[data-motion-off] [data-entrance] {
   }
   *,
   ::before,
-  ::after {
+  ::after,
+  ::backdrop {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
