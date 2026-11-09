@@ -27,8 +27,18 @@
 - `#delete` and the Privacy deletion line stay `contact us` because `/account` has no deletion yet (S1).
 - The impeccable skill's interview has no PRODUCT.md and no user in this subagent: the brief and `docs/DESIGN.md` were used instead.
 
+## Review round 1
+- **Setup's exits.** `Cancel`, `Start over` and `Try a sample menu instead` pointed at `/`, which now redirects a seller back to the same draft. They go to `/shops/new` (`src/lib/brand/add-shop.ts`, TDD in `tests/brand/add-shop.test.ts`; `e2e/account-publish.spec.ts` clicks all three).
+- **Deviation:** the brief shows samples on `/shops/new` "with zero shops only". `Try a sample menu instead` goes to `/shops/new?samples=1`, which shows them on any account. Reason: that link has to show a sample, and an account in setup always has one shop already (its draft). A plain `/shops/new` is unchanged.
+- The abandoned draft stays and is listed on `/shops` as `Not published yet`; nothing removes it. `Cancel` does not stop a reading already running, as before. A guest draft (harness only) is sent on to `/login` by these links.
+- **Footer:** list ids are built from the group's index, so `For AI assistants` has a working name (`e2e/other-pages.spec.ts`).
+- **Privacy:** `What we keep` now lists assistant conversations, kept with the shop until it is deleted.
+- **Acceptance 6:** `e2e/account-publish.spec.ts` signs up through the form, publishes the sample (real sandbox catalog; the reading is written directly, so no Claude), then opens the dashboard through `/`, `/shops` and the shop page.
+- **Acceptance 7:** `e2e/other-pages.spec.ts` writes full-page screenshots to `test-results/wp7-*-{390,1440}.png` for Help, Terms, Privacy and 404. They are run artefacts and not committed.
+
 ## Tests edited
-None, in either step. No existing test file was changed; `npm test` passed without any copy or selector edit, because no unit test followed the old landing or 404 copy.
+- `e2e/other-pages.spec.ts`: added a screenshot in the loop, a footer list-name test and one required Privacy phrase. No assertion removed. (The first two steps edited no test file.)
+- `e2e/account-publish.spec.ts` and `tests/brand/add-shop.test.ts` are new.
 
 ## Open for the coordinator
 - **Gate not flipped, e2e not moved (as instructed).** `/` no longer has the photo input or sample chips, so the specs that use them from `/` (`e2e/{start,flow,recordings,screenshots}.spec.ts`) and `scripts/clips/record.ts` need the planned move to `/shops/new`. Those specs were not run here.
