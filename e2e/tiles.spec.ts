@@ -304,3 +304,59 @@ test('at 1024 docked the menu has two tracks (2)', async ({ page }) => {
   await expect.poll(() => tracks(page)).toEqual(expect.arrayContaining([2]));
   expect(new Set(await tracks(page))).toEqual(new Set([2]));
 });
+
+// Judge round 12, "Proper placing": no text wraps alone onto its own line at 390 px; and the phone bar's count and total
+// are separate, with a gap between them.
+test.describe('tile text and the order bar at 390 px', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('no tile name leaves one word alone on its last line', async ({ page }) => {
+    await page.goto('/s/marigold-bakehouse');
+    await page.waitForLoadState('load');
+    await page.evaluate(() => document.fonts.ready);
+    const lone = await page.evaluate(() => {
+      const out: string[] = [];
+      for (const h4 of Array.from(document.querySelectorAll('li[data-menu-item] h4'))) {
+        const text = (h4.textContent ?? '').trim();
+        const walker = document.createTreeWalker(h4, NodeFilter.SHOW_TEXT);
+        const node = walker.nextNode();
+        if (!node || !text.includes(' ')) continue;
+        const raw = node.nodeValue!;
+        const lastSpace = raw.trimEnd().lastIndexOf(' ');
+        const top = (a: number, b: number) => {
+          const r = document.createRange();
+          r.setStart(node, a);
+          r.setEnd(node, b);
+          return Math.round(r.getBoundingClientRect().top);
+        };
+        const beforeLast = raw.slice(0, lastSpace).trimEnd().length;
+        if (top(lastSpace + 1, raw.trimEnd().length) > top(beforeLast - 1, beforeLast)) out.push(text);
+      }
+      return out;
+    });
+    expect(lone).toEqual([]);
+  });
+
+  test('the bar shows the count and the total apart', async ({ page }) => {
+    await page.goto('/s/marigold-bakehouse');
+    await page.waitForFunction(() => {
+      const el = document.querySelector('li[data-menu-item] button');
+      return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
+    });
+    await page.evaluate(() => localStorage.clear());
+    await page.reload();
+    await page.waitForFunction(() => {
+      const el = document.querySelector('li[data-menu-item] button');
+      return !!el && Object.keys(el).some((k) => k.startsWith('__reactFiber'));
+    });
+    await page.getByRole('button', { name: /^Add .* to your order$/ }).first().click();
+    const button = page.locator('[data-order-bar]').getByRole('button', { name: /View order/ });
+    await expect(button).toBeVisible();
+    const gap = await button.evaluate((b) => {
+      const words = Array.from(b.querySelectorAll('span')).find((s) => s.children.length === 0 && s.textContent?.startsWith('View order'))!;
+      const total = Array.from(b.querySelectorAll('span')).find((s) => s.children.length === 0 && s.textContent?.startsWith('$'))!;
+      return total.getBoundingClientRect().left - words.getBoundingClientRect().right;
+    });
+    expect(gap).toBeGreaterThanOrEqual(8);
+  });
+});

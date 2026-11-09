@@ -387,9 +387,11 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
                 Assistant
               </Button>
               {/* On a very narrow phone the words give way, never the total. */}
-              <Button ref={orderBarRef} size="lg" fullWidth aria-label={viewOrderLabel(cart.count, cart.itemsCents)} onClick={showCart} className="min-w-0 flex-1 px-4 text-base [&>span]:flex [&>span]:min-w-0 [&>span]:items-baseline [&>span]:gap-2">
-                <span className="min-w-0 truncate">View order · {cart.count}</span>
-                <span className="shrink-0 type-figures">{formatUSD(cart.itemsCents)}</span>
+              <Button ref={orderBarRef} size="lg" fullWidth aria-label={viewOrderLabel(cart.count, cart.itemsCents)} onClick={showCart} className="min-w-0 flex-1 px-4 text-base">
+                <span className="flex min-w-0 items-baseline gap-2">
+                  <span className="min-w-0 truncate">View order · {cart.count}</span>
+                  <span className="shrink-0 type-figures">{formatUSD(cart.itemsCents)}</span>
+                </span>
               </Button>
             </div>
           ) : (
