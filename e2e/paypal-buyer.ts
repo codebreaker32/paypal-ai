@@ -121,6 +121,19 @@ export async function payAsGuest(page: Page, approvalUrl: string, opts: PayAsGue
     if (shot) await shot(page, 'paypal-approval');
     await payByCard.click();
 
+    // PayPal's Nov 2026 guest page asks for the email on its own first ("Check out as a guest" → Continue to Payment).
+    step = 'guest email';
+    const guestEmail = page.getByRole('heading', { name: 'Check out as a guest' });
+    await Promise.race([
+      guestEmail.waitFor({ state: 'visible', timeout: SLOW }),
+      page.locator('#country').waitFor({ state: 'visible', timeout: SLOW }),
+    ]);
+    if (await guestEmail.isVisible()) {
+      await page.getByRole('textbox', { name: 'Email' }).fill(GUEST.email);
+      await page.getByRole('button', { name: 'Continue to Payment' }).click();
+      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    }
+
     step = 'country';
     await page.locator('#country').waitFor({ state: 'visible', timeout: SLOW });
     await page.selectOption('#country', 'US');
