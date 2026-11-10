@@ -108,7 +108,7 @@ test.describe('at 1440 px', () => {
     await launcher.click();
     const chat = panel(page);
     await expect(chat).toBeVisible();
-    await expect(chat.getByText('Ordering from Marigold Bakehouse · example shop')).toBeVisible();
+    await expect(chat.getByText('Marigold Bakehouse · example shop', { exact: true })).toBeVisible();
     await expect(chat.getByText(GREETING)).toBeVisible();
     const starters = chat.getByRole('list', { name: 'Try asking' }).getByRole('button');
     expect(await starters.count()).toBeGreaterThanOrEqual(2);

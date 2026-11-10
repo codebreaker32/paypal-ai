@@ -170,7 +170,8 @@ export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boo
       inputRef={inputRef}
       takesOrders
       onClose={hide}
-      subtitle={`Ordering from ${shop.name}\u00a0·\u00a0example shop`}
+      // The desktop panel's header keeps to one line (the greeting already says it takes orders); the phone sheet keeps its wording.
+      subtitle={isDesktop ? `${shop.name}\u00a0·\u00a0example shop` : `Ordering from ${shop.name}\u00a0·\u00a0example shop`}
       mark={<BotMark className="size-9" />}
       greeting={greeting}
       closeLabel="Close the chat"
