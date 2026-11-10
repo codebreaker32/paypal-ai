@@ -2,6 +2,7 @@ import React from "react";
 import { useCurrentFrame, useVideoConfig, spring } from "remotion";
 import { typeScale } from "../theme.js";
 import { groupPhrases } from "../lib/phrases.js";
+import { PANEL_W } from "./OnScreenText.jsx";
 
 /**
  * Word-timed captions, driven by the ElevenLabs timestamps saved alongside each
@@ -393,7 +394,7 @@ const ShortsCaptions = ({ words, theme, t, fps, width, height, placement = "defa
  * Bottom by default; a scene can set "captionPlacement": "top" when its screen
  * has something important along the bottom edge. No blur, glow or karaoke colour.
  */
-const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats }) => {
+const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats, onScreen }) => {
   const s = typeScale(width, height);
   const active = groupPhrases(words).find((p) => t >= p.showSec && t < p.hideSec);
   if (!active) return null;
@@ -407,11 +408,18 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats
     if (b.captionPlacement) placement = b.captionPlacement;
   }
   const pos = placement === "top" ? { top: Math.round(104 * s) } : { bottom: Math.round(30 * s) };
+  // While a stat panel (OnScreenText) covers the left of the frame, a phrase that
+  // overlaps it is centred over the footage beside it, not across the panel's edge.
+  const besideStat = (onScreen || []).some(
+    (o) => o.variant !== "statement" && Number.isFinite(o.fromSec) &&
+      active.showSec < (o.toSec ?? Infinity) - 0.3 && active.hideSec > o.fromSec + 0.3
+  );
+  const left = besideStat ? Math.round((PANEL_W + 60) * width / 1920) : Math.round(width * 0.05);
   return (
     <div
       style={{
         position: "absolute",
-        left: Math.round(width * 0.05),
+        left,
         right: Math.round(width * 0.05),
         ...pos,
         display: "flex",
@@ -429,6 +437,7 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats
           textAlign: "center",
           maxWidth: Math.round(1560 * s),
           textRendering: "geometricPrecision",
+          textWrap: "balance",
         }}
       >
         {active.text}
@@ -437,7 +446,7 @@ const ShelfieCaptions = ({ words, theme, t, width, height, scenePlacement, beats
   );
 };
 
-export const Captions = ({ words, theme, offsetSec = 0, style = "clean", placement = "default", splitPct = 0.55, emphasis, beats, anchored, scenePlacement, autoEmphasis }) => {
+export const Captions = ({ words, theme, offsetSec = 0, style = "clean", placement = "default", splitPct = 0.55, emphasis, beats, anchored, scenePlacement, autoEmphasis, onScreen }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
   if (!words?.length) return null;
@@ -446,7 +455,7 @@ export const Captions = ({ words, theme, offsetSec = 0, style = "clean", placeme
 
   if (style === "shelfie") {
     return (
-      <ShelfieCaptions words={words} theme={theme} t={t} width={width} height={height} scenePlacement={scenePlacement} beats={beats} />
+      <ShelfieCaptions words={words} theme={theme} t={t} width={width} height={height} scenePlacement={scenePlacement} beats={beats} onScreen={onScreen} />
     );
   }
 

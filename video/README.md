@@ -66,5 +66,21 @@ A full render takes several minutes; run one render at a time (and never beside 
 - `captionPlacement: "top"` puts that scene's captions at the top (when the screen's bottom edge matters).
 - To fit a long clip to its line: `videoStartSec` and `playbackRate` on the scene, or demoday's `beats` (`[{ "atSec": 0, "shot": "screen", "videoStartSec": 2 }, { "atSec": 4, "shot": "screen", "videoStartSec": 14, "playbackRate": 2 }]`) for jump cuts. A clip shorter than its scene holds its last frame.
 - `poster: { scene, atSec }`: the poster frame (default: the end card, 2 s in).
+- `slide: "title" | "end"` on a card scene picks its slide layout; `burnCaptions: false` keeps a scene's captions out of the picture (they stay in the SRT) where the slide already shows the spoken words; `emphasis` on a card or a `statement` item sets that substring in pomegranate.
+
+## The slide system (run 8)
+
+Every non-recording frame is drawn in the public site's band language (`docs/DESIGN.md` "The public site"), from shared parts in [`remotion/src/components/slides/kit.jsx`](remotion/src/components/slides/kit.jsx): the site's palette (pomegranate, blush, charcoal, ink), the hero's wave as a band edge, white cards with the ink-tinted lift, arrows that draw out of a clipped slot, the hand-drawn accent marks, the drawn Awning lockup (never "shelfie" set in Figtree) and PayPal's official logo files (`project/assets/paypal/`, unmodified, full colour on white only, 120 px wide or more). Motion is one exponential ease-out (`beat()`), transform and opacity only.
+
+| Slide | Where | What |
+|---|---|---|
+| Title | `scenes/Card.jsx`, `slide: "title"` | the lockup, "Hi there! / Welcome to **Shelfie.**" at 146 px, and the hero's four-step chain (paper menu photo, live shop, assistant order, PayPal paid) landing card by card on a pomegranate wave band; the lockup is already part-way in on frame 0 |
+| Statistic | `components/OnScreenText.jsx` | a pomegranate panel slides over the left of the problem clip: the figure at 300 px, the sentence, the source in blush; it leaves by sliding back out, and while it is up the captions centre over the footage beside it (`Captions.jsx`, `PANEL_W`) |
+| Statement | `OnScreenText.jsx`, `variant: "statement"` | a blush band rises over the clip with the wave; the line at 156 px, its `emphasis` in pomegranate; an item with no end (`toSec`) fades out over the scene's outgoing transition so the cross-fade still shows |
+| Chapter bar | `components/ChapterBar.jsx` | the site header's look: lockup, the three steps in fixed slots (done steps ticked), the current one in a pomegranate pill that slides from the previous step's slot when the step changes; the pill carries a white copy of the label row clipped to itself, so text is white exactly where the pill is, even mid-slide |
+| Architecture | `scenes/Architecture.jsx`, `kind: "architecture"` | six white cards on blush snaking in two rows (photo, Claude reads it, PayPal catalog, agent door, PayPal orders and payment, Claude brief via the PayPal Agent Toolkit); every card has the same rows (a brand row, the title, one line); unlit cards are dim but their brand row stays hidden until they light, so the PayPal logo is never shown faded; each lights on its spoken phrase (`NODES[].cue`, matched in the word timings), and on "A sheet of paper" the photo card grows while the others step back |
+| End | `Card.jsx`, `slide: "end"` | the lockup, the line with "AI shoppers." in pomegranate, "Thanks for watching!", and a charcoal band: Built with [PayPal logo on a white chip] and Claude |
+
+Every slide shares a 120 px left margin (the chapter bar's lockup and step count sit 96 px in, inside title-safe). The video fades to black over its last 0.5 s. Slide content stays above y = 880 wherever captions burn in (the caption box sits at the bottom); the on-screen layer draws under the captions. Preview stills: `docs/preview/video-title.png`, `video-stat.png`, `video-statement.png`, `video-chapter.png`, `video-architecture.png`, `video-end.png`.
 
 Captions use the "shelfie" style: phrases of at most about 50 characters, split at sentence ends and balanced at commas ([`remotion/src/lib/phrases.js`](remotion/src/lib/phrases.js), shared with the SRT writer), white Figtree 600 at 42 px on a solid ink box, inside the 90% title-safe area.

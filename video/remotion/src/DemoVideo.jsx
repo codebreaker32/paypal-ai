@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Freeze, Sequence, staticFile, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Freeze, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { wipe } from "@remotion/transitions/wipe";
@@ -15,6 +15,7 @@ import { PresenterFrame } from "./scenes/PresenterFrame.jsx";
 import { MORPH_DEFAULT_MS, FACE_BAND } from "./lib/layouts.js";
 import { BRollClip } from "./scenes/BRollClip.jsx";
 import { Card } from "./scenes/Card.jsx";
+import { ArchitectureCard } from "./scenes/Architecture.jsx";
 import { Placeholder } from "./scenes/Placeholder.jsx";
 import { RoadmapCard, SummaryCard } from "./scenes/StepCards.jsx";
 import { ChapterBar, UnderChapterBar } from "./components/ChapterBar.jsx";
@@ -55,7 +56,7 @@ const SceneBody = (props) => {
   return (
     <AbsoluteFill>
       <UnderChapterBar theme={props.theme}>{body}</UnderChapterBar>
-      <ChapterBar chapter={props.scene.chapter} theme={props.theme} />
+      <ChapterBar chapter={props.scene.chapter} prevStep={props.prevStep} theme={props.theme} />
     </AbsoluteFill>
   );
 };
@@ -98,6 +99,8 @@ const SceneBodyInner = ({ scene, theme, fps, presenterMode, pipVideo, pipDefault
       return <RoadmapCard scene={scene} theme={theme} />;
     case "summary":
       return <SummaryCard scene={scene} theme={theme} />;
+    case "architecture":
+      return <ArchitectureCard scene={scene} theme={theme} />;
     case "broll":
       return <BRollClip scene={scene} theme={theme} />;
     case "card":
@@ -172,6 +175,7 @@ export const DemoVideo = (props) => {
             <TransitionSeries.Sequence key={`s-${scene.id}`} durationInFrames={frames}>
               <SceneBody
                 scene={scene}
+                prevStep={scenes[i - 1]?.chapter?.step}
                 theme={theme}
                 fps={fps}
                 presenterMode={presenterMode}
@@ -232,6 +236,18 @@ export const DemoVideo = (props) => {
           })
         : null}
 
+      {/* Shelfie: sourced facts and statements over the footage (scene.onScreen), under the captions. */}
+      {sceneRanges.flatMap(({ scene, from, frames }) =>
+        (scene.onScreen || []).map((item, i) => (
+          <Sequence key={`os-${scene.id}-${i}`} from={from} durationInFrames={frames}>
+            <OnScreenText
+              item={item} theme={theme} sceneFrames={frames}
+              outFrames={transitionsById.has(scene.id) ? secToFrames((transitionsById.get(scene.id).ms || 400) / 1000, fps) : 0}
+            />
+          </Sequence>
+        ))
+      )}
+
       {audioTrack.map(({ scene, from, frames }) => {
         // Captions move with the split layout: centered in the bottom zone when
         // that zone is theirs, tucked under the seam when other content owns it.
@@ -250,7 +266,7 @@ export const DemoVideo = (props) => {
             : resolveBottom(scene, presenterMode).kind === "captions" ? "bottom" : "seam";
         return (
           <Sequence key={`a-${scene.id}`} from={from} durationInFrames={frames}>
-            {captions && props.captions?.enabled !== false && scene.wordTimings?.length ? (
+            {captions && props.captions?.enabled !== false && scene.burnCaptions !== false && scene.wordTimings?.length ? (
               <Captions
                 words={scene.wordTimings}
                 theme={theme}
@@ -261,21 +277,13 @@ export const DemoVideo = (props) => {
                 beats={scene.beats}
                 anchored={anchored}
                 scenePlacement={scene.captionPlacement}
+                onScreen={scene.onScreen}
                 autoEmphasis={props.captions?.autoEmphasis}
               />
             ) : null}
           </Sequence>
         );
       })}
-
-      {/* Shelfie: sourced facts and quotes over the footage (scene.onScreen). */}
-      {sceneRanges.flatMap(({ scene, from, frames }) =>
-        (scene.onScreen || []).map((item, i) => (
-          <Sequence key={`os-${scene.id}-${i}`} from={from} durationInFrames={frames}>
-            <OnScreenText item={item} theme={theme} />
-          </Sequence>
-        ))
-      )}
 
       {wmRuns.map((r) => (
         <Sequence key={`wm-${r.from}`} from={r.from} durationInFrames={r.to - r.from}>
@@ -356,8 +364,13 @@ export const DemoVideo = (props) => {
 
       {/* Fade the very end to black so the video does not stop on a hard cut. */}
       <Sequence from={Math.max(0, total - secToFrames(0.5, fps))}>
-        <AbsoluteFill style={{ backgroundColor: "#000", opacity: 0.0001 }} />
+        <FadeToBlack frames={secToFrames(0.5, fps)} />
       </Sequence>
     </AbsoluteFill>
   );
+};
+
+const FadeToBlack = ({ frames }) => {
+  const frame = useCurrentFrame();
+  return <AbsoluteFill style={{ backgroundColor: "#000", opacity: Math.min(1, (frame + 1) / frames) }} />;
 };

@@ -1,72 +1,100 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig, spring, interpolate } from "remotion";
-import { typeScale } from "../theme.js";
+import { useCurrentFrame, useVideoConfig, interpolate } from "remotion";
+import { C, FONT, beat, rise, WaveTop, AccentMarks, splitEmphasis } from "./slides/kit.jsx";
 
 /**
- * A sourced fact or quote over the footage (scene.onScreen in demo.json):
- * a white card, top-left inside the title-safe area, ink text, a pomegranate
- * rule on its left edge and the source in muted ink. build-props resolves each
- * item's `fromSec` / `toSec` (seconds into the scene; `from` / `to` may name a
- * spoken phrase instead, matched in the scene's word timings).
+ * Words over the footage (scene.onScreen in demo.json), in the public site's
+ * band language. build-props resolves each item's `fromSec` / `toSec` (seconds
+ * into the scene; `from` / `to` may name a spoken phrase instead).
+ *
+ * - default (a sourced statistic): a pomegranate panel slides in from the left
+ *   over the footage; a leading figure ("47%") is set as the display number,
+ *   the rest of the sentence under it, the source in blush.
+ * - variant "statement": a blush band rises with the hero's wave and covers
+ *   the footage; the line is set large in ink, `emphasis` (a substring) in the
+ *   accent.
+ * The captions draw above both.
  */
-export const OnScreenText = ({ item, theme }) => {
+export const OnScreenText = ({ item, sceneFrames, outFrames = 0 }) => {
   const frame = useCurrentFrame();
-  const { fps, width, height } = useVideoConfig();
-  const s = typeScale(width, height);
+  const { fps, height } = useVideoConfig();
   const t = frame / fps;
   const { fromSec = 0, toSec = Infinity } = item;
   if (t < fromSec || t >= toSec) return null;
-  const inP = spring({ frame: frame - Math.round(fromSec * fps), fps, config: { damping: 200 }, durationInFrames: Math.round(fps * 0.45) });
-  const out = Number.isFinite(toSec) ? interpolate(t, [toSec - 0.3, toSec], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
-  if (item.variant === "statement") {
-    // The positioning line: centred, large, over the dimmed footage.
-    return (
-      <div style={{ position: "absolute", inset: 0, background: `rgba(17,18,20,${0.55 * inP * out})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div
-          style={{
-            maxWidth: Math.round(1380 * s),
-            background: "#ffffff",
-            borderRadius: Math.round(20 * s),
-            padding: `${Math.round(56 * s)}px ${Math.round(72 * s)}px`,
-            opacity: inP * out,
-            transform: `translateY(${interpolate(inP, [0, 1], [18, 0])}px)`,
-            textAlign: "left",
-          }}
-        >
-          <div style={{ width: Math.round(96 * s), height: Math.round(8 * s), borderRadius: 4, background: theme.primary, marginBottom: Math.round(34 * s) }} />
-          <div style={{ font: `700 ${Math.round(70 * s)}px/1.12 ${theme.font}`, color: theme.text, letterSpacing: "-0.025em" }}>{item.text}</div>
-          {item.sub ? (
-            <div style={{ marginTop: Math.round(26 * s), font: `500 ${Math.round(48 * s)}px/1.25 ${theme.font}`, color: theme.text }}>{item.sub}</div>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-  const pos = item.position === "top-right"
-    ? { top: Math.round(height * 0.07), right: Math.round(width * 0.05) }
-    : { top: Math.round(height * 0.07), left: Math.round(width * 0.05) };
+  const f = frame - Math.round(fromSec * fps);
+  // An item that runs to the scene's end leaves with the scene: it fades over
+  // the transition into the next one (a full-frame band would otherwise hide
+  // the cross-fade and snap off on the cut).
+  const out = Number.isFinite(toSec)
+    ? interpolate(t, [toSec - 0.35, toSec], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+    : sceneFrames && outFrames
+      ? interpolate(frame, [sceneFrames - outFrames, sceneFrames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+      : 1;
+  return item.variant === "statement"
+    ? <Statement item={item} f={f} height={height} out={out} />
+    : <Stat item={item} f={f} out={out} />;
+};
+
+/** The stat panel's width; the captions move over the footage beside it (Captions.jsx). */
+export const PANEL_W = 900;
+
+function Stat({ item, f, out }) {
+  const slide = beat(f, 0, 18);
+  // "47% of US ..." -> "47%" and "of US ...".
+  const m = /^(\d[\d.,]*%)\s+(.*)$/.exec(item.text);
+  const figure = m ? m[1] : null;
+  const rest = m ? m[2] : item.text;
+  // It leaves the way it came: slides back out to the left (no fade, so the figure never ghosts over the footage).
+  const leave = 1 - (1 - out) * (1 - out); // eases in: it accelerates away
+  const x = (Math.min(slide, leave) - 1) * PANEL_W;
   return (
-    <div
-      style={{
-        position: "absolute",
-        ...pos,
-        maxWidth: Math.round((item.maxWidth || 900) * s),
-        background: "#ffffff",
-        borderLeft: `${Math.round(8 * s)}px solid ${theme.primary}`,
-        borderRadius: Math.round(10 * s),
-        padding: `${Math.round(26 * s)}px ${Math.round(34 * s)}px ${Math.round(24 * s)}px`,
-        opacity: inP * out,
-        transform: `translateY(${interpolate(inP, [0, 1], [14, 0])}px)`,
-      }}
-    >
-      <div style={{ font: `600 ${Math.round(40 * s)}px/1.28 ${theme.font}`, color: theme.text, letterSpacing: "-0.01em" }}>
-        {item.text}
-      </div>
-      {item.source ? (
-        <div style={{ marginTop: Math.round(14 * s), font: `500 ${Math.round(24 * s)}px/1.3 ${theme.font}`, color: theme.muted }}>
-          {item.source}
+    <div style={{ position: "absolute", inset: 0 }}>
+      <div
+        style={{
+          position: "absolute", left: 0, top: 0, bottom: 0, width: PANEL_W, background: C.pom,
+          transform: `translateX(${x}px)`,
+          padding: "118px 96px 0 120px", boxSizing: "border-box", color: C.white,
+        }}
+      >
+        {figure ? (
+          <div style={{ ...rise(beat(f, 8, 18), 40), font: `800 300px/0.9 ${FONT}`, letterSpacing: "-0.05em", fontVariantNumeric: "lining-nums tabular-nums", marginLeft: -12 }}>
+            {figure}
+          </div>
+        ) : null}
+        <div style={{ ...rise(beat(f, 14, 18), 24), marginTop: 44, font: `700 54px/1.16 ${FONT}`, letterSpacing: "-0.02em", maxWidth: 680, textWrap: "balance" }}>
+          {rest}
         </div>
-      ) : null}
+        {item.source ? (
+          <div style={{ ...rise(beat(f, 22, 16), 12), marginTop: 40, display: "flex", gap: 16, alignItems: "flex-start", font: `500 27px/1.35 ${FONT}`, color: C.blush3, maxWidth: 640 }}>
+            <div style={{ width: 40, height: 4, borderRadius: 2, background: C.blush3, marginTop: 17, flex: "0 0 auto" }} />
+            {item.source}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
-};
+}
+
+function Statement({ item, f, height, out = 1 }) {
+  const up = beat(f, 0, 22);
+  const [pre, em, post] = splitEmphasis(item.text, item.emphasis);
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: out }}>
+      <div style={{ position: "absolute", left: 0, right: 0, top: -100, height: height + 100, transform: `translateY(${(1 - up) * (height + 100)}px)` }}>
+        <WaveTop color={C.blush2} height={120} />
+        <div style={{ position: "absolute", left: 0, right: 0, top: 118, bottom: 0, background: C.blush2 }} />
+      </div>
+      {/* The text starts on the 120 px margin every slide shares; the accent marks sit above it. */}
+      <div style={{ position: "absolute", left: 120, right: 100, top: 112, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+        <div style={{ marginLeft: -6 }}>
+          <AccentMarks size={84} p={beat(f, 18, 14)} />
+        </div>
+        <div style={{ ...rise(beat(f, 8, 20), 40), marginTop: 18, font: `800 156px/1.0 ${FONT}`, letterSpacing: "-0.04em", color: C.ink, maxWidth: 1560 }}>
+          {pre}
+          <span style={{ color: C.pom }}>{em}</span>
+          {post}
+        </div>
+      </div>
+    </div>
+  );
+}
