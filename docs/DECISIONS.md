@@ -331,3 +331,7 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The home chat auto-opens only when the viewport is at least 700 px tall, and its panel height subtracts the 5rem header.** Reason: at 1366x657 a 560 px (or even header-clipped) panel covered "Log in" and "Add your shop"; below 700 px the panel would be under ~30rem, too cramped to open uninvited, so the launcher and its dot wait for the visitor.
 - **The footer reserves the launcher's corner with padding on its charcoal band (`body:has([data-home-chat]) footer[data-site-chrome] > div`), not a spacer in the chat.** Reason: padding on the band keeps the charcoal to the page's end, and the rule applies only where the chat renders.
 - **The phone bar keeps `Log in` beside the compact `Add your shop` and the menu button (version A and B).** Reason: the landing spec requires both ways in within the first screen at 390 px, and all three fit at 360 px and up.
+
+## Run 8 (10 Nov 2026)
+
+- **The hero's first card and How it works step 1 use a real photo of a handwritten café price list (Bundo Kim, Unsplash License), not a drawn or generated menu.** Reason: the owner asked for "a real menu written on paper"; of six licensed candidates it is the only one with English items and prices beside them in black ink on cream paper that stays legible at card size (comparison in `docs/judge/menu-photo-r8.md`).
