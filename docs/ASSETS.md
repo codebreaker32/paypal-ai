@@ -259,3 +259,6 @@ All under the [Pexels License](https://www.pexels.com/license/), resized and com
 | `closing.webp` | A row of frosted cupcakes on a counter | https://www.pexels.com/photo/photo-of-cupcakes-1028704/ (Acharaporn Kamornboonyarush) | Cropped, saturation raised | Pexels License |
 | `cupcake.webp` | A cupcake topped with a raspberry | https://www.pexels.com/photo/photograph-of-chocolate-cupcake-with-red-strawberry-toppings-1055272/ | Cropped square | Pexels License |
 
+## How it works step images (`public/landing/`)
+
+Our own screenshots of Shelfie, not third-party assets: `step-read.webp` (a slice of the Marigold sample menu photo, `public/samples/marigold-bakehouse.jpg`, above the setup review's reading of its Focaccia line, recorded reading), `step-order.webp` (the demo shop's assistant panel: its create_order call, reply and Approve on PayPal card, replayed turns; the "Tell me once you've approved" line is cut out) and `step-paid.webp` (the seller's paid order header and its AI brief). Taken with Playwright at device scale 2 and a 500 px viewport on the e2e database (seeded demo shop, labelled fixture orders, fake PayPal ids), cropped to one focal region of about 480 CSS px and saved as 960×720 WebP (q80) with sharp. Food photos inside them are the demo shop's (credited above). No owner links, tokens or emails are in frame.

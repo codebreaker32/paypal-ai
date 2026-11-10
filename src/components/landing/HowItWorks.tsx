@@ -1,18 +1,38 @@
-import type { ComponentType } from 'react';
+/* eslint-disable @next/next/no-img-element -- fixed-size 2x screenshots; width/height reserve the box, no optimizer needed */
 import { Stagger, StaggerItem } from '@/components/motion';
 import { TextLink } from '@/components/ui/text-link';
-import { AccentMarks, CameraIcon, OrderIcon, PaidIcon } from './art';
+import { AccentMarks } from './art';
 
-const STEPS: { title: string; body: string; Icon: ComponentType<{ className?: string }> }[] = [
-  { title: '1. Snap your price list', body: 'Take one photo of your menu.', Icon: CameraIcon },
-  { title: '2. AI shoppers order', body: 'Buyers (or their AI assistants) can order.', Icon: OrderIcon },
-  { title: '3. Get paid on PayPal', body: 'Money goes straight into your PayPal account.', Icon: PaidIcon },
+/**
+ * Each step shows Shelfie itself: one focal region of the real app on the demo shop, cropped about 480 CSS px wide
+ * so its text stays readable (960×720 WebP in public/landing/, made at device scale 2; see docs/ASSETS.md). Same 4:3
+ * frame for all three, so the row lines up.
+ */
+const STEPS: { title: string; body: string; image: string; alt: string }[] = [
+  {
+    title: '1. Snap your price list',
+    body: 'Take one photo of your menu.',
+    image: '/landing/step-read.webp',
+    alt: 'A paper bakery menu with the focaccia’s $7 crossed out for $8, and Shelfie’s reading of that line: price $8.00, with a note asking the seller to confirm.',
+  },
+  {
+    title: '2. AI shoppers order',
+    body: 'Buyers (or their AI assistants) can order.',
+    image: '/landing/step-order.webp',
+    alt: 'The shop’s AI assistant has called create_order and shows the button Approve $27.00 on PayPal.',
+  },
+  {
+    title: '3. Get paid on PayPal',
+    body: 'Money goes straight into your PayPal account.',
+    image: '/landing/step-paid.webp',
+    alt: 'The seller’s order page: the order is Paid, with an AI brief that flags a nut allergy.',
+  },
 ];
 
 export function HowItWorks({ exampleShopHref }: { exampleShopHref: string | null }) {
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="bg-blush">
-      <div className="mx-auto grid w-full max-w-site gap-8 px-band-gutter py-band xl:grid-cols-[minmax(0,4fr)_minmax(0,8fr)] xl:items-center xl:gap-10">
+      <div className="mx-auto grid w-full max-w-site gap-8 px-band-gutter py-band lg:gap-10">
         <div className="relative pl-10 xl:pl-12">
           <AccentMarks className="absolute left-0 top-0 size-9 -translate-y-3 text-accent-ink xl:size-11" />
           <h2 id="how-title" className="type-band text-ink">
@@ -25,19 +45,21 @@ export function HowItWorks({ exampleShopHref }: { exampleShopHref: string | null
             </p>
           )}
         </div>
-        <Stagger as="ol" gap={0.08} className="grid gap-6 xl:grid-cols-3 xl:gap-0">
-          {STEPS.map(({ title, body, Icon }) => (
-            <StaggerItem
-              as="li"
-              key={title}
-              className="flex items-center gap-5 xl:flex-col xl:gap-4 xl:border-l xl:border-blush-ring xl:px-8 xl:text-center"
-            >
-              <span className="flex size-18 shrink-0 items-center justify-center rounded-full bg-blush-ring text-ink xl:size-22">
-                <Icon className="size-10 xl:size-12" />
-              </span>
+        <Stagger as="ol" gap={0.08} className="grid gap-10 lg:grid-cols-3 lg:gap-6 xl:gap-10">
+          {STEPS.map(({ title, body, image, alt }) => (
+            <StaggerItem as="li" key={title} className="mx-auto flex w-full max-w-md flex-col gap-4 lg:max-w-none xl:gap-5">
+              <img
+                src={image}
+                alt={alt}
+                width={960}
+                height={720}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/3] w-full rounded-2xl bg-white object-cover shadow-md"
+              />
               <div>
-                <h3 className="text-lg font-bold tracking-tight text-ink xl:mx-auto xl:max-w-48 xl:text-2xl">{title}</h3>
-                <p className="mt-1 text-base text-ink xl:mx-auto xl:mt-2 xl:max-w-56 xl:text-lg">{body}</p>
+                <h3 className="text-lg font-bold tracking-tight text-ink xl:text-2xl">{title}</h3>
+                <p className="mt-1 text-base text-ink xl:mt-2 xl:text-lg">{body}</p>
               </div>
             </StaggerItem>
           ))}

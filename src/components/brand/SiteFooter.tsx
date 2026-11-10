@@ -90,7 +90,7 @@ function SiteWideFooter() {
               <FooterAnchor key={link.href} link={link} tone="bandSmall" />
             ))}
             <span className="max-md:ml-auto">
-              <SoundToggle className={ROUND_ON_DARK} />
+              <SoundToggle className="text-on-dark-soft ring-on-dark/30 hover:bg-on-dark/15 hover:text-on-dark" />
             </span>
           </div>
         </div>

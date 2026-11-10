@@ -3,36 +3,6 @@ const OUTLINE = { fill: 'none', stroke: 'currentColor', strokeWidth: 3.2, stroke
 const SVG = { viewBox: '0 0 48 48', 'aria-hidden': true, focusable: false } as const;
 const BUBBLE = 'M10 7h28a6 6 0 0 1 6 6v18a6 6 0 0 1-6 6H23l-9 7v-7h-4a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6Z';
 
-export function CameraIcon({ className }: { className?: string }) {
-  return (
-    <svg {...SVG} className={className}>
-      <path {...OUTLINE} d="M10 14h6l3-6h10l3 6h6a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H10a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6Z" />
-      <circle cx="24" cy="27" r="7.5" className="fill-accent" stroke="currentColor" strokeWidth="3.2" />
-    </svg>
-  );
-}
-
-export function OrderIcon({ className }: { className?: string }) {
-  return (
-    <svg {...SVG} className={className}>
-      <path {...OUTLINE} d={BUBBLE} />
-      <path d="M16.5 18h15l1.4 12.5H15.1Z" className="fill-accent" stroke="currentColor" strokeWidth="2.6" strokeLinejoin="round" />
-      <path {...OUTLINE} strokeWidth={2.6} d="M20 21v-4.5a4 4 0 0 1 8 0V21" />
-    </svg>
-  );
-}
-
-export function PaidIcon({ className }: { className?: string }) {
-  return (
-    <svg {...SVG} className={className}>
-      <rect {...OUTLINE} x="4" y="10" width="40" height="29" rx="6" />
-      <rect x="5.6" y="17" width="36.8" height="6.5" className="fill-accent" />
-      <path {...OUTLINE} d="M11 31h9" />
-      <path {...OUTLINE} d="m29 31 3.5 3.5L39 28" />
-    </svg>
-  );
-}
-
 /** The assistant in the hero chain: a neutral speech bubble and a spark, nobody's logo. */
 export function AssistantMark({ className }: { className?: string }) {
   return (

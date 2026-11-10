@@ -1,0 +1,94 @@
+/*
+ * The home page's chat (HomeChat.tsx): a launcher fixed at the bottom right, clear of the home indicator; a compact panel
+ * anchored above it from 1024 px; a bottom sheet below that. Only transform and opacity animate; the global reduced-motion
+ * rule takes the movement out.
+ */
+/* On the root, so the footer can reserve the launcher's corner too. */
+:root { --home-chat-edge: 1.25rem; --home-chat-launcher: 3.5rem; --home-chat-bottom: max(var(--home-chat-edge), calc(env(safe-area-inset-bottom) + 0.5rem)); }
+@media (min-width: 64rem) { :root { --home-chat-edge: 1.5rem; --home-chat-launcher: 3.75rem; } }
+
+/* The launcher is fixed over the page: the footer's last row (with the Sound switch) ends above it when scrolled down. */
+body:has([data-home-chat]) footer[data-site-chrome] > div {
+  padding-bottom: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + var(--home-chat-edge));
+}
+
+.home-chat-launcher {
+  position: fixed; z-index: var(--z-dock);
+  right: max(var(--home-chat-edge), env(safe-area-inset-right));
+  bottom: var(--home-chat-bottom);
+  width: var(--home-chat-launcher); height: var(--home-chat-launcher);
+  border-radius: 9999px; padding: 0; cursor: pointer;
+  box-shadow: 0 10px 24px -8px rgb(var(--ink-rgb) / 0.35), 0 2px 6px rgb(var(--ink-rgb) / 0.12);
+}
+.home-chat-launcher > svg { transition: transform var(--duration-base) var(--ease-out); }
+@media (hover: hover) { .home-chat-launcher:hover > svg { transform: translateY(-2px) rotate(-6deg); } }
+.home-chat-launcher:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; }
+
+/* The unread dot: ink on a white ring, so it reads on the pomegranate disc and on any band behind it. */
+.home-chat-dot {
+  position: absolute; top: 0.125rem; right: 0.125rem; width: 0.875rem; height: 0.875rem;
+  border-radius: 9999px; background: var(--color-ink); box-shadow: 0 0 0 2px var(--color-surface);
+}
+
+.home-chat-bubble {
+  position: fixed; z-index: var(--z-dock); display: flex; align-items: center;
+  right: max(var(--home-chat-edge), env(safe-area-inset-right));
+  bottom: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + 0.625rem);
+  max-width: calc(100vw - 2 * var(--home-chat-edge));
+  border-radius: var(--radius-2xl) var(--radius-2xl) 0.375rem var(--radius-2xl);
+  background: var(--color-surface); border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-lg);
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+}
+@starting-style { .home-chat-bubble { opacity: 0; transform: translateY(0.5rem) scale(0.96); } }
+
+.home-chat-panel {
+  position: fixed; z-index: var(--z-dock);
+  right: var(--home-chat-edge);
+  bottom: calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem);
+  width: min(23.75rem, calc(100vw - 2 * var(--home-chat-edge)));
+  /* Clear of the sticky header (5rem at its tallest) as well as the launcher, with a gap under the header. */
+  height: min(35rem, calc(100dvh - 5rem - var(--home-chat-launcher) - 2 * var(--home-chat-edge) - 1.75rem));
+  overflow: hidden;
+  border-radius: var(--radius-2xl); border: 1px solid var(--color-line);
+  background: var(--color-surface); box-shadow: var(--shadow-lg), 0 24px 48px -16px rgb(var(--ink-rgb) / 0.25);
+  transform-origin: bottom right;
+  transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
+}
+@starting-style { .home-chat-panel { opacity: 0; transform: translateY(0.75rem) scale(0.97); } }
+
+/* Below 1024 px: a bottom sheet, most of the screen, over the page. */
+.home-chat-sheet { position: fixed; inset: auto 0 0 0; margin: 0; padding: 0;
+  width: 100%; max-width: 100%; max-height: none;
+  height: min(85dvh, calc(var(--assistant-vh, 100dvh) - var(--assistant-top-gap)));
+  translate: 0 var(--assistant-vy, 0);
+  border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+  background: var(--sheet-bg); box-shadow: var(--sheet-shadow);
+  transform: translateY(100%);
+  transition: transform var(--duration-base) var(--ease-in),
+    overlay var(--duration-base) allow-discrete, display var(--duration-base) allow-discrete; }
+.home-chat-sheet[open] { transform: none; transition-duration: var(--duration-slow); transition-timing-function: var(--ease-out); }
+@starting-style { .home-chat-sheet[open] { transform: translateY(100%); } }
+.home-chat-sheet::backdrop { opacity: 0; transition: opacity var(--duration-base) var(--ease-out); }
+.home-chat-sheet[open]::backdrop { opacity: 1; }
+@starting-style { .home-chat-sheet[open]::backdrop { opacity: 0; } }
+@media (min-width: 40rem) {
+  .home-chat-sheet { inset: auto 0 0 auto; right: 1rem; bottom: 1rem; width: min(26rem, calc(100vw - 2rem));
+    height: min(40rem, calc(var(--assistant-vh, 100dvh) - 2rem)); border-radius: var(--sheet-radius); }
+}
+@media print { [data-home-chat] { display: none; } }
+
+/* The shared AssistantShell sizes its column to its content, and a textarea's least width is its default 20 columns:
+   narrower than the shop's dock, so the column and the message box may shrink here. */
+:is(.home-chat-panel, .home-chat-sheet) > div { grid-template-columns: minmax(0, 1fr); }
+:is(.home-chat-panel, .home-chat-sheet) textarea { min-width: 0; }
+/* The subtitle names the example shop in full, on a second line where it needs one. */
+:is(.home-chat-panel, .home-chat-sheet) { --assistant-header-h: auto; }
+:is(.home-chat-panel, .home-chat-sheet) [data-assistant-header] { min-height: 4rem; padding-block: 0.625rem; }
+:is(.home-chat-panel, .home-chat-sheet) [data-assistant-subtitle] {
+  white-space: normal; overflow: visible; text-overflow: clip; text-wrap: balance;
+  font-size: 0.875rem; /* the public site's least size for meta (DESIGN.md "The public site") */
+}
+
+/* While the header's phone menu is open, the chat steps aside so it doesn't float over the menu's scrim. */
+body:has([aria-controls="band-menu"][aria-expanded="true"]) [data-home-chat] { visibility: hidden; }

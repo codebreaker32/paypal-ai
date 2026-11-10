@@ -242,6 +242,9 @@
   --text-sm--line-height: 1.25rem;
   --text-base: 1rem;
   --text-base--line-height: 1.5rem;
+  /* The public header's links and button: 15 px, between sm and base. */
+  --text-nav: 0.9375rem;
+  --text-nav--line-height: 1.25rem;
   --text-lg: 1.125rem;
   --text-lg--line-height: 1.75rem;
   --text-xl: 1.25rem;
@@ -270,6 +273,9 @@
   --spacing-band: clamp(2.25rem, 4vw, 3.5rem);
   --spacing-band-gutter: clamp(1.25rem, 2.4vw, 2.5rem);
   --spacing-wave: clamp(2rem, 8vw, 7.5rem);
+  /* The public header's bar: 56 px on phones, 64 px from 768 px. */
+  --spacing-bar: 3.5rem;
+  --spacing-bar-lg: 4rem;
 
   --container-site: 90rem;
   --container-page: 76rem;
@@ -521,6 +527,39 @@
 body:has([data-app-shell]) [data-site-chrome] { display:none; }
 /* The public site's sticky header: an in-page link lands below it. */
 html:has([data-band-header]) { scroll-padding-top:6rem; scroll-behavior:smooth; }
+/* The public header (BandHeader). Only transform and opacity move; its two backgrounds cross-fade on scroll. */
+.nav-layer { pointer-events:none; transition:opacity var(--duration-base) var(--ease-out); }
+.nav-layer-top { opacity:1; }
+.nav-layer-scrolled { opacity:0; background:color-mix(in srgb, var(--blush-1) 92%, transparent); backdrop-filter:blur(14px) saturate(1.4); }
+[data-scrolled] .nav-layer-top { opacity:0; }
+[data-scrolled] .nav-layer-scrolled { opacity:1; }
+.nav-pill { background:color-mix(in srgb, var(--white) 90%, transparent); backdrop-filter:blur(14px) saturate(1.4); }
+.nav-pill-shadow { opacity:0; transition:opacity var(--duration-base) var(--ease-out); }
+[data-scrolled] .nav-pill-shadow { opacity:1; }
+/* Version B on the home page floats over the hero: the header takes no room and the hero's top grows by its height. */
+:root { --nav-float-h:4.25rem; }
+@media (width >= 48rem) { :root { --nav-float-h:4.5rem; } }
+[data-nav-home] { margin-bottom:calc(-1 * var(--nav-float-h)); }
+html:has([data-nav-home]) [data-hero] { padding-top:var(--nav-float-h); }
+/* A link's underline grows from the left on hover; the section in view keeps a full accent one. No layout shift. */
+.nav-link { position:relative; }
+.nav-link::after { content:""; position:absolute; left:var(--nav-link-x, .75rem); right:var(--nav-link-x, .75rem); bottom:.5rem; height:2px; border-radius:1px; background:currentColor; opacity:0; transform:scaleX(0); transform-origin:left; transition:transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out); }
+@media (hover:hover) { .nav-link:hover::after { opacity:.3; transform:scaleX(1); } }
+.nav-link[aria-current]::after { opacity:1; transform:scaleX(1); background:var(--color-accent); }
+/* The 36 to 40 px button keeps a 44 px hit area (percentages here are of its own height). */
+.nav-hit::before { content:""; position:absolute; inset:calc(50% - 1.375rem) 0; }
+/* The menu button's three lines fold into a cross. */
+.nav-burger { position:relative; display:block; width:1.25rem; height:.875rem; }
+.nav-burger > span { position:absolute; left:0; right:0; height:2px; border-radius:2px; background:currentColor; transition:transform var(--duration-base) var(--ease-out), opacity var(--duration-fast) var(--ease-out); }
+.nav-burger > span:nth-child(1) { top:0; }
+.nav-burger > span:nth-child(2) { top:calc(50% - 1px); }
+.nav-burger > span:nth-child(3) { bottom:0; }
+[aria-expanded="true"] > .nav-burger > span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
+[aria-expanded="true"] > .nav-burger > span:nth-child(2) { opacity:0; transform:scaleX(.4); }
+[aria-expanded="true"] > .nav-burger > span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
+@media (prefers-reduced-motion) {
+  .nav-layer, .nav-pill-shadow, .nav-link::after, .nav-burger > span { transition:none; }
+}
 @media (width < 64rem) {
   html:has([data-app-shell]) { scroll-padding-top:var(--app-topbar-h); scroll-padding-bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom)); }
   body:has([data-app-shell]) [data-toast-region] { bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom) + .75rem); padding-bottom:0; }

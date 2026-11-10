@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useReducer, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import {
   CircleAlert,
   CircleCheck,
@@ -357,6 +357,8 @@ export interface ConsoleConversationProps {
   takesOrders: boolean;
   /** Blurred when an approval card arrives on a touch screen, so the keyboard stops covering it. */
   inputRef?: RefObject<HTMLElement | null>;
+  /** Replaces the opening line above the starters (the home page's chat introduces itself and its example shop). */
+  greeting?: ReactNode;
 }
 
 /**
@@ -449,7 +451,7 @@ function useConversationScroll(state: ConsoleState, inputRef: RefObject<HTMLElem
 }
 
 /** The chat: an empty state with starter prompts, the turns with their Activity, approval cards, and a status line. */
-function Conversation({ api, shopName, starters, takesOrders, inputRef }: ConsoleConversationProps) {
+function Conversation({ api, shopName, starters, takesOrders, inputRef, greeting }: ConsoleConversationProps) {
   const { state, send, reset } = api;
   const { end, log } = useConversationScroll(state, inputRef);
   const last = state.entries.at(-1);
@@ -467,11 +469,11 @@ function Conversation({ api, shopName, starters, takesOrders, inputRef }: Consol
     return (
       <div className="flex flex-col gap-4">
         <p className="text-base leading-6 text-ink">
-          {takesOrders ? (
+          {greeting ?? (takesOrders ? (
             <>Hi! I’m Claude. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.</>
           ) : (
             <>Hi! I’m Claude. {shopName} isn’t taking orders right now, but I can answer questions about the menu.</>
-          )}
+          ))}
         </p>
         <Starters prompts={starters} onPick={send} />
       </div>
@@ -522,7 +524,7 @@ function Conversation({ api, shopName, starters, takesOrders, inputRef }: Consol
  */
 export const ConsoleConversation = memo(
   Conversation,
-  (a, b) => a.api.state === b.api.state && a.shopName === b.shopName && a.starters === b.starters && a.takesOrders === b.takesOrders && a.inputRef === b.inputRef,
+  (a, b) => a.api.state === b.api.state && a.shopName === b.shopName && a.starters === b.starters && a.takesOrders === b.takesOrders && a.inputRef === b.inputRef && a.greeting === b.greeting,
 );
 
 function isConversationFull(state: ConsoleState): boolean {
