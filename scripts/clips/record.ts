@@ -413,8 +413,8 @@ async function sceneCard(display: Display, app: App): Promise<void> {
 
 /**
  * The home page, logged out: the hero's chain plays (paper menu, the reading, an AI order, PayPal), then the chat opens
- * itself in the corner (4 s in, once per session; the clip server has no SHELFIE_TEST, and `?chat=1` forces it anyway)
- * with its greeting and starter chips. The page is loaded once unrecorded (`?chat=0`) so its fonts and pictures are
+ * in the corner (opened with its launcher once the chain has played: left to itself it opens 4 s in, over the chain's
+ * last steps) with its greeting and starter chips. The page is loaded once unrecorded so its fonts and pictures are
  * cached, then the clip loads it fresh, so the chain plays on camera.
  */
 async function sceneHome(display: Display, app: App): Promise<void> {
@@ -424,18 +424,28 @@ async function sceneHome(display: Display, app: App): Promise<void> {
     await p.goto(`${app.origin}/?chat=0`);
     await p.locator('[data-chain-beat]').first().waitFor({ state: 'attached' });
     await fontsReady(p);
-    await picturesReady(p);
+    await picturesReady(p, 'header');
     await sleep(1500);
     await p.goto('about:blank');
     await clip(display, '01b-home', async () => {
-      await p.goto(`${app.origin}/?chat=1`);
+      // `?chat=0`: the chat would open itself 4 s in, over the chain's last steps; it is opened once the chain has played.
+      await p.goto(`${app.origin}/?chat=0`);
       await fontsReady(p);
+      const beats = p.locator('[data-chain-beat]');
+      await beats.first().waitFor({ state: 'attached' });
+      await p
+        .waitForFunction(() => [...document.querySelectorAll('[data-chain-beat]')].every((e) => getComputedStyle(e).opacity === '1'), null, { timeout: 15_000 })
+        .catch(() => say('  note: the hero chain had not finished after 15 s'));
+      await hold(3000); // the whole chain, at rest (some beats are the phone layout's, never drawn here)
+      await press(p.getByRole('button', { name: 'Chat with the Shelfie assistant' }), 600);
       const panel = p.locator('[data-home-chat-panel]');
       await panel.waitFor({ state: 'visible', timeout: 15_000 });
       await settled(panel);
-      await picturesReady(p);
-      await hold(5000); // the greeting and the starter chips
-    }, { lead: 200, tail: 800 });
+      await hold(4500); // the greeting and the starter chips
+    }, { lead: 200, tail: 800 }).catch(async (e) => {
+      await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-01b-failed.png') }).catch(() => {});
+      throw e;
+    });
   } finally {
     await stage.close();
   }
@@ -490,10 +500,11 @@ async function sceneCart(display: Display, app: App): Promise<void> {
       }
       // Whatever the menu holds when the names above are gone: its first single-option items.
       const picks = named.length >= 2 ? named : (await addButtons.all()).slice(0, 3);
+      // One scroll to the row, then the + on each (they sit side by side in Pastries).
+      await bring(picks[0], 'center', 600);
       for (const b of picks) {
-        await bring(b, 'center', 500);
-        await press(b, 500);
-        await hold(900);
+        await press(b, 450);
+        await hold(700);
       }
       const panel = p.locator('[data-cart-panel]');
       if (!(await panel.isVisible())) {
