@@ -442,6 +442,8 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, demo.shop.id, demo.ownerToken);
       await page.goto('/');
+      // Below 768 px the header keeps Dashboard in its Menu sheet (version A), so the phone shot opens it.
+      if ((page.viewportSize()?.width ?? 1440) < 768) await page.getByRole('button', { name: 'Menu' }).click();
       await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible();
     },
   },

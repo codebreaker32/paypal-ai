@@ -721,7 +721,8 @@ async function redactNow(p: Page): Promise<void> {
 async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
   const pay = p.locator('button:visible', { hasText: PAY_BUTTON }).first();
   try {
-    const emailField = p.locator('#email');
+    // PayPal's pages keep hidden copies of fields from other steps: only the drawn ones count.
+    const emailField = p.locator('#email:visible, input[name="login_email"]:visible').first();
     if (!(await emailField.isVisible().catch(() => false))) {
       const login = p.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
       if (await login.count()) await login.click();

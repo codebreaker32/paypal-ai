@@ -233,7 +233,7 @@ export function HeroChain() {
   const show = useInView(ref, { amount: 0.25 });
   const reduced = usePrefersReducedMotion();
   return (
-    <div ref={ref} className="relative z-10">
+    <div ref={ref} data-hero-story="" className="relative z-10">
       <Playing.Provider value={{ show: show || reduced, reduced }}>
         <FullChain />
         <PhoneRow />
