@@ -105,7 +105,19 @@
       "audio": "audio/home.mp3",
       "words": "audio/home.words.json",
       "narrationSec": 6.792,
-      "durationSec": 8.242
+      "durationSec": 8.242,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0
+        },
+        {
+          "atSec": 6.4,
+          "shot": "screen",
+          "videoStartSec": 8.4
+        }
+      ]
     },
     {
       "id": "signup",
@@ -123,7 +135,25 @@
       "audio": "audio/signup.mp3",
       "words": "audio/signup.words.json",
       "narrationSec": 6.87,
-      "durationSec": 7.92
+      "durationSec": 7.92,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 1.5,
+          "playbackRate": 1.5
+        },
+        {
+          "atSec": 4.5,
+          "shot": "screen",
+          "videoStartSec": 8.2
+        },
+        {
+          "atSec": 6.0,
+          "shot": "screen",
+          "videoStartSec": 11.0
+        }
+      ]
     },
     {
       "id": "snap",
@@ -141,7 +171,25 @@
       "audio": "audio/snap.mp3",
       "words": "audio/snap.words.json",
       "narrationSec": 7.158,
-      "durationSec": 8.608
+      "durationSec": 8.608,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.5
+        },
+        {
+          "atSec": 3.5,
+          "shot": "screen",
+          "videoStartSec": 4.0,
+          "playbackRate": 3
+        },
+        {
+          "atSec": 6.0,
+          "shot": "screen",
+          "videoStartSec": 22.0
+        }
+      ]
     },
     {
       "id": "review",
@@ -159,7 +207,31 @@
       "audio": "audio/review.mp3",
       "words": "audio/review.words.json",
       "narrationSec": 11.624,
-      "durationSec": 13.074
+      "durationSec": 13.074,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 3.4
+        },
+        {
+          "atSec": 5.3,
+          "shot": "screen",
+          "videoStartSec": 16.0,
+          "playbackRate": 2
+        },
+        {
+          "atSec": 8.3,
+          "shot": "screen",
+          "videoStartSec": 22.0,
+          "playbackRate": 1.5
+        },
+        {
+          "atSec": 11.0,
+          "shot": "screen",
+          "videoStartSec": 27.6
+        }
+      ]
     },
     {
       "id": "door",
@@ -195,7 +267,30 @@
       "audio": "audio/discovery.mp3",
       "words": "audio/discovery.words.json",
       "narrationSec": 9.691,
-      "durationSec": 11.341
+      "durationSec": 11.341,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 5.0,
+          "playbackRate": 2
+        },
+        {
+          "atSec": 3.0,
+          "shot": "screen",
+          "videoStartSec": 25.5
+        },
+        {
+          "atSec": 5.5,
+          "shot": "screen",
+          "videoStartSec": 41.0
+        },
+        {
+          "atSec": 8.0,
+          "shot": "screen",
+          "videoStartSec": 48.5
+        }
+      ]
     },
     {
       "id": "cart",
@@ -213,7 +308,20 @@
       "audio": "audio/cart.mp3",
       "words": "audio/cart.words.json",
       "narrationSec": 7.079,
-      "durationSec": 8.329
+      "durationSec": 8.329,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 0.5,
+          "playbackRate": 1.4
+        },
+        {
+          "atSec": 5.0,
+          "shot": "screen",
+          "videoStartSec": 8.2
+        }
+      ]
     },
     {
       "id": "console",
@@ -231,7 +339,34 @@
       "audio": "audio/console.mp3",
       "words": "audio/console.words.json",
       "narrationSec": 12.016,
-      "durationSec": 13.466
+      "durationSec": 13.466,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 1.5
+        },
+        {
+          "atSec": 2.4,
+          "shot": "screen",
+          "videoStartSec": 5.0
+        },
+        {
+          "atSec": 5.2,
+          "shot": "screen",
+          "videoStartSec": 13.5
+        },
+        {
+          "atSec": 9.2,
+          "shot": "screen",
+          "videoStartSec": 39.0
+        },
+        {
+          "atSec": 12.3,
+          "shot": "screen",
+          "videoStartSec": 44.0
+        }
+      ]
     },
     {
       "id": "paypal",
@@ -249,7 +384,24 @@
       "audio": "audio/paypal.mp3",
       "words": "audio/paypal.words.json",
       "narrationSec": 7.158,
-      "durationSec": 8.808
+      "durationSec": 8.808,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 1.0
+        },
+        {
+          "atSec": 3.2,
+          "shot": "screen",
+          "videoStartSec": 10.0
+        },
+        {
+          "atSec": 5.3,
+          "shot": "screen",
+          "videoStartSec": 14.0
+        }
+      ]
     },
     {
       "id": "dashboard",
@@ -267,7 +419,19 @@
       "audio": "audio/dashboard.mp3",
       "words": "audio/dashboard.words.json",
       "narrationSec": 9.561,
-      "durationSec": 11.011
+      "durationSec": 11.011,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 1.8
+        },
+        {
+          "atSec": 4.5,
+          "shot": "screen",
+          "videoStartSec": 12.0
+        }
+      ]
     },
     {
       "id": "tamper",
@@ -285,7 +449,20 @@
       "audio": "audio/tamper.mp3",
       "words": "audio/tamper.words.json",
       "narrationSec": 5.773,
-      "durationSec": 7.823
+      "durationSec": 7.823,
+      "beats": [
+        {
+          "atSec": 0,
+          "shot": "screen",
+          "videoStartSec": 2.5,
+          "playbackRate": 2
+        },
+        {
+          "atSec": 4.2,
+          "shot": "screen",
+          "videoStartSec": 13.0
+        }
+      ]
     },
     {
       "id": "close",
