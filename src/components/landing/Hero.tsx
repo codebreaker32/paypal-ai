@@ -22,7 +22,7 @@ export function Hero() {
       <div aria-hidden="true" className="hero-wash absolute inset-0 -z-10" />
       <div className="relative mx-auto grid w-full max-w-site gap-8 px-band-gutter pt-band pb-wave xl:grid-cols-[auto_minmax(0,1fr)] xl:items-start">
         <div>
-          <h1 id="landing-title" className="type-band-hero text-ink">
+          <h1 id="landing-title" className="type-band-hero w-fit text-ink">
             Your price list, <br />
             open to <span className="text-accent-ink">AI shoppers.</span>
           </h1>
