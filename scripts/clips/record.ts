@@ -30,6 +30,14 @@ import { FPS, H, W, goApp, openStage, openTerminal, sleep, startCapture, startDi
 /** CLIPS_OUT=<dir> records somewhere else (a trial run that keeps the clips in video/clips). */
 const OUT = path.resolve(process.env.CLIPS_OUT || 'video/clips');
 const PHOTO = path.resolve('public/samples/marigold-bakehouse.jpg');
+/** 01's paper menu (a licensed photo, docs/ASSETS.md); the Marigold sample stands in until it is added. */
+const PAPER_MENU = path.resolve('video/project/assets/paper-menu.jpg');
+/**
+ * The stranger who signs up in 02a. Made up (example.com) and unique per run, and never legible on screen: the field is
+ * drawn as dots while it is typed and the redactor shows the address as the app's masked form (r•••@example.com).
+ */
+const CLIP_EMAIL = `rosa.bakes.${Date.now().toString(36)}@example.com`;
+const CLIP_SHOP_NAME = 'Marigold Bakehouse';
 /** The display case for 03b (a Pexels photo, docs/ASSETS.md), and the demo shop's items Claude finds in it. */
 const COUNTER_PHOTO = path.resolve('public/samples/counter-case.jpg');
 const COUNTER_ITEMS = ['Butter croissant', 'Almond croissant'];
@@ -62,7 +70,7 @@ const say = (line: string) => {
 
 // ---- recording ----------------------------------------------------------------------------------------------------
 
-const wanted = (id: string) => !ONLY || ONLY.some((o) => id.startsWith(o));
+const wanted = (id: string) => (!ONLY ? !EXTRA.has(id) : ONLY.some((o) => id.startsWith(o)));
 const results: { id: string; seconds: number; frames: number; dup: number; drop: number; note?: string }[] = [];
 
 /** Records `id` while `body` runs (or just runs it, when --only leaves `id` out). */
@@ -184,10 +192,12 @@ async function fontsReady(where: Page | Frame): Promise<void> {
 
 // ---- 01: the handwritten menu ---------------------------------------------------------------------------------------
 
-/** The photo on a blurred copy of itself, zooming in slowly over 28 s, the length of the video's opening line (rendered by ffmpeg from the image, not grabbed). */
+/** The paper menu on a blurred copy of itself, zooming in slowly over 28 s, the length of the video's opening line (rendered by ffmpeg from the image, not grabbed). */
 function shot01(): void {
-  const id = '01-menu-photo';
+  const id = '01-paper-menu';
   if (!wanted(id)) return;
+  const photo = fs.existsSync(PAPER_MENU) ? PAPER_MENU : PHOTO;
+  if (photo !== PAPER_MENU) say(`  note: ${path.relative(process.cwd(), PAPER_MENU)} is missing; 01 uses the Marigold sample instead`);
   const file = path.join(OUT, `${id}.mp4`);
   const seconds = 28;
   const frames = seconds * FPS;
@@ -199,32 +209,86 @@ function shot01(): void {
     `[bg][fg]overlay=(W-w)/2:(H-h)/2,format=yuv420p[still]`,
     `[still]zoompan=z='1+0.12*on/${frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${W}x${H}:fps=${FPS}[v]`,
   ].join(';');
-  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-loop', '1', '-i', PHOTO, '-filter_complex', filter, '-map', '[v]', '-frames:v', String(frames),
+  const r = spawnSync('ffmpeg', ['-y', '-loglevel', 'error', '-loop', '1', '-i', photo, '-filter_complex', filter, '-map', '[v]', '-frames:v', String(frames),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', String(FPS), '-movflags', '+faststart', file], { stdio: 'inherit' });
   if (r.status !== 0) throw new Error('ffmpeg could not render 01');
-  results.push({ id, seconds, frames, dup: 0, drop: 0, note: 'rendered from the photo' });
+  results.push({ id, seconds, frames, dup: 0, drop: 0, note: `rendered from ${path.basename(photo)}` });
   say(`  ✔ ${id}.mp4  ${seconds} s, ${frames} frames (rendered by ffmpeg from the photo)`);
 }
 
 // ---- 02, 03: snap → reading → review → publish (phone) --------------------------------------------------------------
 
+/**
+ * Before the page's own scripts in every frame of 02a's browser: the recovery key's groups drawn as dots (the key itself
+ * is only in a screen-reader span, which is never painted). `__clipsMaskKey()` adds the style again if hydration
+ * dropped it; the recorder checks it is in force before the key screen is held.
+ */
+const MASK_RECOVERY_KEY = `(() => {
+  const css = '[data-testid="recovery-key"] + div > span { font-size: 0 !important; letter-spacing: 0 !important; }' +
+    '[data-testid="recovery-key"] + div > span::before { content: "••••"; font-size: 1.25rem; }';
+  const add = () => {
+    if (document.getElementById('clips-mask-key')) return;
+    const st = document.createElement('style');
+    st.id = 'clips-mask-key';
+    st.textContent = css;
+    (document.head || document.documentElement).appendChild(st);
+  };
+  window.__clipsMaskKey = add;
+  if (document.documentElement) add();
+  document.addEventListener('DOMContentLoaded', add);
+})();`;
+
 async function sceneSetup(display: Display, app: App): Promise<void> {
   if (!SELLER) throw new Error('03 needs PAYPAL_SANDBOX_SELLER_EMAIL in .env: the new shop must be paid to the sandbox seller');
-  const stage = await openStage(display, 'phone', { origin: app.origin, profileDir: path.join(WORK, 'profile-phone'), initScripts: [redactorScript(LOGINS)] });
+  const stage = await openStage(display, 'phone', {
+    origin: app.origin,
+    profileDir: path.join(WORK, 'profile-phone'),
+    initScripts: [redactorScript([...LOGINS, CLIP_EMAIL]), MASK_RECOVERY_KEY],
+  });
   try {
     const f = stage.app;
-    // /shops/new needs an account: a fresh one for this run, whose password nobody needs again.
-    const signup = await stage.page.request.post(`${app.origin}/api/auth/signup`, {
-      data: { email: `clips-${Date.now()}@example.com`, password: crypto.randomUUID() },
-    });
-    if (signup.status() !== 201) throw new Error(`clip sign-up failed with ${signup.status()}`);
-    await goApp(stage, `${app.origin}/shops/new`);
-    await f.getByRole('button', { name: /Snap your price list/ }).waitFor();
+    await goApp(stage, `${app.origin}/signup`);
+    const emailField = f.locator('#signup-email');
+    await emailField.waitFor();
     await fontsReady(f);
     await sleep(800);
 
-    await clip(display, '02-snap-reading', async () => {
+    // 02a: a stranger signs up (the email drawn as dots, the password as a password field) and saves no key on camera.
+    await clip(display, '02a-signup', async () => {
       await hold(1500);
+      await emailField.evaluate((el) => (el as HTMLElement).style.setProperty('-webkit-text-security', 'disc'));
+      await emailField.click();
+      await emailField.pressSequentially(CLIP_EMAIL, { delay: 45 });
+      await hold(500);
+      const password = f.locator('#new-password');
+      await password.click();
+      await password.pressSequentially(`marigold-${crypto.randomUUID().slice(0, 12)}`, { delay: 45 });
+      await hold(900);
+      await f.evaluate(() => (window as unknown as { __clipsMaskKey?: () => void }).__clipsMaskKey?.());
+      await press(f.getByRole('button', { name: 'Create account', exact: true }), 600);
+      const keyHeading = f.getByRole('heading', { level: 1, name: 'Save your recovery key' });
+      await keyHeading.waitFor({ timeout: 30_000 });
+      await f.evaluate(() => (window as unknown as { __clipsMaskKey?: () => void }).__clipsMaskKey?.());
+      const masked = await f
+        .locator('[data-testid="recovery-key"] + div > span')
+        .first()
+        .evaluate((el) => getComputedStyle(el).fontSize === '0px');
+      if (!masked) throw new Error('the recovery key is not masked, so 02a is not kept');
+      await hold(2200);
+      // Not shown: the key counts as saved (as Download, Copy or Print would), so no "Save your recovery key" banner follows.
+      await f.evaluate(() => fetch('/api/account/recovery-key', { method: 'PATCH' }).then(() => undefined));
+      await press(f.getByRole('button', { name: 'Continue', exact: true }), 500);
+      await f.getByRole('heading', { level: 1, name: 'Add your shop' }).waitFor({ timeout: 30_000 });
+      await f.getByRole('button', { name: /Snap your price list/ }).waitFor();
+      await fontsReady(f);
+      await settled(f.getByRole('heading', { level: 1, name: 'Add your shop' }));
+      await hold(2000);
+    });
+    await f.getByRole('button', { name: /Snap your price list/ }).waitFor();
+    await sleep(300);
+
+    await clip(display, '02-snap-reading', async () => {
+      await hold(600); // 02a ends on this screen already
       const chooser = stage.page.waitForEvent('filechooser');
       await press(f.getByRole('button', { name: /Snap your price list/ }));
       await (await chooser).setFiles(PHOTO);
@@ -252,7 +316,7 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       for (let left = await needs.count(), guard = 0; left > 0 && guard < 12; left = await needs.count(), guard++) {
         const card = needs.first();
         await bring(card, 'center', 400);
-        await hold(1800); // time to read the question
+        await hold(1300); // time to read the question
         let done = false;
         for (const name of ['Looks right', 'Ask in person', 'Keep both']) {
           const b = card.getByRole('button', { name, exact: true });
@@ -266,7 +330,15 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
           for (const input of await card.getByRole('textbox').all()) await input.pressSequentially('5', { delay: 120 });
           await press(card.getByRole('button', { name: 'Save price' }));
         }
-        await hold(900);
+        await hold(600);
+      }
+      // The shop's name, as the stranger calls it (Claude usually read it off the photo already).
+      const shopName = f.getByLabel('Shop name');
+      if ((await shopName.count()) && (await shopName.inputValue()) !== CLIP_SHOP_NAME) {
+        await bring(shopName, 'center', 400);
+        await shopName.fill('');
+        await shopName.pressSequentially(CLIP_SHOP_NAME, { delay: 60 });
+        await hold(800);
       }
       // "Your PayPal email": the sandbox seller's, typed into a field drawn as dots (the login never shows).
       const email = f.getByLabel('Your PayPal email');
@@ -285,12 +357,12 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       // The shop's picture and its name beat in beside "Live".
       await settled(f.locator('header').filter({ has: live }));
       await picturesReady(f);
-      await hold(3500);
+      await hold(2500);
       // "Your agent door" with the new shop's door link, then "Your shop link" under it.
       const door = f.getByRole('heading', { name: 'Your agent door' });
       if (await door.count()) {
         await bring(door, 'start', 800);
-        await hold(3000);
+        await hold(2500);
       }
     });
   } finally {
@@ -306,7 +378,7 @@ function desktopStage(display: Display, app: App, name: string, opts: { owner?: 
     profileDir: path.join(WORK, `profile-${name}`),
     deviceScaleFactor: 4 / 3,
     storageState: opts.owner ? app.ownerStateFile : undefined,
-    initScripts: [redactorScript(LOGINS), ...(opts.extra ?? [])],
+    initScripts: [redactorScript(LOGINS), ...(opts.owner ? [HIDE_GUEST_LOGIN] : []), ...(opts.extra ?? [])],
   });
 }
 
@@ -330,6 +402,119 @@ async function sceneCard(display: Display, app: App): Promise<void> {
       await p.getByText(/Order ahead with any AI assistant/).first().waitFor();
       await fontsReady(p);
       await picturesReady(p); // the cover photo and the QR code
+      await hold(5000);
+    });
+  } finally {
+    await stage.close();
+  }
+}
+
+// ---- 01b: the home page (laptop) ---------------------------------------------------------------------------------------
+
+/**
+ * The home page, logged out: the hero's chain plays (paper menu, the reading, an AI order, PayPal), then the chat opens
+ * in the corner (opened with its launcher once the chain has played: left to itself it opens 4 s in, over the chain's
+ * last steps) with its greeting and starter chips. The page is loaded once unrecorded so its fonts and pictures are
+ * cached, then the clip loads it fresh, so the chain plays on camera.
+ */
+async function sceneHome(display: Display, app: App): Promise<void> {
+  const stage = await desktopStage(display, app, 'home');
+  try {
+    const p = stage.page;
+    await p.goto(`${app.origin}/?chat=0`);
+    await p.locator('[data-chain-beat]').first().waitFor({ state: 'attached' });
+    await fontsReady(p);
+    await picturesReady(p, 'header');
+    await sleep(1500);
+    await p.goto('about:blank');
+    await clip(display, '01b-home', async () => {
+      // `?chat=0`: the chat would open itself 4 s in, over the chain's last steps; it is opened once the chain has played.
+      await p.goto(`${app.origin}/?chat=0`);
+      await fontsReady(p);
+      const beats = p.locator('[data-chain-beat]');
+      await beats.first().waitFor({ state: 'attached' });
+      await p
+        .waitForFunction(() => [...document.querySelectorAll('[data-chain-beat]')].every((e) => getComputedStyle(e).opacity === '1'), null, { timeout: 15_000 })
+        .catch(() => say('  note: the hero chain had not finished after 15 s'));
+      await hold(3000); // the whole chain, at rest (some beats are the phone layout's, never drawn here)
+      await press(p.getByRole('button', { name: 'Chat with the Shelfie assistant' }), 600);
+      const panel = p.locator('[data-home-chat-panel]');
+      await panel.waitFor({ state: 'visible', timeout: 15_000 });
+      await settled(panel);
+      await hold(4500); // the greeting and the starter chips
+    }, { lead: 200, tail: 800 }).catch(async (e) => {
+      await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-01b-failed.png') }).catch(() => {});
+      throw e;
+    });
+  } finally {
+    await stage.close();
+  }
+}
+
+// ---- 04: the agent door (laptop) -----------------------------------------------------------------------------------
+
+/** The demo shop's dashboard → Share: "Your agent door" and its address, held. */
+async function sceneDoor(display: Display, app: App): Promise<void> {
+  const stage = await desktopStage(display, app, 'door', { owner: true });
+  try {
+    const p = stage.page;
+    await p.goto(`${app.origin}/shops/${app.demoShopId}`);
+    const share = p.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Share' });
+    await share.waitFor();
+    await fontsReady(p);
+    await picturesReady(p); // the shop's picture in the header
+    await clip(display, '04-agent-door', async () => {
+      await hold(1500);
+      await press(share);
+      const door = p.getByText('Your agent door', { exact: true }).first();
+      await door.waitFor();
+      await bring(door, 'center', 600);
+      await hold(8000);
+    });
+  } finally {
+    await stage.close();
+  }
+}
+
+// ---- 05b: the cart (laptop) -----------------------------------------------------------------------------------------
+
+/** Items on the demo shop page added with their + (single-option items), then the order panel: total, Approve on PayPal. Never pays. */
+const CART_ITEMS = ['Butter croissant', 'Almond croissant', 'Cardamom bun'];
+
+async function sceneCart(display: Display, app: App): Promise<void> {
+  const stage = await desktopStage(display, app, 'cart');
+  try {
+    const p = stage.page;
+    await p.goto(`${app.origin}/s/${DEMO_SLUG}`);
+    await p.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' }).waitFor();
+    await fontsReady(p);
+    await picturesReady(p);
+    const addButtons = p.getByRole('button', { name: /^Add .+ to your order$/ });
+    await addButtons.first().waitFor();
+    await clip(display, '05b-cart', async () => {
+      await hold(1500);
+      const named = [];
+      for (const name of CART_ITEMS) {
+        const b = p.getByRole('button', { name: `Add ${name} to your order`, exact: true });
+        if (await b.count()) named.push(b.first());
+      }
+      // Whatever the menu holds when the names above are gone: its first single-option items.
+      const picks = named.length >= 2 ? named : (await addButtons.all()).slice(0, 3);
+      // One scroll to the row, then the + on each (they sit side by side in Pastries).
+      await bring(picks[0], 'center', 600);
+      for (const b of picks) {
+        await press(b, 450);
+        await hold(700);
+      }
+      const panel = p.locator('[data-cart-panel]');
+      if (!(await panel.isVisible())) {
+        await press(p.getByRole('button', { name: /^View order/ }).filter({ visible: true }).first(), 600);
+      }
+      await settled(panel);
+      await picturesReady(p, '[data-cart-panel]');
+      const approve = panel.getByRole('button', { name: /on PayPal$/ });
+      await approve.waitFor();
+      await approve.hover().catch(() => {});
       await hold(5000);
     });
   } finally {
@@ -522,7 +707,7 @@ async function waitTurn(region: Locator): Promise<void> {
 }
 
 /** The rest of PayPal's buttons on its review page. */
-const PAY_BUTTON = /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/;
+const PAY_BUTTON = /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay|Pay \$[\d.,]+)$/;
 
 /** Switches the redactor on in every frame (it starts off on paypal.com, so that PayPal's login works). */
 async function redactNow(p: Page): Promise<void> {
@@ -543,11 +728,21 @@ async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
     }
     await emailField.waitFor({ state: 'visible', timeout: 60_000 });
     await emailField.fill(BUYER.email!);
-    const next = p.locator('#btnNext');
-    if (await next.isVisible().catch(() => false)) await next.click();
-    await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
-    await p.locator('#password').fill(BUYER.password!);
-    await p.locator('#btnLogin').click();
+    await sleep(500);
+    // PayPal's two-step login: Next (its id has changed between page versions; Enter in the field always works).
+    const next = p.locator('#btnNext:visible').or(p.getByRole('button', { name: 'Next', exact: true })).first();
+    if (await next.isVisible().catch(() => false)) await next.click({ timeout: 10_000 }).catch(() => emailField.press('Enter'));
+    // The page keeps hidden copies of its fields and buttons from the other step: only the drawn ones count.
+    const passwordField = p.locator('#password:visible, input[type="password"]:visible').first();
+    await passwordField.waitFor({ state: 'visible', timeout: 60_000 });
+    // Typed after the step has come to rest: a value filled while the field slides in can be dropped ("Enter your password").
+    await p.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    await sleep(1500);
+    await passwordField.click();
+    await passwordField.pressSequentially(BUYER.password!, { delay: 40 });
+    if (!(await passwordField.inputValue().catch(() => ''))) await passwordField.fill(BUYER.password!);
+    const logIn = p.locator('#btnLogin:visible').or(p.getByRole('button', { name: 'Log In', exact: true })).first();
+    await logIn.click({ timeout: 10_000 }).catch(() => passwordField.press('Enter'));
     await pay.waitFor({ state: 'visible', timeout: 90_000 });
     await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
     await sleep(1500);
@@ -726,11 +921,30 @@ const BACKGROUND_TAB = `(() => {
 })();`;
 
 /** The demo shop's dashboard in a second window of the console's browser (logged in as the owner), as a background tab. */
+/**
+ * The seller's pages of the demo shop: it is owned by its owner cookie (the seed's, no account), so the app shell's
+ * account slot reads "Log in" on the owner's own dashboard. Hidden in the clips (it stays in the layout, so nothing
+ * moves): a seller with an account sees their account menu there instead.
+ */
+const HIDE_GUEST_LOGIN = `(() => {
+  if (!location.pathname.startsWith('/shops/')) return;
+  const add = () => {
+    if (document.getElementById('clips-hide-login')) return;
+    const st = document.createElement('style');
+    st.id = 'clips-hide-login';
+    st.textContent = 'a[href="/login"] { visibility: hidden !important; }';
+    (document.head || document.documentElement).appendChild(st);
+  };
+  if (document.documentElement) add();
+  document.addEventListener('DOMContentLoaded', add);
+})();`;
+
 async function backgroundDashboard(stage: Stage, app: App): Promise<Page> {
   const owner = JSON.parse(fs.readFileSync(app.ownerStateFile, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
   await stage.context.addCookies(owner.cookies);
   const dash = await stage.context.newPage();
   await dash.addInitScript({ content: BACKGROUND_TAB });
+  await dash.addInitScript({ content: HIDE_GUEST_LOGIN });
   await dash.goto(`${app.origin}/shops/${app.demoShopId}`);
   await dash.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Orders' }).waitFor();
   await fontsReady(dash);
@@ -892,17 +1106,22 @@ async function sceneArchitecture(display: Display, app: App): Promise<void> {
 
 // ---- main ----------------------------------------------------------------------------------------------------------------
 
-const SCENES: { ids: string[]; run: (d: Display, a: App) => Promise<void> }[] = [
-  { ids: ['02-snap-reading', '03-review-publish'], run: sceneSetup },
-  { ids: ['03b-snap-counter'], run: sceneCounter },
-  { ids: ['04-counter-card'], run: sceneCard },
+/** `extra`: not in the cut (video/project/demo.json), so recorded only when --only names them. */
+const SCENES: { ids: string[]; run: (d: Display, a: App) => Promise<void>; extra?: boolean }[] = [
+  { ids: ['01b-home'], run: sceneHome },
+  { ids: ['02a-signup', '02-snap-reading', '03-review-publish'], run: sceneSetup },
+  { ids: ['03b-snap-counter'], run: sceneCounter, extra: true },
+  { ids: ['04-agent-door'], run: sceneDoor },
+  { ids: ['04-counter-card'], run: sceneCard, extra: true },
   { ids: ['05-claude-code-discovery'], run: sceneDiscovery },
+  { ids: ['05b-cart'], run: sceneCart },
   { ids: ['06-console-order', '06b-paypal-complete'], run: sceneConsole },
   { ids: ['07-price-tamper'], run: sceneTamper },
   { ids: ['08-dashboard-brief'], run: sceneDashboard },
-  { ids: ['09-tracking'], run: sceneTracking },
-  { ids: ['10-architecture'], run: sceneArchitecture },
+  { ids: ['09-tracking'], run: sceneTracking, extra: true },
+  { ids: ['10-architecture'], run: sceneArchitecture, extra: true },
 ];
+const EXTRA = new Set(SCENES.filter((s) => s.extra).flatMap((s) => s.ids));
 
 async function main(): Promise<void> {
   fs.mkdirSync(OUT, { recursive: true });
