@@ -62,7 +62,9 @@
       "audio": "audio/greeting.mp3",
       "words": "audio/greeting.words.json",
       "narrationSec": 2.691,
-      "durationSec": 4.041
+      "durationSec": 4.041,
+      "slide": "title",
+      "burnCaptions": false
     },
     {
       "id": "problem",
@@ -83,7 +85,8 @@
         {
           "variant": "statement",
           "from": "Shelfie gives",
-          "text": "Shelfie is for sellers with a paper menu and no website."
+          "text": "Shelfie is for sellers with a paper menu and no website.",
+          "emphasis": "a paper menu and no website."
         }
       ],
       "audio": "audio/problem.mp3",
@@ -309,7 +312,9 @@
       "audio": "audio/end.mp3",
       "words": "audio/end.words.json",
       "narrationSec": 2.011,
-      "durationSec": 4.661
+      "durationSec": 4.661,
+      "slide": "end",
+      "burnCaptions": false
     }
   ],
   "transitions": [
