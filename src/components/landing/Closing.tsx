@@ -24,7 +24,7 @@ export function Closing() {
             Add your shop
           </ButtonLink>
           {/* PayPal's colour logo needs a light ground, so on the cocoa band it sits on a white chip with clear space. */}
-          <p className="mt-5 inline-flex items-center gap-2.5 rounded-full bg-surface py-2.5 pl-4 pr-4 text-sm font-semibold text-ink shadow-sm xl:mt-6">
+          <p className="mt-5 inline-flex items-center gap-3 rounded-full bg-surface py-3 pl-4 pr-4 text-sm font-semibold text-ink shadow-sm xl:mt-6">
             Payments by
             {/* eslint-disable-next-line @next/next/no-img-element -- a fixed SVG logo, no optimizer needed */}
             <img src="/brand/paypal/paypal-color.svg" alt="PayPal" width={170} height={48} className="h-6 w-auto" />
