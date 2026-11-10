@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, Freeze, Sequence, staticFile, useVideoConfig } from "remotion";
+import { AbsoluteFill, Audio, Freeze, Sequence, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { wipe } from "@remotion/transitions/wipe";
@@ -240,7 +240,10 @@ export const DemoVideo = (props) => {
       {sceneRanges.flatMap(({ scene, from, frames }) =>
         (scene.onScreen || []).map((item, i) => (
           <Sequence key={`os-${scene.id}-${i}`} from={from} durationInFrames={frames}>
-            <OnScreenText item={item} theme={theme} />
+            <OnScreenText
+              item={item} theme={theme} sceneFrames={frames}
+              outFrames={transitionsById.has(scene.id) ? secToFrames((transitionsById.get(scene.id).ms || 400) / 1000, fps) : 0}
+            />
           </Sequence>
         ))
       )}
@@ -274,6 +277,7 @@ export const DemoVideo = (props) => {
                 beats={scene.beats}
                 anchored={anchored}
                 scenePlacement={scene.captionPlacement}
+                onScreen={scene.onScreen}
                 autoEmphasis={props.captions?.autoEmphasis}
               />
             ) : null}
@@ -360,8 +364,13 @@ export const DemoVideo = (props) => {
 
       {/* Fade the very end to black so the video does not stop on a hard cut. */}
       <Sequence from={Math.max(0, total - secToFrames(0.5, fps))}>
-        <AbsoluteFill style={{ backgroundColor: "#000", opacity: 0.0001 }} />
+        <FadeToBlack frames={secToFrames(0.5, fps)} />
       </Sequence>
     </AbsoluteFill>
   );
+};
+
+const FadeToBlack = ({ frames }) => {
+  const frame = useCurrentFrame();
+  return <AbsoluteFill style={{ backgroundColor: "#000", opacity: Math.min(1, (frame + 1) / frames) }} />;
 };

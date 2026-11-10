@@ -31,6 +31,7 @@ export const ChapterBar = ({ chapter, prevStep }) => {
   const p = moving ? beat(frame, 4, 20) : 1;
   const from = moving ? prevStep : step;
   const pillX = STEPS_X + (from - 1 + (step - from) * p) * SLOT_W - 14;
+  const pillS = (PILL_FIT[from - 1] + (PILL_FIT[step - 1] - PILL_FIT[from - 1]) * p) / PILL_W;
   const titles = STEPS.map((t, i) => (i + 1 === step && chapter.title ? chapter.title : t));
 
   const label = (i, onPill) => {
@@ -67,20 +68,31 @@ export const ChapterBar = ({ chapter, prevStep }) => {
         textRendering: "geometricPrecision", overflow: "hidden",
       }}
     >
-      <div style={{ position: "absolute", left: 56, top: (CHAPTER_BAR_H - 36) / 2 - 1 }}>
+      <div style={{ position: "absolute", left: 96, top: (CHAPTER_BAR_H - 36) / 2 - 1 }}>
         <Lockup height={36} />
       </div>
 
-      <div style={{ position: "absolute", left: 0, top: (CHAPTER_BAR_H - PILL_H) / 2 - 1, width: PILL_W, height: PILL_H, borderRadius: 999, background: C.pom, transformOrigin: "0 50%", transform: `translateX(${pillX}px) scaleX(${(PILL_FIT[from - 1] + (PILL_FIT[step - 1] - PILL_FIT[from - 1]) * p) / PILL_W})` }} />
-
+      {/* Every label in its normal colour; the pill then carries a white copy of
+          the same row, clipped to the pill, so whatever sits inside the moving
+          pill reads white and everything outside it reads ink. The inner
+          transform undoes the pill's own, so the copy lines up exactly. */}
       {STEPS.map((_, i) => (
         <div key={i} style={{ position: "absolute", left: STEPS_X + i * SLOT_W, top: 0, height: CHAPTER_BAR_H - 2, display: "flex", alignItems: "center" }}>
-          <div style={{ opacity: i + 1 === step ? 1 - p : 1 }}>{label(i, false)}</div>
-          {i + 1 === step ? <div style={{ position: "absolute", left: 0, opacity: p }}>{label(i, true)}</div> : null}
+          {label(i, false)}
         </div>
       ))}
 
-      <div style={{ position: "absolute", right: 56, top: 0, height: CHAPTER_BAR_H - 2, display: "flex", alignItems: "center", font: `700 26px/1 ${FONT}`, color: C.pom, fontVariantNumeric: "tabular-nums" }}>
+      <div style={{ position: "absolute", left: 0, top: (CHAPTER_BAR_H - PILL_H) / 2 - 1, width: PILL_W, height: PILL_H, borderRadius: 999, background: C.pom, overflow: "hidden", transformOrigin: "0 0", transform: `translateX(${pillX}px) scaleX(${pillS})` }}>
+        <div style={{ position: "absolute", left: 0, top: -((CHAPTER_BAR_H - PILL_H) / 2 - 1), width, height: CHAPTER_BAR_H, transformOrigin: "0 0", transform: `scaleX(${1 / pillS}) translateX(${-pillX}px)` }}>
+          {STEPS.map((_, i) => (
+            <div key={i} style={{ position: "absolute", left: STEPS_X + i * SLOT_W, top: 0, height: CHAPTER_BAR_H - 2, display: "flex", alignItems: "center" }}>
+              {label(i, true)}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ position: "absolute", right: 96, top: 0, height: CHAPTER_BAR_H - 2, display: "flex", alignItems: "center", font: `700 26px/1 ${FONT}`, color: C.pom, fontVariantNumeric: "tabular-nums" }}>
         Step {step} of {chapter.of || 3}
       </div>
     </div>

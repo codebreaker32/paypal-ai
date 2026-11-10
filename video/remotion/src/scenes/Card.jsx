@@ -68,11 +68,12 @@ function Chain({ frame }) {
           <div style={{ marginTop: 14, flex: 1, borderRadius: 14, overflow: "hidden" }}>
             <Img src={staticFile("assets/slides/almond-croissant.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
-          <div style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <span style={{ font: `600 22px/1 ${FONT}`, color: C.ink, whiteSpace: "nowrap" }}>Almond croissant</span>
-            <span style={{ ...pop(beat(frame, at.cart, 10)), background: C.pom, color: C.white, borderRadius: 999, padding: "9px 14px", font: `600 19px/1 ${FONT}`, whiteSpace: "nowrap" }}>
-              Add to cart
-            </span>
+          <div style={{ marginTop: 12, display: "flex", alignItems: "baseline", justifyContent: "space-between", font: `700 26px/1 ${FONT}`, color: C.ink, whiteSpace: "nowrap" }}>
+            <span>Almond croissant</span>
+            <span style={{ fontVariantNumeric: "lining-nums tabular-nums" }}>$5</span>
+          </div>
+          <div style={{ ...pop(beat(frame, at.cart, 10)), transformOrigin: "right center", marginTop: 12, alignSelf: "flex-end", background: C.pom, color: C.white, borderRadius: 999, padding: "10px 18px", font: `600 22px/1 ${FONT}`, whiteSpace: "nowrap" }}>
+            Add to cart
           </div>
         </ChainCard>
       ),
@@ -85,7 +86,7 @@ function Chain({ frame }) {
             <AssistantMark size={34} />
             Assistant
           </div>
-          <div style={{ ...rise(beat(frame, at.ask), 14), marginTop: 18, background: C.sunken, borderRadius: 16, padding: "14px 16px", font: `500 23px/1.3 ${FONT}`, color: C.ink }}>
+          <div style={{ ...rise(beat(frame, at.ask), 14), marginTop: 18, background: C.sunken, borderRadius: 16, padding: "16px 18px", font: `500 27px/1.28 ${FONT}`, color: C.ink }}>
             Order 2 almond croissants, please!
           </div>
           <div style={{ ...pop(beat(frame, at.placed, 10)), transformOrigin: "left center", marginTop: "auto", alignSelf: "flex-start", display: "flex", alignItems: "center", gap: 10, background: C.okSoft, borderRadius: 999, padding: "8px 18px 8px 8px", font: `700 22px/1 ${FONT}`, color: C.ink }}>
@@ -143,7 +144,7 @@ const TitleSlide = ({ scene, chain }) => {
         </div>
       ) : null}
 
-      <div style={{ position: "absolute", left: 128, top: 92, ...rise(beat(frame, 2, 16), 16) }}>
+      <div style={{ position: "absolute", left: 120, top: 92, ...rise(beat(frame + 10, 2, 16), 16) }}>
         <Lockup height={76} />
       </div>
 

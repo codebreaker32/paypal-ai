@@ -10,17 +10,17 @@ import { C, FONT, LIFT, beat, rise, Arrow, AccentMarks, Mark, PayPalLogo, phrase
  * closing phrase lifts the photo card, where it all started.
  */
 const NODES = [
-  { id: "photo", title: "A photo of the price list", sub: "One snap from the seller's phone", brand: "photo", cue: "Claude reads" },
+  { id: "photo", title: "Price list photo", sub: "From the seller's phone", brand: "photo", cue: "Claude reads" },
   { id: "read", title: "Claude reads it", sub: "Every item, price and question", brand: "claude", cue: "Claude reads" },
-  { id: "catalog", title: "Catalog", sub: "Each item becomes a PayPal product", brand: "paypal", cue: "holds the catalog" },
+  { id: "catalog", title: "Catalog", sub: "Every item a PayPal product", brand: "paypal", cue: "holds the catalog" },
   { id: "door", title: "Agent door (MCP)", sub: "Any AI assistant can order", brand: "door", cue: "agent door" },
   { id: "orders", title: "Orders and payment", sub: "Paid to the seller's own account", brand: "paypal", cue: "takes the payment" },
   { id: "brief", title: "Claude brief", sub: "via the PayPal Agent Toolkit", brand: "claude", cue: "writes the brief" },
 ];
 
-const CARD_W = 480;
+const CARD_W = 500;
 const CARD_H = 236;
-const GAP = 92;
+const GAP = 90; // LEFT comes to 120, the margin every slide shares
 const LEFT = (1920 - (3 * CARD_W + 2 * GAP)) / 2;
 const ROW1 = 250;
 const ROW2 = 590;
@@ -42,7 +42,7 @@ function Brand({ brand }) {
   if (brand === "claude") return <ClaudeTag />;
   if (brand === "door") {
     return (
-      <span style={{ display: "flex", alignItems: "center", gap: 12, font: `600 22px/1 ui-monospace, SFMono-Regular, Menlo, monospace`, color: C.inkSoft }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 12, font: `600 23px/1 ${FONT}`, color: C.inkSoft }}>
         <Mark size={40} />
         /s/marigold-bakehouse/mcp
       </span>
@@ -51,32 +51,46 @@ function Brand({ brand }) {
   return null;
 }
 
-function Node({ node, lit, lift }) {
+// Every card has the same rows: a 44 px brand row, then the title and one line under it.
+const PAD = 28;
+const THUMB_W = 128;
+
+function Node({ node, lit, lift, settle }) {
   const photo = node.brand === "photo";
+  // Unlit, the card's ground and words are dim; the brand row stays hidden until
+  // the card lights, so a logo is never shown at reduced opacity. `settle` steps
+  // the other cards back for the closing line (smaller, quieter words; the brand
+  // row is left alone) while the photo card grows.
+  const dim = 0.38 + 0.62 * lit;
+  const words = dim * (1 - 0.45 * settle);
   return (
-    <div
-      style={{
-        width: CARD_W, height: CARD_H, borderRadius: 24, background: C.white, boxShadow: LIFT, overflow: "hidden",
-        display: "flex", boxSizing: "border-box",
-        opacity: 0.38 + 0.62 * lit,
-        transform: `scale(${0.96 + 0.04 * lit + 0.04 * lift})`,
-      }}
-    >
-      {photo ? (
-        <div style={{ width: 188, flex: "0 0 auto", background: C.paper }}>
-          <Img src={staticFile("assets/slides/menu-photo.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 14%" }} />
-        </div>
-      ) : null}
-      <div style={{ padding: "30px 32px", display: "flex", flexDirection: "column", justifyContent: photo ? "center" : "space-between", flex: 1, minWidth: 0 }}>
-        {photo ? null : <div style={{ display: "flex", alignItems: "center", height: 44 }}><Brand brand={node.brand} /></div>}
-        <div>
-          <div style={{ font: `800 40px/1.08 ${FONT}`, letterSpacing: "-0.025em", color: C.ink }}>{node.title}</div>
-          <div style={{ marginTop: 10, font: `500 25px/1.3 ${FONT}`, color: C.muted }}>{node.sub}</div>
+    <div style={{ position: "relative", width: CARD_W, height: CARD_H, transform: `scale(${0.96 + 0.04 * lit + 0.1 * lift - 0.05 * settle})`, transformOrigin: "50% 50%" }}>
+      <div style={{ position: "absolute", inset: 0, borderRadius: 24, background: C.white, boxShadow: LIFT, opacity: dim }} />
+      <div style={{ position: "absolute", inset: 0, borderRadius: 24, overflow: "hidden", display: "flex" }}>
+        {photo ? (
+          <div style={{ width: THUMB_W, flex: "0 0 auto", background: C.paper, opacity: dim }}>
+            <Img src={staticFile("assets/slides/menu-photo.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 14%" }} />
+          </div>
+        ) : null}
+        <div style={{ padding: `${PAD}px ${PAD + 4}px`, display: "flex", flexDirection: "column", flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", height: 44, opacity: lit, transform: `translateY(${(1 - lit) * 8}px)` }}>
+            {photo ? <PhotoTag /> : <Brand brand={node.brand} />}
+          </div>
+          <div style={{ marginTop: 26, opacity: words }}>
+            <div style={{ font: `800 40px/1.08 ${FONT}`, letterSpacing: "-0.025em", color: C.ink, whiteSpace: "nowrap" }}>{node.title}</div>
+            <div style={{ marginTop: 12, font: `500 25px/1.3 ${FONT}`, color: C.muted, whiteSpace: "nowrap" }}>{node.sub}</div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+const PhotoTag = () => (
+  <span style={{ background: C.pom, color: C.white, borderRadius: 999, padding: "9px 18px 10px", font: `700 24px/1 ${FONT}` }}>
+    Seller
+  </span>
+);
 
 export const ArchitectureCard = ({ scene }) => {
   const frame = useCurrentFrame();
@@ -91,7 +105,9 @@ export const ArchitectureCard = ({ scene }) => {
   // The structure draws first (cards land dim, arrows draw in order), then the voice lights it.
   const land = (i) => beat(frame, 6 + i * 4, 16);
   const arrowP = (i) => beat(frame, 14 + i * 5, 12);
-  const lift = interpolate(frame, [paperAt, paperAt + 8, paperAt + 26], [0, 1, 0.5], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  // "A sheet of paper is all Rosa needed": the photo card grows and the rest settle back.
+  const lift = beat(frame, paperAt, 22);
+  const settle = beat(frame, paperAt, 22);
 
   const midY1 = ROW1 + CARD_H / 2 - 30;
   const midY2 = ROW2 + CARD_H / 2 - 30;
@@ -119,8 +135,8 @@ export const ArchitectureCard = ({ scene }) => {
       {NODES.map((n, i) => {
         const lit = beat(frame, lightAt[i], 14);
         return (
-          <div key={n.id} style={{ position: "absolute", left: POS[i][0], top: POS[i][1], ...rise(land(i), 30) }}>
-            <Node node={n} lit={lit} lift={n.id === "photo" ? lift : 0} />
+          <div key={n.id} style={{ position: "absolute", left: POS[i][0], top: POS[i][1], zIndex: n.id === "photo" ? 2 : 1, ...rise(land(i), 30) }}>
+            <Node node={n} lit={lit} lift={n.id === "photo" ? lift : 0} settle={n.id === "photo" ? 0 : settle} />
           </div>
         );
       })}

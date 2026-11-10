@@ -15,22 +15,28 @@ import { C, FONT, beat, rise, WaveTop, AccentMarks, splitEmphasis } from "./slid
  *   accent.
  * The captions draw above both.
  */
-export const OnScreenText = ({ item }) => {
+export const OnScreenText = ({ item, sceneFrames, outFrames = 0 }) => {
   const frame = useCurrentFrame();
   const { fps, height } = useVideoConfig();
   const t = frame / fps;
   const { fromSec = 0, toSec = Infinity } = item;
   if (t < fromSec || t >= toSec) return null;
   const f = frame - Math.round(fromSec * fps);
+  // An item that runs to the scene's end leaves with the scene: it fades over
+  // the transition into the next one (a full-frame band would otherwise hide
+  // the cross-fade and snap off on the cut).
   const out = Number.isFinite(toSec)
     ? interpolate(t, [toSec - 0.35, toSec], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
-    : 1;
+    : sceneFrames && outFrames
+      ? interpolate(frame, [sceneFrames - outFrames, sceneFrames], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" })
+      : 1;
   return item.variant === "statement"
-    ? <Statement item={item} f={f} height={height} />
+    ? <Statement item={item} f={f} height={height} out={out} />
     : <Stat item={item} f={f} out={out} />;
 };
 
-const PANEL_W = 900;
+/** The stat panel's width; the captions move over the footage beside it (Captions.jsx). */
+export const PANEL_W = 900;
 
 function Stat({ item, f, out }) {
   const slide = beat(f, 0, 18);
@@ -38,12 +44,15 @@ function Stat({ item, f, out }) {
   const m = /^(\d[\d.,]*%)\s+(.*)$/.exec(item.text);
   const figure = m ? m[1] : null;
   const rest = m ? m[2] : item.text;
+  // It leaves the way it came: slides back out to the left (no fade, so the figure never ghosts over the footage).
+  const leave = 1 - (1 - out) * (1 - out); // eases in: it accelerates away
+  const x = (Math.min(slide, leave) - 1) * PANEL_W;
   return (
-    <div style={{ position: "absolute", inset: 0, opacity: out }}>
+    <div style={{ position: "absolute", inset: 0 }}>
       <div
         style={{
           position: "absolute", left: 0, top: 0, bottom: 0, width: PANEL_W, background: C.pom,
-          transform: `translateX(${(slide - 1) * PANEL_W}px)`,
+          transform: `translateX(${x}px)`,
           padding: "118px 96px 0 120px", boxSizing: "border-box", color: C.white,
         }}
       >
@@ -66,20 +75,21 @@ function Stat({ item, f, out }) {
   );
 }
 
-function Statement({ item, f, height }) {
+function Statement({ item, f, height, out = 1 }) {
   const up = beat(f, 0, 22);
   const [pre, em, post] = splitEmphasis(item.text, item.emphasis);
   return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", opacity: out }}>
       <div style={{ position: "absolute", left: 0, right: 0, top: -100, height: height + 100, transform: `translateY(${(1 - up) * (height + 100)}px)` }}>
         <WaveTop color={C.blush2} height={120} />
         <div style={{ position: "absolute", left: 0, right: 0, top: 118, bottom: 0, background: C.blush2 }} />
       </div>
-      <div style={{ position: "absolute", left: 140, right: 100, top: 196, display: "flex", gap: 20, alignItems: "flex-start" }}>
-        <div style={{ marginTop: -34 }}>
-          <AccentMarks size={92} p={beat(f, 18, 14)} />
+      {/* The text starts on the 120 px margin every slide shares; the accent marks sit above it. */}
+      <div style={{ position: "absolute", left: 120, right: 100, top: 112, display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+        <div style={{ marginLeft: -6 }}>
+          <AccentMarks size={84} p={beat(f, 18, 14)} />
         </div>
-        <div style={{ ...rise(beat(f, 8, 20), 40), font: `800 156px/1.0 ${FONT}`, letterSpacing: "-0.04em", color: C.ink, maxWidth: 1500 }}>
+        <div style={{ ...rise(beat(f, 8, 20), 40), marginTop: 18, font: `800 156px/1.0 ${FONT}`, letterSpacing: "-0.04em", color: C.ink, maxWidth: 1560 }}>
           {pre}
           <span style={{ color: C.pom }}>{em}</span>
           {post}
