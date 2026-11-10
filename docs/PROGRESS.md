@@ -437,9 +437,17 @@ On `run-6-home`: professional public header (version A default, floating pill at
 
 ## Run 8 (10–11 Nov 2026)
 Sessions 1–3 ended within minutes (each ended its turn after launching jobs, which killed them); session 1 removed navbar variant B.
-**Session 4 (from 20:40 IST)**, worktrees under `.claude/worktrees/`, one build → independent check → one fix each:
-- `r8-footer`, `r8-logo`, `r8-chat`, `r8-menu`: Part 1 items 2–5 (footer balance, official PayPal logo, chat panel proportions, real licensed paper-menu photo).
-- `r8-slides`: Part 2 slides redesigned with impeccable in `video/remotion`.
-- `r8-clips`: `scripts/clips/record.ts` for the new shot list (01-paper-menu, 01b-home, 02a-signup, 04-agent-door, 05b-cart).
-- Done on `run-6-home`: the fresh script (`video/project/demo.json`, 340 words, 2:40 before alignment) and its Kokoro audio. The old cut is saved as `video/out/shelfie-demo-v3.mp4`.
-Next: merge the six branches into `run-6-home` (`git diff --binary <base> <branch> | git apply -3`), then Part 1's gates (npm test, typecheck, lint, build, full e2e with the capture gate), ff-merge to main, then record clips, align, render, checks, clarity test.
+**Session 4 (20:40–22:39 IST): all six jobs built, checked independently, fixed once, and merged into `run-6-home`:**
+- Part 1 items 2–5: footer balance (`docs/judge/footer-r8.md`), the official PayPal logo in the hero chain, How it works and the closing band (`public/brand/paypal/`, credited in `docs/ASSETS.md`), the chat panel at 400x520 (`docs/judge/chat-r8.md`), and a real licensed paper-menu photo (Unsplash, Bundo Kim; `docs/judge/menu-photo-r8.md`). Previews are in `docs/preview/`.
+- Part 2:
+  - The fresh script (`video/project/demo.json`, 340 words, 2:40 before alignment) and its Kokoro audio.
+  - The slides redesigned with impeccable (`docs/preview/video-*.png`).
+  - The recorder records the new shot list (01-paper-menu, 01b-home, 02a-signup into 02/03 in one account, 04-agent-door, 05b-cart). Nothing is in `video/clips/` from it yet.
+  - The old cut is saved as `video/out/shelfie-demo-v3.mp4`.
+- **Gates on `run-6-home` after the merges:** npm test passed (2325), typecheck 0, lint 0 and build 0. The full e2e run (`/tmp/r8-e2e.log`) had 158 passing before the capture gate. **All 3 capture-gate tests failed** because PayPal's sandbox changed its pay page ("Pay with PayPal", "Pay with Debit or Credit Card", hidden duplicate fields, a plain "Pay" button).
+- `e2e/paypal-buyer.ts` is now patched for those pages but **not yet re-run**. The guest card form after the new button may differ too.
+**Next (session 5):**
+1. If the full e2e run is still going, let it finish. Re-run any failing specs other than the capture gate.
+2. Re-run the gate alone: `E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts`. Fix the helper from its failure screenshots.
+3. Then ff-merge to `main`, push, and record it here.
+4. Then the video: replace the Marigold photo in the title slide's chain card with `video/project/assets/paper-menu.jpg` (the real photo), `npm run clips`, align, `npm run voice && npm run render`, the checks, the clarity test (`docs/judge/video-clarity-8.md`), merge, and `.run-complete`.
