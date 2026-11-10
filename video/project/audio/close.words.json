@@ -1,199 +1,199 @@
 {
-  "text": "Shelfie is for sellers with a paper menu and no website. PayPal runs their catalog and checkout, and pays them directly. AI reads the menu, lets assistants order, and writes the brief. For Rosa, paper is now enough.",
+  "text": "The whole picture: Claude reads the menu and writes the brief. PayPal holds the catalog, takes the payment, and pays the seller. The agent door lets any AI assistant order. A sheet of paper is all Rosa needed.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "07cec9044683d3a1",
+  "cacheKey": "7495868f74d1ae20",
   "timestamps": [
     {
-      "text": "Shelfie",
+      "text": "The",
+      "startSec": 0.3,
+      "endSec": 0.375
+    },
+    {
+      "text": "whole",
       "startSec": 0.375,
-      "endSec": 0.85
+      "endSec": 0.625
     },
     {
-      "text": "is",
-      "startSec": 0.85,
-      "endSec": 1.0
+      "text": "picture:",
+      "startSec": 0.625,
+      "endSec": 1.413
     },
     {
-      "text": "for",
-      "startSec": 1.0,
-      "endSec": 1.163
-    },
-    {
-      "text": "sellers",
-      "startSec": 1.163,
-      "endSec": 1.587
-    },
-    {
-      "text": "with",
-      "startSec": 1.587,
-      "endSec": 1.712
-    },
-    {
-      "text": "a",
-      "startSec": 1.712,
+      "text": "Claude",
+      "startSec": 1.413,
       "endSec": 1.775
     },
     {
-      "text": "paper",
+      "text": "reads",
       "startSec": 1.775,
-      "endSec": 2.175
+      "endSec": 2.1
+    },
+    {
+      "text": "the",
+      "startSec": 2.1,
+      "endSec": 2.2
     },
     {
       "text": "menu",
-      "startSec": 2.175,
-      "endSec": 2.675
+      "startSec": 2.2,
+      "endSec": 2.688
     },
     {
       "text": "and",
-      "startSec": 2.675,
-      "endSec": 2.85
-    },
-    {
-      "text": "no",
-      "startSec": 2.85,
-      "endSec": 3.075
-    },
-    {
-      "text": "website.",
-      "startSec": 3.075,
-      "endSec": 4.188
-    },
-    {
-      "text": "PayPal",
-      "startSec": 4.188,
-      "endSec": 4.787
-    },
-    {
-      "text": "runs",
-      "startSec": 4.787,
-      "endSec": 5.1
-    },
-    {
-      "text": "their",
-      "startSec": 5.1,
-      "endSec": 5.287
-    },
-    {
-      "text": "catalog",
-      "startSec": 5.287,
-      "endSec": 5.925
-    },
-    {
-      "text": "and",
-      "startSec": 5.925,
-      "endSec": 6.062
-    },
-    {
-      "text": "checkout,",
-      "startSec": 6.062,
-      "endSec": 6.775
-    },
-    {
-      "text": "and",
-      "startSec": 6.775,
-      "endSec": 6.912
-    },
-    {
-      "text": "pays",
-      "startSec": 6.912,
-      "endSec": 7.263
-    },
-    {
-      "text": "them",
-      "startSec": 7.263,
-      "endSec": 7.45
-    },
-    {
-      "text": "directly.",
-      "startSec": 7.45,
-      "endSec": 8.7
-    },
-    {
-      "text": "AI",
-      "startSec": 8.7,
-      "endSec": 9.287
-    },
-    {
-      "text": "reads",
-      "startSec": 9.287,
-      "endSec": 9.65
-    },
-    {
-      "text": "the",
-      "startSec": 9.65,
-      "endSec": 9.75
-    },
-    {
-      "text": "menu,",
-      "startSec": 9.75,
-      "endSec": 10.475
-    },
-    {
-      "text": "lets",
-      "startSec": 10.475,
-      "endSec": 10.713
-    },
-    {
-      "text": "assistants",
-      "startSec": 10.713,
-      "endSec": 11.25
-    },
-    {
-      "text": "order,",
-      "startSec": 11.25,
-      "endSec": 11.75
-    },
-    {
-      "text": "and",
-      "startSec": 11.75,
-      "endSec": 11.875
+      "startSec": 2.688,
+      "endSec": 2.825
     },
     {
       "text": "writes",
-      "startSec": 11.875,
-      "endSec": 12.225
+      "startSec": 2.825,
+      "endSec": 3.175
     },
     {
       "text": "the",
-      "startSec": 12.225,
-      "endSec": 12.325
+      "startSec": 3.175,
+      "endSec": 3.275
     },
     {
       "text": "brief.",
-      "startSec": 12.325,
-      "endSec": 13.287
+      "startSec": 3.275,
+      "endSec": 4.237
     },
     {
-      "text": "For",
-      "startSec": 13.287,
-      "endSec": 13.475
+      "text": "PayPal",
+      "startSec": 4.237,
+      "endSec": 4.825
     },
     {
-      "text": "Rosa,",
-      "startSec": 13.475,
-      "endSec": 14.213
+      "text": "holds",
+      "startSec": 4.825,
+      "endSec": 5.15
+    },
+    {
+      "text": "the",
+      "startSec": 5.15,
+      "endSec": 5.25
+    },
+    {
+      "text": "catalog,",
+      "startSec": 5.25,
+      "endSec": 6.162
+    },
+    {
+      "text": "takes",
+      "startSec": 6.162,
+      "endSec": 6.475
+    },
+    {
+      "text": "the",
+      "startSec": 6.475,
+      "endSec": 6.575
+    },
+    {
+      "text": "payment,",
+      "startSec": 6.575,
+      "endSec": 7.312
+    },
+    {
+      "text": "and",
+      "startSec": 7.312,
+      "endSec": 7.463
+    },
+    {
+      "text": "pays",
+      "startSec": 7.463,
+      "endSec": 7.875
+    },
+    {
+      "text": "the",
+      "startSec": 7.875,
+      "endSec": 8.012
+    },
+    {
+      "text": "seller.",
+      "startSec": 8.012,
+      "endSec": 9.012
+    },
+    {
+      "text": "The",
+      "startSec": 9.012,
+      "endSec": 9.188
+    },
+    {
+      "text": "agent",
+      "startSec": 9.188,
+      "endSec": 9.55
+    },
+    {
+      "text": "door",
+      "startSec": 9.55,
+      "endSec": 9.875
+    },
+    {
+      "text": "lets",
+      "startSec": 9.875,
+      "endSec": 10.162
+    },
+    {
+      "text": "any",
+      "startSec": 10.162,
+      "endSec": 10.525
+    },
+    {
+      "text": "AI",
+      "startSec": 10.525,
+      "endSec": 11.113
+    },
+    {
+      "text": "assistant",
+      "startSec": 11.113,
+      "endSec": 11.675
+    },
+    {
+      "text": "order.",
+      "startSec": 11.675,
+      "endSec": 12.463
+    },
+    {
+      "text": "A",
+      "startSec": 12.463,
+      "endSec": 12.6
+    },
+    {
+      "text": "sheet",
+      "startSec": 12.6,
+      "endSec": 12.838
+    },
+    {
+      "text": "of",
+      "startSec": 12.838,
+      "endSec": 12.95
     },
     {
       "text": "paper",
-      "startSec": 14.213,
-      "endSec": 14.625
+      "startSec": 12.95,
+      "endSec": 13.438
     },
     {
       "text": "is",
-      "startSec": 14.625,
-      "endSec": 14.775
+      "startSec": 13.438,
+      "endSec": 13.625
     },
     {
-      "text": "now",
-      "startSec": 14.775,
-      "endSec": 14.975
+      "text": "all",
+      "startSec": 13.625,
+      "endSec": 13.925
     },
     {
-      "text": "enough.",
-      "startSec": 14.975,
-      "endSec": 15.9
+      "text": "Rosa",
+      "startSec": 13.925,
+      "endSec": 14.325
+    },
+    {
+      "text": "needed.",
+      "startSec": 14.325,
+      "endSec": 15.175
     }
   ]
 }

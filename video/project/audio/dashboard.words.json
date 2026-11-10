@@ -1,124 +1,129 @@
 {
-  "text": "Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.",
+  "text": "The order pops up on Rosa's dashboard, already paid. Claude pulls it from PayPal and writes her a short brief, flagging the nut allergy.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "85399fb8a4ebcbba",
+  "cacheKey": "fd39a1e60f34a8c4",
   "timestamps": [
     {
-      "text": "Her",
+      "text": "The",
       "startSec": 0.3,
-      "endSec": 0.45
-    },
-    {
-      "text": "dashboard",
-      "startSec": 0.45,
-      "endSec": 1.087
-    },
-    {
-      "text": "shows",
-      "startSec": 1.087,
-      "endSec": 1.413
-    },
-    {
-      "text": "the",
-      "startSec": 1.413,
-      "endSec": 1.55
+      "endSec": 0.425
     },
     {
       "text": "order",
-      "startSec": 1.55,
-      "endSec": 1.9
+      "startSec": 0.425,
+      "endSec": 0.787
     },
     {
-      "text": "as",
-      "startSec": 1.9,
-      "endSec": 2.062
+      "text": "pops",
+      "startSec": 0.787,
+      "endSec": 1.163
+    },
+    {
+      "text": "up",
+      "startSec": 1.163,
+      "endSec": 1.312
+    },
+    {
+      "text": "on",
+      "startSec": 1.312,
+      "endSec": 1.512
+    },
+    {
+      "text": "Rosa's",
+      "startSec": 1.512,
+      "endSec": 2.0
+    },
+    {
+      "text": "dashboard,",
+      "startSec": 2.0,
+      "endSec": 2.85
+    },
+    {
+      "text": "already",
+      "startSec": 2.85,
+      "endSec": 3.237
     },
     {
       "text": "paid.",
-      "startSec": 2.062,
-      "endSec": 3.0
-    },
-    {
-      "text": "Claude",
-      "startSec": 3.0,
-      "endSec": 3.375
-    },
-    {
-      "text": "reads",
-      "startSec": 3.375,
-      "endSec": 3.688
-    },
-    {
-      "text": "the",
-      "startSec": 3.688,
-      "endSec": 3.8
-    },
-    {
-      "text": "order",
-      "startSec": 3.8,
-      "endSec": 4.15
-    },
-    {
-      "text": "from",
-      "startSec": 4.15,
+      "startSec": 3.237,
       "endSec": 4.325
     },
     {
-      "text": "PayPal",
+      "text": "Claude",
       "startSec": 4.325,
-      "endSec": 5.037
+      "endSec": 4.65
     },
     {
-      "text": "and",
-      "startSec": 5.037,
+      "text": "pulls",
+      "startSec": 4.65,
+      "endSec": 4.938
+    },
+    {
+      "text": "it",
+      "startSec": 4.938,
+      "endSec": 5.025
+    },
+    {
+      "text": "from",
+      "startSec": 5.025,
       "endSec": 5.175
     },
     {
-      "text": "writes",
+      "text": "PayPal",
       "startSec": 5.175,
-      "endSec": 5.438
+      "endSec": 5.85
+    },
+    {
+      "text": "and",
+      "startSec": 5.85,
+      "endSec": 5.975
+    },
+    {
+      "text": "writes",
+      "startSec": 5.975,
+      "endSec": 6.237
     },
     {
       "text": "her",
-      "startSec": 5.438,
-      "endSec": 5.55
+      "startSec": 6.237,
+      "endSec": 6.35
     },
     {
       "text": "a",
-      "startSec": 5.55,
-      "endSec": 5.625
+      "startSec": 6.35,
+      "endSec": 6.475
     },
     {
-      "text": "brief.",
-      "startSec": 5.625,
-      "endSec": 6.55
+      "text": "short",
+      "startSec": 6.475,
+      "endSec": 6.8
     },
     {
-      "text": "It",
-      "startSec": 6.55,
-      "endSec": 6.775
+      "text": "brief,",
+      "startSec": 6.8,
+      "endSec": 7.55
     },
     {
-      "text": "flags",
-      "startSec": 6.775,
-      "endSec": 7.3
+      "text": "flagging",
+      "startSec": 7.55,
+      "endSec": 8.05
     },
     {
       "text": "the",
-      "startSec": 7.3,
-      "endSec": 7.425
+      "startSec": 8.05,
+      "endSec": 8.15
     },
     {
       "text": "nut",
-      "startSec": 7.425,
-      "endSec": 7.625
+      "startSec": 8.15,
+      "endSec": 8.35
     },
     {
       "text": "allergy.",
-      "startSec": 7.625,
-      "endSec": 8.7
+      "startSec": 8.35,
+      "endSec": 9.425
     }
   ]
 }

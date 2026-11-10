@@ -2,124 +2,131 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:39.9** (159.87 s): 138.13 s of narration (334 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:40.2** (160.23 s): 138.58 s of narration (340 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
 | greeting | 1 | 0:00.0 | 2.69 | 4.03 |
-| cold | 1 | 0:03.6 | 9.48 | 10.73 |
-| problem | 1 | 0:14.4 | 20.66 | 22.30 |
-| roadmap | 1 | 0:36.3 | 7.65 | 9.50 |
-| snap | 2 | 0:45.4 | 6.84 | 8.50 |
-| review | 2 | 0:53.9 | 14.73 | 16.17 |
-| door | 3 | 1:10.0 | 12.15 | 13.40 |
-| discovery | 3 | 1:23.4 | 12.20 | 14.23 |
-| console | 3 | 1:37.7 | 12.22 | 13.67 |
-| paypal | 4 | 1:51.3 | 6.90 | 8.53 |
-| dashboard | 4 | 1:59.9 | 8.83 | 10.27 |
-| tamper | 4 | 2:10.1 | 5.72 | 7.97 |
-| close | 5 | 2:17.7 | 16.04 | 18.00 |
-| end | 6 | 2:35.2 | 2.01 | 4.67 |
+| problem | 1 | 0:03.6 | 23.54 | 25.20 |
+| home | 1 | 0:28.4 | 6.79 | 8.23 |
+| signup | 2 | 0:36.3 | 6.87 | 7.93 |
+| snap | 2 | 0:44.2 | 7.16 | 8.60 |
+| review | 2 | 0:52.8 | 11.62 | 13.07 |
+| door | 3 | 1:05.9 | 11.31 | 12.57 |
+| discovery | 3 | 1:18.4 | 9.69 | 11.33 |
+| cart | 3 | 1:29.8 | 7.08 | 8.33 |
+| console | 3 | 1:38.1 | 12.02 | 13.47 |
+| paypal | 4 | 1:51.6 | 7.16 | 8.80 |
+| dashboard | 4 | 2:00.4 | 9.56 | 11.00 |
+| tamper | 4 | 2:11.4 | 5.77 | 7.83 |
+| close | 5 | 2:18.8 | 15.31 | 17.27 |
+| end | 6 | 2:35.6 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
 ### greeting (2.69 s voice, 4.04 s scene)
 
-**Screen:** Greeting card: the Shelfie lockup and "Hi there! Welcome to Shelfie."
+**Screen:** Title: the Awning logo on a pomegranate band, the four-step chain motif drawing in, and "Hi there! Welcome to Shelfie."
 
 > Hi there! Welcome to Shelfie.
 
 Card: **Shelfie**, "Hi there! Welcome to Shelfie."
 
-### cold (9.48 s voice, 10.73 s scene)
+### problem (23.54 s voice, 25.19 s scene)
 
-**Screen:** Cold open: the paper menu, then Rosa's dashboard as a paid order from an AI assistant lands (toast, row in To prepare, Paid).
+**Screen:** A real handwritten paper menu (licensed stock photo, not a particular seller's), slowly zooming; the statistic as a sourced card; then the audience line as a statement card.
 
-> Rosa's bakery has no website, just a paper menu. An AI assistant just ordered from it, and Rosa got paid with PayPal.
-
-### problem (20.66 s voice, 22.31 s scene)
-
-**Screen:** The handwritten Marigold menu, zooming in slowly; the one statistic, sourced; then the positioning line as a statement card.
-
-> AI assistants are starting to shop for people. But they can only buy from shops with a website store. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.
+> Lots of small food sellers still run on paper. A home baker. A market stall. The menu is a printed sheet, and there's no website. AI assistants are starting to shop for people, but they can't see a paper menu. In one US survey, nearly half of food and lodging businesses had no website. Shelfie gives them a shop that AI can buy from.
 
 On-screen text: "47% of US accommodation and food-service businesses with employees had no website." (US Census Bureau, Annual Survey of Entrepreneurs (data year 2016))
 
 On-screen text: "Shelfie is for sellers with a paper menu and no website." (undefined)
 
-### roadmap (7.65 s voice, 9.50 s scene)
+### home (6.79 s voice, 8.24 s scene)
 
-**Screen:** Roadmap card: the Shelfie lockup and three numbered steps, each appearing as it is spoken.
+**Screen:** Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat widget opens in the corner.
 
-> It works in three steps. Snap your price list. AI shoppers order. And Rosa gets paid on PayPal.
+> It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.
 
 ## Beat 2: Snap a paper menu; the shop goes live with photos
 
-### snap (6.84 s voice, 8.49 s scene)
+### signup (6.87 s voice, 7.92 s scene)
 
-**Screen:** Phone: the Marigold photo picked, Read my menu, Reading your menu (Claude is reading every line), Check your menu: 10 items, 4 need you.
+**Screen:** Phone: a new seller signs up (email masked, password as dots), then adds a shop.
 
-> Step one. Rosa snaps her price list. Claude, an AI model, reads every item and price.
+> Meet Rosa, a home baker. She signs up with an email and a password, and adds her bakery.
 
-### review (14.73 s voice, 16.18 s scene)
+### snap (7.16 s voice, 8.61 s scene)
 
-**Screen:** Phone: the “2 for $7” question (Looks right), the PayPal email (drawn as dots), Publish, Your menu is in PayPal; then the live shop page with its photos.
+**Screen:** Phone: the price list photo picked, Read my menu, Reading your menu, Check your menu.
 
-> It only asks about what it wasn't sure of, like two for seven dollars. Rosa adds her PayPal email, so the money goes to her. Then every item goes into PayPal's catalog. Her shop is live, with photos.
+> She snaps her price list. Claude, an AI model, reads every item and price in under ten seconds.
+
+### review (11.62 s voice, 13.07 s scene)
+
+**Screen:** Phone: the 2 for $7 question (Looks right), the PayPal email (drawn as dots), Publish, Your shop is live.
+
+> Anything unclear becomes a question, like this two for seven dollars deal. She adds her PayPal email and publishes. Each item lands in PayPal's catalog.
 
 ## Beat 3: Claude Code, given only the shop's URL, finds the agent door and orders
 
-### door (12.15 s voice, 13.40 s scene)
+### door (11.31 s voice, 12.56 s scene)
 
-**Screen:** Laptop: the dashboard's Share tab: Your agent door, Give it to any AI assistant to order from you, the door's address.
+**Screen:** Laptop: the dashboard Share tab: Your agent door and its address.
 
-> Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.
+> Every shop also gets an agent door: one web address where any AI assistant can read the menu and order. It uses MCP, an open standard.
 
-### discovery (12.20 s voice, 14.25 s scene)
+### discovery (9.69 s voice, 11.34 s scene)
 
-**Screen:** Terminal (sped up): Claude Code in an empty folder with only the shop URL; it finds the <link rel=alternate> “Agent door (MCP)” in the page, calls list_products and create_order, and prints the PayPal link.
+**Screen:** Terminal (sped up): Claude Code with only the shop URL finds the agent door, lists products, creates the order, prints the PayPal link.
 
-> Here's Claude Code, an AI assistant, given only the shop's web address. It finds the agent door by itself, orders two almond croissants, and gets back a PayPal link.
+> Watch Claude Code try it, given only the shop's link. It finds the door by itself, orders two croissants, and hands back a PayPal link.
 
-### console (12.22 s voice, 13.68 s scene)
+### cart (7.08 s voice, 8.33 s scene)
 
-**Screen:** Laptop: the shop page's Order with an assistant: the request with a nut allergy, the Activity panel, the contains-nuts warning, then the order with Approve on PayPal.
+**Screen:** Laptop: the shop page with photos; + adds items; the cart panel with its total and Pay with PayPal.
 
-> Another shopper uses the assistant on the shop page. They have a nut allergy. It warns them that the almond croissants contain nuts. They confirm, and it places the order.
+> People can shop the page directly, too. Each tap adds to the cart, and checkout goes to PayPal.
+
+### console (12.02 s voice, 13.47 s scene)
+
+**Screen:** Laptop: the shop assistant: the request with a nut allergy, the contains-nuts warning, the confirmation, the order with Approve on PayPal.
+
+> Or shoppers just ask the shop's assistant. This one has a nut allergy. The assistant warns that the almond croissants contain nuts, and orders once they say yes.
 
 ## Beat 4: The buyer approves on PayPal
 
-### paypal (6.90 s voice, 8.55 s scene)
+### paypal (7.16 s voice, 8.81 s scene)
 
-**Screen:** PayPal's own checkout page ($27.00, Complete Purchase), then Shelfie's receipt: Paid, paid to Marigold Bakehouse's own PayPal account (masked).
+**Screen:** PayPal checkout page (Complete Purchase), then the Shelfie receipt: Paid, to Marigold Bakehouse’s own PayPal account (masked).
 
-> Step three. The buyer approves on PayPal. The money goes straight into Rosa's own PayPal account.
+> Payment happens on PayPal. The buyer approves, and the money lands in Rosa's own PayPal account.
 
-### dashboard (8.83 s voice, 10.28 s scene)
+### dashboard (9.56 s voice, 11.01 s scene)
 
-**Screen:** Laptop: Rosa's dashboard, the paid order in To prepare with its AI brief; the order page: AI brief by Claude, the nut-allergy warning.
+**Screen:** Laptop: the dashboard toast for the paid order, the row in To prepare, the AI brief by Claude with the nut-allergy warning.
 
-> Her dashboard shows the order as paid. Claude reads the order from PayPal and writes her a brief. It flags the nut allergy.
+> The order pops up on Rosa's dashboard, already paid. Claude pulls it from PayPal and writes her a short brief, flagging the nut allergy.
 
-### tamper (5.72 s voice, 7.97 s scene)
+### tamper (5.77 s voice, 7.82 s scene)
 
 **Screen:** Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.
 
-> One more thing: if an AI tries to set its own price, the shop refuses.
+> Prices stay hers, too. When an AI tries to pay one cent, the shop says no.
 
 ## Beat 5: The seller's dashboard: paid, the AI brief, tracking
 
-### close (16.04 s voice, 17.99 s scene)
+### close (15.31 s voice, 17.26 s scene)
 
-**Screen:** Summary card: who it's for, what PayPal does, what AI does, each row appearing as it is spoken.
+**Screen:** Architecture card in the brand: photo → Claude reads it → PayPal catalog → agent door (MCP) → PayPal Orders, paid to the seller → Claude brief via the Agent Toolkit; each node lights as it is spoken.
 
-> Shelfie is for sellers with a paper menu and no website. PayPal runs their catalog and checkout, and pays them directly. AI reads the menu, lets assistants order, and writes the brief. For Rosa, paper is now enough.
+> The whole picture: Claude reads the menu and writes the brief. PayPal holds the catalog, takes the payment, and pays the seller. The agent door lets any AI assistant order. A sheet of paper is all Rosa needed.
 
 ## Beat 6: Why it matters, and close
 
 ### end (2.01 s voice, 4.66 s scene)
 
-**Screen:** End card: the Shelfie mark, name and line, with a spoken thank-you.
+**Screen:** End card: the Awning logo, name and line, PayPal logo, with a spoken thank-you.
 
 > Thanks for watching!
 

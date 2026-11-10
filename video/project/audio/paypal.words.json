@@ -1,89 +1,89 @@
 {
-  "text": "Step three. The buyer approves on PayPal. The money goes straight into Rosa's own PayPal account.",
+  "text": "Payment happens on PayPal. The buyer approves, and the money lands in Rosa's own PayPal account.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "d4725667cb4741f7",
+  "cacheKey": "36294c6ef8153076",
   "timestamps": [
     {
-      "text": "Step",
+      "text": "Payment",
       "startSec": 0.3,
-      "endSec": 0.562
+      "endSec": 0.7
     },
     {
-      "text": "three.",
-      "startSec": 0.562,
-      "endSec": 1.175
-    },
-    {
-      "text": "The",
-      "startSec": 1.175,
-      "endSec": 1.275
-    },
-    {
-      "text": "buyer",
-      "startSec": 1.275,
-      "endSec": 1.675
-    },
-    {
-      "text": "approves",
-      "startSec": 1.675,
-      "endSec": 2.087
+      "text": "happens",
+      "startSec": 0.7,
+      "endSec": 1.137
     },
     {
       "text": "on",
-      "startSec": 2.087,
-      "endSec": 2.225
+      "startSec": 1.137,
+      "endSec": 1.275
     },
     {
       "text": "PayPal.",
-      "startSec": 2.225,
-      "endSec": 3.325
+      "startSec": 1.275,
+      "endSec": 2.413
     },
     {
       "text": "The",
-      "startSec": 3.325,
-      "endSec": 3.45
+      "startSec": 2.413,
+      "endSec": 2.525
+    },
+    {
+      "text": "buyer",
+      "startSec": 2.525,
+      "endSec": 2.875
+    },
+    {
+      "text": "approves,",
+      "startSec": 2.875,
+      "endSec": 3.8
+    },
+    {
+      "text": "and",
+      "startSec": 3.8,
+      "endSec": 3.913
+    },
+    {
+      "text": "the",
+      "startSec": 3.913,
+      "endSec": 4.0
     },
     {
       "text": "money",
-      "startSec": 3.45,
-      "endSec": 3.75
+      "startSec": 4.0,
+      "endSec": 4.338
     },
     {
-      "text": "goes",
-      "startSec": 3.75,
-      "endSec": 4.013
+      "text": "lands",
+      "startSec": 4.338,
+      "endSec": 4.7
     },
     {
-      "text": "straight",
-      "startSec": 4.013,
-      "endSec": 4.312
-    },
-    {
-      "text": "into",
-      "startSec": 4.312,
-      "endSec": 4.55
+      "text": "in",
+      "startSec": 4.7,
+      "endSec": 4.85
     },
     {
       "text": "Rosa's",
-      "startSec": 4.55,
-      "endSec": 5.1
+      "startSec": 4.85,
+      "endSec": 5.375
     },
     {
       "text": "own",
-      "startSec": 5.1,
-      "endSec": 5.3
+      "startSec": 5.375,
+      "endSec": 5.575
     },
     {
       "text": "PayPal",
-      "startSec": 5.3,
-      "endSec": 5.8
+      "startSec": 5.575,
+      "endSec": 6.075
     },
     {
       "text": "account.",
-      "startSec": 5.8,
-      "endSec": 6.75
+      "startSec": 6.075,
+      "endSec": 7.025
     }
   ]
 }

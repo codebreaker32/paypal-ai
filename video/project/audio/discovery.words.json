@@ -1,154 +1,134 @@
 {
-  "text": "Here's Claude Code, an AI assistant, given only the shop's web address. It finds the agent door by itself, orders two almond croissants, and gets back a PayPal link.",
+  "text": "Watch Claude Code try it, given only the shop's link. It finds the door by itself, orders two croissants, and hands back a PayPal link.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "5b86f50a1f00c1c3",
+  "cacheKey": "e8ad7e443c9efce0",
   "timestamps": [
     {
-      "text": "Here's",
-      "startSec": 0.325,
-      "endSec": 0.613
+      "text": "Watch",
+      "startSec": 0.35,
+      "endSec": 0.675
     },
     {
       "text": "Claude",
-      "startSec": 0.613,
-      "endSec": 0.963
+      "startSec": 0.675,
+      "endSec": 0.975
     },
     {
-      "text": "Code,",
-      "startSec": 0.963,
+      "text": "Code",
+      "startSec": 0.975,
+      "endSec": 1.312
+    },
+    {
+      "text": "try",
+      "startSec": 1.312,
       "endSec": 1.625
     },
     {
-      "text": "an",
+      "text": "it,",
       "startSec": 1.625,
-      "endSec": 1.8
-    },
-    {
-      "text": "AI",
-      "startSec": 1.8,
-      "endSec": 2.3
-    },
-    {
-      "text": "assistant,",
-      "startSec": 2.3,
-      "endSec": 3.175
+      "endSec": 2.0
     },
     {
       "text": "given",
-      "startSec": 3.175,
-      "endSec": 3.487
+      "startSec": 2.0,
+      "endSec": 2.312
     },
     {
       "text": "only",
-      "startSec": 3.487,
-      "endSec": 3.85
+      "startSec": 2.312,
+      "endSec": 2.625
     },
     {
       "text": "the",
-      "startSec": 3.85,
-      "endSec": 4.0
+      "startSec": 2.625,
+      "endSec": 2.763
     },
     {
       "text": "shop's",
-      "startSec": 4.0,
-      "endSec": 4.4
-    },
-    {
-      "text": "web",
-      "startSec": 4.4,
-      "endSec": 4.6
-    },
-    {
-      "text": "address.",
-      "startSec": 4.6,
-      "endSec": 5.725
-    },
-    {
-      "text": "It",
-      "startSec": 5.725,
-      "endSec": 5.9
-    },
-    {
-      "text": "finds",
-      "startSec": 5.9,
-      "endSec": 6.188
-    },
-    {
-      "text": "the",
-      "startSec": 6.188,
-      "endSec": 6.312
-    },
-    {
-      "text": "agent",
-      "startSec": 6.312,
-      "endSec": 6.675
-    },
-    {
-      "text": "door",
-      "startSec": 6.675,
-      "endSec": 6.9
-    },
-    {
-      "text": "by",
-      "startSec": 6.9,
-      "endSec": 7.075
-    },
-    {
-      "text": "itself,",
-      "startSec": 7.075,
-      "endSec": 7.9
-    },
-    {
-      "text": "orders",
-      "startSec": 7.9,
-      "endSec": 8.375
-    },
-    {
-      "text": "two",
-      "startSec": 8.375,
-      "endSec": 8.688
-    },
-    {
-      "text": "almond",
-      "startSec": 8.688,
-      "endSec": 9.075
-    },
-    {
-      "text": "croissants,",
-      "startSec": 9.075,
-      "endSec": 10.05
-    },
-    {
-      "text": "and",
-      "startSec": 10.05,
-      "endSec": 10.175
-    },
-    {
-      "text": "gets",
-      "startSec": 10.175,
-      "endSec": 10.425
-    },
-    {
-      "text": "back",
-      "startSec": 10.425,
-      "endSec": 10.688
-    },
-    {
-      "text": "a",
-      "startSec": 10.688,
-      "endSec": 10.75
-    },
-    {
-      "text": "PayPal",
-      "startSec": 10.75,
-      "endSec": 11.275
+      "startSec": 2.763,
+      "endSec": 3.15
     },
     {
       "text": "link.",
-      "startSec": 11.275,
-      "endSec": 12.05
+      "startSec": 3.15,
+      "endSec": 4.05
+    },
+    {
+      "text": "It",
+      "startSec": 4.05,
+      "endSec": 4.225
+    },
+    {
+      "text": "finds",
+      "startSec": 4.225,
+      "endSec": 4.537
+    },
+    {
+      "text": "the",
+      "startSec": 4.537,
+      "endSec": 4.625
+    },
+    {
+      "text": "door",
+      "startSec": 4.625,
+      "endSec": 4.875
+    },
+    {
+      "text": "by",
+      "startSec": 4.875,
+      "endSec": 5.05
+    },
+    {
+      "text": "itself,",
+      "startSec": 5.05,
+      "endSec": 5.825
+    },
+    {
+      "text": "orders",
+      "startSec": 5.825,
+      "endSec": 6.263
+    },
+    {
+      "text": "two",
+      "startSec": 6.263,
+      "endSec": 6.475
+    },
+    {
+      "text": "croissants,",
+      "startSec": 6.475,
+      "endSec": 7.45
+    },
+    {
+      "text": "and",
+      "startSec": 7.45,
+      "endSec": 7.575
+    },
+    {
+      "text": "hands",
+      "startSec": 7.575,
+      "endSec": 7.9
+    },
+    {
+      "text": "back",
+      "startSec": 7.9,
+      "endSec": 8.188
+    },
+    {
+      "text": "a",
+      "startSec": 8.188,
+      "endSec": 8.25
+    },
+    {
+      "text": "PayPal",
+      "startSec": 8.25,
+      "endSec": 8.775
+    },
+    {
+      "text": "link.",
+      "startSec": 8.775,
+      "endSec": 9.55
     }
   ]
 }

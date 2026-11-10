@@ -1,199 +1,134 @@
 {
-  "text": "It only asks about what it wasn't sure of, like two for seven dollars. Rosa adds her PayPal email, so the money goes to her. Then every item goes into PayPal's catalog. Her shop is live, with photos.",
+  "text": "Anything unclear becomes a question, like this two for seven dollars deal. She adds her PayPal email and publishes. Each item lands in PayPal's catalog.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "f2196151dc330b33",
+  "cacheKey": "059c74613ecfc5bb",
   "timestamps": [
     {
-      "text": "It",
-      "startSec": 0.275,
-      "endSec": 0.4
+      "text": "Anything",
+      "startSec": 0.325,
+      "endSec": 0.775
     },
     {
-      "text": "only",
-      "startSec": 0.4,
-      "endSec": 0.738
+      "text": "unclear",
+      "startSec": 0.775,
+      "endSec": 1.325
     },
     {
-      "text": "asks",
-      "startSec": 0.738,
-      "endSec": 1.137
+      "text": "becomes",
+      "startSec": 1.325,
+      "endSec": 1.712
     },
     {
-      "text": "about",
-      "startSec": 1.137,
-      "endSec": 1.413
+      "text": "a",
+      "startSec": 1.712,
+      "endSec": 1.775
     },
     {
-      "text": "what",
-      "startSec": 1.413,
-      "endSec": 1.538
-    },
-    {
-      "text": "it",
-      "startSec": 1.538,
-      "endSec": 1.625
-    },
-    {
-      "text": "wasn't",
-      "startSec": 1.625,
-      "endSec": 1.938
-    },
-    {
-      "text": "sure",
-      "startSec": 1.938,
-      "endSec": 2.225
-    },
-    {
-      "text": "of,",
-      "startSec": 2.225,
+      "text": "question,",
+      "startSec": 1.775,
       "endSec": 2.65
     },
     {
       "text": "like",
       "startSec": 2.65,
-      "endSec": 2.9
+      "endSec": 2.875
+    },
+    {
+      "text": "this",
+      "startSec": 2.875,
+      "endSec": 3.138
     },
     {
       "text": "two",
-      "startSec": 2.9,
-      "endSec": 3.263
+      "startSec": 3.138,
+      "endSec": 3.538
     },
     {
       "text": "for",
-      "startSec": 3.263,
-      "endSec": 3.438
+      "startSec": 3.538,
+      "endSec": 3.75
     },
     {
       "text": "seven",
-      "startSec": 3.438,
-      "endSec": 3.8
+      "startSec": 3.75,
+      "endSec": 4.125
     },
     {
-      "text": "dollars.",
-      "startSec": 3.8,
-      "endSec": 4.963
+      "text": "dollars",
+      "startSec": 4.125,
+      "endSec": 4.525
     },
     {
-      "text": "Rosa",
-      "startSec": 4.963,
-      "endSec": 5.463
+      "text": "deal.",
+      "startSec": 4.525,
+      "endSec": 5.4
+    },
+    {
+      "text": "She",
+      "startSec": 5.4,
+      "endSec": 5.588
     },
     {
       "text": "adds",
-      "startSec": 5.463,
-      "endSec": 5.737
+      "startSec": 5.588,
+      "endSec": 5.862
     },
     {
       "text": "her",
-      "startSec": 5.737,
-      "endSec": 5.888
+      "startSec": 5.862,
+      "endSec": 6.013
     },
     {
       "text": "PayPal",
-      "startSec": 5.888,
-      "endSec": 6.425
+      "startSec": 6.013,
+      "endSec": 6.612
     },
     {
-      "text": "email,",
-      "startSec": 6.425,
+      "text": "email",
+      "startSec": 6.612,
       "endSec": 7.075
     },
     {
-      "text": "so",
+      "text": "and",
       "startSec": 7.075,
-      "endSec": 7.25
+      "endSec": 7.2
     },
     {
-      "text": "the",
-      "startSec": 7.25,
-      "endSec": 7.388
+      "text": "publishes.",
+      "startSec": 7.2,
+      "endSec": 8.488
     },
     {
-      "text": "money",
-      "startSec": 7.388,
-      "endSec": 7.725
-    },
-    {
-      "text": "goes",
-      "startSec": 7.725,
-      "endSec": 8.025
-    },
-    {
-      "text": "to",
-      "startSec": 8.025,
-      "endSec": 8.15
-    },
-    {
-      "text": "her.",
-      "startSec": 8.15,
-      "endSec": 8.887
-    },
-    {
-      "text": "Then",
-      "startSec": 8.887,
-      "endSec": 9.175
-    },
-    {
-      "text": "every",
-      "startSec": 9.175,
-      "endSec": 9.562
+      "text": "Each",
+      "startSec": 8.488,
+      "endSec": 8.825
     },
     {
       "text": "item",
-      "startSec": 9.562,
-      "endSec": 9.95
+      "startSec": 8.825,
+      "endSec": 9.2
     },
     {
-      "text": "goes",
-      "startSec": 9.95,
-      "endSec": 10.162
+      "text": "lands",
+      "startSec": 9.2,
+      "endSec": 9.675
     },
     {
-      "text": "into",
-      "startSec": 10.162,
-      "endSec": 10.375
+      "text": "in",
+      "startSec": 9.675,
+      "endSec": 9.825
     },
     {
       "text": "PayPal's",
-      "startSec": 10.375,
-      "endSec": 10.975
+      "startSec": 9.825,
+      "endSec": 10.4
     },
     {
       "text": "catalog.",
-      "startSec": 10.975,
-      "endSec": 12.025
-    },
-    {
-      "text": "Her",
-      "startSec": 12.025,
-      "endSec": 12.225
-    },
-    {
-      "text": "shop",
-      "startSec": 12.225,
-      "endSec": 12.575
-    },
-    {
-      "text": "is",
-      "startSec": 12.575,
-      "endSec": 12.738
-    },
-    {
-      "text": "live,",
-      "startSec": 12.738,
-      "endSec": 13.325
-    },
-    {
-      "text": "with",
-      "startSec": 13.325,
-      "endSec": 13.5
-    },
-    {
-      "text": "photos.",
-      "startSec": 13.5,
-      "endSec": 14.6
+      "startSec": 10.4,
+      "endSec": 11.475
     }
   ]
 }

@@ -1,149 +1,139 @@
 {
-  "text": "Step two. Every shop gets an agent door: a special address that AI assistants use to read the menu and order. It's built on MCP, an open standard.",
+  "text": "Every shop also gets an agent door: one web address where any AI assistant can read the menu and order. It uses MCP, an open standard.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "280d5266913f0778",
+  "cacheKey": "65696c7418d1f2fd",
   "timestamps": [
     {
-      "text": "Step",
-      "startSec": 0.325,
-      "endSec": 0.662
-    },
-    {
-      "text": "two.",
-      "startSec": 0.662,
-      "endSec": 1.337
-    },
-    {
       "text": "Every",
-      "startSec": 1.337,
-      "endSec": 1.7
+      "startSec": 0.325,
+      "endSec": 0.65
     },
     {
       "text": "shop",
-      "startSec": 1.7,
-      "endSec": 2.05
+      "startSec": 0.65,
+      "endSec": 1.012
+    },
+    {
+      "text": "also",
+      "startSec": 1.012,
+      "endSec": 1.375
     },
     {
       "text": "gets",
-      "startSec": 2.05,
-      "endSec": 2.263
+      "startSec": 1.375,
+      "endSec": 1.587
     },
     {
       "text": "an",
-      "startSec": 2.263,
-      "endSec": 2.388
+      "startSec": 1.587,
+      "endSec": 1.712
     },
     {
       "text": "agent",
-      "startSec": 2.388,
-      "endSec": 2.775
+      "startSec": 1.712,
+      "endSec": 2.075
     },
     {
       "text": "door:",
-      "startSec": 2.775,
-      "endSec": 3.612
+      "startSec": 2.075,
+      "endSec": 2.925
     },
     {
-      "text": "a",
-      "startSec": 3.612,
-      "endSec": 3.737
+      "text": "one",
+      "startSec": 2.925,
+      "endSec": 3.237
     },
     {
-      "text": "special",
-      "startSec": 3.737,
-      "endSec": 4.2
+      "text": "web",
+      "startSec": 3.237,
+      "endSec": 3.475
     },
     {
       "text": "address",
-      "startSec": 4.2,
-      "endSec": 4.675
+      "startSec": 3.475,
+      "endSec": 3.95
     },
     {
-      "text": "that",
-      "startSec": 4.675,
-      "endSec": 4.875
+      "text": "where",
+      "startSec": 3.95,
+      "endSec": 4.162
+    },
+    {
+      "text": "any",
+      "startSec": 4.162,
+      "endSec": 4.463
     },
     {
       "text": "AI",
-      "startSec": 4.875,
-      "endSec": 5.35
+      "startSec": 4.463,
+      "endSec": 4.925
     },
     {
-      "text": "assistants",
-      "startSec": 5.35,
-      "endSec": 6.0
+      "text": "assistant",
+      "startSec": 4.925,
+      "endSec": 5.5
     },
     {
-      "text": "use",
-      "startSec": 6.0,
-      "endSec": 6.275
-    },
-    {
-      "text": "to",
-      "startSec": 6.275,
-      "endSec": 6.4
+      "text": "can",
+      "startSec": 5.5,
+      "endSec": 5.7
     },
     {
       "text": "read",
-      "startSec": 6.4,
-      "endSec": 6.65
+      "startSec": 5.7,
+      "endSec": 5.925
     },
     {
       "text": "the",
-      "startSec": 6.65,
-      "endSec": 6.787
+      "startSec": 5.925,
+      "endSec": 6.062
     },
     {
       "text": "menu",
-      "startSec": 6.787,
-      "endSec": 7.263
+      "startSec": 6.062,
+      "endSec": 6.537
     },
     {
       "text": "and",
-      "startSec": 7.263,
-      "endSec": 7.4
+      "startSec": 6.537,
+      "endSec": 6.675
     },
     {
       "text": "order.",
-      "startSec": 7.4,
+      "startSec": 6.675,
+      "endSec": 7.75
+    },
+    {
+      "text": "It",
+      "startSec": 7.75,
+      "endSec": 7.925
+    },
+    {
+      "text": "uses",
+      "startSec": 7.925,
       "endSec": 8.4
     },
     {
-      "text": "It's",
-      "startSec": 8.4,
-      "endSec": 8.65
-    },
-    {
-      "text": "built",
-      "startSec": 8.65,
-      "endSec": 8.95
-    },
-    {
-      "text": "on",
-      "startSec": 8.95,
-      "endSec": 9.2
-    },
-    {
       "text": "MCP,",
-      "startSec": 9.2,
-      "endSec": 10.4
+      "startSec": 8.4,
+      "endSec": 9.625
     },
     {
       "text": "an",
-      "startSec": 10.4,
-      "endSec": 10.562
+      "startSec": 9.625,
+      "endSec": 9.787
     },
     {
       "text": "open",
-      "startSec": 10.562,
-      "endSec": 10.975
+      "startSec": 9.787,
+      "endSec": 10.15
     },
     {
       "text": "standard.",
-      "startSec": 10.975,
-      "endSec": 12.0
+      "startSec": 10.15,
+      "endSec": 11.175
     }
   ]
 }

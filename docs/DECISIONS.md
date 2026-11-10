@@ -331,3 +331,8 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The home chat auto-opens only when the viewport is at least 700 px tall, and its panel height subtracts the 5rem header.** Reason: at 1366x657 a 560 px (or even header-clipped) panel covered "Log in" and "Add your shop"; below 700 px the panel would be under ~30rem, too cramped to open uninvited, so the launcher and its dot wait for the visitor.
 - **The footer reserves the launcher's corner with padding on its charcoal band (`body:has([data-home-chat]) footer[data-site-chrome] > div`), not a spacer in the chat.** Reason: padding on the band keeps the charcoal to the page's end, and the rule applies only where the chat renders.
 - **The phone bar keeps `Log in` beside the compact `Add your shop` and the menu button (version A and B).** Reason: the landing spec requires both ways in within the first screen at 390 px, and all three fit at 360 px and up.
+
+## Run 8 (10 Nov 2026)
+- **Navbar version A is the only header; variant B (`?nav=b`) and its screenshots are removed.** Reason: the owner picked A on 10 Nov.
+- **The PayPal logo files come from `https://www.paypalobjects.com/paypal-ui/logos/svg/` (PayPal's own CDN for its UI logos), used unmodified.** Reason: it is PayPal's official artwork, reachable without an account, which the brief allows.
+- **The run-8 video script is new wording on the old proven structure (greeting, problem, three steps, sign-up, snap, review, door, discovery, cart, assistant, PayPal, dashboard, price refusal, architecture, thanks), 340 words at 147 words a minute, 2:40 before clip alignment.** Reason: the owner asked for a fresh script; the structure passed the run-7 clarity test, and 340 words leaves ~10 s under the 2:50 cap for holds.

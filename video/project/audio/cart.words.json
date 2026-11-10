@@ -1,0 +1,99 @@
+{
+  "text": "People can shop the page directly, too. Each tap adds to the cart, and checkout goes to PayPal.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "86a2817edce526d1",
+  "timestamps": [
+    {
+      "text": "People",
+      "startSec": 0.3,
+      "endSec": 0.625
+    },
+    {
+      "text": "can",
+      "startSec": 0.625,
+      "endSec": 0.825
+    },
+    {
+      "text": "shop",
+      "startSec": 0.825,
+      "endSec": 1.113
+    },
+    {
+      "text": "the",
+      "startSec": 1.113,
+      "endSec": 1.2
+    },
+    {
+      "text": "page",
+      "startSec": 1.2,
+      "endSec": 1.575
+    },
+    {
+      "text": "directly,",
+      "startSec": 1.575,
+      "endSec": 2.188
+    },
+    {
+      "text": "too.",
+      "startSec": 2.188,
+      "endSec": 3.163
+    },
+    {
+      "text": "Each",
+      "startSec": 3.163,
+      "endSec": 3.487
+    },
+    {
+      "text": "tap",
+      "startSec": 3.487,
+      "endSec": 3.812
+    },
+    {
+      "text": "adds",
+      "startSec": 3.812,
+      "endSec": 4.125
+    },
+    {
+      "text": "to",
+      "startSec": 4.125,
+      "endSec": 4.213
+    },
+    {
+      "text": "the",
+      "startSec": 4.213,
+      "endSec": 4.3
+    },
+    {
+      "text": "cart,",
+      "startSec": 4.3,
+      "endSec": 4.9
+    },
+    {
+      "text": "and",
+      "startSec": 4.9,
+      "endSec": 5.037
+    },
+    {
+      "text": "checkout",
+      "startSec": 5.037,
+      "endSec": 5.475
+    },
+    {
+      "text": "goes",
+      "startSec": 5.475,
+      "endSec": 5.75
+    },
+    {
+      "text": "to",
+      "startSec": 5.75,
+      "endSec": 5.85
+    },
+    {
+      "text": "PayPal.",
+      "startSec": 5.85,
+      "endSec": 6.95
+    }
+  ]
+}

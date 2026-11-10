@@ -1,274 +1,329 @@
 {
-  "text": "AI assistants are starting to shop for people. But they can only buy from shops with a website store. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is for sellers with a paper menu and no website. One photo, and AI shoppers can order and pay.",
+  "text": "Lots of small food sellers still run on paper. A home baker. A market stall. The menu is a printed sheet, and there's no website. AI assistants are starting to shop for people, but they can't see a paper menu. In one US survey, nearly half of food and lodging businesses had no website. Shelfie gives them a shop that AI can buy from.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "6f48bf8ba4662d65",
+  "cacheKey": "302fd049f1fbb64f",
   "timestamps": [
     {
-      "text": "AI",
-      "startSec": 0.375,
-      "endSec": 0.825
-    },
-    {
-      "text": "assistants",
-      "startSec": 0.825,
-      "endSec": 1.425
-    },
-    {
-      "text": "are",
-      "startSec": 1.425,
-      "endSec": 1.525
-    },
-    {
-      "text": "starting",
-      "startSec": 1.525,
-      "endSec": 1.95
-    },
-    {
-      "text": "to",
-      "startSec": 1.95,
-      "endSec": 2.087
-    },
-    {
-      "text": "shop",
-      "startSec": 2.087,
-      "endSec": 2.375
-    },
-    {
-      "text": "for",
-      "startSec": 2.375,
-      "endSec": 2.5
-    },
-    {
-      "text": "people.",
-      "startSec": 2.5,
-      "endSec": 3.4
-    },
-    {
-      "text": "But",
-      "startSec": 3.4,
-      "endSec": 3.538
-    },
-    {
-      "text": "they",
-      "startSec": 3.538,
-      "endSec": 3.675
-    },
-    {
-      "text": "can",
-      "startSec": 3.675,
-      "endSec": 3.862
-    },
-    {
-      "text": "only",
-      "startSec": 3.862,
-      "endSec": 4.175
-    },
-    {
-      "text": "buy",
-      "startSec": 4.175,
-      "endSec": 4.45
-    },
-    {
-      "text": "from",
-      "startSec": 4.45,
-      "endSec": 4.688
-    },
-    {
-      "text": "shops",
-      "startSec": 4.688,
-      "endSec": 5.125
-    },
-    {
-      "text": "with",
-      "startSec": 5.125,
-      "endSec": 5.263
-    },
-    {
-      "text": "a",
-      "startSec": 5.263,
-      "endSec": 5.35
-    },
-    {
-      "text": "website",
-      "startSec": 5.35,
-      "endSec": 5.8
-    },
-    {
-      "text": "store.",
-      "startSec": 5.8,
-      "endSec": 6.775
-    },
-    {
-      "text": "In",
-      "startSec": 6.775,
-      "endSec": 6.95
-    },
-    {
-      "text": "one",
-      "startSec": 6.95,
-      "endSec": 7.188
-    },
-    {
-      "text": "US",
-      "startSec": 7.188,
-      "endSec": 7.575
-    },
-    {
-      "text": "survey,",
-      "startSec": 7.575,
-      "endSec": 8.375
-    },
-    {
-      "text": "nearly",
-      "startSec": 8.375,
-      "endSec": 8.787
-    },
-    {
-      "text": "half",
-      "startSec": 8.787,
-      "endSec": 9.037
+      "text": "Lots",
+      "startSec": 0.4,
+      "endSec": 0.688
     },
     {
       "text": "of",
-      "startSec": 9.037,
-      "endSec": 9.162
+      "startSec": 0.688,
+      "endSec": 0.812
+    },
+    {
+      "text": "small",
+      "startSec": 0.812,
+      "endSec": 1.212
     },
     {
       "text": "food",
-      "startSec": 9.162,
-      "endSec": 9.488
-    },
-    {
-      "text": "and",
-      "startSec": 9.488,
-      "endSec": 9.6
-    },
-    {
-      "text": "lodging",
-      "startSec": 9.6,
-      "endSec": 9.925
-    },
-    {
-      "text": "businesses",
-      "startSec": 9.925,
-      "endSec": 10.588
-    },
-    {
-      "text": "had",
-      "startSec": 10.588,
-      "endSec": 10.825
-    },
-    {
-      "text": "no",
-      "startSec": 10.825,
-      "endSec": 11.0
-    },
-    {
-      "text": "website.",
-      "startSec": 11.0,
-      "endSec": 12.225
-    },
-    {
-      "text": "Shelfie",
-      "startSec": 12.225,
-      "endSec": 12.838
-    },
-    {
-      "text": "is",
-      "startSec": 12.838,
-      "endSec": 13.0
-    },
-    {
-      "text": "for",
-      "startSec": 13.0,
-      "endSec": 13.175
+      "startSec": 1.212,
+      "endSec": 1.45
     },
     {
       "text": "sellers",
-      "startSec": 13.175,
-      "endSec": 13.65
+      "startSec": 1.45,
+      "endSec": 1.887
     },
     {
-      "text": "with",
-      "startSec": 13.65,
-      "endSec": 13.787
+      "text": "still",
+      "startSec": 1.887,
+      "endSec": 2.175
     },
     {
-      "text": "a",
-      "startSec": 13.787,
-      "endSec": 13.85
+      "text": "run",
+      "startSec": 2.175,
+      "endSec": 2.362
     },
     {
-      "text": "paper",
-      "startSec": 13.85,
-      "endSec": 14.25
+      "text": "on",
+      "startSec": 2.362,
+      "endSec": 2.5
+    },
+    {
+      "text": "paper.",
+      "startSec": 2.5,
+      "endSec": 3.362
+    },
+    {
+      "text": "A",
+      "startSec": 3.362,
+      "endSec": 3.475
+    },
+    {
+      "text": "home",
+      "startSec": 3.475,
+      "endSec": 3.725
+    },
+    {
+      "text": "baker.",
+      "startSec": 3.725,
+      "endSec": 4.537
+    },
+    {
+      "text": "A",
+      "startSec": 4.537,
+      "endSec": 4.65
+    },
+    {
+      "text": "market",
+      "startSec": 4.65,
+      "endSec": 5.05
+    },
+    {
+      "text": "stall.",
+      "startSec": 5.05,
+      "endSec": 5.95
+    },
+    {
+      "text": "The",
+      "startSec": 5.95,
+      "endSec": 6.075
     },
     {
       "text": "menu",
-      "startSec": 14.25,
-      "endSec": 14.812
+      "startSec": 6.075,
+      "endSec": 6.525
+    },
+    {
+      "text": "is",
+      "startSec": 6.525,
+      "endSec": 6.638
+    },
+    {
+      "text": "a",
+      "startSec": 6.638,
+      "endSec": 6.7
+    },
+    {
+      "text": "printed",
+      "startSec": 6.7,
+      "endSec": 7.1
+    },
+    {
+      "text": "sheet,",
+      "startSec": 7.1,
+      "endSec": 7.75
     },
     {
       "text": "and",
-      "startSec": 14.812,
-      "endSec": 15.0
+      "startSec": 7.75,
+      "endSec": 7.862
+    },
+    {
+      "text": "there's",
+      "startSec": 7.862,
+      "endSec": 8.1
     },
     {
       "text": "no",
-      "startSec": 15.0,
-      "endSec": 15.175
+      "startSec": 8.1,
+      "endSec": 8.3
     },
     {
       "text": "website.",
-      "startSec": 15.175,
-      "endSec": 16.325
-    },
-    {
-      "text": "One",
-      "startSec": 16.325,
-      "endSec": 16.637
-    },
-    {
-      "text": "photo,",
-      "startSec": 16.637,
-      "endSec": 17.562
-    },
-    {
-      "text": "and",
-      "startSec": 17.562,
-      "endSec": 17.75
+      "startSec": 8.3,
+      "endSec": 9.45
     },
     {
       "text": "AI",
-      "startSec": 17.75,
-      "endSec": 18.3
+      "startSec": 9.45,
+      "endSec": 9.95
     },
     {
-      "text": "shoppers",
-      "startSec": 18.3,
-      "endSec": 18.8
+      "text": "assistants",
+      "startSec": 9.95,
+      "endSec": 10.55
     },
     {
-      "text": "can",
-      "startSec": 18.8,
-      "endSec": 19.025
+      "text": "are",
+      "startSec": 10.55,
+      "endSec": 10.65
     },
     {
-      "text": "order",
-      "startSec": 19.025,
-      "endSec": 19.425
+      "text": "starting",
+      "startSec": 10.65,
+      "endSec": 11.05
+    },
+    {
+      "text": "to",
+      "startSec": 11.05,
+      "endSec": 11.188
+    },
+    {
+      "text": "shop",
+      "startSec": 11.188,
+      "endSec": 11.475
+    },
+    {
+      "text": "for",
+      "startSec": 11.475,
+      "endSec": 11.6
+    },
+    {
+      "text": "people,",
+      "startSec": 11.6,
+      "endSec": 12.35
+    },
+    {
+      "text": "but",
+      "startSec": 12.35,
+      "endSec": 12.488
+    },
+    {
+      "text": "they",
+      "startSec": 12.488,
+      "endSec": 12.637
+    },
+    {
+      "text": "can't",
+      "startSec": 12.637,
+      "endSec": 12.988
+    },
+    {
+      "text": "see",
+      "startSec": 12.988,
+      "endSec": 13.2
+    },
+    {
+      "text": "a",
+      "startSec": 13.2,
+      "endSec": 13.275
+    },
+    {
+      "text": "paper",
+      "startSec": 13.275,
+      "endSec": 13.675
+    },
+    {
+      "text": "menu.",
+      "startSec": 13.675,
+      "endSec": 14.75
+    },
+    {
+      "text": "In",
+      "startSec": 14.75,
+      "endSec": 14.925
+    },
+    {
+      "text": "one",
+      "startSec": 14.925,
+      "endSec": 15.15
+    },
+    {
+      "text": "US",
+      "startSec": 15.15,
+      "endSec": 15.525
+    },
+    {
+      "text": "survey,",
+      "startSec": 15.525,
+      "endSec": 16.212
+    },
+    {
+      "text": "nearly",
+      "startSec": 16.212,
+      "endSec": 16.587
+    },
+    {
+      "text": "half",
+      "startSec": 16.587,
+      "endSec": 16.887
+    },
+    {
+      "text": "of",
+      "startSec": 16.887,
+      "endSec": 17.025
+    },
+    {
+      "text": "food",
+      "startSec": 17.025,
+      "endSec": 17.413
     },
     {
       "text": "and",
-      "startSec": 19.425,
-      "endSec": 19.587
+      "startSec": 17.413,
+      "endSec": 17.525
     },
     {
-      "text": "pay.",
-      "startSec": 19.587,
-      "endSec": 20.525
+      "text": "lodging",
+      "startSec": 17.525,
+      "endSec": 17.85
+    },
+    {
+      "text": "businesses",
+      "startSec": 17.85,
+      "endSec": 18.525
+    },
+    {
+      "text": "had",
+      "startSec": 18.525,
+      "endSec": 18.725
+    },
+    {
+      "text": "no",
+      "startSec": 18.725,
+      "endSec": 18.9
+    },
+    {
+      "text": "website.",
+      "startSec": 18.9,
+      "endSec": 20.087
+    },
+    {
+      "text": "Shelfie",
+      "startSec": 20.087,
+      "endSec": 20.55
+    },
+    {
+      "text": "gives",
+      "startSec": 20.55,
+      "endSec": 20.762
+    },
+    {
+      "text": "them",
+      "startSec": 20.762,
+      "endSec": 20.887
+    },
+    {
+      "text": "a",
+      "startSec": 20.887,
+      "endSec": 21.0
+    },
+    {
+      "text": "shop",
+      "startSec": 21.0,
+      "endSec": 21.375
+    },
+    {
+      "text": "that",
+      "startSec": 21.375,
+      "endSec": 21.6
+    },
+    {
+      "text": "AI",
+      "startSec": 21.6,
+      "endSec": 22.125
+    },
+    {
+      "text": "can",
+      "startSec": 22.125,
+      "endSec": 22.3
+    },
+    {
+      "text": "buy",
+      "startSec": 22.3,
+      "endSec": 22.587
+    },
+    {
+      "text": "from.",
+      "startSec": 22.587,
+      "endSec": 23.4
     }
   ]
 }

@@ -1,89 +1,99 @@
 {
-  "text": "Step one. Rosa snaps her price list. Claude, an AI model, reads every item and price.",
+  "text": "She snaps her price list. Claude, an AI model, reads every item and price in under ten seconds.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "31d0f87cc609c174",
+  "cacheKey": "a5305a2b9520586d",
   "timestamps": [
     {
-      "text": "Step",
+      "text": "She",
       "startSec": 0.325,
-      "endSec": 0.6
-    },
-    {
-      "text": "one.",
-      "startSec": 0.6,
-      "endSec": 1.212
-    },
-    {
-      "text": "Rosa",
-      "startSec": 1.212,
-      "endSec": 1.6
+      "endSec": 0.463
     },
     {
       "text": "snaps",
-      "startSec": 1.6,
-      "endSec": 1.938
+      "startSec": 0.463,
+      "endSec": 0.812
     },
     {
       "text": "her",
-      "startSec": 1.938,
-      "endSec": 2.05
+      "startSec": 0.812,
+      "endSec": 0.925
     },
     {
       "text": "price",
-      "startSec": 2.05,
-      "endSec": 2.375
+      "startSec": 0.925,
+      "endSec": 1.25
     },
     {
       "text": "list.",
-      "startSec": 2.375,
-      "endSec": 3.112
+      "startSec": 1.25,
+      "endSec": 2.075
     },
     {
       "text": "Claude,",
-      "startSec": 3.112,
-      "endSec": 3.612
+      "startSec": 2.075,
+      "endSec": 2.675
     },
     {
       "text": "an",
-      "startSec": 3.612,
-      "endSec": 3.75
+      "startSec": 2.675,
+      "endSec": 2.825
     },
     {
       "text": "AI",
-      "startSec": 3.75,
-      "endSec": 4.175
+      "startSec": 2.825,
+      "endSec": 3.275
     },
     {
       "text": "model,",
-      "startSec": 4.175,
-      "endSec": 4.675
+      "startSec": 3.275,
+      "endSec": 3.987
     },
     {
       "text": "reads",
-      "startSec": 4.675,
-      "endSec": 5.013
+      "startSec": 3.987,
+      "endSec": 4.362
     },
     {
       "text": "every",
-      "startSec": 5.013,
-      "endSec": 5.35
+      "startSec": 4.362,
+      "endSec": 4.675
     },
     {
       "text": "item",
-      "startSec": 5.35,
-      "endSec": 5.662
+      "startSec": 4.675,
+      "endSec": 4.963
     },
     {
       "text": "and",
-      "startSec": 5.662,
-      "endSec": 5.775
+      "startSec": 4.963,
+      "endSec": 5.075
     },
     {
-      "text": "price.",
-      "startSec": 5.775,
-      "endSec": 6.7
+      "text": "price",
+      "startSec": 5.075,
+      "endSec": 5.475
+    },
+    {
+      "text": "in",
+      "startSec": 5.475,
+      "endSec": 5.562
+    },
+    {
+      "text": "under",
+      "startSec": 5.562,
+      "endSec": 5.787
+    },
+    {
+      "text": "ten",
+      "startSec": 5.787,
+      "endSec": 6.05
+    },
+    {
+      "text": "seconds.",
+      "startSec": 6.05,
+      "endSec": 7.025
     }
   ]
 }

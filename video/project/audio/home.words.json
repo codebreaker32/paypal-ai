@@ -1,0 +1,89 @@
+{
+  "text": "It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "9332be8cee20d85a",
+  "timestamps": [
+    {
+      "text": "It",
+      "startSec": 0.3,
+      "endSec": 0.425
+    },
+    {
+      "text": "takes",
+      "startSec": 0.425,
+      "endSec": 0.7
+    },
+    {
+      "text": "three",
+      "startSec": 0.7,
+      "endSec": 0.925
+    },
+    {
+      "text": "steps.",
+      "startSec": 0.925,
+      "endSec": 1.6
+    },
+    {
+      "text": "Snap",
+      "startSec": 1.6,
+      "endSec": 1.938
+    },
+    {
+      "text": "your",
+      "startSec": 1.938,
+      "endSec": 2.05
+    },
+    {
+      "text": "price",
+      "startSec": 2.05,
+      "endSec": 2.375
+    },
+    {
+      "text": "list.",
+      "startSec": 2.375,
+      "endSec": 3.087
+    },
+    {
+      "text": "Let",
+      "startSec": 3.087,
+      "endSec": 3.337
+    },
+    {
+      "text": "AI",
+      "startSec": 3.337,
+      "endSec": 3.837
+    },
+    {
+      "text": "shoppers",
+      "startSec": 3.837,
+      "endSec": 4.275
+    },
+    {
+      "text": "order.",
+      "startSec": 4.275,
+      "endSec": 4.912
+    },
+    {
+      "text": "Get",
+      "startSec": 4.912,
+      "endSec": 5.138
+    },
+    {
+      "text": "paid",
+      "startSec": 5.138,
+      "endSec": 5.463
+    },
+    {
+      "text": "on",
+      "startSec": 5.463,
+      "endSec": 5.575
+    },
+    {
+      "text": "PayPal.",
+      "startSec": 5.575,
+      "endSec": 6.65
+    }
+  ]
+}

@@ -1,84 +1,89 @@
 {
-  "text": "One more thing: if an AI tries to set its own price, the shop refuses.",
+  "text": "Prices stay hers, too. When an AI tries to pay one cent, the shop says no.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "e5dc7dae8161bf64",
+  "cacheKey": "c2175613fe62ce0f",
   "timestamps": [
     {
-      "text": "One",
-      "startSec": 0.35,
-      "endSec": 0.575
+      "text": "Prices",
+      "startSec": 0.3,
+      "endSec": 0.7
     },
     {
-      "text": "more",
-      "startSec": 0.575,
-      "endSec": 0.812
+      "text": "stay",
+      "startSec": 0.7,
+      "endSec": 0.975
     },
     {
-      "text": "thing:",
-      "startSec": 0.812,
-      "endSec": 1.587
+      "text": "hers,",
+      "startSec": 0.975,
+      "endSec": 1.337
     },
     {
-      "text": "if",
-      "startSec": 1.587,
-      "endSec": 1.712
+      "text": "too.",
+      "startSec": 1.337,
+      "endSec": 2.125
+    },
+    {
+      "text": "When",
+      "startSec": 2.125,
+      "endSec": 2.263
     },
     {
       "text": "an",
-      "startSec": 1.712,
-      "endSec": 1.875
+      "startSec": 2.263,
+      "endSec": 2.4
     },
     {
       "text": "AI",
-      "startSec": 1.875,
-      "endSec": 2.35
-    },
-    {
-      "text": "tries",
-      "startSec": 2.35,
-      "endSec": 2.675
-    },
-    {
-      "text": "to",
-      "startSec": 2.675,
+      "startSec": 2.4,
       "endSec": 2.8
     },
     {
-      "text": "set",
+      "text": "tries",
       "startSec": 2.8,
-      "endSec": 2.987
-    },
-    {
-      "text": "its",
-      "startSec": 2.987,
       "endSec": 3.125
     },
     {
-      "text": "own",
+      "text": "to",
       "startSec": 3.125,
-      "endSec": 3.35
+      "endSec": 3.225
     },
     {
-      "text": "price,",
-      "startSec": 3.35,
-      "endSec": 4.0
+      "text": "pay",
+      "startSec": 3.225,
+      "endSec": 3.45
+    },
+    {
+      "text": "one",
+      "startSec": 3.45,
+      "endSec": 3.688
+    },
+    {
+      "text": "cent,",
+      "startSec": 3.688,
+      "endSec": 4.15
     },
     {
       "text": "the",
-      "startSec": 4.0,
-      "endSec": 4.138
+      "startSec": 4.15,
+      "endSec": 4.287
     },
     {
       "text": "shop",
-      "startSec": 4.138,
-      "endSec": 4.412
+      "startSec": 4.287,
+      "endSec": 4.575
     },
     {
-      "text": "refuses.",
-      "startSec": 4.412,
-      "endSec": 5.575
+      "text": "says",
+      "startSec": 4.575,
+      "endSec": 4.825
+    },
+    {
+      "text": "no.",
+      "startSec": 4.825,
+      "endSec": 5.625
     }
   ]
 }

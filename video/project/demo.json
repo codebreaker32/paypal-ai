@@ -4,7 +4,7 @@
   "product": {
     "name": "Shelfie",
     "tagline": "Your price list, open to AI shoppers.",
-    "audience": "Sellers with a paper menu and no website, such as home bakers",
+    "audience": "Small food sellers with a paper menu and no website, such as home bakers and market stalls",
     "valueProps": [
       "A photo of a paper price list becomes a PayPal catalog and a live shop",
       "Any AI assistant finds the shop's agent door from its web address and orders through it",
@@ -70,22 +70,26 @@
       "beat": 1,
       "video": "clips/01-paper-menu.mp4",
       "holdSec": 0.8,
-      "screen": "A real handwritten paper menu (stock photo, not a particular seller), slowly zooming; the one statistic as a sourced card; then the audience line as a statement card.",
-      "narration": "Picture a home baker, or a stall at the market. The menu is a sheet of paper, and there's no website. AI assistants now shop for people, but they can't order from paper. In one US survey, nearly half of food and lodging businesses had no website. Shelfie is built for them.",
+      "screen": "A real handwritten paper menu (licensed stock photo, not a particular seller's), slowly zooming; the statistic as a sourced card; then the audience line as a statement card.",
+      "narration": "Lots of small food sellers still run on paper. A home baker. A market stall. The menu is a printed sheet, and there's no website. AI assistants are starting to shop for people, but they can't see a paper menu. In one US survey, nearly half of food and lodging businesses had no website. Shelfie gives them a shop that AI can buy from.",
       "onScreen": [
         {
           "from": "In one US",
-          "to": "Shelfie is built",
+          "to": "Shelfie gives",
           "extraSec": 0,
           "text": "47% of US accommodation and food-service businesses with employees had no website.",
           "source": "US Census Bureau, Annual Survey of Entrepreneurs (data year 2016)"
         },
         {
           "variant": "statement",
-          "from": "Shelfie is built",
+          "from": "Shelfie gives",
           "text": "Shelfie is for sellers with a paper menu and no website."
         }
-      ]
+      ],
+      "audio": "audio/problem.mp3",
+      "words": "audio/problem.words.json",
+      "narrationSec": 23.536,
+      "durationSec": 25.186
     },
     {
       "id": "home",
@@ -94,7 +98,11 @@
       "video": "clips/01b-home.mp4",
       "holdSec": 0.6,
       "screen": "Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat widget opens in the corner.",
-      "narration": "Here's how it works, in three steps. Snap your price list. AI shoppers order. And you get paid on PayPal."
+      "narration": "It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.",
+      "audio": "audio/home.mp3",
+      "words": "audio/home.words.json",
+      "narrationSec": 6.792,
+      "durationSec": 8.242
     },
     {
       "id": "signup",
@@ -108,7 +116,11 @@
         "title": "Snap your price list"
       },
       "screen": "Phone: a new seller signs up (email masked, password as dots), then adds a shop.",
-      "narration": "Rosa bakes from her kitchen. She signs up with an email and a password, and adds her shop."
+      "narration": "Meet Rosa, a home baker. She signs up with an email and a password, and adds her bakery.",
+      "audio": "audio/signup.mp3",
+      "words": "audio/signup.words.json",
+      "narrationSec": 6.87,
+      "durationSec": 7.92
     },
     {
       "id": "snap",
@@ -122,7 +134,11 @@
         "title": "Snap your price list"
       },
       "screen": "Phone: the price list photo picked, Read my menu, Reading your menu, Check your menu.",
-      "narration": "She snaps her price list. Claude, an AI model, reads every item and price in under ten seconds."
+      "narration": "She snaps her price list. Claude, an AI model, reads every item and price in under ten seconds.",
+      "audio": "audio/snap.mp3",
+      "words": "audio/snap.words.json",
+      "narrationSec": 7.158,
+      "durationSec": 8.608
     },
     {
       "id": "review",
@@ -136,7 +152,11 @@
         "title": "Snap your price list"
       },
       "screen": "Phone: the 2 for $7 question (Looks right), the PayPal email (drawn as dots), Publish, Your shop is live.",
-      "narration": "It only asks about what it isn't sure of, like two for seven dollars. Rosa adds her PayPal email, so buyers pay her directly. She publishes, and every item goes into PayPal's catalog. Her shop is live."
+      "narration": "Anything unclear becomes a question, like this two for seven dollars deal. She adds her PayPal email and publishes. Each item lands in PayPal's catalog.",
+      "audio": "audio/review.mp3",
+      "words": "audio/review.words.json",
+      "narrationSec": 11.624,
+      "durationSec": 13.074
     },
     {
       "id": "door",
@@ -150,7 +170,11 @@
         "title": "AI shoppers order"
       },
       "screen": "Laptop: the dashboard Share tab: Your agent door and its address.",
-      "narration": "Every shop gets an agent door: an address where AI assistants read the menu and place orders. It's built on MCP, an open standard."
+      "narration": "Every shop also gets an agent door: one web address where any AI assistant can read the menu and order. It uses MCP, an open standard.",
+      "audio": "audio/door.mp3",
+      "words": "audio/door.words.json",
+      "narrationSec": 11.311,
+      "durationSec": 12.561
     },
     {
       "id": "discovery",
@@ -164,7 +188,11 @@
         "title": "AI shoppers order"
       },
       "screen": "Terminal (sped up): Claude Code with only the shop URL finds the agent door, lists products, creates the order, prints the PayPal link.",
-      "narration": "Here's Claude Code, given only the shop's web address. It finds the door on its own, orders two croissants, and gets back a PayPal link."
+      "narration": "Watch Claude Code try it, given only the shop's link. It finds the door by itself, orders two croissants, and hands back a PayPal link.",
+      "audio": "audio/discovery.mp3",
+      "words": "audio/discovery.words.json",
+      "narrationSec": 9.691,
+      "durationSec": 11.341
     },
     {
       "id": "cart",
@@ -178,7 +206,11 @@
         "title": "AI shoppers order"
       },
       "screen": "Laptop: the shop page with photos; + adds items; the cart panel with its total and Pay with PayPal.",
-      "narration": "Here's her shop with photos. Tap to add, and the cart is ready for PayPal."
+      "narration": "People can shop the page directly, too. Each tap adds to the cart, and checkout goes to PayPal.",
+      "audio": "audio/cart.mp3",
+      "words": "audio/cart.words.json",
+      "narrationSec": 7.079,
+      "durationSec": 8.329
     },
     {
       "id": "console",
@@ -192,7 +224,11 @@
         "title": "AI shoppers order"
       },
       "screen": "Laptop: the shop assistant: the request with a nut allergy, the contains-nuts warning, the confirmation, the order with Approve on PayPal.",
-      "narration": "Or buyers ask the shop's own assistant. This one has a nut allergy. The assistant warns that the almond croissants contain nuts, and places the order once they confirm."
+      "narration": "Or shoppers just ask the shop's assistant. This one has a nut allergy. The assistant warns that the almond croissants contain nuts, and orders once they say yes.",
+      "audio": "audio/console.mp3",
+      "words": "audio/console.words.json",
+      "narrationSec": 12.016,
+      "durationSec": 13.466
     },
     {
       "id": "paypal",
@@ -206,7 +242,11 @@
         "title": "Get paid on PayPal"
       },
       "screen": "PayPal checkout page (Complete Purchase), then the Shelfie receipt: Paid, to Marigold Bakehouse’s own PayPal account (masked).",
-      "narration": "The buyer approves on PayPal. The money goes straight into Rosa’s own PayPal account, not ours."
+      "narration": "Payment happens on PayPal. The buyer approves, and the money lands in Rosa's own PayPal account.",
+      "audio": "audio/paypal.mp3",
+      "words": "audio/paypal.words.json",
+      "narrationSec": 7.158,
+      "durationSec": 8.808
     },
     {
       "id": "dashboard",
@@ -220,7 +260,11 @@
         "title": "Get paid on PayPal"
       },
       "screen": "Laptop: the dashboard toast for the paid order, the row in To prepare, the AI brief by Claude with the nut-allergy warning.",
-      "narration": "Her dashboard shows the paid order. Claude reads it from PayPal and writes her a brief. It flags the nut allergy."
+      "narration": "The order pops up on Rosa's dashboard, already paid. Claude pulls it from PayPal and writes her a short brief, flagging the nut allergy.",
+      "audio": "audio/dashboard.mp3",
+      "words": "audio/dashboard.words.json",
+      "narrationSec": 9.561,
+      "durationSec": 11.011
     },
     {
       "id": "tamper",
@@ -234,7 +278,11 @@
         "title": "Get paid on PayPal"
       },
       "screen": "Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.",
-      "narration": "And if an AI tries to set its own price, the shop refuses."
+      "narration": "Prices stay hers, too. When an AI tries to pay one cent, the shop says no.",
+      "audio": "audio/tamper.mp3",
+      "words": "audio/tamper.words.json",
+      "narrationSec": 5.773,
+      "durationSec": 7.823
     },
     {
       "id": "close",
@@ -242,7 +290,11 @@
       "beat": 5,
       "holdSec": 1,
       "screen": "Architecture card in the brand: photo → Claude reads it → PayPal catalog → agent door (MCP) → PayPal Orders, paid to the seller → Claude brief via the Agent Toolkit; each node lights as it is spoken.",
-      "narration": "Under the hood, Claude reads the menu. PayPal holds the catalog and takes the payment. And the agent door lets any assistant order. For sellers like Rosa, paper is now enough."
+      "narration": "The whole picture: Claude reads the menu and writes the brief. PayPal holds the catalog, takes the payment, and pays the seller. The agent door lets any AI assistant order. A sheet of paper is all Rosa needed.",
+      "audio": "audio/close.mp3",
+      "words": "audio/close.words.json",
+      "narrationSec": 15.308,
+      "durationSec": 17.258
     },
     {
       "id": "end",
@@ -253,7 +305,11 @@
       "cta": "Built with PayPal and Claude",
       "holdSec": 2.2,
       "note": "End card: the Awning logo, name and line, PayPal logo, with a spoken thank-you.",
-      "narration": "Thanks for watching!"
+      "narration": "Thanks for watching!",
+      "audio": "audio/end.mp3",
+      "words": "audio/end.words.json",
+      "narrationSec": 2.011,
+      "durationSec": 4.661
     }
   ],
   "transitions": [

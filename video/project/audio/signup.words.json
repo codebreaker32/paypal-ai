@@ -1,0 +1,99 @@
+{
+  "text": "Meet Rosa, a home baker. She signs up with an email and a password, and adds her bakery.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "f582517adb2d3ddf",
+  "timestamps": [
+    {
+      "text": "Meet",
+      "startSec": 0.375,
+      "endSec": 0.625
+    },
+    {
+      "text": "Rosa,",
+      "startSec": 0.625,
+      "endSec": 1.3
+    },
+    {
+      "text": "a",
+      "startSec": 1.3,
+      "endSec": 1.4
+    },
+    {
+      "text": "home",
+      "startSec": 1.4,
+      "endSec": 1.7
+    },
+    {
+      "text": "baker.",
+      "startSec": 1.7,
+      "endSec": 2.75
+    },
+    {
+      "text": "She",
+      "startSec": 2.75,
+      "endSec": 2.938
+    },
+    {
+      "text": "signs",
+      "startSec": 2.938,
+      "endSec": 3.237
+    },
+    {
+      "text": "up",
+      "startSec": 3.237,
+      "endSec": 3.388
+    },
+    {
+      "text": "with",
+      "startSec": 3.388,
+      "endSec": 3.513
+    },
+    {
+      "text": "an",
+      "startSec": 3.513,
+      "endSec": 3.638
+    },
+    {
+      "text": "email",
+      "startSec": 3.638,
+      "endSec": 4.125
+    },
+    {
+      "text": "and",
+      "startSec": 4.125,
+      "endSec": 4.237
+    },
+    {
+      "text": "a",
+      "startSec": 4.237,
+      "endSec": 4.3
+    },
+    {
+      "text": "password,",
+      "startSec": 4.3,
+      "endSec": 5.1
+    },
+    {
+      "text": "and",
+      "startSec": 5.1,
+      "endSec": 5.275
+    },
+    {
+      "text": "adds",
+      "startSec": 5.275,
+      "endSec": 5.562
+    },
+    {
+      "text": "her",
+      "startSec": 5.562,
+      "endSec": 5.675
+    },
+    {
+      "text": "bakery.",
+      "startSec": 5.675,
+      "endSec": 6.725
+    }
+  ]
+}
