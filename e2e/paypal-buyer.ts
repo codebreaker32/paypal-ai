@@ -115,7 +115,7 @@ export async function payAsGuest(page: Page, approvalUrl: string, opts: PayAsGue
     await page.goto(approvalUrl, { waitUntil: 'domcontentloaded', timeout: SLOW });
 
     step = 'choose card';
-    const payByCard = page.locator('a:visible, button:visible', { hasText: 'Pay with Credit or Debit Card' }).first();
+    const payByCard = page.locator('a:visible, button:visible', { hasText: /^Pay with (Credit or Debit|Debit or Credit) Card$/ }).first();
     await payByCard.waitFor({ state: 'visible', timeout: SLOW });
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
     if (shot) await shot(page, 'paypal-approval');
@@ -199,7 +199,8 @@ export async function payWithPayPalLogin(page: Page, approvalUrl: string, opts: 
     await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
 
     step = 'login email';
-    const emailField = page.locator('#email');
+    // PayPal's pages keep hidden copies of fields and buttons from other steps: only the drawn ones count.
+    const emailField = page.locator('#email:visible, input[name="login_email"]:visible').first();
     if (!(await emailField.isVisible().catch(() => false))) {
       // Some sessions open on the order summary with a "Log In" button first.
       const login = page.locator('a:visible, button:visible', { hasText: /^Log In$/ }).first();
@@ -208,17 +209,23 @@ export async function payWithPayPalLogin(page: Page, approvalUrl: string, opts: 
     await emailField.waitFor({ state: 'visible', timeout: SLOW });
     if (shot) await shot(page, 'paypal-login');
     await emailField.fill(email);
-    const next = page.locator('#btnNext');
+    const next = page.locator('#btnNext:visible').or(page.getByRole('button', { name: 'Next', exact: true })).first();
     if (await next.isVisible().catch(() => false)) await next.click();
+    else await emailField.press('Enter');
 
     step = 'login password';
-    const pw = page.locator('#password');
+    const pw = page.locator('#password:visible, input[type="password"]:visible').first();
     await pw.waitFor({ state: 'visible', timeout: SLOW });
-    await pw.fill(password);
-    await page.locator('#btnLogin').click();
+    // Typed once the step is at rest: a value filled while the field slides in can be dropped.
+    await page.waitForTimeout(1_000);
+    await pw.click();
+    await pw.pressSequentially(password, { delay: 30 });
+    if (!(await pw.inputValue().catch(() => ''))) await pw.fill(password);
+    const logIn = page.locator('#btnLogin:visible').or(page.getByRole('button', { name: 'Log In', exact: true })).first();
+    await logIn.click({ timeout: 10_000 }).catch(() => pw.press('Enter'));
 
     step = 'review';
-    const pay = page.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/ }).first();
+    const pay = page.locator('button:visible', { hasText: /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay|Pay \$[\d.,]+)$/ }).first();
     await pay.waitFor({ state: 'visible', timeout: SLOW });
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
     if (shot) await shot(page, 'paypal-wallet-review');
