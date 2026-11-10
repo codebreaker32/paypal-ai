@@ -728,8 +728,9 @@ async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
     }
     await emailField.waitFor({ state: 'visible', timeout: 60_000 });
     await emailField.fill(BUYER.email!);
-    const next = p.locator('#btnNext');
-    if (await next.isVisible().catch(() => false)) await next.click();
+    // PayPal's two-step login: Next (its id has changed between page versions; Enter in the field always works).
+    const next = p.locator('#btnNext:visible').or(p.getByRole('button', { name: 'Next', exact: true })).first();
+    if (await next.isVisible().catch(() => false)) await next.click({ timeout: 10_000 }).catch(() => emailField.press('Enter'));
     await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
     await p.locator('#password').fill(BUYER.password!);
     await p.locator('#btnLogin').click();
