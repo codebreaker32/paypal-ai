@@ -431,3 +431,6 @@ Run 3: see "Current phase" above.
 Notes:
 - (Resolved in session 3.) If `git push` fails with `remote: fatal error in commit_refs`, run `python3 -I .scratch/api-push.py ~/paypal-ai codebreaker32/paypal-ai main` (it mirrors the commits through the GitHub API with identical SHAs).
 - Optional: single-quote `PAYPAL_SANDBOX_BUYER_PASSWORD_IN` in `.env` if it contains `#` (dotenv cuts the value there). The new US buyer password loads correctly.
+
+## Run 7 session 3 (10 Nov 2026) hand-off
+Three jobs build in worktrees on branches `r7-nav` (navbar A + `?nav=b`), `r7-hiw` (How it works screenshots + labelled sound switch) and `r7-chat` (home chat widget), under `.claude/worktrees/`. If this session ends before they're integrated: commit any leftover work there, cherry-pick each branch onto `run-6-home`, run the checks and finish.
