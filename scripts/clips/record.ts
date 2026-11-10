@@ -707,7 +707,7 @@ async function waitTurn(region: Locator): Promise<void> {
 }
 
 /** The rest of PayPal's buttons on its review page. */
-const PAY_BUTTON = /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay \$[\d.,]+)$/;
+const PAY_BUTTON = /^(Complete Purchase|Pay Now|Continue to Review Order|Agree & Pay|Pay|Pay \$[\d.,]+)$/;
 
 /** Switches the redactor on in every frame (it starts off on paypal.com, so that PayPal's login works). */
 async function redactNow(p: Page): Promise<void> {
@@ -728,12 +728,21 @@ async function loginToPayPal(p: Page, display: Display): Promise<Locator> {
     }
     await emailField.waitFor({ state: 'visible', timeout: 60_000 });
     await emailField.fill(BUYER.email!);
+    await sleep(500);
     // PayPal's two-step login: Next (its id has changed between page versions; Enter in the field always works).
     const next = p.locator('#btnNext:visible').or(p.getByRole('button', { name: 'Next', exact: true })).first();
     if (await next.isVisible().catch(() => false)) await next.click({ timeout: 10_000 }).catch(() => emailField.press('Enter'));
-    await p.locator('#password').waitFor({ state: 'visible', timeout: 60_000 });
-    await p.locator('#password').fill(BUYER.password!);
-    await p.locator('#btnLogin').click();
+    // The page keeps hidden copies of its fields and buttons from the other step: only the drawn ones count.
+    const passwordField = p.locator('#password:visible, input[type="password"]:visible').first();
+    await passwordField.waitFor({ state: 'visible', timeout: 60_000 });
+    // Typed after the step has come to rest: a value filled while the field slides in can be dropped ("Enter your password").
+    await p.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});
+    await sleep(1500);
+    await passwordField.click();
+    await passwordField.pressSequentially(BUYER.password!, { delay: 40 });
+    if (!(await passwordField.inputValue().catch(() => ''))) await passwordField.fill(BUYER.password!);
+    const logIn = p.locator('#btnLogin:visible').or(p.getByRole('button', { name: 'Log In', exact: true })).first();
+    await logIn.click({ timeout: 10_000 }).catch(() => passwordField.press('Enter'));
     await pay.waitFor({ state: 'visible', timeout: 90_000 });
     await p.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => {});
     await sleep(1500);
