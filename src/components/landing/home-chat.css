@@ -7,9 +7,18 @@
 :root { --home-chat-edge: 1.25rem; --home-chat-launcher: 3.5rem; --home-chat-bottom: max(var(--home-chat-edge), calc(env(safe-area-inset-bottom) + 0.5rem)); }
 @media (min-width: 64rem) { :root { --home-chat-edge: 1.5rem; --home-chat-launcher: 3.75rem; } }
 
-/* The launcher is fixed over the page: the footer's last row (with the Sound switch) ends above it when scrolled down. */
-body:has([data-home-chat]) footer[data-site-chrome] > div {
-  padding-bottom: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + var(--home-chat-edge));
+/* Scrolled to the end, the launcher rests in the footer's bottom-right corner, so only that corner is kept clear: the
+   last row stops short of it (none once the content edge clears it). Under 640 px that row is full, so the test-mode
+   sentence, its last line, narrows and grows to the launcher's height instead. */
+body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] {
+  padding-inline-end: max(0px, calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter) - max(0px, (100vw - var(--container-site)) / 2)));
+}
+@media (width < 40rem) {
+  body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] { padding-inline-end: 0; }
+  body:has([data-home-chat]) footer[data-site-chrome] [data-footer-note] {
+    padding-inline-end: calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter));
+    min-height: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + 0.75rem - var(--footer-pad));
+  }
 }
 
 .home-chat-launcher {
