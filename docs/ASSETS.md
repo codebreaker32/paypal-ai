@@ -274,4 +274,5 @@ A real photograph, chosen in run 8 over five other Pexels/Unsplash candidates (`
 | `public/landing/paper-menu.webp` (480×640) | A handwritten coffee price list in black ink on cream paper (Americano 4.0, Caffe Latte 4.5, ...) | Photo by Bundo Kim on Unsplash, https://unsplash.com/photos/white-printer-paper-CWxfAzPs2T8 (file `images.unsplash.com/photo-1557633405-a29f480936d5`) | Cropped 3:4 to the right-hand sheet, CLAHE to even out the hard window light, brightness +35%, WebP q74 | [Unsplash License](https://unsplash.com/license) |
 | `public/landing/step-read.webp` (960×720) | The same sheet, wider | Same photo | Cropped 4:3, same toning, nothing drawn on top, WebP q74 | Unsplash License |
 | `video/project/assets/paper-menu.jpg` (1920×1080) | Both sheets of the same list, full frame for the demo video | Same photo | Cropped 16:9, gentler CLAHE, JPEG q84 | Unsplash License |
+| `video/project/assets/slides/menu-photo.jpg` (480×640) | The title slide's first chain card | Same photo | `public/landing/paper-menu.webp` re-encoded as JPEG | Unsplash License |
 

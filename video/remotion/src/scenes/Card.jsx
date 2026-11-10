@@ -53,7 +53,7 @@ function Chain({ frame }) {
       on: at.c1, label: "Snap your menu",
       card: (
         <ChainCard style={{ padding: 0, background: C.paper, transform: "rotate(-3deg)" }}>
-          <Img src={staticFile("assets/slides/menu-photo.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 18%" }} />
+          <Img src={staticFile("assets/slides/menu-photo.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 30%" }} />
         </ChainCard>
       ),
     },
