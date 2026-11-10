@@ -14,7 +14,7 @@ function Wave() {
 
 export function Hero() {
   return (
-    <section data-hero="" aria-labelledby="landing-title" className="relative isolate overflow-hidden">
+    <section aria-labelledby="landing-title" className="relative isolate overflow-hidden">
       <noscript>
         <style>{'[data-entrance]{opacity:1!important;transform:none!important}'}</style>
       </noscript>

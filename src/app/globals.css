@@ -533,14 +533,6 @@ html:has([data-band-header]) { scroll-padding-top:6rem; scroll-behavior:smooth; 
 .nav-layer-scrolled { opacity:0; background:color-mix(in srgb, var(--blush-1) 92%, transparent); backdrop-filter:blur(14px) saturate(1.4); }
 [data-scrolled] .nav-layer-top { opacity:0; }
 [data-scrolled] .nav-layer-scrolled { opacity:1; }
-.nav-pill { background:color-mix(in srgb, var(--white) 90%, transparent); backdrop-filter:blur(14px) saturate(1.4); }
-.nav-pill-shadow { opacity:0; transition:opacity var(--duration-base) var(--ease-out); }
-[data-scrolled] .nav-pill-shadow { opacity:1; }
-/* Version B on the home page floats over the hero: the header takes no room and the hero's top grows by its height. */
-:root { --nav-float-h:4.25rem; }
-@media (width >= 48rem) { :root { --nav-float-h:4.5rem; } }
-[data-nav-home] { margin-bottom:calc(-1 * var(--nav-float-h)); }
-html:has([data-nav-home]) [data-hero] { padding-top:var(--nav-float-h); }
 /* A link's underline grows from the left on hover; the section in view keeps a full accent one. No layout shift. */
 .nav-link { position:relative; }
 .nav-link::after { content:""; position:absolute; left:var(--nav-link-x, .75rem); right:var(--nav-link-x, .75rem); bottom:.5rem; height:2px; border-radius:1px; background:currentColor; opacity:0; transform:scaleX(0); transform-origin:left; transition:transform var(--duration-fast) var(--ease-out), opacity var(--duration-fast) var(--ease-out); }
@@ -558,7 +550,7 @@ html:has([data-nav-home]) [data-hero] { padding-top:var(--nav-float-h); }
 [aria-expanded="true"] > .nav-burger > span:nth-child(2) { opacity:0; transform:scaleX(.4); }
 [aria-expanded="true"] > .nav-burger > span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
 @media (prefers-reduced-motion) {
-  .nav-layer, .nav-pill-shadow, .nav-link::after, .nav-burger > span { transition:none; }
+  .nav-layer, .nav-link::after, .nav-burger > span { transition:none; }
 }
 @media (width < 64rem) {
   html:has([data-app-shell]) { scroll-padding-top:var(--app-topbar-h); scroll-padding-bottom:calc(var(--app-tabbar-h) + env(safe-area-inset-bottom)); }

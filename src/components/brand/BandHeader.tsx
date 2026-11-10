@@ -30,10 +30,6 @@ const onScroll = (notify: () => void) => {
     window.removeEventListener('resize', notify);
   };
 };
-const onHistory = (notify: () => void) => {
-  window.addEventListener('popstate', notify);
-  return () => window.removeEventListener('popstate', notify);
-};
 const scrolledNow = () => window.scrollY > 8;
 /** The section that crosses a line 40% down the viewport (scroll-spy). */
 const sectionNow = () => {
@@ -44,20 +40,15 @@ const sectionNow = () => {
   }
   return null;
 };
-/** `?nav=b` shows the floating pill; anything else the full-width bar. */
-const variantNow = () => (new URLSearchParams(window.location.search).get('nav') === 'b' ? 'b' : 'a');
 const serverFalse = () => false;
 const serverNull = () => null;
-const serverA = () => 'a' as const;
 
 /**
- * The sticky header on the home, help and legal pages. Version A is a full-width bar that turns translucent with a blur,
- * a hairline and a soft shadow once the page scrolls; version B (`?nav=b`) is a floating pill. Below 768 px the links
- * move into a full-width panel under the bar.
+ * The sticky header on the home, help and legal pages: a full-width bar that turns translucent with a blur, a hairline
+ * and a soft shadow once the page scrolls. Below 768 px the links move into a full-width panel under the bar.
  */
 export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public' | 'account' }> }) {
   const pathname = usePathname() ?? '/';
-  const variant = useSyncExternalStore(onHistory, variantNow, serverA);
   const scrolled = useSyncExternalStore(onScroll, scrolledNow, serverFalse);
   const spied = useSyncExternalStore(onScroll, sectionNow, serverNull);
   const active = pathname === '/' ? spied : null;
@@ -66,7 +57,6 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
   const toggleRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const dashboardHref = view.kind === 'public' ? view.dashboardHref : null;
-  const pill = variant === 'b';
 
   const refocus = useRef(false);
   const close = useCallback((returnFocus = true) => {
@@ -112,27 +102,25 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
     };
   }, [open, close]);
 
-  // Version B keeps `?nav=b` on its links between the public pages, so a tap does not drop back to version A.
-  const keep = (href: string) => (pill && (href === '/' || href.startsWith('/#') || href === HELP.href) ? href.replace(/^\/([^#]*)/, '/$1?nav=b') : href);
   const current = (id: string) => (active === id ? ('location' as const) : undefined);
 
   const bar = (
     <>
       <div className="flex shrink-0 items-center gap-6 lg:gap-10">
-        <Link href={keep(view.logoHref)} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap shrink-0 items-center rounded-sm px-1">
+        <Link href={view.logoHref} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap shrink-0 items-center rounded-sm px-1">
           <Logo size="sm" className="max-[22.5rem]:h-5 md:h-7" />
         </Link>
         <nav aria-label="Main" className="hidden items-center md:flex">
           <ul className="flex items-center">
             {SECTIONS.map((section) => (
               <li key={section.id}>
-                <Link href={keep(section.href)} aria-current={current(section.id)} className={LINK}>
+                <Link href={section.href} aria-current={current(section.id)} className={LINK}>
                   {section.label}
                 </Link>
               </li>
             ))}
             <li>
-              <Link href={keep(HELP.href)} aria-current={pathname === HELP.href ? 'page' : undefined} className={LINK}>
+              <Link href={HELP.href} aria-current={pathname === HELP.href ? 'page' : undefined} className={LINK}>
                 {HELP.label}
               </Link>
             </li>
@@ -150,7 +138,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
           <AccountMenu email={view.email} placement="down" />
         ) : (
           <>
-            <Link href="/login" className={cn(LINK, 'max-[22.5rem]:hidden max-md:px-2', pill && 'max-md:hidden')}>
+            <Link href="/login" className={cn(LINK, 'max-[22.5rem]:hidden max-md:px-2')}>
               Log in
             </Link>
             <ButtonLink href="/signup" variant="brand" className={cn(CTA, 'max-md:min-h-9 max-md:px-3.5 max-md:text-sm max-[22.5rem]:px-3')}>
@@ -184,28 +172,12 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
       ref={barRef}
       data-site-chrome=""
       data-band-header=""
-      data-nav={variant}
-      data-nav-home={pill && pathname === '/' ? '' : undefined}
       data-scrolled={scrolled || open ? '' : undefined}
       className="sticky top-0 z-(--z-header)"
     >
-      {pill ? (
-        <>
-          <div className="relative px-band-gutter pt-2 pb-1 md:pt-3">
-            <div className="relative mx-auto w-full max-w-[calc(var(--container-site)-2*var(--spacing-band-gutter))] rounded-full">
-              <div aria-hidden="true" className="nav-pill absolute inset-0 rounded-full shadow-xs ring-1 ring-blush-ring" />
-              <div aria-hidden="true" className="nav-pill-shadow absolute inset-0 rounded-full shadow-md" />
-              <div className="relative flex h-bar items-center justify-between gap-2 pr-4 pl-4 md:pl-5 md:pr-2.5">{bar}</div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <div aria-hidden="true" className="nav-layer nav-layer-top absolute inset-0 border-b border-blush-ring/60 bg-blush-bar" />
-          <div aria-hidden="true" className="nav-layer nav-layer-scrolled absolute inset-0 border-b border-blush-ring shadow-sm" />
-          <div className="relative mx-auto flex h-bar w-full max-w-site items-center justify-between gap-2 px-band-gutter md:h-bar-lg">{bar}</div>
-        </>
-      )}
+      <div aria-hidden="true" className="nav-layer nav-layer-top absolute inset-0 border-b border-blush-ring/60 bg-blush-bar" />
+      <div aria-hidden="true" className="nav-layer nav-layer-scrolled absolute inset-0 border-b border-blush-ring shadow-sm" />
+      <div className="relative mx-auto flex h-bar w-full max-w-site items-center justify-between gap-2 px-band-gutter md:h-bar-lg">{bar}</div>
 
       <AnimatePresence onExitComplete={afterExit}>
         {open && (
@@ -218,20 +190,17 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6, transition: { duration: 0.14 } }}
             transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className={cn(
-              'absolute inset-x-0 top-full max-h-[calc(100dvh-var(--spacing-bar))] overflow-y-auto overscroll-contain md:hidden',
-              pill ? 'px-band-gutter pt-1' : '',
-            )}
+            className="absolute inset-x-0 top-full max-h-[calc(100dvh-var(--spacing-bar))] overflow-y-auto overscroll-contain md:hidden"
           >
             <nav
               aria-label="Menu"
-              className={cn('bg-blush-bar px-band-gutter pt-1 pb-5 shadow-lg', pill ? 'rounded-2xl ring-1 ring-blush-ring' : 'border-b border-blush-ring')}
+              className="border-b border-blush-ring bg-blush-bar px-band-gutter pt-1 pb-5 shadow-lg"
             >
               <ul>
                 {menuLinks.map((link) => (
                   <li key={link.label} className="border-b border-blush-ring/70">
                     <Link
-                      href={keep(link.href)}
+                      href={link.href}
                       aria-current={'id' in link ? current(link.id) : pathname === link.href ? 'page' : undefined}
                       className={cn(ROW, 'aria-[current]:text-accent-ink')}
                       onClick={() => close()}
