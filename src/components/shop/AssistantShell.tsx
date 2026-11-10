@@ -64,7 +64,7 @@ export function AssistantShell({
       </div>
 
       <div className="overflow-y-auto overscroll-contain px-5 py-4 [scrollbar-gutter:stable]">
-        <div className="flex min-h-full flex-col justify-end">
+        <div data-assistant-log="" className="flex min-h-full flex-col justify-end">
           <ConsoleConversation api={api} shopName={shopName} starters={starters} takesOrders={takesOrders} inputRef={inputRef} greeting={greeting} />
         </div>
       </div>

@@ -332,7 +332,7 @@ function EntryView({ entry, shopName, fresh, collapsed }: { entry: Entry; shopNa
 
 function Starters({ prompts, onPick, disabled }: { prompts: string[]; onPick: (p: string) => void; disabled?: boolean }) {
   return (
-    <ul className="flex flex-col gap-2" aria-label="Try asking">
+    <ul data-starters="" className="flex flex-col gap-2" aria-label="Try asking">
       {prompts.map((p) => (
         <li key={p}>
           <button
