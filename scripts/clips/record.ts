@@ -288,7 +288,7 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
     await sleep(300);
 
     await clip(display, '02-snap-reading', async () => {
-      await hold(1500);
+      await hold(600); // 02a ends on this screen already
       const chooser = stage.page.waitForEvent('filechooser');
       await press(f.getByRole('button', { name: /Snap your price list/ }));
       await (await chooser).setFiles(PHOTO);
@@ -316,7 +316,7 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       for (let left = await needs.count(), guard = 0; left > 0 && guard < 12; left = await needs.count(), guard++) {
         const card = needs.first();
         await bring(card, 'center', 400);
-        await hold(1800); // time to read the question
+        await hold(1300); // time to read the question
         let done = false;
         for (const name of ['Looks right', 'Ask in person', 'Keep both']) {
           const b = card.getByRole('button', { name, exact: true });
@@ -330,7 +330,7 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
           for (const input of await card.getByRole('textbox').all()) await input.pressSequentially('5', { delay: 120 });
           await press(card.getByRole('button', { name: 'Save price' }));
         }
-        await hold(900);
+        await hold(600);
       }
       // The shop's name, as the stranger calls it (Claude usually read it off the photo already).
       const shopName = f.getByLabel('Shop name');
@@ -357,12 +357,12 @@ async function sceneSetup(display: Display, app: App): Promise<void> {
       // The shop's picture and its name beat in beside "Live".
       await settled(f.locator('header').filter({ has: live }));
       await picturesReady(f);
-      await hold(3500);
+      await hold(2500);
       // "Your agent door" with the new shop's door link, then "Your shop link" under it.
       const door = f.getByRole('heading', { name: 'Your agent door' });
       if (await door.count()) {
         await bring(door, 'start', 800);
-        await hold(3000);
+        await hold(2500);
       }
     });
   } finally {
@@ -378,7 +378,7 @@ function desktopStage(display: Display, app: App, name: string, opts: { owner?: 
     profileDir: path.join(WORK, `profile-${name}`),
     deviceScaleFactor: 4 / 3,
     storageState: opts.owner ? app.ownerStateFile : undefined,
-    initScripts: [redactorScript(LOGINS), ...(opts.extra ?? [])],
+    initScripts: [redactorScript(LOGINS), ...(opts.owner ? [HIDE_GUEST_LOGIN] : []), ...(opts.extra ?? [])],
   });
 }
 
@@ -921,11 +921,30 @@ const BACKGROUND_TAB = `(() => {
 })();`;
 
 /** The demo shop's dashboard in a second window of the console's browser (logged in as the owner), as a background tab. */
+/**
+ * The seller's pages of the demo shop: it is owned by its owner cookie (the seed's, no account), so the app shell's
+ * account slot reads "Log in" on the owner's own dashboard. Hidden in the clips (it stays in the layout, so nothing
+ * moves): a seller with an account sees their account menu there instead.
+ */
+const HIDE_GUEST_LOGIN = `(() => {
+  if (!location.pathname.startsWith('/shops/')) return;
+  const add = () => {
+    if (document.getElementById('clips-hide-login')) return;
+    const st = document.createElement('style');
+    st.id = 'clips-hide-login';
+    st.textContent = 'a[href="/login"] { visibility: hidden !important; }';
+    (document.head || document.documentElement).appendChild(st);
+  };
+  if (document.documentElement) add();
+  document.addEventListener('DOMContentLoaded', add);
+})();`;
+
 async function backgroundDashboard(stage: Stage, app: App): Promise<Page> {
   const owner = JSON.parse(fs.readFileSync(app.ownerStateFile, 'utf8')) as { cookies: Parameters<BrowserContext['addCookies']>[0] };
   await stage.context.addCookies(owner.cookies);
   const dash = await stage.context.newPage();
   await dash.addInitScript({ content: BACKGROUND_TAB });
+  await dash.addInitScript({ content: HIDE_GUEST_LOGIN });
   await dash.goto(`${app.origin}/shops/${app.demoShopId}`);
   await dash.getByRole('navigation', { name: 'Shop sections' }).getByRole('link', { name: 'Orders' }).waitFor();
   await fontsReady(dash);
