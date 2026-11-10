@@ -4,16 +4,17 @@ import { TextLink } from '@/components/ui/text-link';
 import { AccentMarks } from './art';
 
 /**
- * Each step shows Shelfie itself: one focal region of the real app on the demo shop, cropped about 480 CSS px wide
- * so its text stays readable (960×720 WebP in public/landing/, made at device scale 2; see docs/ASSETS.md). Same 4:3
- * frame for all three, so the row lines up.
+ * Step 1 is the seller's side of the camera: a real photo of a handwritten price list (Unsplash License; see
+ * docs/ASSETS.md), with nothing drawn over it. Steps 2 and 3 show Shelfie itself: one focal region of the real app on
+ * the demo shop, cropped about 480 CSS px wide so its text stays readable. All are 960×720 WebP in public/landing/,
+ * in the same 4:3 frame.
  */
 const STEPS: { title: string; body: string; image: string; alt: string }[] = [
   {
     title: '1. Snap your price list',
     body: 'Take one photo of your menu.',
     image: '/landing/step-read.webp',
-    alt: 'A paper bakery menu with the focaccia’s $7 crossed out for $8, and Shelfie’s reading of that line: price $8.00, with a note asking the seller to confirm.',
+    alt: 'A handwritten café price list on paper: Espresso 4.5, Shakerato 4.0, Americano 4.0, Caffe Latte 4.5.',
   },
   {
     title: '2. AI shoppers order',

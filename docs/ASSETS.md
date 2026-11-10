@@ -261,4 +261,15 @@ All under the [Pexels License](https://www.pexels.com/license/), resized and com
 
 ## How it works step images (`public/landing/`)
 
-Our own screenshots of Shelfie, not third-party assets: `step-read.webp` (a slice of the Marigold sample menu photo, `public/samples/marigold-bakehouse.jpg`, above the setup review's reading of its Focaccia line, recorded reading), `step-order.webp` (the demo shop's assistant panel: its create_order call, reply and Approve on PayPal card, replayed turns; the "Tell me once you've approved" line is cut out) and `step-paid.webp` (the seller's paid order header and its AI brief). Taken with Playwright at device scale 2 and a 500 px viewport on the e2e database (seeded demo shop, labelled fixture orders, fake PayPal ids), cropped to one focal region of about 480 CSS px and saved as 960×720 WebP (q80) with sharp. Food photos inside them are the demo shop's (credited above). No owner links, tokens or emails are in frame.
+Our own screenshots of Shelfie, not third-party assets, except step 1: `step-read.webp` is the handwritten price list photo below, alone. Then `step-order.webp` (the demo shop's assistant panel: its create_order call, reply and Approve on PayPal card, replayed turns; the "Tell me once you've approved" line is cut out) and `step-paid.webp` (the seller's paid order header and its AI brief). Taken with Playwright at device scale 2 and a 500 px viewport on the e2e database (seeded demo shop, labelled fixture orders, fake PayPal ids), cropped to one focal region of about 480 CSS px and saved as 960×720 WebP (q80) with sharp. Food photos inside them are the demo shop's (credited above). No owner links, tokens or emails are in frame.
+
+## Handwritten price list photo (`public/landing/paper-menu.webp`, step 1, video)
+
+A real photograph, chosen in run 8 over five other Pexels/Unsplash candidates (`docs/judge/menu-photo-r8.md`). No brand, logo or face is in frame; the café is not named anywhere in it.
+
+| File | Shows | Source | Processing | Licence |
+|---|---|---|---|---|
+| `public/landing/paper-menu.webp` (480×640) | A handwritten coffee price list in black ink on cream paper (Americano 4.0, Caffe Latte 4.5, ...) | Photo by Bundo Kim on Unsplash, https://unsplash.com/photos/white-printer-paper-CWxfAzPs2T8 (file `images.unsplash.com/photo-1557633405-a29f480936d5`) | Cropped 3:4 to the right-hand sheet, CLAHE to even out the hard window light, brightness +35%, WebP q74 | [Unsplash License](https://unsplash.com/license) |
+| `public/landing/step-read.webp` (960×720) | The same sheet, wider | Same photo | Cropped 4:3, same toning, nothing drawn on top, WebP q74 | Unsplash License |
+| `video/project/assets/paper-menu.jpg` (1920×1080) | Both sheets of the same list, full frame for the demo video | Same photo | Cropped 16:9, gentler CLAHE, JPEG q84 | Unsplash License |
+

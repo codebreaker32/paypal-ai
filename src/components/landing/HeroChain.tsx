@@ -1,6 +1,5 @@
 'use client';
 
-import { Caveat } from 'next/font/google';
 import { Check } from 'lucide-react';
 import { m, useInView, type Variants } from 'motion/react';
 import Image from 'next/image';
@@ -10,9 +9,6 @@ import { EASE_OUT } from '@/components/motion';
 import { usePrefersReducedMotion } from '@/components/motion/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 import { AccentMarks, AssistantMark } from './art';
-
-// The handwriting on the paper menu only, loaded when the chain is.
-const hand = Caveat({ subsets: ['latin'], weight: '700', display: 'swap', preload: false });
 
 /** When each beat lands, in seconds after the chain comes into view. */
 const AT = { paper: 0.15, arrow1: 0.7, shop: 0.95, cart: 1.35, arrow2: 1.7, assistant: 1.95, ask: 2.3, placed: 2.8, arrow3: 3.25, pay: 3.5, tick: 3.95, received: 4.1 };
@@ -74,25 +70,21 @@ function Arrow({ on, className }: { on: number; className?: string }) {
 
 const CARD = 'relative flex aspect-[3/4] flex-col overflow-hidden rounded-xl bg-surface px-3 pb-7 pt-3 shadow-lg xl:px-3.5 xl:pt-3.5';
 
+/**
+ * A real handwritten café price list (Bundo Kim, Unsplash License; docs/ASSETS.md), cropped 3:4 at 2x. It stands for
+ * "a menu on paper" in general, so nothing here names it as a particular seller's.
+ */
+const PAPER_MENU = '/landing/paper-menu.webp';
+
 function PaperCard() {
-  const rows = [
-    ['Cupcakes', '$4'],
-    ['Cookies', '$3'],
-    ['Brownies', '$4'],
-    ['Banana Bread', '$5'],
-  ];
   return (
-    <div className={cn('relative flex aspect-[3/4] -rotate-3 flex-col rounded-xs bg-paper px-3 pb-7 pt-3 text-ink-soft shadow-lg xl:px-4 xl:pt-4', hand.className)}>
-      <AccentMarks className="absolute -top-7 right-3 size-8 -scale-x-100 text-accent" />
-      <p className="text-center text-2xl uppercase leading-none tracking-wide text-ink">Menu</p>
-      <ul className="mt-2 flex flex-1 flex-col justify-around text-lg leading-none xl:text-xl">
-        {rows.map(([name, price]) => (
-          <li key={name} className="flex justify-between gap-1">
-            <span className="min-w-0 truncate">{name}</span>
-            <span>{price}</span>
-          </li>
-        ))}
-      </ul>
+    <div className="relative -rotate-3">
+      <AccentMarks className="absolute -top-7 right-3 z-10 size-8 -scale-x-100 text-accent" />
+      <div className="rounded-sm bg-surface p-1.5 shadow-lg">
+        <div className="relative aspect-[3/4] overflow-hidden rounded-xs bg-paper">
+          <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -189,14 +181,10 @@ function FullChain() {
 const TILE = 'relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden rounded-lg bg-surface shadow-md';
 
 const PHONE_TILES = [
-  <div key="paper" className={cn('flex aspect-[4/5] -rotate-3 flex-col gap-1 rounded-xs bg-paper p-1.5 shadow-md', hand.className)}>
-    <span className="text-center text-sm leading-none text-ink">Menu</span>
-    {[0, 1, 2, 3].map((row) => (
-      <span key={row} className="flex items-center gap-1">
-        <span className="h-0.5 flex-1 rounded-full bg-ink-soft" />
-        <span className="h-0.5 w-2 rounded-full bg-ink-soft" />
-      </span>
-    ))}
+  <div key="paper" className="-rotate-3 rounded-xs bg-surface p-1 shadow-md">
+    <div className="relative aspect-[4/5] overflow-hidden rounded-xs bg-paper">
+      <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
+    </div>
   </div>,
   <div key="shop" className={cn(TILE, 'justify-start gap-0.5 p-1')}>
     <LogoMark className="size-4 self-start" />
