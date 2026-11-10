@@ -149,7 +149,9 @@ function Tick({ className }: { className?: string }) {
 function PayCard() {
   return (
     <div className={cn(CARD, 'items-center justify-center gap-2 text-center')}>
-      <p className="text-2xl font-extrabold tracking-tight text-paypal xl:text-3xl">PayPal</p>
+      {/* PayPal's own logo, unmodified, on the white card with clear space (docs/ASSETS.md); never set as text. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- a fixed SVG logo, no optimizer needed */}
+      <img src="/brand/paypal/paypal-color.svg" alt="PayPal" width={170} height={48} className="mb-2 h-auto w-[78%] max-w-36" />
       <Beat on={AT.tick} kind="pop">
         <Tick className="size-10" />
       </Beat>
@@ -207,8 +209,10 @@ const PHONE_TILES = [
   <div key="assistant" className={TILE}>
     <AssistantMark className="size-10 text-ink" />
   </div>,
-  <div key="pay" className={cn(TILE, 'gap-1')}>
-    <span className="text-sm font-extrabold text-paypal">PayPal</span>
+  <div key="pay" className={cn(TILE, 'gap-2.5')}>
+    {/* The tile is too narrow for the full logo's clear space, so it carries PayPal's own PP mark. */}
+    {/* eslint-disable-next-line @next/next/no-img-element -- a fixed SVG logo, no optimizer needed */}
+    <img src="/brand/paypal/paypal-mark-color.svg" alt="PayPal" width={48} height={48} className="size-8" />
     <Tick className="size-6" />
   </div>,
 ];

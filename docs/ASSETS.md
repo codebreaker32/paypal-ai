@@ -38,6 +38,8 @@ Used as the display-case photo for "Snap your counter" in the demo clip and the 
 
 - Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
+- **PayPal logo** (`public/brand/paypal/paypal-color.svg`, `paypal-mark-color.svg`; copies for the video in `video/project/assets/paypal/`): PayPal's official artwork, downloaded from PayPal's own CDN for its UI logos, https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-color.svg and https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-mark-color.svg (byte-identical to those URLs, checked 10 Nov 2026). Used unmodified, per PayPal's brand guidelines, only to show PayPal as the payment method (no recolouring, stretching, rotation or effects; clear space kept; at least 60 px wide; colour logo on white only). PayPal and the PayPal logo are trademarks of PayPal, Inc.; their use is not an endorsement of Shelfie by PayPal. Not covered by this repository's licence.
+
 ## UI components and motion (run 3)
 
 - **shadcn/ui** (https://ui.shadcn.com, MIT): the component base. Its pattern (`components.json`, `cva` variants, `cn()`) is used, and the primitives in `src/components/ui/` are our own, written onto that pattern in the Storefront tokens. Built with `class-variance-authority` (Apache-2.0), `clsx` (MIT) and `tailwind-merge` (MIT).
