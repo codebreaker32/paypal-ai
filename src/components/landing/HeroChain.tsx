@@ -82,7 +82,7 @@ function PaperCard() {
       <AccentMarks className="absolute -top-7 right-3 z-10 size-8 -scale-x-100 text-accent" />
       <div className="rounded-sm bg-surface p-1.5 shadow-lg">
         <div className="relative aspect-[3/4] overflow-hidden rounded-xs bg-paper">
-          <Image src={PAPER_MENU} alt="" fill unoptimized className="object-cover" />
+          <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
         </div>
       </div>
     </div>
@@ -183,7 +183,7 @@ const TILE = 'relative flex aspect-[4/5] flex-col items-center justify-center ov
 const PHONE_TILES = [
   <div key="paper" className="-rotate-3 rounded-xs bg-surface p-1 shadow-md">
     <div className="relative aspect-[4/5] overflow-hidden rounded-xs bg-paper">
-      <Image src={PAPER_MENU} alt="" fill unoptimized className="object-cover" />
+      <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
     </div>
   </div>,
   <div key="shop" className={cn(TILE, 'justify-start gap-0.5 p-1')}>

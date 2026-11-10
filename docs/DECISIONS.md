@@ -335,3 +335,5 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 ## Run 8 (10 Nov 2026)
 
 - **The hero's first card and How it works step 1 use a real photo of a handwritten café price list (Bundo Kim, Unsplash License), not a drawn or generated menu.** Reason: the owner asked for "a real menu written on paper"; of six licensed candidates it is the only one with English items and prices beside them in black ink on cream paper that stays legible at card size (comparison in `docs/judge/menu-photo-r8.md`).
+- How it works step 1 shows the paper menu photo alone, with no drawn "We read" card over it. Reason: the card was invented UI rather than Shelfie's own screen, which broke the rule that the steps show the real app; the photo alone says "snap your price list" honestly.
+- The hero's paper menu photo loads eagerly, and both crops are 35% brighter (was 15%). Reason: it is above the fold on every width, and the brighter tone sits better beside the white cards.
