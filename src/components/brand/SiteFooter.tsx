@@ -62,13 +62,18 @@ function GitHubMark({ className }: { className?: string }) {
   );
 }
 
-/** Home, help and legal: a charcoal band, with the logo, four links and GitHub, then the test-mode sentence and small links. */
+/**
+ * Home, help and legal: a charcoal band, with the logo, four links (centred on the page) and GitHub, then the
+ * test-mode sentence, the small links and the sound switch. One padding, `--footer-pad`, above, between and below
+ * the rows. On the home page the chat launcher rests in the bottom-right corner; `home-chat.css` keeps exactly
+ * that corner clear (`data-footer-end`, `data-footer-note`) instead of padding the whole band.
+ */
 function SiteWideFooter() {
   return (
     <div className="bg-charcoal text-on-dark [--focus-ring-color:var(--white)]">
-      <div className="mx-auto w-full max-w-site px-band-gutter">
-        <div className="flex items-center justify-between gap-x-3 py-3 md:py-5">
-          <Logo size="sm" className="text-on-dark md:h-7" />
+      <div className="mx-auto w-full max-w-site px-band-gutter py-(--footer-pad) [--footer-pad:--spacing(3)] md:[--footer-pad:--spacing(4)]">
+        <div className="flex items-center justify-between gap-x-2 pb-(--footer-pad) min-[375px]:gap-x-3 md:grid md:grid-cols-[1fr_auto_1fr]">
+          <Logo size="sm" className="shrink-0 justify-self-start text-on-dark md:h-7" />
           <nav aria-label="Footer">
             <ul className="flex items-center gap-x-2 text-sm md:gap-x-5 md:text-base">
               {FOOTER_NAV.map((link, index) => (
@@ -79,17 +84,20 @@ function SiteWideFooter() {
               ))}
             </ul>
           </nav>
-          <a href={REPO_URL} aria-label="Shelfie on GitHub" className={`press-icon inline-flex size-tap items-center justify-center rounded-full ${ROUND_ON_DARK}`}>
+          {/* -mr-2: the 28 px mark sits in a 44 px target, so its drawn edge lines up with the content edge. */}
+          <a href={REPO_URL} aria-label="Shelfie on GitHub" className={`press-icon -mr-2 inline-flex size-tap shrink-0 items-center justify-center justify-self-end rounded-full ${ROUND_ON_DARK}`}>
             <GitHubMark className="size-7" />
           </a>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-6 border-t border-on-dark/15 py-2">
-          <p className="py-2 text-sm text-on-dark-soft">{TEST_MODE_LINE}</p>
-          <div className="flex items-center gap-x-5 max-md:w-full">
+        <div data-footer-end="" className="flex flex-wrap items-center justify-between gap-x-6 border-t border-on-dark/15 pt-(--footer-pad)">
+          <p data-footer-note="" className="py-2 text-sm text-on-dark-soft max-lg:order-last max-lg:w-full">
+            {TEST_MODE_LINE}
+          </p>
+          <div className="flex items-center gap-x-3 max-lg:w-full min-[375px]:gap-x-5">
             {FOOTER_SMALL.map((link) => (
               <FooterAnchor key={link.href} link={link} tone="bandSmall" />
             ))}
-            <span className="max-md:ml-auto">
+            <span className="max-lg:ml-auto">
               <SoundToggle className="text-on-dark-soft ring-on-dark/30 hover:bg-on-dark/15 hover:text-on-dark" />
             </span>
           </div>

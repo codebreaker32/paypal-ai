@@ -44,18 +44,45 @@ async function replayConsole(page: Page): Promise<unknown[]> {
 
 const panel = (page: Page) => page.getByRole('dialog', { name: 'Shelfie assistant' });
 
-/** Scrolled to the very bottom, a press at the centre of the footer's Sound switch lands on the switch, not the launcher. */
+/**
+ * Scrolled to the very bottom, a press at the centre of every footer control (the Sound switch included) lands on it,
+ * not the launcher; and the footer keeps no band of empty charcoal for it.
+ */
 async function expectSoundClearOfLauncher(page: Page) {
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
   await page.waitForTimeout(300);
   const sound = page.locator('footer').getByRole('button', { name: 'Sound', exact: true });
   await expect(sound).toBeVisible();
-  const hit = await sound.evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
-    return !!at && (at === el || el.contains(at));
+  const covered = await page.locator('footer').evaluate((footer) =>
+    [...footer.querySelectorAll<HTMLElement>('a, button')]
+      .filter((el) => el.getBoundingClientRect().width > 0)
+      .filter((el) => {
+        const r = el.getBoundingClientRect();
+        const at = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return !at || !(at === el || el.contains(at));
+      })
+      .map((el) => el.textContent?.trim() || el.getAttribute('aria-label')),
+  );
+  expect(covered).toEqual([]);
+  // No dead charcoal: the last row ends one band padding above the footer's end, or (under 640 px, where the sentence
+  // sits beside the launcher) the sentence's text is centred on the launcher, so the two read as one row.
+  const fit = await page.locator('footer[data-site-chrome]').evaluate((footer) => {
+    const f = footer.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(footer.querySelector('[data-footer-note]')!);
+    const text = range.getBoundingClientRect();
+    const sound = footer.querySelector('[data-slot="sound-toggle"]')!.getBoundingClientRect();
+    const launcher = document.querySelector('.home-chat-launcher')!.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(footer.querySelector(':scope > div > div')!).paddingTop);
+    return {
+      phone: window.innerWidth < 640,
+      under: Math.round(f.bottom - Math.max(text.bottom, sound.bottom)),
+      pad,
+      offCentre: Math.abs((text.top + text.bottom) / 2 - (launcher.top + launcher.bottom) / 2),
+    };
   });
-  expect(hit).toBe(true);
+  if (fit.phone) expect(fit.offCentre).toBeLessThanOrEqual(4);
+  else expect(fit.under).toBe(fit.pad);
 }
 
 test.describe('at 1440 px', () => {
