@@ -58,6 +58,40 @@ async function expectSoundClearOfLauncher(page: Page) {
   expect(hit).toBe(true);
 }
 
+/**
+ * The desktop panel's proportions: clear of the hero headline, the greeting at the top of the log, the starters as
+ * chips of at most two lines, the message box and Send on one row, and the panel on the launcher's right and bottom edges.
+ */
+async function expectBalancedPanel(page: Page) {
+  await page.waitForTimeout(400);
+  const m = await page.evaluate(() => {
+    const rect = (el: Element | null | undefined) => el!.getBoundingClientRect();
+    const panel = document.querySelector('[data-home-chat-panel]')!;
+    const p = rect(panel);
+    const h = rect(document.querySelector('h1'));
+    const header = rect(panel.querySelector('[data-assistant-header]'));
+    const greeting = rect(panel.querySelector('[data-assistant-log] p'));
+    const launcher = rect(document.querySelector('.home-chat-launcher'));
+    const box = rect(panel.querySelector('textarea'));
+    const send = rect(panel.querySelector('button[type="submit"]'));
+    const chips = [...panel.querySelectorAll('[data-starters] button')].map((b) => rect(b).height);
+    return {
+      overlap: !(p.right <= h.left || p.left >= h.right || p.bottom <= h.top || p.top >= h.bottom),
+      greetingGap: greeting.top - header.bottom,
+      rightEdges: [innerWidth - p.right, innerWidth - launcher.right],
+      oneRow: Math.abs(box.bottom - send.bottom) < 1 && send.left > box.right,
+      sendHeight: send.height,
+      tallestChip: Math.max(...chips),
+    };
+  });
+  expect(m.overlap).toBe(false);
+  expect(m.greetingGap).toBeLessThanOrEqual(20);
+  expect(m.rightEdges[0]).toBe(m.rightEdges[1]);
+  expect(m.oneRow).toBe(true);
+  expect(m.sendHeight).toBeGreaterThanOrEqual(44);
+  expect(m.tallestChip).toBeLessThanOrEqual(60);
+}
+
 test.describe('at 1440 px', () => {
   test.use({ viewport: DESKTOP });
 
@@ -81,8 +115,9 @@ test.describe('at 1440 px', () => {
     await expect(chat.getByRole('textbox', { name: 'Message to the assistant' })).toBeFocused();
     await expect(launcher.locator('[data-unread]')).toHaveCount(0);
     const box = await chat.boundingBox();
-    expect(Math.round(box!.width)).toBe(380);
-    expect(Math.round(box!.height)).toBe(560);
+    expect(Math.round(box!.width)).toBe(400);
+    expect(Math.round(box!.height)).toBe(520);
+    await expectBalancedPanel(page);
     await a11y(page);
 
     await page.keyboard.press('Escape');
@@ -144,7 +179,27 @@ test.describe('at 1440 px', () => {
     const box = await panel(page).boundingBox();
     expect(box!.y).toBeGreaterThanOrEqual(header!.y + header!.height);
     expect(await ctaClear()).toBe(true);
+    await expectBalancedPanel(page);
   });
+
+  for (const [width, height] of [[1024, 768], [1280, 800], [1920, 1080]] as const) {
+    test(`at ${width} x ${height} the panel keeps its proportions and stays clear of the headline`, async ({ page }) => {
+      await page.setViewportSize({ width, height });
+      await page.goto('/?chat=0');
+      await settle(page);
+      await page.getByRole('button', { name: LAUNCHER, exact: true }).click();
+      await expect(panel(page)).toBeVisible();
+      const box = await panel(page).boundingBox();
+      expect(Math.round(box!.width)).toBe(400);
+      expect(Math.round(box!.height)).toBe(520);
+      await expectBalancedPanel(page);
+      if (SHOTS && width !== 1024) {
+        await page.locator('textarea').blur();
+        await page.mouse.move(0, 0);
+        await page.screenshot({ path: `${SHOTS}/chat-${width}.png` });
+      }
+    });
+  }
 
   test('a starter goes to the assistant and its streamed answer shows', async ({ page }) => {
     const bodies = await replayConsole(page);

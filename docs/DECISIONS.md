@@ -331,3 +331,12 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The home chat auto-opens only when the viewport is at least 700 px tall, and its panel height subtracts the 5rem header.** Reason: at 1366x657 a 560 px (or even header-clipped) panel covered "Log in" and "Add your shop"; below 700 px the panel would be under ~30rem, too cramped to open uninvited, so the launcher and its dot wait for the visitor.
 - **The footer reserves the launcher's corner with padding on its charcoal band (`body:has([data-home-chat]) footer[data-site-chrome] > div`), not a spacer in the chat.** Reason: padding on the band keeps the charcoal to the page's end, and the rule applies only where the chat renders.
 - **The phone bar keeps `Log in` beside the compact `Add your shop` and the menu button (version A and B).** Reason: the landing spec requires both ways in within the first screen at 390 px, and all three fit at 360 px and up.
+
+## Run 8 (10 Nov 2026)
+
+- **The home chat's desktop panel is 400 x 520 (was 380 x 560).** Reason: the owner found the tall, narrow panel badly proportioned; 400 x 520 fits beside the hero headline at 1024 to 1920 px wide and keeps the log about two thirds of the panel.
+- **The home panel's log is top-aligned (`[data-assistant-log] { justify-content: flex-start }`), the shop dock and phone sheet keep theirs bottom-anchored.** Reason: a short conversation in a floating panel read as an empty band over a greeting sitting on the composer; a long one still scrolls, and the shop's console was out of scope.
+- **The home panel's starters are wrapping chips (auto width, 44 px least height, 22 px radius), not full-width rows.** Reason: short questions no longer stretch across the panel, and the longest one still takes two lines at most.
+- **One 16 px inset on every side of the home panel's header, log and footer, and the Send button is 48 px tall to match the message box.** Reason: the 20/10 px mix looked uneven in a 400 px panel, and a shorter Send beside the box read as squeezed.
+- **The hero `h1` is `w-fit`.** Reason: as a block it spanned the whole row at 1024 px, so its box met the chat panel although its text ends 108 px left of it; the text does not move.
+- **`data-assistant-log` on AssistantShell's scroller content and `data-starters` on the starter list.** Reason: stable hooks for the home chat's scoped CSS, with no visual change to the shop's console.
