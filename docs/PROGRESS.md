@@ -434,3 +434,12 @@ Notes:
 
 ## Run 7 (10 Nov 2026)
 On `run-6-home`: professional public header (version A default, floating pill at `?nav=b`, both kept for the owner to pick), How it works shows three cropped Shelfie screenshots, labelled `Sound on`/`Sound off` switch, and a home chat widget running the real assistant for the example shop; previews in `docs/preview/`.
+
+## Run 8 (10–11 Nov 2026)
+Sessions 1–3 ended within minutes (each ended its turn after launching jobs, which killed them); session 1 removed navbar variant B.
+**Session 4 (from 20:40 IST)**, worktrees under `.claude/worktrees/`, one build → independent check → one fix each:
+- `r8-footer`, `r8-logo`, `r8-chat`, `r8-menu`: Part 1 items 2–5 (footer balance, official PayPal logo, chat panel proportions, real licensed paper-menu photo).
+- `r8-slides`: Part 2 slides redesigned with impeccable in `video/remotion`.
+- `r8-clips`: `scripts/clips/record.ts` for the new shot list (01-paper-menu, 01b-home, 02a-signup, 04-agent-door, 05b-cart).
+- Done on `run-6-home`: the fresh script (`video/project/demo.json`, 340 words, 2:40 before alignment) and its Kokoro audio. The old cut is saved as `video/out/shelfie-demo-v3.mp4`.
+Next: merge the six branches into `run-6-home` (`git diff --binary <base> <branch> | git apply -3`), then Part 1's gates (npm test, typecheck, lint, build, full e2e with the capture gate), ff-merge to main, then record clips, align, render, checks, clarity test.
