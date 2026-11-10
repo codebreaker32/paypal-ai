@@ -344,5 +344,9 @@
       "ms": 500
     }
   ],
-  "positioning": "Shelfie is for sellers with a paper menu and no website: one photo, and AI shoppers can order and pay."
+  "positioning": "Shelfie is for sellers with a paper menu and no website: one photo, and AI shoppers can order and pay.",
+  "poster": {
+    "scene": "greeting",
+    "atSec": 3.3
+  }
 }

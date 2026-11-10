@@ -10,7 +10,9 @@ const STEPS = ["Snap your price list", "AI shoppers order", "Get paid on PayPal"
 
 const STEPS_X = 380; // where the first slot starts
 const SLOT_W = 410;
-const PILL_W = 344;
+const PILL_W = 340;
+// Each step's pill hugs its label (28 px Figtree 700): 14 px before the number, ~32 px after the text.
+const PILL_FIT = [340, 322, 336];
 const PILL_H = 58;
 
 /**
@@ -69,7 +71,7 @@ export const ChapterBar = ({ chapter, prevStep }) => {
         <Lockup height={36} />
       </div>
 
-      <div style={{ position: "absolute", left: 0, top: (CHAPTER_BAR_H - PILL_H) / 2 - 1, width: PILL_W, height: PILL_H, borderRadius: 999, background: C.pom, transform: `translateX(${pillX}px)` }} />
+      <div style={{ position: "absolute", left: 0, top: (CHAPTER_BAR_H - PILL_H) / 2 - 1, width: PILL_W, height: PILL_H, borderRadius: 999, background: C.pom, transformOrigin: "0 50%", transform: `translateX(${pillX}px) scaleX(${(PILL_FIT[from - 1] + (PILL_FIT[step - 1] - PILL_FIT[from - 1]) * p) / PILL_W})` }} />
 
       {STEPS.map((_, i) => (
         <div key={i} style={{ position: "absolute", left: STEPS_X + i * SLOT_W, top: 0, height: CHAPTER_BAR_H - 2, display: "flex", alignItems: "center" }}>
