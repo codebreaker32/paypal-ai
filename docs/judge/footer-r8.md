@@ -32,7 +32,7 @@ What was wrong, and what changed:
    occupies a 60 px corner. Now only that corner is kept clear (`home-chat.css`): from 640 px the last row stops short
    of the launcher (`padding-inline-end`, 61 px at 1440, 0 at 1920 where the content edge already clears it), and the
    launcher rests beside the Sound switch at the end of the row. Under 640 px the row is full, so the test-mode sentence
-   (now the last line on phones) narrows beside the launcher and grows to its height: 20 px taller than on `/help`
+   (now the last line on phones) narrows beside the launcher and is centred on it: 20 px taller than on `/help`
    at 390, the only height the home page still adds, and the launcher fills it.
 2. **Uneven padding.** 20 px above the first row and 20 px above the divider, but 8 px below it and 8 px at the end.
    Now one value, `--footer-pad` (12 px under 768, 16 px from 768, both on the 4 px scale), above, either side of the
@@ -46,7 +46,34 @@ What was wrong, and what changed:
    links fell under the sentence, left-aligned. Under 1024 px the links and Sound switch are now one line (switch at
    the right edge) and the sentence sits under them.
 
+## Fix round (after the check)
+
+Measured the same way on a dev server, scrolled to the end. **Text gap** = the test-mode sentence's last line to the
+footer's end; **text centre / launcher centre** = their heights above the footer's end.
+
+| Page, width | Text gap (before → after) | Text centre / launcher centre | Sound right / content edge | GitHub mark right / target |
+|---|---|---|---|---|
+| `/` 390 | 42 → 32 | 62 → 51 / 48 | 370 / 370 | 370 / 44 px |
+| `/` 480 | 42 → 32 (2 lines) | 62 → 51 / 48 | 460 / 460 | 460 / 44 px |
+| `/` 639 | 62 → 42 (1 line) | 72 → 51 / 48 | 619 / 619 | 619 / 44 px |
+| `/` and `/help` 360 | unchanged | (home) 51 / 48 | **349 → 340** / 340 | **343 → 340** / **39 → 44 px** |
+| `/` 768 to 1920 | unchanged (16 px under the last row) | — | 680, 928, 1344, 1640 (launcher beside it from 640 to ~1550, kept) | on the edge |
+
+- Under 640 px the sentence is now centred on the launcher (`display: flex; align-items: center` in its reserved
+  height), so the launcher and the words are one row and the lowest thing drawn, the launcher, sits 20 px from the end,
+  as the logo glyph sits 22 px from the top. The reserved height cannot shrink: it is what keeps the Sound row above
+  the launcher's top.
+- The reserve reads the footer's own width (`cqw`) and `env(safe-area-inset-right)`, so a classic scrollbar no longer
+  eats into the 12 px gap beside the switch.
+- At 360 the rows' gaps tighten (12 px between the small links, 8 px in the main row), so the switch and GitHub mark end
+  on the content edge and GitHub keeps its 44 px target. The page's 16 px overflow at 360 and 375 is the header's menu
+  button (`BandHeader`), not the footer.
+- Kept: the switch stops short of the right content edge on `/` from 640 to ~1550 px, because the launcher rests there
+  (the alternative is the padded band the owner called vacant space). The 8 px between a 28 px logo and its 44 px row
+  at the top is the tap targets' height, mirrored by the Sound pill's 44 px at the bottom.
+
 Checked in `e2e/home-chat.spec.ts`: scrolled to the end at 1440 and 390, every footer link and button is hit at its
-centre (none is under the launcher) and the band's bottom padding equals its top.
+centre (none is under the launcher); at 1440 the last row ends exactly one band padding above the footer's end, and at
+390 the sentence's centre is within 4 px of the launcher's.
 
 Screenshots: `docs/preview/footer-390.png`, `docs/preview/footer-1440.png` (production build, `/`, scrolled to the end).

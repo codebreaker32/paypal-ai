@@ -46,7 +46,7 @@ const panel = (page: Page) => page.getByRole('dialog', { name: 'Shelfie assistan
 
 /**
  * Scrolled to the very bottom, a press at the centre of every footer control (the Sound switch included) lands on it,
- * not the launcher; and the footer keeps no band of empty charcoal for it: the band's bottom padding equals its top.
+ * not the launcher; and the footer keeps no band of empty charcoal for it.
  */
 async function expectSoundClearOfLauncher(page: Page) {
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
@@ -64,11 +64,25 @@ async function expectSoundClearOfLauncher(page: Page) {
       .map((el) => el.textContent?.trim() || el.getAttribute('aria-label')),
   );
   expect(covered).toEqual([]);
-  const pad = await page.locator('footer[data-site-chrome] > div > div').evaluate((el) => {
-    const s = getComputedStyle(el);
-    return [s.paddingTop, s.paddingBottom];
+  // No dead charcoal: the last row ends one band padding above the footer's end, or (under 640 px, where the sentence
+  // sits beside the launcher) the sentence's text is centred on the launcher, so the two read as one row.
+  const fit = await page.locator('footer[data-site-chrome]').evaluate((footer) => {
+    const f = footer.getBoundingClientRect();
+    const range = document.createRange();
+    range.selectNodeContents(footer.querySelector('[data-footer-note]')!);
+    const text = range.getBoundingClientRect();
+    const sound = footer.querySelector('[data-slot="sound-toggle"]')!.getBoundingClientRect();
+    const launcher = document.querySelector('.home-chat-launcher')!.getBoundingClientRect();
+    const pad = parseFloat(getComputedStyle(footer.querySelector(':scope > div > div')!).paddingTop);
+    return {
+      phone: window.innerWidth < 640,
+      under: Math.round(f.bottom - Math.max(text.bottom, sound.bottom)),
+      pad,
+      offCentre: Math.abs((text.top + text.bottom) / 2 - (launcher.top + launcher.bottom) / 2),
+    };
   });
-  expect(pad[1]).toBe(pad[0]);
+  if (fit.phone) expect(fit.offCentre).toBeLessThanOrEqual(4);
+  else expect(fit.under).toBe(fit.pad);
 }
 
 test.describe('at 1440 px', () => {

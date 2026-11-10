@@ -72,7 +72,7 @@ function SiteWideFooter() {
   return (
     <div className="bg-charcoal text-on-dark [--focus-ring-color:var(--white)]">
       <div className="mx-auto w-full max-w-site px-band-gutter py-(--footer-pad) [--footer-pad:--spacing(3)] md:[--footer-pad:--spacing(4)]">
-        <div className="flex items-center justify-between gap-x-3 pb-(--footer-pad) md:grid md:grid-cols-[1fr_auto_1fr]">
+        <div className="flex items-center justify-between gap-x-2 pb-(--footer-pad) min-[375px]:gap-x-3 md:grid md:grid-cols-[1fr_auto_1fr]">
           <Logo size="sm" className="shrink-0 justify-self-start text-on-dark md:h-7" />
           <nav aria-label="Footer">
             <ul className="flex items-center gap-x-2 text-sm md:gap-x-5 md:text-base">
@@ -85,7 +85,7 @@ function SiteWideFooter() {
             </ul>
           </nav>
           {/* -mr-2: the 28 px mark sits in a 44 px target, so its drawn edge lines up with the content edge. */}
-          <a href={REPO_URL} aria-label="Shelfie on GitHub" className={`press-icon -mr-2 inline-flex size-tap items-center justify-center justify-self-end rounded-full ${ROUND_ON_DARK}`}>
+          <a href={REPO_URL} aria-label="Shelfie on GitHub" className={`press-icon -mr-2 inline-flex size-tap shrink-0 items-center justify-center justify-self-end rounded-full ${ROUND_ON_DARK}`}>
             <GitHubMark className="size-7" />
           </a>
         </div>
@@ -93,7 +93,7 @@ function SiteWideFooter() {
           <p data-footer-note="" className="py-2 text-sm text-on-dark-soft max-lg:order-last max-lg:w-full">
             {TEST_MODE_LINE}
           </p>
-          <div className="flex items-center gap-x-5 max-lg:w-full">
+          <div className="flex items-center gap-x-3 max-lg:w-full min-[375px]:gap-x-5">
             {FOOTER_SMALL.map((link) => (
               <FooterAnchor key={link.href} link={link} tone="bandSmall" />
             ))}

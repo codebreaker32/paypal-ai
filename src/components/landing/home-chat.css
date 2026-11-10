@@ -8,15 +8,18 @@
 @media (min-width: 64rem) { :root { --home-chat-edge: 1.5rem; --home-chat-launcher: 3.75rem; } }
 
 /* Scrolled to the end, the launcher rests in the footer's bottom-right corner, so only that corner is kept clear: the
-   last row stops short of it (none once the content edge clears it). Under 640 px that row is full, so the test-mode
-   sentence, its last line, narrows and grows to the launcher's height instead. */
+   last row stops short of it (none once the content edge clears it). `cqw` is the footer's own width, so a classic
+   scrollbar does not count, as it does not for the fixed launcher. Under 640 px that row is full, so the test-mode
+   sentence, its last line, narrows beside the launcher and is centred on it, so the two read as one row. */
+body:has([data-home-chat]) footer[data-site-chrome] { container-type: inline-size; }
 body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] {
-  padding-inline-end: max(0px, calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter) - max(0px, (100vw - var(--container-site)) / 2)));
+  padding-inline-end: max(0px, calc(max(var(--home-chat-edge), env(safe-area-inset-right)) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter) - max(0px, (100cqw - var(--container-site)) / 2)));
 }
 @media (width < 40rem) {
   body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] { padding-inline-end: 0; }
   body:has([data-home-chat]) footer[data-site-chrome] [data-footer-note] {
-    padding-inline-end: calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter));
+    display: flex; align-items: center;
+    padding-inline-end: calc(max(var(--home-chat-edge), env(safe-area-inset-right)) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter));
     min-height: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + 0.75rem - var(--footer-pad));
   }
 }
