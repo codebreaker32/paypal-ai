@@ -212,7 +212,7 @@
         {
           "atSec": 0,
           "shot": "screen",
-          "videoStartSec": 3.4
+          "videoStartSec": 2.0
         },
         {
           "atSec": 5.3,
@@ -429,7 +429,7 @@
         {
           "atSec": 4.5,
           "shot": "screen",
-          "videoStartSec": 12.0
+          "videoStartSec": 13.2
         }
       ]
     },

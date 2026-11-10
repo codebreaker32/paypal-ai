@@ -457,3 +457,10 @@ Sessions 1–3 ended within minutes (each ended its turn after launching jobs, w
 - **Full e2e run on `run-6-home` (36.0 min, real Claude and sandbox):** 535 passed, 33 skipped, 3 failed, **the capture gate's three tests all passed**. The three failures were stale specs, not product bugs: `start-returning-owner` at 390 px (version A keeps Dashboard in the phone Menu sheet; the spec now opens it) and the two hero-story tests (they targeted the removed `StorePreview`; now they check `HeroChain`, marked `data-hero-story`, ending on PayPal's logo and "Payment received!"). Re-run alone: 4/4 passed.
 - npm test 2340 passed; typecheck, lint and `npm run build` clean.
 - The title slide's first chain card is now the real paper-menu photo (`video/project/assets/slides/menu-photo.jpg`, credited in `docs/ASSETS.md`); the recorder's PayPal login reads only the drawn email field.
+- **Merged to main after the gates** (`48176f0`).
+- **Demo video done:** `video/out/shelfie-demo.mp4`, **2:40.3**, 1920x1080 at 30 fps, -14.0 LUFS, no black frames, captions burned in, SRT `video/shelfie-demo.srt`.
+  - Every clip was re-recorded on the final UI by `npm run clips` (12 clips, 0 dropped frames, the PayPal wallet login included). Each scene's jump cuts are in `demo.json` `beats`.
+  - Run 7's cut is kept as `video/out/shelfie-demo-v3.mp4`.
+  - Clarity test 8 passed 6/6 (`docs/judge/video-clarity-8.md`).
+  - Note: `project/clips/` held 9 Nov takes that the render keeps over new ones. They were moved to /tmp and the fresh clips hard-linked in.
+- **Needs from human** (unchanged): make the repo public, the optional Render deploy, upload `video/out/shelfie-demo.mp4` to YouTube, fill in the `docs/SUBMISSION.md` links, submit on Devpost.
