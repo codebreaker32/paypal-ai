@@ -144,19 +144,21 @@ export function OrderCard({
         )}
       </div>
 
-      {/* On a phone the status and the action share one line, so the row stays short. */}
+      {/* On a phone the status and the action share one line, so the row stays short. From 60rem a row with no action
+          gives its status the action's column too, so "Waiting for approval" never wraps beside an empty cell. */}
       <div className="col-span-2 col-start-2 flex flex-wrap items-center justify-between gap-2 @[60rem]:contents">
-        <OrderStatusText order={order} className="@[60rem]:order-5" />
-        <div className="relative z-10 @[60rem]:order-6 @[60rem]:justify-self-end">
-          {order.status === 'paid' &&
-            (ships ? (
+        <OrderStatusText order={order} className={cx('@[60rem]:order-5', order.status !== 'paid' && '@[60rem]:col-span-2')} />
+        {order.status === 'paid' && (
+          <div className="relative z-10 @[60rem]:order-6 @[60rem]:justify-self-end">
+            {ships ? (
               <ButtonLink href={`${href}#tracking`} variant="secondary" icon={Truck}>
                 Add tracking
               </ButtonLink>
             ) : (
               <MarkPickedUpButton shopId={shopId} order={order} onDone={onChange} compact />
-            ))}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </Pressable>
   );
