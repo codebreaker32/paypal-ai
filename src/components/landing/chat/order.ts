@@ -64,13 +64,31 @@ export function latestOrder(state: ConsoleState): PlacedOrder | null {
   return null;
 }
 
-/** Short replies that fit where the conversation is: confirm a read-back order, or ask after a payment. */
+/** How a read-back says the order reaches the buyer, or null when it names neither or both. */
+export function readBackFulfillment(text: string): 'pickup' | 'shipping' | null {
+  // "no shipping fee" or "free delivery" says nothing about shipping this order.
+  const t = text.replace(/\b(?:no|free|without)\s+(?:shipping|delivery)(?:\s+(?:fee|cost|charge))?/gi, ' ');
+  const pickup = /\bpick(?:ing)?[- ]?up\b|\bcollect(?:ion|ing)?\b/i.test(t);
+  const shipping = /\bship(?:s|ped|ping)?\b|\bdeliver(?:y|ed|s)?\b|\bpost(?:ed|age)\b|\bmail(?:ed)?\b/i.test(t);
+  if (pickup === shipping) return null;
+  return pickup ? 'pickup' : 'shipping';
+}
+
+/**
+ * Short replies that fit where the conversation is: confirm a read-back order (with the other way to get it when the
+ * read-back names one), or ask after a payment.
+ */
 export function quickReplies(state: ConsoleState): string[] {
   if (state.busy) return [];
   const last = state.entries.at(-1);
   if (!last) return [];
   if (refsToCheck(state).length > 0) return [PAYMENT_CHECK_PROMPT];
-  if (last.kind === 'assistant' && /\b(place it|confirm|shall i|should i)\b/i.test(last.text)) return ['Yes, place it', 'Make it pickup instead'];
+  if (last.kind === 'assistant' && /\b(place it|confirm|shall i|should i)\b/i.test(last.text)) {
+    const way = readBackFulfillment(last.text);
+    if (way === 'pickup') return ['Yes, place it', 'Ship it to me instead'];
+    if (way === 'shipping') return ['Yes, place it', 'Make it pickup instead'];
+    return ['Yes, place it'];
+  }
   return [];
 }
 

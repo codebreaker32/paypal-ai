@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { itemCards, latestOrder, MAX_CARDS, quickReplies } from '@/components/landing/chat/order';
+import { itemCards, latestOrder, MAX_CARDS, quickReplies, readBackFulfillment } from '@/components/landing/chat/order';
 import { PAYMENT_CHECK_PROMPT } from '@/components/shop/BuyerConsole';
 import { consoleReducer, initialConsoleState, type ConsoleState } from '@/components/shop/console-state';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
@@ -80,5 +80,31 @@ describe('home chat helpers', () => {
     expect(quickReplies(asked)).toContain('Yes, place it');
     expect(quickReplies(consoleReducer(asked, { type: 'send', text: 'yes' }))).toEqual([]);
     expect(latestOrder(asked)).toBeNull();
+  });
+
+  describe('quick replies follow the read-back', () => {
+    const readBack = (text: string) => run([{ type: 'text', text }, { type: 'done' }], consoleReducer(initialConsoleState, { type: 'send', text: 'hi' }));
+
+    it('a pickup read-back offers shipping instead', () => {
+      const s = readBack('2 Almond croissants, $10.00. Pickup is Sat or Sun 9 to 1, so no shipping fee. Total $10.00. Should I place it?');
+      expect(quickReplies(s)).toEqual(['Yes, place it', 'Ship it to me instead']);
+    });
+
+    it('a shipping read-back offers pickup instead', () => {
+      const s = readBack('1 Country sourdough loaf, $9.00, shipped to Ana in Austin with $8.00 shipping. Total $17.00. Shall I place it?');
+      expect(quickReplies(s)).toEqual(['Yes, place it', 'Make it pickup instead']);
+    });
+
+    it('a read-back that names neither, or both, offers only to place it', () => {
+      expect(quickReplies(readBack('2 Butter croissants, total $8.00. Should I place it?'))).toEqual(['Yes, place it']);
+      expect(quickReplies(readBack('Pickup is free, or shipping is $8.00. Which one, and should I place it?'))).toEqual(['Yes, place it']);
+    });
+
+    it('reads the way out of the wording', () => {
+      expect(readBackFulfillment('Pick-up Saturday, no delivery fee.')).toBe('pickup');
+      expect(readBackFulfillment('Free shipping, collect it at the market.')).toBe('pickup');
+      expect(readBackFulfillment('Delivered to 12 Elm St.')).toBe('shipping');
+      expect(readBackFulfillment('Total $8.00.')).toBeNull();
+    });
   });
 });
