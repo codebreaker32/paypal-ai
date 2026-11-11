@@ -18,8 +18,9 @@ const asTyped = (url: string) => url.replace(/^https?:\/\//, '');
 
 /**
  * The 5 × 7 in card. Every size is a share of its width (cqw), so the page, the miniature and the 5 in print are one
- * layout. The miniature's two `leading` overrides are there because a line height the card inherits doesn't shrink with
- * it: a long name's lines would otherwise spread apart and squeeze the QR.
+ * layout. The name's `leading` comes after `cardNameSize()`: tailwind-merge drops a line height set before a font size, and
+ * the name would then take the body's and overlap itself. The miniature's URL `leading` is there because a line height the
+ * card inherits doesn't shrink with it: a long name's lines would otherwise spread apart and squeeze the QR.
  */
 export function CounterCard({ name, coverUrl, shopUrl, doorUrl, qr, miniature = false }: CounterCardProps) {
   const Root = miniature ? 'div' : 'article';
@@ -46,7 +47,7 @@ export function CounterCard({ name, coverUrl, shopUrl, doorUrl, qr, miniature = 
         <header className="flex flex-col items-center gap-[2.5cqw]">
           <Name
             id={miniature ? undefined : 'card-shop-name'}
-            className={cx('line-clamp-3 font-display leading-[1.04] font-extrabold tracking-display [overflow-wrap:anywhere]', cardNameSize(name), miniature && 'leading-[1.04]')}
+            className={cx('line-clamp-3 font-display font-extrabold tracking-display [overflow-wrap:anywhere]', cardNameSize(name), 'leading-[1.04]')}
           >
             {name}
           </Name>

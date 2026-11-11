@@ -30,6 +30,14 @@ describe('CounterCard', () => {
     for (const id of ['card-qr', 'card-shop-url', 'card-door-url']) expect(html).toContain(`data-testid="${id}"`);
   });
 
+  it('keeps the name tight at full size and in the miniature (tailwind-merge drops a leading set before the size)', () => {
+    for (const html of [render(), render({ miniature: true })]) {
+      const nameClass = html.match(/<(?:h2|p)[^>]*class="([^"]*line-clamp-3[^"]*)"/)?.[1] ?? '';
+      expect(nameClass).toMatch(/text-\[[\d.]+cqw\]/);
+      expect(nameClass).toContain('leading-[1.04]');
+    }
+  });
+
   it('miniature: hidden from assistive tech, and it never takes over printing or duplicates an id or testid', () => {
     const html = render({ miniature: true });
     expect(html).toMatch(/^<div[^>]*aria-hidden="true"/);
