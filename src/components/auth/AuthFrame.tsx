@@ -61,10 +61,12 @@ function PhotoPanel({ current }: { current?: number }) {
       aria-label="About Shelfie"
       className="relative isolate hidden w-(--auth-panel-w) shrink-0 overflow-hidden bg-charcoal text-on-dark lg:flex print:hidden"
     >
+      {/* Eager: from lg it is the page's largest paint. Below lg the panel is hidden and `sizes` asks for the smallest copy. */}
       <Image
         src="/demo/marigold-bakehouse/cover.jpg"
         alt=""
         fill
+        loading="eager"
         sizes="(min-width: 1024px) 42vw, 1px"
         className="-z-20 object-cover object-[30%_50%]"
       />
