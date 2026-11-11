@@ -2,6 +2,7 @@
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { ItemIllustration } from '@/components/illustrations/ItemIllustration';
+import { Pressable } from '@/components/motion';
 import { ShopAvatar } from '@/components/shop/ShopAvatar';
 import type { BrowseShop } from '@/lib/db/repos/browse';
 import { shopAvatar } from '@/lib/domain/avatar';
@@ -48,8 +49,8 @@ function CardCover({ shop }: { shop: BrowseShop }) {
 export function ShopCard({ shop }: { shop: BrowseShop }) {
   const what = shop.category ? shopCategoryLabel(shop.category) : KIND[shop.kind];
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl bg-surface shadow-(--card-shadow) ring-1 ring-line transition-shadow duration-200 hover:shadow-md has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ink">
-      <div className="relative aspect-[16/9] overflow-hidden bg-surface-sunken">
+    <Pressable as="article" className="group flex h-full flex-col rounded-2xl bg-surface shadow-(--card-shadow) ring-1 ring-line has-[a:focus-visible]:ring-2 has-[a:focus-visible]:ring-ink">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-t-2xl bg-surface-sunken">
         <CardCover shop={shop} />
       </div>
       <div className="relative flex flex-1 flex-col px-5 pb-5">
@@ -67,6 +68,7 @@ export function ShopCard({ shop }: { shop: BrowseShop }) {
           <Link
             href={`/s/${shop.slug}`}
             aria-label={`Open shop: ${shop.name}`}
+            data-stretched-link
             className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink outline-none after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4"
           >
             Open shop
@@ -74,6 +76,6 @@ export function ShopCard({ shop }: { shop: BrowseShop }) {
           </Link>
         </div>
       </div>
-    </article>
+    </Pressable>
   );
 }
