@@ -2,10 +2,13 @@ import Link from 'next/link';
 import type { ComponentProps, ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-/** The reading pages (Help, Terms, Privacy): one column at reading width, in line with the logo above it. */
+/**
+ * The reading pages (Help, Terms, Privacy): one column at reading width. The outer box is the band header's and the
+ * footer's (`max-w-site px-band-gutter`), so the text starts on the same left edge as the logo above and below it.
+ */
 export function DocPage({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-page px-gutter pt-12 pb-section lg:pt-16">
+    <div className="mx-auto w-full max-w-site px-band-gutter pt-12 pb-section lg:pt-16">
       <div className="max-w-measure">
         <h1 className="type-display">
           {title}
