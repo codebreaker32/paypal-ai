@@ -389,3 +389,11 @@ The owner asked for three different mockups of the expanded chatbot to review. T
 - **A mockup opens at once and never auto-opens again** (`autoOpen` is off with `?chatui=`, the unread dot starts cleared). Reason: the owner should see it on load without waiting 4 s.
 - **The home page passes the example shop's cover and listed menu (name, lowest price, own photo) to the chat.** Mockup B shows item cards from it; only seller photos are used, never library examples, as for agents.
 - **Screenshots come from a mocked stream built from the seeded shop's real menu** (`e2e/chatui.spec.ts`: real item ids, names, prices and shipping fee). Reason: reproducible and no Claude or PayPal calls; the live app still uses the real assistant.
+
+## 2026-11-11 run 11: Browse shops (r11-browse)
+
+- **/browse lists exactly the shops whose agent door takes orders** (`ORDERABLE_WHERE` in `shops.ts`, shared with /agents.txt and /llms.txt; it is `takesOrders` in SQL). Reason: one rule for "a buyer can order here", wherever a shop is listed.
+- **`shops.category` is nullable TEXT, read through `parseShopCategory`** (food, drinks, flowers, repairs, any case); anything else shows under All only. Added here so the branch compiles; the r11-shops branch adds the same column, so the integrator keeps one migration line.
+- **Shops with photos lead the grid** (stable sort, newest first within each group). Reason: the page should open on real pictures, not drawings.
+- **The footer's main row drops Product below 768 px** (as Open Source already did): five links don't fit beside the logo and GitHub at 390 px, and How it works is in the header menu there.
+- **Buyer-facing words never call a shop a demo or sample** (receipt "Paid to Shelfie’s PayPal account for …", the agent door's `payments` note, the hero's `Browse shops`). The seller's own screens keep "demo shop" where it explains where money goes.
