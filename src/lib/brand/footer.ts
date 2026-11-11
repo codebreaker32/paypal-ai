@@ -10,9 +10,11 @@ export interface FooterLink {
   href: string;
   /** Not a page of this app (a route handler or another site), so it is a plain `<a>`. */
   native?: boolean;
+  /** Left out of the footer's main row below 768 px, where five links don't fit beside the logo and GitHub. */
+  wideOnly?: boolean;
 }
 
-const SITE_PAGE = /^\/(help|terms|privacy)?\/?$/;
+const SITE_PAGE = /^\/(browse|help|terms|privacy)?\/?$/;
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
 /** Everything not listed in the brief (log in, sign up, setup, a 404) gets the one-row footer, as the seller's pages do. */
@@ -23,10 +25,11 @@ export function footerKind(pathname: string): FooterKind {
 
 /** The public site's main row. */
 export const FOOTER_NAV: FooterLink[] = [
-  { label: 'Product', href: '/#how-it-works' },
+  { label: 'Browse', href: '/browse' },
+  { label: 'Product', href: '/#how-it-works', wideOnly: true },
   { label: 'Help', href: '/help' },
   { label: 'Legal', href: '/terms' },
-  { label: 'Open Source', href: REPO_URL, native: true },
+  { label: 'Open Source', href: REPO_URL, native: true, wideOnly: true },
 ];
 
 /** The public site's small row, beside the test-mode sentence. */

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { FOOTER_NAV, FOOTER_SMALL, REPO_URL, footerKind } from '@/lib/brand/footer';
 
 describe('footerKind', () => {
-  it.each(['/', '/help', '/terms', '/privacy', '/help/'])('%s gets the full footer', (p) => {
+  it.each(['/', '/browse', '/help', '/terms', '/privacy', '/help/'])('%s gets the full footer', (p) => {
     expect(footerKind(p)).toBe('site');
   });
   it.each(['/s/marigold-bakehouse', '/s/marigold-bakehouse/mcp', '/o/SHF-1', '/s', '/o'])('%s is a buyer page', (p) => {
@@ -25,7 +25,7 @@ describe('footerKind', () => {
 describe('the site footer links', () => {
   const all = [...FOOTER_NAV, ...FOOTER_SMALL];
   it('has the four main links, in order', () => {
-    expect(FOOTER_NAV.map((l) => l.label)).toEqual(['Product', 'Help', 'Legal', 'Open Source']);
+    expect(FOOTER_NAV.map((l) => l.label)).toEqual(['Browse', 'Product', 'Help', 'Legal', 'Open Source']);
   });
   it('links where the brief says', () => {
     expect(Object.fromEntries(all.map((l) => [l.label, l.href]))).toEqual({

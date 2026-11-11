@@ -15,8 +15,7 @@ function Wave() {
   );
 }
 
-/** `exampleShopHref` is the example shop's address while it is live, else null (then no example link). */
-export function Hero({ exampleShopHref }: { exampleShopHref: string | null }) {
+export function Hero() {
   return (
     <section aria-labelledby="landing-title" className="relative isolate overflow-hidden">
       <noscript>
@@ -35,11 +34,9 @@ export function Hero({ exampleShopHref }: { exampleShopHref: string | null }) {
             <ButtonLink href="/signup" variant="brand" size="lg" iconEnd={ArrowRight} className="shadow-md max-sm:w-full">
               Add your shop
             </ButtonLink>
-            {exampleShopHref && (
-              <TextLink href={exampleShopHref} className="self-center text-lg text-ink">
-                See an example shop
-              </TextLink>
-            )}
+            <TextLink href="/browse" className="self-center text-lg text-ink">
+              Browse shops
+            </TextLink>
           </div>
         </div>
         <HeroChain />
