@@ -10,8 +10,6 @@ export interface FooterLink {
   href: string;
   /** Not a page of this app (a route handler or another site), so it is a plain `<a>`. */
   native?: boolean;
-  /** Left out of the footer's main row below 768 px, where five links don't fit beside the logo and GitHub. */
-  wideOnly?: boolean;
 }
 
 const SITE_PAGE = /^\/(browse|help|terms|privacy)?\/?$/;
@@ -23,21 +21,42 @@ export function footerKind(pathname: string): FooterKind {
   return SITE_PAGE.test(pathname) ? 'site' : 'compact';
 }
 
-/** The public site's main row. */
-export const FOOTER_NAV: FooterLink[] = [
-  { label: 'Browse', href: '/browse' },
-  { label: 'Product', href: '/#how-it-works', wideOnly: true },
-  { label: 'Help', href: '/help' },
-  { label: 'Legal', href: '/terms' },
-  { label: 'Open Source', href: REPO_URL, native: true, wideOnly: true },
+/** A titled column of the public site's footer. */
+export interface FooterGroup {
+  title: string;
+  links: FooterLink[];
+}
+
+/** The public site's link columns, in reading order. */
+export const FOOTER_GROUPS: FooterGroup[] = [
+  {
+    title: 'Shelfie',
+    links: [
+      { label: 'Browse shops', href: '/browse' },
+      { label: 'How it works', href: '/#how-it-works' },
+      { label: 'FAQ', href: '/#faq' },
+      { label: 'Help', href: '/help' },
+    ],
+  },
+  {
+    title: 'For AI assistants',
+    links: [
+      { label: 'agents.txt', href: '/agents.txt', native: true },
+      { label: 'llms.txt', href: '/llms.txt', native: true },
+    ],
+  },
+  {
+    title: 'The project',
+    links: [
+      { label: 'Terms', href: '/terms' },
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Open source on GitHub', href: REPO_URL, native: true },
+    ],
+  },
 ];
 
-/** The public site's small row, beside the test-mode sentence. */
-export const FOOTER_SMALL: FooterLink[] = [
-  { label: 'Privacy', href: '/privacy' },
-  { label: 'agents.txt', href: '/agents.txt', native: true },
-  { label: 'llms.txt', href: '/llms.txt', native: true },
-];
+/** One line under the logo: what Shelfie is. */
+export const FOOTER_BLURB = 'A photo of your price list becomes a shop that people and AI assistants can order from, paid through PayPal.';
 
 /** The links beside the sentence on buyer pages. */
 export const BUYER_LINKS: FooterLink[] = [

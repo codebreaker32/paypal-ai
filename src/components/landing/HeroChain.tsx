@@ -180,47 +180,51 @@ function FullChain() {
   );
 }
 
-const TILE = 'relative flex aspect-[4/5] flex-col items-center justify-center overflow-hidden rounded-lg bg-surface shadow-md';
+const THUMB = 'relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg';
 
-const PHONE_TILES = [
-  <div key="paper" className="-rotate-3 rounded-xs bg-surface p-1 shadow-md">
-    <div className="relative aspect-[4/5] overflow-hidden rounded-xs bg-paper">
-      <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
-    </div>
+/** Each step's small picture on phones, square so the four rows line up. */
+const PHONE_THUMBS = [
+  <div key="paper" className={cn(THUMB, 'bg-paper')}>
+    <Image src={PAPER_MENU} alt="" fill unoptimized loading="eager" className="object-cover" />
   </div>,
-  <div key="shop" className={cn(TILE, 'justify-start gap-0.5 p-1')}>
-    <LogoMark className="size-4 self-start" />
-    <div className="relative min-h-0 w-full flex-1 overflow-hidden rounded-xs">
-      <Image src="/demo/home/cupcake.webp" alt="" fill sizes="80px" className="object-cover" />
-    </div>
+  <div key="shop" className={THUMB}>
+    <Image src="/demo/home/cupcake.webp" alt="" fill sizes="64px" className="object-cover" />
+    <span className="absolute bottom-1 right-1 rounded-xs bg-surface p-0.5 shadow-sm">
+      <LogoMark className="size-4" />
+    </span>
   </div>,
-  <div key="assistant" className={TILE}>
-    <AssistantMark className="size-10 text-ink" />
+  <div key="assistant" className={cn(THUMB, 'bg-surface-sunken')}>
+    <AssistantMark className="size-9 text-ink" />
   </div>,
-  <div key="pay" className={cn(TILE, 'gap-2.5')}>
-    {/* The tile is too narrow for the full logo's clear space, so it carries PayPal's own PP mark. */}
+  <div key="pay" className={cn(THUMB, 'bg-surface-sunken')}>
+    {/* The thumbnail is too small for the full logo's clear space, so it carries PayPal's own PP mark. */}
     {/* eslint-disable-next-line @next/next/no-img-element -- a fixed SVG logo, no optimizer needed */}
     <img src="/brand/paypal/paypal-mark-color.svg" alt="PayPal" width={48} height={48} className="size-8" />
-    <Tick className="size-6" />
+    <Tick className="absolute bottom-1 right-1 size-5" />
   </div>,
 ];
 
-/** The small numbered row, on phones. */
-function PhoneRow() {
+/** One short line under each step's name on phones, where there is room for words but not for the full cards. */
+const PHONE_DETAILS = ['Take a photo of your price list.', 'Claude reads it and builds your shop.', 'Any AI assistant can order from it.', 'The money goes to your PayPal.'];
+
+/** The four steps as a numbered list of captioned rows, on phones (below 768 px). */
+function PhoneList() {
   return (
-    <ol className="grid grid-cols-4 gap-5 md:hidden">
+    <ol data-hero-phone-steps="" className="grid gap-2.5 pb-4 md:hidden">
       {STEPS.map((step, index) => (
-        <li key={step.caption} className="relative">
-          <Beat on={step.on}>
-            <div aria-hidden="true">{PHONE_TILES[index]}</div>
-            <p className="mx-auto mt-2 flex size-7 items-center justify-center rounded-full bg-surface text-sm font-bold text-ink shadow-sm">
-              <span aria-hidden="true">{index + 1}</span>
-              <span className="sr-only">
-                {index + 1}. {step.caption}
+        <li key={step.caption}>
+          <Beat on={step.on} className="flex items-center gap-3.5 rounded-xl bg-surface p-2 pr-4 shadow-md">
+            <div aria-hidden="true" className="relative">
+              {PHONE_THUMBS[index]}
+              <span className="absolute -left-1.5 -top-1.5 flex size-6 items-center justify-center rounded-full bg-accent text-xs font-bold text-on-accent shadow-sm">
+                {index + 1}
               </span>
-            </p>
+            </div>
+            <div className="min-w-0">
+              <p className="text-base font-semibold text-ink">{step.caption}</p>
+              <p className="text-sm text-ink-muted">{PHONE_DETAILS[index]}</p>
+            </div>
           </Beat>
-          {step.arrow !== null && <Arrow on={step.arrow} className="absolute left-full top-[28%] ml-0.5 w-4" />}
         </li>
       ))}
     </ol>
@@ -236,7 +240,7 @@ export function HeroChain() {
     <div ref={ref} data-hero-story="" className="relative z-10">
       <Playing.Provider value={{ show: show || reduced, reduced }}>
         <FullChain />
-        <PhoneRow />
+        <PhoneList />
       </Playing.Provider>
     </div>
   );

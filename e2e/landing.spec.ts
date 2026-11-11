@@ -38,6 +38,10 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       expect(ctaBox.height).toBeGreaterThanOrEqual(52);
       expect(ctaBox.y + ctaBox.height).toBeLessThanOrEqual(viewport.height);
       await expect(page.locator('body > footer').getByText(TEST_MODE_LINE)).toBeVisible();
+      // The closing photo band only closes the page: its sole way in is the header's and hero's Add your shop.
+      const closing = page.locator('main > section').last();
+      await expect(closing.getByRole('heading', { level: 2, name: 'Put your counter online today.' })).toBeVisible();
+      await expect(closing.getByRole('link')).toHaveCount(0);
 
       // Marigold's name only in the hero's picture; the others use its paper at most.
       for (const part of await page.locator('main > section').all()) {
@@ -66,7 +70,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await page.goto('/');
       const footer = page.locator('body > footer');
       await expect(footer.getByText(TEST_MODE_LINE)).toBeVisible();
-      for (const name of ['Browse', 'Help', 'Legal', ...(label === '1440' ? ['Product', 'Open Source'] : []), 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
+      for (const name of ['Browse shops', 'How it works', 'FAQ', 'Help', 'agents.txt', 'llms.txt', 'Terms', 'Privacy', 'Open source on GitHub']) {
         await expect(footer.getByRole('link', { name, exact: true })).toBeVisible();
       }
       await expect(footer.getByRole('button', { name: 'Sound' })).toBeVisible();

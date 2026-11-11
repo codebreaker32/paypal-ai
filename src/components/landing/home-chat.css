@@ -20,7 +20,7 @@ body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] {
   body:has([data-home-chat]) footer[data-site-chrome] [data-footer-note] {
     display: flex; align-items: center;
     padding-inline-end: calc(max(var(--home-chat-edge), env(safe-area-inset-right)) + var(--home-chat-launcher) + 0.75rem - var(--spacing-band-gutter));
-    min-height: calc(var(--home-chat-bottom) + var(--home-chat-launcher) + 0.75rem - var(--footer-pad));
+    min-height: calc(2 * (var(--home-chat-bottom) - var(--footer-pad)) + var(--home-chat-launcher));
   }
 }
 

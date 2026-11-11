@@ -1,7 +1,7 @@
 // The whole product, live: Start → Try a sample menu (Marigold) → Reading (real Claude) → Review (fix every flagged
 // card) → Publish (real PayPal sandbox catalog) → Live → the shop page → the buyer console orders "two almond
 // croissants, pickup" through the shop's real agent door (real Claude, real MCP over HTTP, real PayPal Orders v2) →
-// the Activity panel lists the MCP calls → the approval card shows the right total and a PayPal sandbox link.
+// the Activity steps name the MCP calls → the approval card shows the right total and a PayPal sandbox link.
 // It stops at the approval link (e2e/capture.spec.ts approves and captures).
 // Needs ANTHROPIC_API_KEY, PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY in .env; skipped without them.
 // Run: E2E_PORT=3111 npx playwright test e2e/flow.spec.ts
@@ -107,18 +107,23 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
   for (let turn = 0; turn < 3 && !(await approve.count()); turn++) await say('Yes, place it');
   await expect(approve).toBeVisible();
 
-  // The Activity panel shows the agent door calls, ending with create_order.
+  // The Activity steps name the agent door calls (data-tool), ending with create_order, in plain words.
   const activity = region.getByRole('group', { name: 'Activity', exact: true });
   await expect(activity.first()).toBeVisible();
-  const calls = (await activity.allTextContents()).join('\n'); // textContent: an earlier turn's rows are folded away
-  expect(calls).toMatch(/list_products/);
-  expect(calls).toMatch(/create_order/);
+  const tools = await region.locator('[data-step]').evaluateAll((els) => els.map((el) => el.getAttribute('data-tool')));
+  expect(tools).toContain('list_products');
+  expect(tools).toContain('create_order');
+  const placed = region.locator('[data-tool="create_order"][data-state="done"]').last();
+  await expect(placed).toContainText('waiting for your PayPal approval');
+  // Details opens the raw calls.
+  await activity.last().getByRole('button', { name: 'Details' }).click();
   await expect(region.locator('summary', { hasText: 'create_order' }).last()).toContainText(/awaiting approval/);
 
   // The approval card: 2 × the menu's almond croissant price, pickup (no shipping), a real PayPal sandbox link.
   const total = dollars(unit * 2);
   await expect(approve).toHaveAccessibleName(`Approve ${total} on PayPal`);
   await expect(approve).toHaveAttribute('href', /^https:\/\/www\.sandbox\.paypal\.com\/checkoutnow\?token=[A-Z0-9]+/);
+  await expect(placed).toContainText(total);
   await expect(region.locator('summary', { hasText: 'create_order' }).last()).toContainText(total);
   await accessible(page);
   console.log(`[flow] ${slug}: ${count} items published; console order ${total} awaiting approval on PayPal`);

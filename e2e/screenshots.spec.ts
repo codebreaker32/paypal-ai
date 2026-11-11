@@ -576,7 +576,7 @@ const SCREENS: Screen[] = [
       await page.goto(`/s/${SLUG}`);
       const region = await openConsole(page, phone);
       await converse(region);
-      await expect(region.getByRole('group', { name: 'Activity', exact: true }).first()).toContainText('get_shop_info');
+      await expect(region.getByRole('group', { name: 'Activity', exact: true }).first().locator('[data-tool="get_shop_info"]')).toBeVisible();
       await region.getByRole('link', { name: 'Approve $27.00 on PayPal' }).scrollIntoViewIfNeeded();
     },
   },
@@ -588,6 +588,7 @@ const SCREENS: Screen[] = [
       await page.goto(`/s/${SLUG}`);
       const region = await openConsole(page, phone);
       await converse(region);
+      await region.getByRole('group', { name: 'Activity', exact: true }).last().getByRole('button', { name: 'Details' }).click();
       const create = region.locator('summary', { hasText: 'create_order' });
       await create.click();
       await expect(region.locator('details[open] pre').first()).toContainText('"method": "tools/call"');

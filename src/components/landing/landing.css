@@ -30,6 +30,11 @@
   }
 }
 
+/* The closing band's last third darkens into the footer's charcoal (Closing.tsx, SiteFooter.tsx). */
+.closing-floor {
+  background: linear-gradient(180deg, rgb(var(--charcoal-rgb) / 0) 55%, rgb(var(--charcoal-rgb) / 0.6) 82%, rgb(var(--charcoal-rgb)) 100%);
+}
+
 /* The hero chain's beats are hidden in the server HTML. Reduced motion shows them at once, also before hydration. */
 @media (prefers-reduced-motion: reduce) {
   [data-chain-beat] {

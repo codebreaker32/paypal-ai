@@ -1,6 +1,6 @@
 // Which footer each page gets (brief WP7, Footer), and that its links are the ones the brief names.
 import { describe, expect, it } from 'vitest';
-import { FOOTER_NAV, FOOTER_SMALL, REPO_URL, footerKind } from '@/lib/brand/footer';
+import { FOOTER_GROUPS, REPO_URL, footerKind } from '@/lib/brand/footer';
 
 describe('footerKind', () => {
   it.each(['/', '/browse', '/help', '/terms', '/privacy', '/help/'])('%s gets the full footer', (p) => {
@@ -23,18 +23,23 @@ describe('footerKind', () => {
 });
 
 describe('the site footer links', () => {
-  const all = [...FOOTER_NAV, ...FOOTER_SMALL];
-  it('has the four main links, in order', () => {
-    expect(FOOTER_NAV.map((l) => l.label)).toEqual(['Browse', 'Product', 'Help', 'Legal', 'Open Source']);
+  const all = FOOTER_GROUPS.flatMap((g) => g.links);
+  it('has three titled columns, in order', () => {
+    expect(FOOTER_GROUPS.map((g) => [g.title, g.links.map((l) => l.label)])).toEqual([
+      ['Shelfie', ['Browse shops', 'How it works', 'FAQ', 'Help']],
+      ['For AI assistants', ['agents.txt', 'llms.txt']],
+      ['The project', ['Terms', 'Privacy', 'Open source on GitHub']],
+    ]);
   });
   it('links where the brief says', () => {
     expect(Object.fromEntries(all.map((l) => [l.label, l.href]))).toEqual({
-      Browse: '/browse',
-      Product: '/#how-it-works',
+      'Browse shops': '/browse',
+      'How it works': '/#how-it-works',
+      FAQ: '/#faq',
       Help: '/help',
-      Legal: '/terms',
-      'Open Source': REPO_URL,
+      Terms: '/terms',
       Privacy: '/privacy',
+      'Open source on GitHub': REPO_URL,
       'agents.txt': '/agents.txt',
       'llms.txt': '/llms.txt',
     });
@@ -43,6 +48,6 @@ describe('the site footer links', () => {
     expect(REPO_URL).toBe('https://github.com/codebreaker32/paypal-ai');
   });
   it('anything that is not a page of the app is a plain link', () => {
-    expect(all.filter((l) => l.native).map((l) => l.href)).toEqual([REPO_URL, '/agents.txt', '/llms.txt']);
+    expect(all.filter((l) => l.native).map((l) => l.href)).toEqual(['/agents.txt', '/llms.txt', REPO_URL]);
   });
 });

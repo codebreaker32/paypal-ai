@@ -40,9 +40,23 @@ export function HowItWorks() {
           </h2>
           <p className="mt-2 text-base text-ink xl:mt-3 xl:text-lg">A shop, in minutes. No website needed.</p>
         </div>
-        <Stagger as="ol" gap={0.08} className="grid gap-10 lg:grid-cols-3 lg:gap-6 xl:gap-10">
+        {/* Heading and line first, then the picture (owner, run 12). From lg each step spans two rows of a shared
+            subgrid, so the headings start on one line and the pictures on another, however the short lines wrap. */}
+        <Stagger
+          as="ol"
+          gap={0.08}
+          className="grid gap-10 lg:grid-cols-3 lg:gap-x-6 lg:gap-y-4 xl:gap-x-10 xl:gap-y-5"
+        >
           {STEPS.map(({ title, body, image, alt }) => (
-            <StaggerItem as="li" key={title} className="mx-auto flex w-full max-w-md flex-col gap-4 lg:max-w-none xl:gap-5">
+            <StaggerItem
+              as="li"
+              key={title}
+              className="mx-auto flex w-full max-w-md flex-col gap-4 lg:row-span-2 lg:grid lg:max-w-none lg:grid-rows-subgrid xl:gap-5"
+            >
+              <div>
+                <h3 className="text-lg font-bold tracking-tight text-ink xl:text-2xl">{title}</h3>
+                <p className="mt-1 text-base text-ink xl:mt-2 xl:text-lg">{body}</p>
+              </div>
               <img
                 src={image}
                 alt={alt}
@@ -50,12 +64,8 @@ export function HowItWorks() {
                 height={720}
                 loading="lazy"
                 decoding="async"
-                className="aspect-[4/3] w-full rounded-2xl bg-white object-cover shadow-md"
+                className="aspect-[4/3] w-full self-start rounded-2xl bg-white object-cover shadow-md"
               />
-              <div>
-                <h3 className="text-lg font-bold tracking-tight text-ink xl:text-2xl">{title}</h3>
-                <p className="mt-1 text-base text-ink xl:mt-2 xl:text-lg">{body}</p>
-              </div>
             </StaggerItem>
           ))}
         </Stagger>

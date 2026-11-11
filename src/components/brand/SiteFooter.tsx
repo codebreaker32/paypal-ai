@@ -3,17 +3,15 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/brand/Logo';
-import { BUYER_LINKS, COMPACT_LINKS, FOOTER_NAV, FOOTER_SMALL, REPO_URL, footerKind, type FooterLink } from '@/lib/brand/footer';
+import { BUYER_LINKS, COMPACT_LINKS, FOOTER_BLURB, FOOTER_GROUPS, REPO_URL, footerKind, type FooterLink } from '@/lib/brand/footer';
 import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
-import { cn } from '@/lib/utils';
 import { Frame } from './Frame';
 import { SoundToggle } from './SoundToggle';
 
 
 const ANCHOR = {
   plain: 'press-text inline-flex min-h-tap items-center text-ink-soft hover:text-ink',
-  band: 'press-text inline-flex min-h-tap items-center text-on-dark hover:text-blush-ring hover:underline',
-  bandSmall: 'press-text inline-flex min-h-tap items-center text-sm text-on-dark-soft hover:text-on-dark hover:underline',
+  band: 'press-text inline-flex min-h-tap min-w-tap items-center gap-2 text-base sm:whitespace-nowrap text-on-dark underline-offset-4 hover:text-blush-ring hover:underline',
 };
 
 /** Not prefetched: a footer scrolls into view on every page, and a buyer on a phone should not pay for the legal pages. */
@@ -21,6 +19,7 @@ function FooterAnchor({ link, tone = 'plain' }: { link: FooterLink; tone?: keyof
   if (link.native) {
     return (
       <a href={link.href} className={ANCHOR[tone]}>
+        {link.href === REPO_URL && <GitHubMark className="size-5 shrink-0" />}
         {link.label}
       </a>
     );
@@ -51,9 +50,7 @@ function CompactFooter({ links }: { links: FooterLink[] }) {
   );
 }
 
-const ROUND_ON_DARK = 'text-on-dark hover:bg-on-dark/15 hover:text-on-dark';
-
-/** The GitHub mark, which names the link to this project's repository. */
+/** The GitHub mark, beside the link to this project's repository. */
 function GitHubMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className={className} fill="currentColor">
@@ -63,44 +60,43 @@ function GitHubMark({ className }: { className?: string }) {
 }
 
 /**
- * Home, help and legal: a charcoal band, with the logo, four links (centred on the page) and GitHub, then the
- * test-mode sentence, the small links and the sound switch. One padding, `--footer-pad`, above, between and below
- * the rows. On the home page the chat launcher rests in the bottom-right corner; `home-chat.css` keeps exactly
- * that corner clear (`data-footer-end`, `data-footer-note`) instead of padding the whole band.
+ * Home, browse, help and legal: a charcoal band in the bands' container. On top, the logo and one line about Shelfie
+ * beside three titled link columns (under the logo on a phone, two columns there); under a hairline, the test-mode
+ * sentence and the Sound switch. `--footer-pad` below (20 px on a phone, where it matches the chat launcher's inset), the same above from 640 px. On the home page the closing photo
+ * band fades into this charcoal, so the two read as one piece, and the chat launcher rests in the bottom-right corner;
+ * `home-chat.css` keeps exactly that corner clear (`data-footer-end`, `data-footer-note`).
  */
 function SiteWideFooter() {
   return (
     <div className="bg-charcoal text-on-dark [--focus-ring-color:var(--white)]">
-      <div className="mx-auto w-full max-w-site px-band-gutter py-(--footer-pad) [--footer-pad:--spacing(3)] md:[--footer-pad:--spacing(4)]">
-        <div className="flex items-center justify-between gap-x-2 pb-(--footer-pad) min-[375px]:gap-x-3 md:grid md:grid-cols-[1fr_auto_1fr]">
-          <Logo size="sm" className="shrink-0 justify-self-start text-on-dark md:h-7" />
-          <nav aria-label="Footer">
-            <ul className="flex items-center gap-x-2 text-sm md:gap-x-5 md:text-base">
-              {FOOTER_NAV.map((link, index) => (
-                <li key={link.label} className={cn('flex items-center gap-x-2 md:gap-x-5', link.wideOnly && 'max-md:hidden')}>
-                  {index > 0 && <span aria-hidden="true" className="h-4 w-px bg-on-dark-soft/50" />}
-                  <FooterAnchor link={link} tone="band" />
-                </li>
-              ))}
-            </ul>
+      <div className="mx-auto w-full max-w-site px-band-gutter pt-8 pb-(--footer-pad) [--footer-pad:--spacing(5)] sm:[--footer-pad:--spacing(8)] md:pt-12 md:[--footer-pad:--spacing(12)]">
+        <div className="grid gap-y-8 pb-8 md:pb-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-x-12">
+          <div className="max-w-sm">
+            <Logo size="sm" className="text-on-dark md:h-8" />
+            <p className="mt-4 text-base text-on-dark-soft">{FOOTER_BLURB}</p>
+          </div>
+          <nav aria-label="Footer" className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-10 gap-y-6 sm:flex sm:justify-between sm:gap-x-10 lg:justify-end lg:gap-x-16 xl:gap-x-24">
+            {FOOTER_GROUPS.map((group, index) => (
+              // On a phone the first column spans two rows, so the other two stack beside it.
+              <div key={group.title} className={index === 0 ? 'max-sm:row-span-2' : undefined}>
+                <h2 className="text-sm font-semibold text-on-dark-soft">{group.title}</h2>
+                <ul className="mt-1">
+                  {group.links.map((link) => (
+                    // Each link is a whole 44 px target, rows 44 px apart, never overlapping.
+                    <li key={link.href}>
+                      <FooterAnchor link={link} tone="band" />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </nav>
-          {/* -mr-2: the 28 px mark sits in a 44 px target, so its drawn edge lines up with the content edge. */}
-          <a href={REPO_URL} aria-label="Shelfie on GitHub" className={`press-icon -mr-2 inline-flex size-tap shrink-0 items-center justify-center justify-self-end rounded-full ${ROUND_ON_DARK}`}>
-            <GitHubMark className="size-7" />
-          </a>
         </div>
-        <div data-footer-end="" className="flex flex-wrap items-center justify-between gap-x-6 border-t border-on-dark/15 pt-(--footer-pad)">
-          <p data-footer-note="" className="py-2 text-sm text-on-dark-soft max-lg:order-last max-lg:w-full">
+        <div data-footer-end="" className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-t border-on-dark/15 pt-6 max-sm:pt-4">
+          <p data-footer-note="" className="py-2 text-sm text-on-dark-soft max-sm:order-last max-sm:w-full">
             {TEST_MODE_LINE}
           </p>
-          <div className="flex items-center gap-x-3 max-lg:w-full min-[375px]:gap-x-5">
-            {FOOTER_SMALL.map((link) => (
-              <FooterAnchor key={link.href} link={link} tone="bandSmall" />
-            ))}
-            <span className="max-lg:ml-auto">
-              <SoundToggle className="text-on-dark-soft ring-on-dark/30 hover:bg-on-dark/15 hover:text-on-dark" />
-            </span>
-          </div>
+          <SoundToggle className="text-on-dark-soft ring-on-dark/30 hover:bg-on-dark/15 hover:text-on-dark" />
         </div>
       </div>
     </div>

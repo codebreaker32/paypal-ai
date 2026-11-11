@@ -1,6 +1,10 @@
-import { ChevronRight, CircleAlert, CircleCheck, CircleSlash, DoorOpen, Loader2, type LucideIcon } from 'lucide-react';
+'use client';
+
+import { useId, useState } from 'react';
+import { Check, ChevronRight, CircleAlert, CircleCheck, CircleSlash, Loader2, type LucideIcon } from 'lucide-react';
 import { Icon } from '@/components/ui/icon';
 import { cx } from '@/components/ui/cx';
+import { friendlyStep, type StepState } from '@/lib/assistant/friendly-steps';
 import { argSummary, requestJson, resultSummary } from './activity-format';
 import type { CallStatus, ToolCall } from './console-state';
 
@@ -9,6 +13,12 @@ const STATUS: Record<CallStatus, { icon: LucideIcon; label: string; className: s
   ok: { icon: CircleCheck, label: 'Done', className: 'text-ok' },
   error: { icon: CircleAlert, label: 'Error', className: 'text-error' },
   interrupted: { icon: CircleSlash, label: 'No answer', className: 'text-ink-muted' },
+};
+
+const STEP: Record<StepState, { icon: LucideIcon; label: string; className: string }> = {
+  running: { icon: Loader2, label: 'Working on it', className: 'animate-spin text-ink-muted' },
+  done: { icon: Check, label: 'Done', className: 'text-ok' },
+  error: { icon: CircleAlert, label: 'Didn’t work', className: 'text-error' },
 };
 
 function Json({ label, children }: { label: string; children: string }) {
@@ -22,6 +32,7 @@ function Json({ label, children }: { label: string; children: string }) {
   );
 }
 
+/** One call in the Details view: tool name, arguments → result, expanding to its time and the raw MCP JSON. */
 function CallRow({ call }: { call: ToolCall }) {
   const status = STATUS[call.status];
   const result = resultSummary(call);
@@ -51,51 +62,49 @@ function CallRow({ call }: { call: ToolCall }) {
   );
 }
 
-function Heading({ calls }: { calls: ToolCall[] }) {
-  const running = calls.some((c) => c.status === 'running');
-  return (
-    <>
-      <Icon icon={DoorOpen} size="sm" />
-      <span>
-        <span className="font-semibold text-ink-soft">Activity</span> · {calls.length} {calls.length === 1 ? 'call' : 'calls'} to the agent door{running ? '…' : ''}
-      </span>
-    </>
-  );
-}
-
-function CallList({ calls }: { calls: ToolCall[] }) {
-  return (
-    <ol className="flex flex-col py-1">
-      {calls.map((call) => (
-        <CallRow key={call.id} call={call} />
-      ))}
-    </ol>
-  );
-}
-
 /**
- * The tool calls the assistant made through the shop's agent door in one step of the conversation: name, arguments
- * and result (or error code), each expanding to its time and the raw MCP request and response. `collapsed` folds the
- * whole step to one line: its groups are named, because the rows inside are `group`s of their own.
+ * What the assistant did for the buyer in one step of the conversation, in plain words ("Checked the menu",
+ * "Placed your order · $27.00 · waiting for your PayPal approval"; `friendly-steps.ts`), each with a tick, a spinner
+ * or an error mark. A quiet "Details" button under them opens the technical view: every agent-door call with its
+ * arguments, result, time and raw MCP request and response. Each step carries `data-tool` and `data-state`. No
+ * `aria-live` of its own: every panel sits inside the conversation's `role="log"`, which already announces new steps.
  */
-export function ActivityPanel({ calls, collapsed = false }: { calls: ToolCall[]; collapsed?: boolean }) {
-  if (collapsed) {
-    return (
-      <details role="group" aria-label="Activity" className="group/activity rounded-(--card-radius) bg-surface-sunken">
-        <summary className="group/activity-head press-text flex min-h-tap list-none items-center gap-2 rounded-(--card-radius) px-3 py-2.5 type-meta text-ink-muted hover:bg-line [&::-webkit-details-marker]:hidden">
-          <Heading calls={calls} />
-          <Icon icon={ChevronRight} size="sm" className="ml-auto text-ink-muted transition-[rotate,color] duration-(--duration-fast) group-open/activity:rotate-90 group-hover/activity-head:text-ink" />
-        </summary>
-        <CallList calls={calls} />
-      </details>
-    );
-  }
+export function ActivityPanel({ calls }: { calls: ToolCall[] }) {
+  const [open, setOpen] = useState(false);
+  const detailsId = useId();
   return (
-    <div role="group" aria-label="Activity" className="rounded-(--card-radius) bg-surface-sunken">
-      <div className="flex items-center gap-2 px-3 pt-2.5 type-meta text-ink-muted">
-        <Heading calls={calls} />
+    <div role="group" aria-label="Activity" data-activity="" className="flex flex-col items-start">
+      <ul className="flex flex-col gap-1 py-0.5">
+        {calls.map((call) => {
+          const step = friendlyStep(call);
+          const mark = STEP[step.state];
+          return (
+            <li key={call.id} data-step="" data-tool={call.name} data-state={step.state} className="flex items-start gap-2 text-sm leading-5">
+              <Icon icon={mark.icon} size="sm" label={mark.label} className={cx('mt-0.5', mark.className)} />
+              <span className={cx('min-w-0 [overflow-wrap:anywhere]', step.state === 'error' ? 'font-semibold text-error' : 'text-ink-soft')}>{step.label}</span>
+            </li>
+          );
+        })}
+      </ul>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={detailsId}
+        onClick={() => setOpen((o) => !o)}
+        className="group/details press-text -ml-2 flex min-h-tap items-center gap-1 rounded-sm px-2 type-meta text-ink-muted hover:text-ink"
+      >
+        Details
+        <Icon icon={ChevronRight} size="sm" className={cx('transition-[rotate] duration-(--duration-fast)', open && 'rotate-90')} />
+      </button>
+      <div id={detailsId} hidden={!open} className="w-full rounded-(--card-radius) bg-surface-sunken">
+        {open && (
+          <ol aria-label="Agent door calls" className="flex flex-col py-1">
+            {calls.map((call) => (
+              <CallRow key={call.id} call={call} />
+            ))}
+          </ol>
+        )}
       </div>
-      <CallList calls={calls} />
     </div>
   );
 }

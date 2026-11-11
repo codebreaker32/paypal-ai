@@ -477,6 +477,20 @@ for (const [label, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
       await expect(pay).toHaveCount(1);
       await expect(pay).toBeVisible();
       await expect(pay).toHaveAttribute('href', /sandbox\.paypal\.com/);
+      // The log shows each tool call as a plain step at its turn; the raw calls wait behind Details.
+      const log = chat.getByRole('log', { name: 'Conversation' });
+      await expect(log.locator('[data-tool="get_shop_info"]')).toHaveText('Looked up the shop');
+      await expect(log.locator('[data-tool="list_products"]').first()).toHaveText(/^Found \S/);
+      await expect(log.locator('[data-tool="create_order"]')).toHaveText(`Placed your order · $${usd(total)} · waiting for your PayPal approval`);
+      await expect(log.locator('[data-step][data-state="done"]')).toHaveCount(await log.locator('[data-step]').count());
+      expect(await log.textContent()).not.toMatch(/create_order|list_products|\d ms|agent door/);
+      const details = log.getByRole('group', { name: 'Activity', exact: true }).last().getByRole('button', { name: 'Details' });
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
+      await details.click();
+      await expect(log.locator('summary', { hasText: 'create_order' })).toBeVisible();
+      if (SHOTS) await page.screenshot({ path: `${SHOTS}/chat-b-${label}-details.png` });
+      await details.click();
+      await expect(log.locator('summary', { hasText: 'create_order' })).toHaveCount(0);
       // The summary sits right above the message box.
       const s = (await summary.boundingBox())!;
       const footer = (await chat.locator('[data-assistant-footer]').boundingBox())!;

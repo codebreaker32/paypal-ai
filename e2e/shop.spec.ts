@@ -232,13 +232,20 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       // The second turn continues the first turn's session.
       expect(bodies).toEqual([{ text: FIXTURE.prompts[0] }, { text: FIXTURE.prompts[1], sessionId: SESSION_ID }]);
 
-      // Every tool call is listed with its arguments, result and time, and expands to the raw MCP JSON.
+      // Each tool call is one plain step (no tool names or timings); a quiet Details button opens the raw calls.
       const activity = region.getByRole('group', { name: 'Activity', exact: true });
       await expect(activity).toHaveCount(2);
-      await expect(activity.first()).toContainText('get_shop_info');
-      await expect(activity.first()).toContainText('Marigold Bakehouse · taking orders');
-      await expect(activity.first()).toContainText(/list_products/);
+      await expect(activity.first().locator('[data-tool="get_shop_info"]')).toHaveText('Looked up the shop');
+      await expect(activity.first().locator('[data-tool="list_products"]').first()).toHaveText('Found Almond croissant');
+      await expect(activity.first().locator('[data-step]').first()).toHaveAttribute('data-state', 'done');
+      await expect(region.locator('[data-tool="create_order"]')).toHaveText('Placed your order · $27.00 · waiting for your PayPal approval');
+      for (const text of await activity.allTextContents()) expect(text).not.toMatch(/get_shop_info|list_products|create_order|\d ms|agent door/);
+      const details = activity.last().getByRole('button', { name: 'Details' });
+      await expect(details).toHaveAttribute('aria-expanded', 'false');
       const create = region.locator('summary', { hasText: 'create_order' });
+      await expect(create).toHaveCount(0);
+      await details.click();
+      await expect(details).toHaveAttribute('aria-expanded', 'true');
       await expect(create).toContainText(/3 items · shipping/);
       await expect(create).toContainText(/\$27\.00 · awaiting approval/);
 
@@ -296,7 +303,7 @@ test.describe('console states', () => {
     await expect(door).toHaveAttribute('open', '');
   });
 
-  test('a newer turn folds the first turn\'s Activity to one line that opens again', async ({ page }) => {
+  test('an earlier turn keeps its plain steps, and its Details open by keyboard to the raw calls', async ({ page }) => {
     await replayConsole(page);
     await page.goto(`/s/${SLUG}`);
     await settle(page);
@@ -308,24 +315,33 @@ test.describe('console states', () => {
     await input.fill(FIXTURE.prompts[0]);
     await region.getByRole('button', { name: 'Send' }).click();
     await expect(region.getByText(/Should I place it\?/)).toBeVisible();
-    await expect(firstRow).toBeVisible();
+    await expect(activity.first().locator('[data-tool="get_shop_info"]')).toBeVisible();
 
     await input.fill(FIXTURE.prompts[1]);
     await region.getByRole('button', { name: 'Send' }).click();
     await expect(region.getByRole('link', { name: 'Approve $27.00 on PayPal' })).toBeVisible();
 
     await expect(activity).toHaveCount(2);
-    await expect(activity.first().locator('summary').first()).toHaveText('Activity · 3 calls to the agent door');
-    await expect(firstRow).toBeHidden();
-    await expect(region.locator('summary', { hasText: 'create_order' })).toBeVisible();
+    await expect(activity.first().locator('[data-step]')).toHaveCount(3);
+    await expect(activity.first().locator('[data-tool="get_shop_info"]')).toBeVisible();
+    await expect(firstRow).toHaveCount(0);
 
-    // Opened again, its rows are back, and each row's time is inside its own expansion.
-    await activity.first().locator('summary').first().click();
+    // Details, opened from the keyboard, lists the calls; each row's time is inside its own expansion.
+    const details = activity.first().getByRole('button', { name: 'Details' });
+    const panel = page.locator(`[id="${await details.getAttribute('aria-controls')}"]`);
+    await expect(panel).toBeHidden();
+    await details.focus();
+    await page.keyboard.press('Enter');
+    await expect(details).toHaveAttribute('aria-expanded', 'true');
+    await expect(panel).toBeVisible();
     await expect(firstRow).toBeVisible();
     await expect(activity.first().getByText(/^Took \d+ ms$/).first()).toBeHidden();
     await firstRow.click();
     await expect(activity.first().getByText(/^Took \d+ ms$/).first()).toBeVisible();
     await expectAccessible(page);
+    await details.press('Space');
+    await expect(details).toHaveAttribute('aria-expanded', 'false');
+    await expect(firstRow).toHaveCount(0);
   });
 
   test('a failed call stays in sight after a newer turn', async ({ page }) => {
@@ -354,8 +370,11 @@ test.describe('console states', () => {
     await region.getByRole('button', { name: 'Send' }).click();
     await expect(region.getByText('Noted.')).toBeVisible();
 
+    const failed = region.locator('[data-tool="create_order"]');
+    await expect(failed).toHaveAttribute('data-state', 'error');
+    await expect(failed).toHaveText('Couldn’t place the order. Try again.');
+    await region.getByRole('group', { name: 'Activity', exact: true }).getByRole('button', { name: 'Details' }).click();
     await expect(region.locator('summary', { hasText: 'OPTION_REQUIRED' })).toBeVisible();
-    await expect(region.locator('details[role="group"]')).toHaveCount(0);
   });
 
   test('rate limited: a plain message', async ({ page }) => {

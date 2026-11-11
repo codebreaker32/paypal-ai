@@ -118,6 +118,22 @@ test('the hero story ends with every text readable, uncut and uncovered, at 390,
   }
 });
 
+test('on phones the hero names all four steps, each beside its picture, in at least 14 px text', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  for (const width of [360, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    const steps = page.locator('[data-hero-phone-steps] > li');
+    await expect(steps).toHaveCount(4);
+    for (const [i, name] of ['Snap your menu', 'Get a live shop', 'AI shoppers order', 'Get paid on PayPal'].entries()) {
+      const label = steps.nth(i).getByText(name, { exact: true });
+      await expect(label).toBeVisible();
+      expect(parseFloat(await label.evaluate((el) => getComputedStyle(el).fontSize)), `${name} at ${width}`).toBeGreaterThanOrEqual(14);
+    }
+    expect(await heroTextProblems(page), `at ${width}`).toEqual([]);
+  }
+});
+
 test('with motion, the hero plays the story once and settles on the same final frame', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/');

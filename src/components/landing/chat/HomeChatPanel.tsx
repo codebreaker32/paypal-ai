@@ -230,7 +230,7 @@ export function HomeChatPanel(props: HomeChatPanelProps) {
         case 'activity':
           return (
             <div className="pl-9">
-              <ActivityPanel calls={entry.calls} collapsed={ctx.collapsed} />
+              <ActivityPanel calls={entry.calls} />
             </div>
           );
         case 'approval': {

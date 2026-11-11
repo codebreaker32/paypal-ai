@@ -30,7 +30,7 @@ test('the footer’s main links are one named navigation', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/help');
   const nav = page.locator('footer').getByRole('navigation', { name: 'Footer', exact: true });
-  expect(await nav.getByRole('link').allInnerTexts()).toEqual(['Browse', 'Product', 'Help', 'Legal', 'Open Source']);
+  expect(await nav.getByRole('link').allInnerTexts()).toEqual(['Browse shops', 'How it works', 'FAQ', 'Help', 'agents.txt', 'llms.txt', 'Terms', 'Privacy', 'Open source on GitHub']);
 });
 
 test('404, logged out: the brief’s copy with Go to Shelfie and Log in', async ({ page }) => {
