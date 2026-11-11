@@ -1,6 +1,5 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
-import { Logo, LogoMark } from '@/components/brand/Logo';
 import { cx } from '@/components/ui/cx';
 import { STEPS } from '@/components/landing/HowItWorks';
 
@@ -48,7 +47,6 @@ function PhoneBand() {
   return (
     <div className="border-b border-blush-ring/60 bg-blush-band px-gutter py-4 lg:hidden print:hidden">
       <div className="mx-auto flex max-w-(--auth-card-wide-w) items-center gap-3">
-        <LogoMark className="size-8" />
         <p className="text-base font-semibold text-ink">{LINE}</p>
       </div>
     </div>
@@ -71,8 +69,8 @@ function PhotoPanel({ current }: { current?: number }) {
         className="-z-20 object-cover object-[30%_50%]"
       />
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-(image:--auth-scrim)" />
-      <div className="flex w-full flex-col justify-between gap-12 px-10 py-12 xl:px-14 xl:py-14">
-        <Logo size="lg" className="self-start text-on-dark" label="Shelfie" />
+      {/* No logo here (review F5): the header's logo is the page's one. */}
+      <div className="flex w-full flex-col justify-end gap-12 px-10 py-12 xl:px-14 xl:py-14">
         <div className="flex flex-col gap-8">
           <p className="type-band-closing text-balance">{LINE}</p>
           <ol className="flex flex-col gap-5">
