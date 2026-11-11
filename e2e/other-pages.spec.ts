@@ -26,6 +26,19 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
   });
 }
 
+// The public header fits narrow phones: no sideways scroll at 320, 360 (where it once overflowed by 16 px) or 390 px.
+for (const width of [320, 360, 390]) {
+  test(`at ${width} px no public page scrolls sideways`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 });
+    for (const path of ['/?chat=0', '/browse', '/help', '/terms', '/privacy']) {
+      await page.goto(path);
+      await settle(page);
+      const { scroll, inner } = await page.evaluate(() => ({ scroll: document.documentElement.scrollWidth, inner: window.innerWidth }));
+      expect(scroll, `${path} at ${width} px`).toBeLessThanOrEqual(inner);
+    }
+  });
+}
+
 test('the footer’s main links are one named navigation', async ({ page }) => {
   await page.setViewportSize(DESKTOP);
   await page.goto('/help');

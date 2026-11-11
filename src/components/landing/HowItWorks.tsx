@@ -5,7 +5,8 @@ import { AccentMarks } from './art';
 /**
  * Step 1 is the seller's side of the camera: a real photo of a handwritten price list (Unsplash License; see
  * docs/ASSETS.md), with nothing drawn over it. Steps 2 and 3 show Shelfie itself: one focal region of the real app on
- * the demo shop, cropped about 480 CSS px wide so its text stays readable. All are 960×720 WebP in public/landing/,
+ * the demo shop, cropped about 480 to 520 CSS px wide so its text stays readable (step 2 is retaken by the `step 2` test in
+ * e2e/home-chat.spec.ts). All are 960×720 WebP in public/landing/,
  * in the same 4:3 frame.
  */
 const STEPS: { title: string; body: string; image: string; alt: string }[] = [
@@ -19,7 +20,7 @@ const STEPS: { title: string; body: string; image: string; alt: string }[] = [
     title: '2. AI shoppers order',
     body: 'Buyers (or their AI assistants) can order.',
     image: '/landing/step-order.webp',
-    alt: 'The shop’s AI assistant has called create_order and shows the button Approve $27.00 on PayPal.',
+    alt: 'The shop’s AI assistant: “Placed your order · $25.50 · waiting for your PayPal approval”, the order summary and the button Approve $25.50 on PayPal.',
   },
   {
     title: '3. Get paid on PayPal',

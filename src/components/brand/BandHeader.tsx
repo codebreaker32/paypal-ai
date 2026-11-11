@@ -109,7 +109,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
     <>
       <div className="flex shrink-0 items-center gap-6 lg:gap-10">
         <Link href={view.logoHref} aria-label="Shelfie home" className="press-text -mx-1 inline-flex min-h-tap shrink-0 items-center rounded-sm px-1">
-          <Logo size="sm" className="max-[22.5rem]:h-5 md:h-7" />
+          <Logo size="sm" className="max-[24rem]:h-5 md:h-7" />
         </Link>
         <nav aria-label="Main" className="hidden items-center md:flex">
           <ul className="flex items-center">
@@ -144,10 +144,10 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
           <AccountMenu email={view.email} placement="down" />
         ) : (
           <>
-            <Link href="/login" className={cn(LINK, 'max-[22.5rem]:hidden max-md:px-2')}>
+            <Link href="/login" className={cn(LINK, 'max-[24rem]:hidden max-md:px-2')}>
               Log in
             </Link>
-            <ButtonLink href="/signup" variant="brand" className={cn(CTA, 'max-md:min-h-9 max-md:px-3.5 max-md:text-sm max-[22.5rem]:px-3')}>
+            <ButtonLink href="/signup" variant="brand" className={cn(CTA, 'max-md:min-h-9 max-md:px-3.5 max-md:text-sm max-[24rem]:px-3')}>
               Add your shop
             </ButtonLink>
           </>

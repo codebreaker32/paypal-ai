@@ -8,6 +8,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import sharp from 'sharp';
 import { getConfig } from '../src/lib/config';
 import { getDb } from '../src/lib/db';
 import * as itemsRepo from '../src/lib/db/repos/items';
@@ -522,3 +523,46 @@ for (const [label, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
     });
   });
 }
+
+// How it works, step 2 (public/landing/step-order.webp): the same story at a 520 px viewport and device scale 2, the
+// log scrolled to the placed order's plain step with the pinned PayPal button below it, cropped 4:3 and saved as a
+// 960×720 WebP (q80), like steps 1 and 3. Run: HIW_SHOT=1 E2E_PORT=3231 npx playwright test e2e/home-chat.spec.ts -g "step 2"
+test.describe('How it works step 2 picture', () => {
+  test.skip(!process.env.HIW_SHOT, 'set HIW_SHOT=1 to retake public/landing/step-order.webp');
+  test.use({ viewport: { width: 520, height: 900 }, deviceScaleFactor: 2 });
+
+  test('step 2: the placed order and its PayPal button', async ({ page }) => {
+    await mockAssistant(page);
+    await page.goto('/?chat=0');
+    await settle(page);
+    await page.getByRole('button', { name: LAUNCHER, exact: true }).click();
+    const chat = panel(page);
+    await expect(chat.getByText(GREETING)).toBeVisible();
+    await say(page, ASK);
+    await expect(chat.getByRole('list', { name: 'Items from the menu' })).toBeVisible();
+    await say(page, SWAP);
+    await expect(chat.getByText(/Should I place it\?/)).toBeVisible();
+    await say(page, YES);
+    const pay = chat.getByRole('link', { name: /^Approve \$.* on PayPal$/ });
+    await expect(pay).toBeVisible();
+    await chat.getByRole('textbox', { name: 'Message to the assistant' }).blur();
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(700);
+    // From just below the buyer's "Yes, place it" to below the PayPal button, the panel's full width, 4:3, so the text
+    // reads at about the scale of steps 1 and 3. To fit, the "Order … placed · approve it below" note (the summary below
+    // says the same) is left out, and the suggestion row under the summary is hidden so the frame ends on white.
+    await chat.getByRole('button', { name: 'Did my payment go through?' }).evaluate((el) => (el.parentElement!.style.visibility = 'hidden'));
+    await chat.getByText(/placed · approve it below/).evaluate((el) => {
+      const entry = el.closest<HTMLElement>('[data-entry]') ?? el;
+      entry.style.display = 'none';
+    });
+    await page.waitForTimeout(300);
+    const log = chat.getByRole('log', { name: 'Conversation' });
+    const yes = (await log.locator('[data-entry="user"]').last().boundingBox())!;
+    const button = (await pay.boundingBox())!;
+    const clip = { x: 0, y: Math.round(yes.y + yes.height + 4), width: 520, height: 390 };
+    expect(clip.y + clip.height).toBeGreaterThan(button.y + button.height + 8);
+    const png = await page.screenshot({ clip });
+    await sharp(png).resize(960, 720).webp({ quality: 80 }).toFile(path.join('public', 'landing', 'step-order.webp'));
+  });
+});
