@@ -116,7 +116,7 @@ export const SEED_SHOPS: SeedShopDef[] = [
     about: 'Houseplants, hand-poured candles and cold-process soap, made in a garage workshop. Market pickup or shipped.',
     kind: 'goods',
     fulfillment: 'both',
-    pickupNotes: 'Pickup Saturdays at the Elm St market, stall 14 · shipping in 3–5 days',
+    pickupNotes: 'Saturdays at the Elm St market, stall 14 · shipping in 3–5 days',
     shippingFeeCents: 600,
     category: 'gifts',
     photos: 'fern-and-wick',
