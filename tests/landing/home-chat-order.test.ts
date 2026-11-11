@@ -105,6 +105,10 @@ describe('home chat helpers', () => {
       expect(readBackFulfillment('Free shipping, collect it at the market.')).toBe('pickup');
       expect(readBackFulfillment('Delivered to 12 Elm St.')).toBe('shipping');
       expect(readBackFulfillment('Total $8.00.')).toBeNull();
+      // PayPal collecting the address is not the buyer collecting the order.
+      expect(readBackFulfillment('Shipped for $8.00. PayPal will collect your address. Should I place it?')).toBe('shipping');
+      expect(readBackFulfillment('Free delivery to Austin; PayPal will collect your address.')).toBeNull();
+      expect(readBackFulfillment('Ready for collection on Saturday.')).toBe('pickup');
     });
   });
 });

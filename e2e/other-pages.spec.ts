@@ -93,7 +93,7 @@ test('Help has every anchor, the brief’s copy, and a contact', async ({ page }
 });
 
 for (const [path, title, required] of [
-  ['/terms', 'Terms', ['early access', 'PayPal sandbox', 'allergens', 'PayPal’s own terms', 'no warranty', 'close your account']],
+  ['/terms', 'Terms', ['early access', 'PayPal sandbox', 'allergens', 'PayPal’s own terms', 'no warranty', 'delete your account and its shops yourself']],
   ['/privacy', 'Privacy', ['hash of your password', 'hash of your recovery key', 'PayPal email', 'ship-to', 'hashed caller id', 'Conversations with the shop assistant', 'Anthropic', 'Pexels', 'session cookie', 'returning cookie', 'owner cookie', 'no analytics and no ads']],
 ] as const) {
   test(`${title} carries the draft heading and what the brief requires`, async ({ page }) => {

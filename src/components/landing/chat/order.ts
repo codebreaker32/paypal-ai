@@ -68,7 +68,9 @@ export function latestOrder(state: ConsoleState): PlacedOrder | null {
 export function readBackFulfillment(text: string): 'pickup' | 'shipping' | null {
   // "no shipping fee" or "free delivery" says nothing about shipping this order.
   const t = text.replace(/\b(?:no|free|without)\s+(?:shipping|delivery)(?:\s+(?:fee|cost|charge))?/gi, ' ');
-  const pickup = /\bpick(?:ing)?[- ]?up\b|\bcollect(?:ion|ing)?\b/i.test(t);
+  // "collect" counts only as the buyer collecting the order ("collect it", "for collection"), never "PayPal will
+  // collect your address".
+  const pickup = /\bpick(?:ing)?[- ]?up\b|\bcollect(?:ing)?\s+(?:it|them|your order|the order)\b|\b(?:for|ready for|at)\s+collection\b/i.test(t);
   const shipping = /\bship(?:s|ped|ping)?\b|\bdeliver(?:y|ed|s)?\b|\bpost(?:ed|age)\b|\bmail(?:ed)?\b/i.test(t);
   if (pickup === shipping) return null;
   return pickup ? 'pickup' : 'shipping';
