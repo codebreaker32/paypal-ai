@@ -9,7 +9,7 @@ import { takesOrders } from '@/lib/orders/pricing';
 import { seedShop } from '../helpers/shop';
 
 describe('listBrowseShops', () => {
-  it('lists every live shop that takes orders, newest first, and nothing else', () => {
+  it('lists every live shop that takes orders, the example shop first and then newest first, and nothing else', () => {
     const db = createTestDb();
     seedShop(db); // Marigold: the reserved slug, paid to the platform
     seedShop(db, { name: 'Rosa Bakes' });
@@ -19,10 +19,18 @@ describe('listBrowseShops', () => {
     seedShop(db, { name: 'Ravi Bike Repair' });
 
     const listed = listBrowseShops(db);
-    expect(listed.map((s) => s.name)).toEqual(['Ravi Bike Repair', 'Rosa Bakes', 'Marigold Bakehouse']);
+    expect(listed.map((s) => s.name)).toEqual(['Marigold Bakehouse', 'Ravi Bike Repair', 'Rosa Bakes']);
     // The same shops as the discovery files, and exactly the ones whose door takes orders.
-    expect(listed.map((s) => s.slug)).toEqual(shops.listOrderableForIndex(db, INDEX_LIMIT).map((s) => s.slug));
+    expect(listed.map((s) => s.slug).sort()).toEqual(shops.listOrderableForIndex(db, INDEX_LIMIT).map((s) => s.slug).sort());
     for (const s of listed) expect(takesOrders(shops.bySlug(db, s.slug)!)).toBe(true);
+  });
+
+  it('lists newest first when the example shop is not live', () => {
+    const db = createTestDb();
+    seedShop(db, { status: 'paused' }); // Marigold, not taking orders
+    seedShop(db, { name: 'Rosa Bakes' });
+    seedShop(db, { name: 'Ravi Bike Repair' });
+    expect(listBrowseShops(db).map((s) => s.name)).toEqual(['Ravi Bike Repair', 'Rosa Bakes']);
   });
 
   it('gives each card its words, pictures and listed item names', () => {

@@ -59,14 +59,17 @@ function shopLine(row: Row, names: string[]): string {
   return sellsLine(names);
 }
 
-/** Every live shop that takes orders, newest first, with its card's words and pictures. */
+/**
+ * Every live shop that takes orders, with its card's words and pictures: the example shop (Marigold, the one the home
+ * chat, README and video use) first when it is listed, then newest first.
+ */
 export function listBrowseShops(db: Db): BrowseShop[] {
   const rows = db
     .prepare(
       `SELECT id, slug, name, about, kind, fulfillment, pickup_notes, cover_url, logo_url, menu_photo_paths, category
-       FROM shops WHERE ${ORDERABLE_WHERE} ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC`,
+       FROM shops WHERE ${ORDERABLE_WHERE} ORDER BY slug = ? DESC, COALESCE(published_at, created_at) DESC, rowid DESC`,
     )
-    .all(RESERVED_SLUG) as Row[];
+    .all(RESERVED_SLUG, RESERVED_SLUG) as Row[];
   const itemsOf = db.prepare(
     `SELECT name, section, description, category, photo_url FROM items
      WHERE shop_id = ? AND status IN (${LISTED_STATUSES.map(() => '?').join(',')}) ORDER BY sort`,
