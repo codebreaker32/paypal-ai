@@ -29,6 +29,7 @@ describe('the site footer links', () => {
   });
   it('links where the brief says', () => {
     expect(Object.fromEntries(all.map((l) => [l.label, l.href]))).toEqual({
+      Browse: '/browse',
       Product: '/#how-it-works',
       Help: '/help',
       Legal: '/terms',
