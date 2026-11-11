@@ -135,6 +135,12 @@ export function publish(db: Db, id: string): Shop {
 }
 
 /**
+ * Live and able to take orders (`takesOrders`, src/lib/orders/pricing.ts, in SQL): one `?` parameter, `RESERVED_SLUG`.
+ * The shops /agents.txt, /llms.txt and /browse list.
+ */
+export const ORDERABLE_WHERE = `status = 'live' AND (payee_email IS NOT NULL OR slug = ?)`;
+
+/**
  * The shops /agents.txt and /llms.txt list: live and able to take orders (a PayPal email, or the demo shop, which is
  * paid to the platform). Newest first, at most `limit`. Not paused, not draft.
  * The payee condition is `canBePaid` (src/lib/domain/payee.ts) written in SQL, which can't call it: change both together
@@ -143,7 +149,7 @@ export function publish(db: Db, id: string): Shop {
 export function listOrderableForIndex(db: Db, limit: number): { name: string; slug: string; about: string }[] {
   return db
     .prepare(
-      `SELECT name, slug, about FROM shops WHERE status = 'live' AND (payee_email IS NOT NULL OR slug = ?)
+      `SELECT name, slug, about FROM shops WHERE ${ORDERABLE_WHERE}
        ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC LIMIT ?`,
     )
     .all(RESERVED_SLUG, limit) as { name: string; slug: string; about: string }[];

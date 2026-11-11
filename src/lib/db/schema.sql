@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS shops (
   about TEXT NOT NULL DEFAULT '',
   cover_url TEXT,               -- shop cover photo, site-relative like items.photo_url; null = designed fallback
   logo_url TEXT,                -- shop logo, a square WebP at /i/<file>; null = the avatar uses the cover, a menu photo or a drawing
+  category TEXT,                -- what /browse files it under (src/lib/domain/shop-category.ts); null = under All only
   kind TEXT NOT NULL DEFAULT 'food' CHECK (kind IN ('food','goods','services')),
   fulfillment TEXT NOT NULL DEFAULT 'pickup' CHECK (fulfillment IN ('pickup','shipping','both')),
   pickup_notes TEXT NOT NULL DEFAULT '',
