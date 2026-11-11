@@ -23,7 +23,7 @@ const TAB =
 
 /**
  * The two-way switch at the top of the assistant's box (the dock from 1024 px, the sheets below it): `Assistant` and
- * `Your order · 2  $9.00`. Tabs with roving focus and arrow keys; the count gives a short bump whenever it changes.
+ * `Your order · 2  $9.00` (no count while the cart is empty). Tabs with roving focus and arrow keys; the count gives a short bump whenever it changes.
  */
 export function DockSwitch({ active, count, itemsCents, onSwitch, disabled = false, ids }: DockSwitchProps) {
   // The count the page started with doesn't bump; every change after it does.
@@ -53,12 +53,16 @@ export function DockSwitch({ active, count, itemsCents, onSwitch, disabled = fal
     <div data-dock-switch="" className="flex min-h-(--assistant-header-h) shrink-0 items-center px-4 py-1.5">
       <div role="tablist" aria-label="Assistant or your order" onKeyDown={onKeyDown} className="grid w-full grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-1 rounded-full bg-surface-sunken p-1">
         <button {...tab('assistant')} className={cx(TAB, look('assistant'))}>Assistant</button>
-        <button {...tab('order')} className={cx(TAB, look('order'))} aria-label={count > 0 ? `Your order ${count} ${formatUSD(itemsCents)} (${count} ${count === 1 ? 'item' : 'items'})` : 'Your order 0 (empty)'}>
+        <button {...tab('order')} className={cx(TAB, look('order'))} aria-label={count > 0 ? `Your order ${count} ${formatUSD(itemsCents)} (${count} ${count === 1 ? 'item' : 'items'})` : 'Your order (empty)'}>
           <span className="truncate">Your order</span>{' '}
-          {/* Keyed by the count: each change remounts it and plays the bump once (none under reduced motion). */}
-          <span key={count} data-dock-count={count} aria-hidden="true" data-bump={count !== firstCount || undefined} className={cx('dock-count inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full px-1.5 text-sm font-bold type-figures', count > 0 ? 'bg-ink text-surface' : 'bg-line text-ink-soft')}>
-            {count}
-          </span>{' '}
+          {/* Only a cart with something in it shows a count: right after the assistant places an order, "0" read as if
+              that order were empty. Keyed by the count: each change remounts it and plays the bump once (none under
+              reduced motion). */}
+          {count > 0 && (
+            <span key={count} data-dock-count={count} aria-hidden="true" data-bump={count !== firstCount || undefined} className="dock-count inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-ink px-1.5 text-sm font-bold text-surface type-figures">
+              {count}
+            </span>
+          )}{' '}
           {count > 0 && (
             <span aria-hidden="true" className="shrink-0 font-medium text-ink-soft type-figures max-[24.375rem]:hidden">
               {formatUSD(itemsCents)}

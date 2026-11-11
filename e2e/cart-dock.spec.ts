@@ -44,7 +44,8 @@ test.describe('desktop dock', () => {
     const dock = page.locator('[data-assistant-dock]');
     await expect(dock.getByRole('heading', { name: 'Order with an assistant' })).toBeVisible();
     await expect(tab(dock, 'Assistant')).toHaveAttribute('aria-selected', 'true');
-    await expect(tab(dock, 'Your order 0 (empty)')).toHaveAttribute('aria-selected', 'false');
+    await expect(tab(dock, 'Your order (empty)')).toHaveAttribute('aria-selected', 'false');
+    await expect(dock.locator('[data-dock-count]')).toHaveCount(0);
 
     await addPlus(page, FIRST).click();
     await expect(tile(page, FIRST).getByRole('button', { name: `Remove one ${FIRST}` })).toBeVisible();
@@ -97,7 +98,7 @@ test.describe('phone sheets', () => {
     await load(page);
     const sheet = page.locator('dialog[open]');
     await expect(sheet.getByRole('heading', { name: 'Order with an assistant' })).toBeVisible();
-    await expect(tab(sheet, 'Your order 0 (empty)')).toBeVisible();
+    await expect(tab(sheet, 'Your order (empty)')).toBeVisible();
     await sheet.getByRole('button', { name: 'Close the assistant' }).click();
     await expect(sheet).toHaveCount(0);
 
