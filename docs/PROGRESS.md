@@ -464,3 +464,4 @@ Sessions 1–3 ended within minutes (each ended its turn after launching jobs, w
   - Clarity test 8 passed 6/6 (`docs/judge/video-clarity-8.md`).
   - Note: `project/clips/` held 9 Nov takes that the render keeps over new ones. They were moved to /tmp and the fresh clips hard-linked in.
 - **Needs from human** (unchanged): make the repo public, the optional Render deploy, upload `video/out/shelfie-demo.mp4` to YouTube, fill in the `docs/SUBMISSION.md` links, submit on Devpost.
+- Run 9: the hero gets the owner's `Add your shop →` pill (to /signup) and `See an example shop`, stacked full width on phones; screenshots in docs/preview/hero-cta-*.png; unit, typecheck, lint, build and landing/other-pages e2e pass.
