@@ -44,19 +44,19 @@ test.describe('desktop dock', () => {
     const dock = page.locator('[data-assistant-dock]');
     await expect(dock.getByRole('heading', { name: 'Order with an assistant' })).toBeVisible();
     await expect(tab(dock, 'Assistant')).toHaveAttribute('aria-selected', 'true');
-    await expect(tab(dock, 'Your order, empty')).toHaveAttribute('aria-selected', 'false');
+    await expect(tab(dock, 'Your order 0 (empty)')).toHaveAttribute('aria-selected', 'false');
 
     await addPlus(page, FIRST).click();
     await expect(tile(page, FIRST).getByRole('button', { name: `Remove one ${FIRST}` })).toBeVisible();
     await expect(toast(page)).toContainText(`${FIRST} added`);
     await expect(toast(page).getByRole('button', { name: 'View order' })).toBeVisible();
-    await expect(tab(dock, /^Your order, 1 item, \$/)).toBeVisible();
+    await expect(tab(dock, /^Your order 1 \$[\d.]+ \(1 item\)$/)).toBeVisible();
 
     await addPlus(page, SECOND).click();
     await expect(toast(page)).toContainText(`${SECOND} added`);
     // One toast for repeated adds, replaced in place.
     await expect(toast(page).getByRole('button', { name: 'View order' })).toHaveCount(1);
-    await expect(tab(dock, /^Your order, 2 items, \$/)).toBeVisible();
+    await expect(tab(dock, /^Your order 2 \$[\d.]+ \(2 items\)$/)).toBeVisible();
     await expect(dock.locator('[data-dock-count]')).toHaveText('2');
     await settle(page);
     await page.screenshot({ path: `${SHOTS}/cart-dock-1440-added.png` });
@@ -83,7 +83,7 @@ test.describe('desktop dock', () => {
 
     // The toast's View order switches the dock to the order.
     await addPlus(page, FIRST).click();
-    await expect(tab(dock, /^Your order, 3 items/)).toBeVisible();
+    await expect(tab(dock, /^Your order 3 \$[\d.]+ \(3 items\)$/)).toBeVisible();
     await toast(page).getByRole('button', { name: 'View order' }).click();
     await expect(dock.locator('[data-cart-panel]')).toHaveCount(1);
     await expect(tab(dock, /^Your order/)).toHaveAttribute('aria-selected', 'true');
@@ -97,7 +97,7 @@ test.describe('phone sheets', () => {
     await load(page);
     const sheet = page.locator('dialog[open]');
     await expect(sheet.getByRole('heading', { name: 'Order with an assistant' })).toBeVisible();
-    await expect(tab(sheet, 'Your order, empty')).toBeVisible();
+    await expect(tab(sheet, 'Your order 0 (empty)')).toBeVisible();
     await sheet.getByRole('button', { name: 'Close the assistant' }).click();
     await expect(sheet).toHaveCount(0);
 
@@ -117,7 +117,7 @@ test.describe('phone sheets', () => {
     await toast(page).getByRole('button', { name: 'View order' }).click();
     await expect(sheet.locator('[data-cart-line]')).toHaveCount(2);
     await expect(sheet.getByRole('button', { name: /^Approve \$.* on PayPal$/ })).toBeVisible();
-    await expect(tab(sheet, /^Your order, 2 items/)).toHaveAttribute('aria-selected', 'true');
+    await expect(tab(sheet, /^Your order 2 \$[\d.]+ \(2 items\)$/)).toHaveAttribute('aria-selected', 'true');
     await settle(page);
     await page.screenshot({ path: `${SHOTS}/cart-dock-390-order.png` });
 

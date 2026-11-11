@@ -152,7 +152,8 @@ test.describe('docked from 1024 px', () => {
         await expectDocked(page);
       }
       await page.evaluate(() => window.scrollTo(0, 0));
-      const panelHeader = await box(page.locator('[data-assistant-header]'));
+      // The dock's top row is its Assistant / Your order switch (run 14): that row lines up with the site header.
+      const panelHeader = await box(page.locator('[data-assistant-dock] [data-dock-switch]'));
       const siteHeader = await box(page.locator('header').first());
       expect(Math.abs(panelHeader.y + panelHeader.height - (siteHeader.y + siteHeader.height))).toBeLessThanOrEqual(1);
     });
@@ -1124,7 +1125,8 @@ test.describe('opening the dock at the top of the page', () => {
       await expect(page.locator('[data-assistant-dock]')).toBeVisible();
       await page.evaluate(() => new Promise(requestAnimationFrame));
       expect(await page.evaluate(() => window.scrollY)).toBe(0);
-      const panelHeader = await box(page.locator('[data-assistant-header]'));
+      // The dock's top row is its Assistant / Your order switch (run 14): that row lines up with the site header.
+      const panelHeader = await box(page.locator('[data-assistant-dock] [data-dock-switch]'));
       const siteHeader = await box(page.locator('header').first());
       expect(Math.abs(panelHeader.y + panelHeader.height - (siteHeader.y + siteHeader.height))).toBeLessThanOrEqual(1);
       await page.getByRole('button', { name: 'Close the assistant' }).click();
