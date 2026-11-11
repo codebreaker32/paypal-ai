@@ -312,21 +312,14 @@ test('on a phone: Check cards keep their actions on one line, and example photos
   expect((await remove.getByText('Remove').first().boundingBox())!.width).toBeLessThanOrEqual(1); // an icon on a phone, its word for screen readers
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-  // Examples: the line, the corner mark on the photo, and the row's words only for screen readers.
-  await expect(page.getByText('Example photos are marked in the corner. Tap one to use your own.')).toBeVisible();
+  // Examples: one disclosure per row (review F6), the seller's visible line; no corner tag and no line above the list.
+  await expect(page.getByText('Example photos are marked in the corner', { exact: false })).toHaveCount(0);
   const ready = page.getByRole('region', { name: /Ready for PayPal/ });
-  const mark = ready.locator('[data-example-mark]').first();
-  await expect(mark).toBeVisible();
-  await expect(mark).toHaveText('Example');
-  const row = mark.locator('xpath=ancestor::li[1]');
-  const thumb = (await mark.locator('xpath=ancestor::label[1]').boundingBox())!;
-  const tag = (await mark.boundingBox())!;
-  expect(tag.x).toBeGreaterThanOrEqual(thumb.x - 1);
-  expect(tag.y).toBeGreaterThanOrEqual(thumb.y - 1);
-  expect(tag.x + tag.width).toBeLessThanOrEqual(thumb.x + thumb.width + 1);
-  expect(tag.y + tag.height).toBeLessThanOrEqual(thumb.y + thumb.height + 1);
-  const caption = (await row.locator('[data-example-caption]').boundingBox())!;
-  expect(caption.width).toBeLessThanOrEqual(1);
+  await expect(ready.locator('[data-example-mark]')).toHaveCount(0);
+  const caption = ready.locator('[data-example-caption]').first();
+  await expect(caption).toBeVisible();
+  await expect(caption).toHaveText('Example photo, replace with yours');
+  const row = caption.locator('xpath=ancestor::li[1]');
   await expect(row.getByLabel(/^Add a photo of /)).toBeAttached();
 
   // The narrowest phones keep the card's buttons inside the card.

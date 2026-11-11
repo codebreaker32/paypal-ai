@@ -60,7 +60,6 @@ function CardPhoto({ item, onError }: { item: ItemWithVariants; onError: (messag
       itemId={item.id}
       name={item.name}
       {...reviewPicture(item, photo.shopKind, photo.pictures)}
-      markExample
       size="sm"
       onChange={(url) => photo.onPhoto(item.id, url)}
       onError={onError}

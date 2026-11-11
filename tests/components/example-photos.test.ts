@@ -90,7 +90,7 @@ describe('example photos', () => {
   });
 
   describe('setup review on a phone (S5)', () => {
-    const LINE = 'Example photos are marked in the corner. Tap one to use your own.';
+    const OLD_LINE = 'Example photos are marked in the corner';
     const captionTag = (html: string) => html.match(/<span[^>]*data-example-caption[^>]*>/)![0];
     const screen = (items: ItemWithVariants[]) =>
       renderToStaticMarkup(
@@ -106,44 +106,25 @@ describe('example photos', () => {
         }),
       );
 
+    // One disclosure per example (review F6): the seller's line, visible on every surface; no corner tag on the photo
+    // and no line above the list.
     it.each([
       ['review ready row', review],
       ['review in-person row', inPerson],
-    ] as const)('%s: the words go to screen readers only, and the mark on the photo says it', (_, render) => {
-      const html = render(item());
-      expect(captionTag(html)).toMatch(/\bsr-only\b/);
-      expect(html).toContain('data-example-mark');
-      const own = render(item({ photoUrl: OWN }));
-      expect(own).not.toContain('data-example-mark');
-    });
-
-    it.each([
       ['Menu tab', menuTab],
       ['review issue card', issueCard],
-    ] as const)('%s keeps its visible words', (_, render) => {
-      expect(captionTag(render(item()))).not.toMatch(/\bsr-only\b/);
+    ] as const)('%s: shows the seller’s line, visible, and no corner tag', (_, render) => {
+      const html = render(item());
+      expect(captionTag(html)).not.toMatch(/\bsr-only\b/);
+      expect(html).not.toContain('data-example-mark');
+      expect(html).not.toContain('>Example<');
     });
 
-    it('marks the example on a flagged card too, so the line above the list is true of the whole screen', () => {
-      expect(issueCard(item())).toContain('data-example-mark');
-    });
-
-    it('a drawing carries no mark', () => {
-      expect(review(item({ name: 'Mystery thing', sourceText: 'Mystery thing', section: null }))).not.toContain('data-example-mark');
-    });
-
-    it('says the line only while an example shows in the list', () => {
-      const draft = item({ status: 'draft' });
-      expect(screen([draft])).toContain(LINE);
-      expect(screen([{ ...draft, status: 'in_person' }])).toContain(LINE);
-      expect(screen([{ ...draft, photoUrl: OWN }])).not.toContain(LINE);
-      expect(screen([{ ...draft, status: 'removed' }])).not.toContain(LINE);
-      expect(screen([{ ...draft, name: 'Mystery thing', sourceText: 'Mystery thing', section: null }])).not.toContain(LINE);
-    });
-
-    it('the line comes before the Ready for PayPal heading', () => {
+    it('says nothing above the list about examples', () => {
       const html = screen([item({ status: 'draft' })]);
-      expect(html.indexOf(LINE)).toBeLessThan(html.indexOf('Ready for PayPal'));
+      expect(html).toContain(CAPTION);
+      expect(html).not.toContain(OLD_LINE);
+      expect(html).not.toContain('data-example-mark');
     });
 
     it('a flagged card fits Looks right, Fix and an icon-only Remove on one line under 640 px', () => {
