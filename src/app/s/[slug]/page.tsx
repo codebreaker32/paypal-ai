@@ -17,6 +17,7 @@ import { jsonLdScript, shopJsonLd } from '@/lib/discovery/jsonld';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shopsRepo from '@/lib/db/repos/shops';
 import { menuPhotoAvatarSrc } from '@/lib/domain/avatar';
+import { parseShopCategory, shopCategoryLabel } from '@/lib/domain/shop-category';
 import { LISTED_STATUSES } from '@/lib/domain/listed';
 import { formatUSD } from '@/lib/domain/money';
 import { takesOrders } from '@/lib/orders/pricing';
@@ -44,6 +45,12 @@ export async function generateMetadata({ params }: PageProps<'/s/[slug]'>): Prom
 }
 
 const KIND: Record<Shop['kind'], string> = { food: 'Food', goods: 'Goods', services: 'Services' };
+
+/** What the shop is, in the words /browse files it under (its category), else its kind. */
+function shopKindLabel(shop: Shop): string {
+  const category = parseShopCategory(shop.category);
+  return category ? shopCategoryLabel(category) : KIND[shop.kind];
+}
 
 /** A meta item after the first: its `·` hangs in the gap before it, so a line break hides the dot past the row's clipped edge. */
 function MetaItem({ children, className }: { children: ReactNode; className?: string }) {
@@ -122,7 +129,7 @@ function Intro({ shop, items, photoCount }: { shop: Shop; items: ItemWithVariant
         <div className="min-w-0 flex-1">
           <h1 className="type-display [overflow-wrap:anywhere]">{shop.name}</h1>
           <p className="mt-2 flex flex-wrap items-center gap-x-5 overflow-hidden text-[0.9375rem] text-ink-muted">
-            <span>{KIND[shop.kind]}</span>
+            <span>{shopKindLabel(shop)}</span>
             <MetaItem>{shop.fulfillment === 'both' ? 'Pickup or shipping' : shop.fulfillment === 'pickup' ? 'Pickup' : 'Shipping'}</MetaItem>
             <MetaItem className="font-semibold text-ink">Paid with PayPal</MetaItem>
           </p>
