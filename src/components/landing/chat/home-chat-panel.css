@@ -7,15 +7,15 @@
 .home-chat-cover { height: 8.75rem; }
 .home-chat-sheet .home-chat-cover { height: 6.5rem; }
 .home-chat-sheet .home-chat-who { padding-bottom: 0.75rem; }
-.home-chat-scrim { background: linear-gradient(180deg, rgb(0 0 0 / 0.08) 0%, rgb(20 8 12 / 0.25) 45%, rgb(20 8 12 / 0.72) 100%); }
-.home-chat-cover[data-cover] .home-chat-shop { color: var(--color-on-dark); text-shadow: 0 1px 10px rgb(0 0 0 / 0.4); }
-.home-chat-cover[data-cover] .home-chat-sub { color: var(--color-on-dark); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
+.home-chat-scrim { background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.08) 0%, rgb(var(--ink-rgb) / 0.25) 45%, rgb(var(--ink-rgb) / 0.72) 100%); }
+.home-chat-cover[data-cover] .home-chat-shop { color: var(--color-on-dark); text-shadow: 0 1px 10px rgb(var(--ink-rgb) / 0.4); }
+.home-chat-cover[data-cover] .home-chat-sub { color: var(--color-on-dark); text-shadow: 0 1px 8px rgb(var(--ink-rgb) / 0.4); }
 .home-chat-cover:not([data-cover]) .home-chat-shop { color: var(--color-ink); }
 .home-chat-cover:not([data-cover]) .home-chat-sub { color: var(--color-ink-soft); }
-.home-chat-avatar { border-radius: 9999px; box-shadow: 0 0 0 2px rgb(var(--white-rgb) / 0.9), 0 4px 12px -2px rgb(0 0 0 / 0.4); }
+.home-chat-avatar { border-radius: 9999px; box-shadow: 0 0 0 2px rgb(var(--white-rgb) / 0.9), 0 4px 12px -2px rgb(var(--ink-rgb) / 0.4); }
 
 /* Header buttons: white discs on the photo, so they read on any cover; 36 px drawn, 44 px to press. */
-.home-chat-hdr-btn { position: relative; background: rgb(var(--white-rgb) / 0.94); color: var(--color-ink); box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.35); }
+.home-chat-hdr-btn { position: relative; background: rgb(var(--white-rgb) / 0.94); color: var(--color-ink); box-shadow: 0 2px 8px -2px rgb(var(--ink-rgb) / 0.35); }
 .home-chat-hdr-btn::after { content: ''; position: absolute; inset: -0.25rem; }
 @media (hover: hover) { .home-chat-hdr-btn:hover { background: var(--color-surface); } }
 .home-chat-hdr-btn:focus-visible { outline: 2px solid var(--color-on-dark); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-focus); }

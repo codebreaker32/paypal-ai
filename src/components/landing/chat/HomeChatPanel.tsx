@@ -70,7 +70,7 @@ function ItemCards({ cards, onPick }: { cards: ItemCard[]; onPick: (card: ItemCa
                 </span>
               )}
             </span>
-            <span className="flex flex-1 items-start justify-between gap-1.5 px-2 pt-1.5 pb-2 text-[0.8125rem] leading-[1.125rem]">
+            <span className="flex flex-1 items-start justify-between gap-1.5 px-2 pt-1.5 pb-2 text-sm leading-5">
               <span className="min-w-0 font-semibold text-ink [overflow-wrap:anywhere]">{card.name}</span>
               <span className="type-price shrink-0 text-ink-soft">{formatUSD(card.priceCents)}</span>
             </span>
@@ -238,7 +238,7 @@ export function HomeChatPanel(props: HomeChatPanelProps) {
           const view = approvalCard(entry);
           const Icon = view.approve ? ReceiptText : SETTLED[view.label];
           return (
-            <p className="mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-blush px-3.5 py-1.5 text-[0.8125rem] leading-5 font-semibold text-ink-soft">
+            <p className="mx-auto flex w-fit max-w-full items-center gap-2 rounded-full bg-blush px-3.5 py-1.5 text-sm leading-5 font-semibold text-ink-soft">
               <Icon aria-hidden className={cn('size-4 shrink-0', view.approve ? 'text-accent-ink' : 'text-ok')} />
               <span>
                 {entry.orderNumber ? `Order ${entry.orderNumber}` : 'Order'} placed · {view.approve ? 'approve it below' : view.label.toLowerCase()}

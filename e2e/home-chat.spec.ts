@@ -484,7 +484,16 @@ for (const [label, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
       await page.mouse.move(0, 0);
       await page.waitForTimeout(700);
       await a11y(page);
-      if (SHOTS) await page.screenshot({ path: `${SHOTS}/chat-b-${label}-conversation.png` });
+      if (SHOTS) {
+        // The picture shows the cards and the pinned order together: the log scrolled back to the reply with the cards.
+        await box.blur();
+        await chat.locator('[data-entry="assistant"]').filter({ has: page.locator('[data-item-card]') }).evaluate((el) => {
+          const scroller = el.closest('.home-chat-scroll')!;
+          scroller.scrollTop += el.getBoundingClientRect().top - scroller.getBoundingClientRect().top - 16;
+        });
+        await page.waitForTimeout(300);
+        await page.screenshot({ path: `${SHOTS}/chat-b-${label}-conversation.png` });
+      }
 
       await page.keyboard.press('Escape');
       await expect(chat).toBeHidden();

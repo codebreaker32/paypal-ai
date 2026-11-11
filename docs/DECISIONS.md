@@ -389,3 +389,12 @@ The owner asked for three different mockups of the expanded chatbot to review. T
 - **A mockup opens at once and never auto-opens again** (`autoOpen` is off with `?chatui=`, the unread dot starts cleared). Reason: the owner should see it on load without waiting 4 s.
 - **The home page passes the example shop's cover and listed menu (name, lowest price, own photo) to the chat.** Mockup B shows item cards from it; only seller photos are used, never library examples, as for agents.
 - **Screenshots come from a mocked stream built from the seeded shop's real menu** (`e2e/chatui.spec.ts`: real item ids, names, prices and shipping fee). Reason: reproducible and no Claude or PayPal calls; the live app still uses the real assistant.
+
+## Run 10: mockup B becomes the home chat (2026-11-11)
+The owner approved mockup B ("Tall and shop-aware"). `?chatui=` and mockups A and C are gone; B lives in `src/components/landing/chat/` (`HomeChatPanel.tsx`, `ChatLog.tsx`, `order.ts`).
+- **Item cards come from the turn's `list_products` results, filtered to the items the reply names** (whole name or its plural, at most four). Reason: names and prices are the shop's, never the model's text, and a full menu listing doesn't turn into four arbitrary cards. Pictures come from the home page's menu by the Part A3 rules, so an example photo is labelled "Example photo".
+- **The pinned order shows its lines always (no fold) and no fine print**, as in the mockup; the assistant's reply already says nothing is charged until approval.
+- **The desktop launcher hides while the panel is open** (the panel stands in its corner); closing shows it again synchronously (`flushSync`) so focus can return to it.
+- **The frame uses `overflow: clip`.** Reason: with `hidden`, a `scrollIntoView` inside the log scrolled the whole panel and pushed the cover strip out.
+- **Wording:** the subtitle is "Shelfie assistant" and the greeting "I’m taking orders for Marigold Bakehouse", with no "example shop" (a parallel change removes that phrase from public pages); the footer's test-mode sentence keeps the sandbox honest.
+- **`ConsoleComposer` takes `sendVariant`/`sendIcon`** (was the mockups' `iconSend`); the home chat's Send is the brand pill with no icon. Defaults give the shop console's composer unchanged.

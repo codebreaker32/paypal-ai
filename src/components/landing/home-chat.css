@@ -66,10 +66,11 @@ body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] {
   bottom: var(--home-chat-edge);
   width: min(27.5rem, calc(100vw - 2 * var(--home-chat-edge)));
   height: calc(100dvh - 6rem);
-  overflow: hidden;
+  /* clip, not hidden: nothing (a focus, a scrollIntoView) can scroll the frame itself and push the cover out. */
+  overflow: clip;
   border-radius: 1.25rem;
   background: var(--color-surface);
-  box-shadow: 0 24px 60px -12px rgb(60 20 35 / 0.3), 0 2px 8px rgb(60 20 35 / 0.08);
+  box-shadow: 0 24px 60px -12px rgb(var(--ink-rgb) / 0.3), 0 2px 8px rgb(var(--ink-rgb) / 0.08);
   transform-origin: bottom right;
   transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out);
 }
@@ -79,7 +80,7 @@ body:has([data-home-chat]) footer[data-site-chrome] [data-footer-end] {
 .home-chat-sheet { position: fixed; inset: auto 0 0 0; margin: 0; padding: 0;
   width: 100%; max-width: 100%; max-height: none;
   height: min(90dvh, calc(var(--assistant-vh, 100dvh) - var(--assistant-top-gap)));
-  overflow: hidden;
+  overflow: clip;
   translate: 0 var(--assistant-vy, 0);
   border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
   background: var(--color-surface); box-shadow: var(--sheet-shadow);
