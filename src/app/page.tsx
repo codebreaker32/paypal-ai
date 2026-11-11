@@ -70,10 +70,12 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
   // `?chat=0` switches the chat's auto-open off and `?chat=1` on; the e2e harness (SHELFIE_TEST) starts with it off.
   const autoOpen = chatParam === '1' || (chatParam !== '0' && !process.env.SHELFIE_TEST);
 
+  const exampleHref = exampleShopHref();
+
   return (
     <>
-      <Hero />
-      <HowItWorks exampleShopHref={exampleShopHref()} />
+      <Hero exampleShopHref={exampleHref} />
+      <HowItWorks />
       <Faq />
       <Closing />
       {chat && <HomeChat shop={chat} autoOpen={autoOpen} />}

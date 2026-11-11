@@ -1,6 +1,5 @@
 /* eslint-disable @next/next/no-img-element -- fixed-size 2x screenshots; width/height reserve the box, no optimizer needed */
 import { Stagger, StaggerItem } from '@/components/motion';
-import { TextLink } from '@/components/ui/text-link';
 import { AccentMarks } from './art';
 
 /**
@@ -30,7 +29,7 @@ const STEPS: { title: string; body: string; image: string; alt: string }[] = [
   },
 ];
 
-export function HowItWorks({ exampleShopHref }: { exampleShopHref: string | null }) {
+export function HowItWorks() {
   return (
     <section id="how-it-works" aria-labelledby="how-title" className="bg-blush">
       <div className="mx-auto grid w-full max-w-site gap-8 px-band-gutter py-band lg:gap-10">
@@ -40,11 +39,6 @@ export function HowItWorks({ exampleShopHref }: { exampleShopHref: string | null
             How it works
           </h2>
           <p className="mt-2 text-base text-ink xl:mt-3 xl:text-lg">A shop, in minutes. No website needed.</p>
-          {exampleShopHref && (
-            <p className="mt-3 xl:text-lg">
-              <TextLink href={exampleShopHref}>See an example shop</TextLink>
-            </p>
-          )}
         </div>
         <Stagger as="ol" gap={0.08} className="grid gap-10 lg:grid-cols-3 lg:gap-6 xl:gap-10">
           {STEPS.map(({ title, body, image, alt }) => (

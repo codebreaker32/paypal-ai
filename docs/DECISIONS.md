@@ -377,3 +377,6 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 - **The open desktop panel may cover the lower part of the hero's step chain (not the headline); its bottom sits 12 px above the launcher rather than on the launcher's bottom inset.** Reason: a 400 x 520 panel cannot clear the four cards at 1024 to 1440 px without shrinking under the brief's size, the old panel covered them too, and it closes with one click or Esc; stacking above the launcher keeps both visible in one right-aligned column.
 
 - 10 Nov 2026 (run 8 s5): the two hero-story e2e tests were retargeted at `HeroChain` (not deleted), so the home hero's last frame keeps its uncut/uncovered check after the StorePreview hero was removed.
+
+## Run 9: "Add your shop" in the hero (2026-11-11)
+The owner asked for "Add your shop" on the hero. The hero now carries the brand `lg` pill `Add your shop →` (to `/signup`) under the tagline, with `See an example shop` beside it as a text link. The landing e2e allows only one `See an example shop` per page, so the link moved from How it works to the hero, where it does more work, instead of appearing twice. Phones stack the two, with the pill full width; the chain stays below them, inside the first screen. Screenshots: `docs/preview/hero-cta-{390,1440}.png`.

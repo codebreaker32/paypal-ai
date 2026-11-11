@@ -32,6 +32,11 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
         expect(box, name).not.toBeNull();
         expect(box!.y + box!.height, name).toBeLessThanOrEqual(viewport.height);
       }
+      const heroCta = hero.getByRole('link', { name: 'Add your shop', exact: true });
+      await expect(heroCta).toHaveAttribute('href', '/signup');
+      const ctaBox = (await heroCta.boundingBox())!;
+      expect(ctaBox.height).toBeGreaterThanOrEqual(52);
+      expect(ctaBox.y + ctaBox.height).toBeLessThanOrEqual(viewport.height);
       await expect(page.locator('body > footer').getByText(TEST_MODE_LINE)).toBeVisible();
 
       // Marigold's name only in the hero's picture; the others use its paper at most.

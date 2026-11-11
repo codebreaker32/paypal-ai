@@ -1,4 +1,7 @@
+import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { ButtonLink } from '@/components/ui/button';
+import { TextLink } from '@/components/ui/text-link';
 import { HeroChain } from './HeroChain';
 import './landing.css';
 
@@ -12,7 +15,8 @@ function Wave() {
   );
 }
 
-export function Hero() {
+/** `exampleShopHref` is the example shop's address while it is live, else null (then no example link). */
+export function Hero({ exampleShopHref }: { exampleShopHref: string | null }) {
   return (
     <section aria-labelledby="landing-title" className="relative isolate overflow-hidden">
       <noscript>
@@ -27,6 +31,16 @@ export function Hero() {
             open to <span className="text-accent-ink">AI shoppers.</span>
           </h1>
           <p className="mt-3 text-2xl text-ink xl:mt-4 xl:text-3xl">Snap. Share. Get paid.</p>
+          <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-6 xl:mt-8">
+            <ButtonLink href="/signup" variant="brand" size="lg" iconEnd={ArrowRight} className="shadow-md max-sm:w-full">
+              Add your shop
+            </ButtonLink>
+            {exampleShopHref && (
+              <TextLink href={exampleShopHref} className="self-center text-lg text-ink">
+                See an example shop
+              </TextLink>
+            )}
+          </div>
         </div>
         <HeroChain />
       </div>
