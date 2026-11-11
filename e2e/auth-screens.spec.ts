@@ -51,7 +51,7 @@ test.describe('sign-up and the recovery key', () => {
     await expect(page.getByText('Long enough')).toBeVisible();
     await page.getByRole('button', { name: 'Create account' }).click();
     await expect(page.getByRole('link', { name: 'use your recovery key' })).toHaveAttribute('href', '/recover');
-    await expect(page.getByRole('main').getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
+    await expect(page.locator('#signup-email-error').getByRole('link', { name: 'Log in' })).toHaveAttribute('href', '/login');
   });
 
   test('the show button reveals the password and hides it again on submit', async ({ page }) => {
@@ -143,18 +143,31 @@ test.describe('the header', () => {
     await expect(header.getByRole('link', { name: 'Log in' })).toBeVisible();
   });
 
-  test('auth pages offer the other door, and the prompt only at 1440', async ({ page }) => {
-    await page.setViewportSize(DESKTOP);
-    await page.goto('/login');
-    const header = page.locator('header[data-site-chrome]');
-    await expect(header.getByText('New to Shelfie?')).toBeVisible();
-    await expect(header.getByRole('link', { name: 'Add your shop' })).toHaveAttribute('href', '/signup');
-    await page.goto('/signup');
-    await expect(header.getByText('Have an account?')).toBeVisible();
-    await page.setViewportSize(PHONE);
-    await expect(header.getByText('Have an account?')).toBeHidden();
-    await expect(header.getByRole('link', { name: 'Log in' })).toBeVisible();
-  });
+  for (const size of [DESKTOP, PHONE]) {
+    test(`auth pages: the header is the logo alone, the other door sits under the button (${size.width})`, async ({ page }) => {
+      await page.setViewportSize(size);
+      const header = page.locator('header[data-site-chrome]');
+      for (const [path, button, prompt, label, href] of [
+        ['/login', 'Log in', 'New to Shelfie?', 'Add your shop', '/signup'],
+        ['/signup', 'Create account', 'Have an account?', 'Log in', '/login'],
+        ['/recover', 'Set new password', 'Remembered it?', 'Log in', '/login'],
+      ]) {
+        await page.goto(path);
+        await expect(header.getByRole('link')).toHaveCount(1);
+        await expect(header.getByRole('link', { name: 'Shelfie home' })).toHaveAttribute('href', '/');
+        const form = page.locator('form');
+        const line = form.locator('p', { hasText: prompt });
+        await expect(line).toBeVisible();
+        const link = line.getByRole('link', { name: label, exact: true });
+        await expect(link).toHaveAttribute('href', href);
+        expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+        const buttonBox = (await form.getByRole('button', { name: button, exact: true }).boundingBox())!;
+        expect((await line.boundingBox())!.y).toBeGreaterThan(buttonBox.y + buttonBox.height - 1);
+      }
+      await page.goto('/login');
+      await expect(page.getByRole('link', { name: 'Forgot password?' })).toHaveAttribute('href', '/recover');
+    });
+  }
 
   test('the account menu opens by keyboard, closes on Esc, returns focus, and logs out', async ({ page }) => {
     const address = email('menu');

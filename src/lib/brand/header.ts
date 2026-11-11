@@ -10,16 +10,12 @@ export interface HeaderInput {
 export type HeaderView =
   | { kind: 'bare'; logoHref: string }
   | { kind: 'account'; logoHref: '/shops'; email: string }
-  | { kind: 'auth'; logoHref: '/'; prompt: string; label: string; href: string }
   | { kind: 'public'; logoHref: '/'; dashboardHref: string | null };
 
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
-const AUTH_PAGES: Record<string, { prompt: string; label: string; href: string }> = {
-  '/login': { prompt: 'New to Shelfie?', label: 'Add your shop', href: '/signup' },
-  '/signup': { prompt: 'Have an account?', label: 'Log in', href: '/login' },
-  '/recover': { prompt: 'Have an account?', label: 'Log in', href: '/login' },
-};
+/** Log in, sign up and recovery: the logo alone. Each form carries its own way to the other door, under its button (owner, run 15). */
+const AUTH_PAGES = new Set(['/login', '/signup', '/recover']);
 
 /** One owner cookie opens that shop; several are listed on the start page, so there the link would go nowhere. */
 function dashboardHref(pathname: string, shopIds: string[]): string | null {
@@ -31,7 +27,6 @@ function dashboardHref(pathname: string, shopIds: string[]): string | null {
 export function headerView({ pathname, account, ownerShopIds }: HeaderInput): HeaderView {
   if (BUYER_PAGE.test(pathname)) return { kind: 'bare', logoHref: account ? '/shops' : '/' };
   if (account) return { kind: 'account', logoHref: '/shops', email: account.email };
-  const auth = AUTH_PAGES[pathname];
-  if (auth) return { kind: 'auth', logoHref: '/', ...auth };
+  if (AUTH_PAGES.has(pathname)) return { kind: 'bare', logoHref: '/' };
   return { kind: 'public', logoHref: '/', dashboardHref: dashboardHref(pathname, ownerShopIds) };
 }

@@ -6,6 +6,7 @@ import { TextLink } from '@/components/ui/text-link';
 import { login } from '@/lib/client/auth';
 import { checkLogin, loginProblem } from '@/lib/client/auth-copy';
 import { AuthHeading } from './AuthHeading';
+import { AuthSwitch } from './AuthSwitch';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
 import { useAuthForm } from './use-auth-form';
@@ -63,6 +64,7 @@ export function LoginForm({ next }: { next: string | null }) {
         <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Logging in...">
           Log in
         </Button>
+        <AuthSwitch prompt="New to Shelfie?" label="Add your shop" href="/signup" />
       </form>
     </>
   );

@@ -448,3 +448,9 @@ The owner: "Remove 'Add your shop' from footer and redesign footer, keep pic tha
 - **Every add answers:** the tile's `+` becomes its stepper, the count bumps, and one keyed toast (`{Item} added`, replaced in place for repeated adds) offers `View order`, which switches the dock or opens the order sheet. With nothing docked the hero and compact CTAs keep `View order · {n}`.
 - **The switch row is the dock's top row and is `--assistant-header-h` (64 px) tall,** so it is the row that lines up with the site header; `e2e/assistant-layout.spec.ts` now checks the switch row instead of the panel header under it.
 - **The order tab's accessible name begins with its visible text** (`Your order 2 $8.50 (2 items)`, `Your order 0 (empty)`), so axe's label-content-name-mismatch rule passes and voice-control users can say what they see.
+
+## Run 15: the other door moves into the form card
+
+- **Owner:** "Keep 'New to Shelfie? Add your shop' in their obvious places, not on the header." On /login, /signup and /recover the header is now the logo alone, linking home (`headerView` returns `bare`; the `auth` kind is gone). Each form ends with `AuthSwitch` directly under its primary button: /login `New to Shelfie? Add your shop` (→ /signup), /signup `Have an account? Log in`, /recover `Remembered it? Log in` (→ /login). `Forgot password?` stays by the password field.
+- **Look:** centred, 15 px, prompt in ink-soft, link in `text-accent-ink` (pomegranate) with the underline only on hover or keyboard focus, a 44 px tap target, and `press-text` for the existing press/click feedback; the same on phones (the old header hid the prompt below `sm`).
+- On /signup the EMAIL_TAKEN error also has a `Log in` link, so the e2e now scopes that check to `#signup-email-error`.

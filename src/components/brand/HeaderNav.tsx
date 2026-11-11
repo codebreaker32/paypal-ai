@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSyncExternalStore } from 'react';
 import { ButtonLink } from '@/components/ui/button';
-import { TextLink } from '@/components/ui/text-link';
 import { footerKind } from '@/lib/brand/footer';
 import { headerView } from '@/lib/brand/header';
 import { startedAccount, subscribeStartedSession } from '@/lib/client/started-session';
@@ -26,12 +25,6 @@ export function HeaderNav({ account, ownerShopIds }: { account: { email: string 
         <Logo />
       </Link>
       {view.kind === 'account' && <AccountMenu email={view.email} placement="down" className="-mr-2.5" />}
-      {view.kind === 'auth' && (
-        <p className="text-sm">
-          <span className="hidden text-ink-soft sm:inline">{view.prompt} </span>
-          <TextLink href={view.href}>{view.label}</TextLink>
-        </p>
-      )}
       {view.kind === 'public' && (
         <div className="flex items-center gap-1 sm:gap-2">
           {view.dashboardHref && (

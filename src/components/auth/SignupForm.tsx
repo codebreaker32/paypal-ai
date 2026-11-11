@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { signup, type KeyAndNext } from '@/lib/client/auth';
 import { checkSignup, passwordHint, signupProblem } from '@/lib/client/auth-copy';
 import { AuthHeading } from './AuthHeading';
+import { AuthSwitch } from './AuthSwitch';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
@@ -66,6 +67,7 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
         <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Creating your account...">
           Create account
         </Button>
+        <AuthSwitch prompt="Have an account?" label="Log in" href="/login" />
         <p className="type-meta text-ink-muted">
           By creating an account you agree to the{' '}
           <Link href="/terms" className={INLINE_LINK}>

@@ -8,6 +8,7 @@ import { TextLink } from '@/components/ui/text-link';
 import { recover, type KeyAndNext } from '@/lib/client/auth';
 import { checkRecover, passwordHint, recoverProblem } from '@/lib/client/auth-copy';
 import { AuthHeading } from './AuthHeading';
+import { AuthSwitch } from './AuthSwitch';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField, useKeepTypedValue } from './fields';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
@@ -93,6 +94,7 @@ export function RecoverForm({ appUrl }: { appUrl: string }) {
         <Button type="submit" variant="primary" size="lg" fullWidth disabled={!ready} loading={busy} loadingLabel="Saving...">
           Set new password
         </Button>
+        <AuthSwitch prompt="Remembered it?" label="Log in" href="/login" />
       </form>
       <p className="mt-6 text-sm text-ink-soft">
         Lost your key too? <TextLink href="/help#locked-out">What you can do</TextLink>

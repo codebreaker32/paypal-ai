@@ -27,12 +27,8 @@ describe('headerView', () => {
     expect(headerView({ pathname: '/ok', ...out }).kind).toBe('public');
   });
 
-  it.each([
-    ['/login', 'New to Shelfie?', 'Add your shop', '/signup'],
-    ['/signup', 'Have an account?', 'Log in', '/login'],
-    ['/recover', 'Have an account?', 'Log in', '/login'],
-  ])('on %s offers the other door', (pathname, prompt, label, href) => {
-    expect(headerView({ pathname, ...out })).toEqual({ kind: 'auth', logoHref: '/', prompt, label, href });
+  it.each([['/login'], ['/signup'], ['/recover']])('on %s shows the logo alone, linking home (the other door is in the form)', (pathname) => {
+    expect(headerView({ pathname, ...out })).toEqual({ kind: 'bare', logoHref: '/' });
   });
 
   it('logged out with no owner cookie: Log in and Add your shop, no dashboard', () => {
@@ -58,6 +54,6 @@ describe('headerView', () => {
   });
 
   it('no owner shortcut on the auth pages', () => {
-    expect(headerView({ pathname: '/login', account: null, ownerShopIds: ['s1'] }).kind).toBe('auth');
+    expect(headerView({ pathname: '/login', account: null, ownerShopIds: ['s1'] }).kind).toBe('bare');
   });
 });
