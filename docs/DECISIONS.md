@@ -380,3 +380,12 @@ Brainstorming questions were answered by the coordinator from CLAUDE.md, docs/ID
 
 ## Run 9: "Add your shop" in the hero (2026-11-11)
 The owner asked for "Add your shop" on the hero. The hero now carries the brand `lg` pill `Add your shop →` (to `/signup`) under the tagline, with `See an example shop` beside it as a text link. The landing e2e allows only one `See an example shop` per page, so the link moved from How it works to the hero, where it does more work, instead of appearing twice. Phones stack the two, with the pill full width; the chain stays below them, inside the first screen. Screenshots: `docs/preview/hero-cta-{390,1440}.png`.
+
+## Run 10: three mockups of the open home chat (2026-11-11)
+The owner asked for three different mockups of the expanded chatbot to review. They live behind `/?chatui=a|b|c` on branch `run-10-chat`; without the parameter the home chat is unchanged.
+- **Real UI, not pictures.** Each mockup is a component (`src/components/landing/chatui/Chat{A,B,C}.tsx`) around the same `useBuyerConsole`, so the real assistant, Activity, approval and PayPal flow work in all three. Reason: the owner can try each, and the chosen one needs no rebuild.
+- **One shared conversation engine (`chatui/ChatLog.tsx`) with render slots.** It reuses the console's scroll rules and entrances (`useConversationScroll`, `firstFreshEntry`, now exported from `BuyerConsole.tsx`); each mockup only draws entries. Reason: three skins, one behaviour, and the shop's console is untouched.
+- **`ConsoleComposer` takes optional `placeholder`, `iconSend`, `className` and `boxClassName`.** Defaults give today's composer exactly.
+- **A mockup opens at once and never auto-opens again** (`autoOpen` is off with `?chatui=`, the unread dot starts cleared). Reason: the owner should see it on load without waiting 4 s.
+- **The home page passes the example shop's cover and listed menu (name, lowest price, own photo) to the chat.** Mockup B shows item cards from it; only seller photos are used, never library examples, as for agents.
+- **Screenshots come from a mocked stream built from the seeded shop's real menu** (`e2e/chatui.spec.ts`: real item ids, names, prices and shipping fee). Reason: reproducible and no Claude or PayPal calls; the live app still uses the real assistant.
