@@ -4,12 +4,14 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { SAMPLE_IDS, recordedReading } from '@/lib/ai/samples';
 import { DEMO_PHOTOS, demoCoverFor, demoPhotoFor } from '@/lib/demo/photos';
+import { SEED_SHOPS } from '@/lib/demo/shops';
 
 const fileOf = (url: string) => path.join(process.cwd(), 'public', ...url.split('/').filter(Boolean));
 
 describe('DEMO_PHOTOS', () => {
-  it('has a set for each sample menu', () => {
-    expect(Object.keys(DEMO_PHOTOS).sort()).toEqual([...SAMPLE_IDS].sort());
+  it('has a set for each sample menu and each seeded shop written out item by item', () => {
+    const written = SEED_SHOPS.filter((s) => 'items' in s.menu).map((s) => s.photos);
+    expect(Object.keys(DEMO_PHOTOS).sort()).toEqual([...SAMPLE_IDS, ...written].sort());
   });
 
   it.each(SAMPLE_IDS)('%s: every photo is a site-relative /demo/<slug>/ JPEG that exists, for an item on the menu', (slug) => {

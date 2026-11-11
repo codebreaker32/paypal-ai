@@ -4,12 +4,15 @@ import { hashToken, newId, ownerToken, slugify } from '@/lib/domain/ids';
 import { RESERVED_SLUG } from '@/lib/domain/payee';
 import type { Shop, ShopFulfillment, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { timingSafeEqual } from 'node:crypto';
+import { menuPhotoAvatarSrc, shopAvatar, type ShopAvatarSource } from '@/lib/domain/avatar';
+import { avatarItems } from './items';
 
 interface ShopRow {
   id: string; slug: string; name: string; about: string; kind: ShopKind; fulfillment: ShopFulfillment;
   pickup_notes: string; shipping_fee_cents: number; status: ShopStatus; order_cap_cents: number;
   owner_token_hash: string; menu_photo_paths: string; created_at: string; published_at: string | null;
   payee_email: string | null; cover_url: string | null; logo_url: string | null; account_id: string | null;
+  category: string | null;
 }
 
 const toShop = (r: ShopRow): Shop => ({
@@ -18,6 +21,7 @@ const toShop = (r: ShopRow): Shop => ({
   orderCapCents: r.order_cap_cents, menuPhotoPaths: JSON.parse(r.menu_photo_paths) as string[],
   createdAt: r.created_at, publishedAt: r.published_at, payeeEmail: r.payee_email ?? null,
   coverUrl: r.cover_url ?? null, logoUrl: r.logo_url ?? null, accountId: r.account_id ?? null,
+  category: r.category ?? null,
 });
 
 export interface CreateShopInput {
@@ -98,12 +102,12 @@ export function verifyOwnerToken(db: Db, shopId: string, token: string | null | 
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt' | 'payeeEmail' | 'coverUrl' | 'logoUrl'>>;
+export type ShopPatch = Partial<Pick<Shop, 'name' | 'about' | 'kind' | 'fulfillment' | 'pickupNotes' | 'shippingFeeCents' | 'status' | 'orderCapCents' | 'menuPhotoPaths' | 'publishedAt' | 'payeeEmail' | 'coverUrl' | 'logoUrl' | 'category'>>;
 
 const COLS: Record<keyof ShopPatch, string> = {
   name: 'name', about: 'about', kind: 'kind', fulfillment: 'fulfillment', pickupNotes: 'pickup_notes',
   shippingFeeCents: 'shipping_fee_cents', status: 'status', orderCapCents: 'order_cap_cents',
-  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at', payeeEmail: 'payee_email', coverUrl: 'cover_url', logoUrl: 'logo_url',
+  menuPhotoPaths: 'menu_photo_paths', publishedAt: 'published_at', payeeEmail: 'payee_email', coverUrl: 'cover_url', logoUrl: 'logo_url', category: 'category',
 };
 
 export function update(db: Db, id: string, patch: ShopPatch): Shop {
@@ -147,4 +151,56 @@ export function listOrderableForIndex(db: Db, limit: number): { name: string; sl
        ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC LIMIT ?`,
     )
     .all(RESERVED_SLUG, limit) as { name: string; slug: string; about: string }[];
+}
+
+/** The shop `npm run seed` made under `key` (src/lib/demo/shops.ts), or null. */
+export function bySeedKey(db: Db, key: string): Shop | null {
+  const r = db.prepare('SELECT * FROM shops WHERE seed_key = ?').get(key) as ShopRow | undefined;
+  return r ? toShop(r) : null;
+}
+
+/** Marks a shop as the seed's own under `key`. */
+export function setSeedKey(db: Db, id: string, key: string): void {
+  db.prepare('UPDATE shops SET seed_key = ? WHERE id = ?').run(key, id);
+}
+
+/** A shop on the Browse page: what its card shows. */
+export interface BrowseShop {
+  slug: string;
+  name: string;
+  /** The Browse chip (food, drinks, gifts, repairs), or null. */
+  category: string | null;
+  coverUrl: string | null;
+  /** The shop's round picture, as the public shop header draws it (`shopAvatar`). */
+  avatar: ShopAvatarSource;
+  /** Where to get it (pickup notes), else its short description. */
+  line: string;
+  /** Its listed items' names, in menu order. */
+  itemNames: string[];
+}
+
+/**
+ * Every shop that is live and can take orders (the predicate of `listOrderableForIndex` and `canBePaid`), newest first,
+ * with what a Browse card needs.
+ */
+export function listBrowseShops(db: Db): BrowseShop[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM shops WHERE status = 'live' AND (payee_email IS NOT NULL OR slug = ?)
+       ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC`,
+    )
+    .all(RESERVED_SLUG) as ShopRow[];
+  return rows.map((r) => {
+    const shop = toShop(r);
+    const listed = avatarItems(db, shop.id);
+    return {
+      slug: shop.slug,
+      name: shop.name,
+      category: shop.category,
+      coverUrl: shop.coverUrl,
+      avatar: shopAvatar({ ...shop, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') }, listed),
+      line: shop.pickupNotes.trim() || shop.about.trim(),
+      itemNames: listed.map((i) => i.name),
+    };
+  });
 }

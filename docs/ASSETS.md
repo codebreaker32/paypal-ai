@@ -77,6 +77,24 @@ Same processing as above (items 800×600 quality 74, cover 1600×720 quality 72,
 
 <!-- ravi credits -->
 
+## Little Ember Coffee, Sunny Side Lemonade and Fern & Wick (seeded shops, run 11)
+
+The item photos in `public/demo/little-ember-coffee/`, `public/demo/sunny-side-lemonade/` and `public/demo/fern-and-wick/` are byte-identical copies of photos from the example photo library below (credits there), stored as the seller's own photos the way Marigold's are (`src/lib/demo/photos.ts`):
+
+| Shop | File | Library photo |
+| --- | --- | --- |
+| Little Ember Coffee | drip-coffee, americano, cardamom-coffee, latte, oat-milk-latte, sencha-green-tea, blueberry-muffin, currant-scone | coffee-1, coffee-3, coffee-2, latte-1, latte-2, tea-2, muffin-1, scone-1 |
+| Sunny Side Lemonade | classic-lemonade, limeade, watermelon-cooler, agua-fresca-trio, juice-flight, horchata, two-scoop-cup, waffle-cone, three-scoop-sampler | lemonade-3, lemonade-2, agua-fresca-3, agua-fresca-2, agua-fresca-1, horchata-1, ice-cream-4, ice-cream-3, ice-cream-1 |
+| Fern & Wick | succulent-clay-pot, flowering-succulent, windowsill-pair, beeswax-pillar-candle, embossed-pillar-candle, oatmeal-soap-bar, soap-sampler, soap-gift-basket, canvas-market-tote | plant-1, plant-2, plant-3, candle-1, candle-3, soap-1, soap-2, soap-3, tote-1 |
+
+The covers are new downloads of three library photos at a larger size (`images.pexels.com/photos/<id>/pexels-photo-<id>.jpeg?w=1800`, viewed before use), cover-cropped (attention strategy) to 1600×720, JPEG quality 72, mozjpeg, progressive. Licence for all: [Pexels License](https://www.pexels.com/license/) (free to use, no attribution required; credited anyway).
+
+| File | Shows | Pexels page | Photographer | Licence |
+| --- | --- | --- | --- | --- |
+| `little-ember-coffee/cover.jpg` | Lattes with latte art on a wooden table (library `latte-3`) | https://www.pexels.com/photo/artistic-latte-art-on-wooden-cafe-table-37034128/ | [Yunus Tuğ](https://www.pexels.com/@yunustug/) | Pexels License |
+| `sunny-side-lemonade/cover.jpg` | A glass of lemonade with squeezed lemons (library `lemonade-1`) | https://www.pexels.com/photo/a-clear-drinking-glass-with-lemon-juice-12931442/ | [beytlik](https://www.pexels.com/@beytlik/) | Pexels License |
+| `fern-and-wick/cover.jpg` | Lit candles on a dark background (library `candle-2`) | https://www.pexels.com/photo/assorted-candles-glowing-in-the-dark-39853162/ | [Jahra Tasfia Reza](https://www.pexels.com/@jahratreza/) | Pexels License |
+
 ## Example photo library (Part A3)
 
 Real photos of common item types (`public/library/<id>.webp`, catalogue in `src/lib/library/catalog.ts`), shown as a labelled *example* until the seller adds their own photo. Every photo is under the [Pexels License](https://www.pexels.com/license/) (free to use, no attribution required; credited anyway). Each one was viewed before it went in: we kept only photos with no visible brand, logo, readable label or recognisable face, and dropped ones that did not clearly show the item (rejected: branded tyre sidewalls, a branded brake caliper, a branded kids' trike, engraved spanners, a branded churro basket liner, a glass jar with embossed lettering, labelled soda bottles). `guacamole-1` is a hand crop that leaves out a printed paper liner. Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped (attention strategy) to 800×600, WebP quality 74.
