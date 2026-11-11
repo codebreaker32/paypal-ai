@@ -3,12 +3,13 @@
 import { Check } from 'lucide-react';
 import { m, useInView, type Variants } from 'motion/react';
 import Image from 'next/image';
-import { createContext, useContext, useRef, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, type ReactNode } from 'react';
 import { LogoMark } from '@/components/brand/Logo';
 import { EASE_OUT } from '@/components/motion';
 import { usePrefersReducedMotion } from '@/components/motion/use-prefers-reduced-motion';
 import { cn } from '@/lib/utils';
 import { AccentMarks, AssistantMark } from './art';
+import { HERO_CHAIN_DONE } from './hero-chain-signal';
 
 /** When each beat lands, in seconds after the chain comes into view. */
 const AT = { paper: 0.15, arrow1: 0.7, shop: 0.95, cart: 1.35, arrow2: 1.7, assistant: 1.95, ask: 2.3, placed: 2.8, arrow3: 3.25, pay: 3.5, tick: 3.95, received: 4.1 };
@@ -231,14 +232,31 @@ function PhoneList() {
   );
 }
 
-/** The paper-to-payment story. It plays when it comes into view, and again if the visitor scrolls away and back. */
+/** From the chain coming into view to its last beat landing ("Order received", a 0.42 s rise), in ms. */
+export const CHAIN_MS = Math.round((AT.received + 0.42) * 1000);
+
+/**
+ * The paper-to-payment story. It plays when it comes into view, and again if the visitor scrolls away and back. The
+ * first time it has played through it marks its root `data-chain-done` and tells the home chat (HERO_CHAIN_DONE), which
+ * never opens itself over it.
+ */
 export function HeroChain() {
   const ref = useRef<HTMLDivElement>(null);
   const show = useInView(ref, { amount: 0.25 });
   const reduced = usePrefersReducedMotion();
+  const playing = show || reduced;
+  useEffect(() => {
+    const root = ref.current;
+    if (!playing || !root || root.hasAttribute('data-chain-done')) return;
+    const timer = window.setTimeout(() => {
+      root.setAttribute('data-chain-done', '');
+      window.dispatchEvent(new Event(HERO_CHAIN_DONE));
+    }, reduced ? 0 : CHAIN_MS);
+    return () => window.clearTimeout(timer);
+  }, [playing, reduced]);
   return (
     <div ref={ref} data-hero-story="" className="relative z-10">
-      <Playing.Provider value={{ show: show || reduced, reduced }}>
+      <Playing.Provider value={{ show: playing, reduced }}>
         <FullChain />
         <PhoneList />
       </Playing.Provider>

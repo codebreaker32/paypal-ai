@@ -171,11 +171,21 @@ test.describe('at 1440 px', () => {
     await expect(launcher).toBeFocused();
   });
 
-  test('opens by itself about 4 s in without taking focus, once per session', async ({ page }) => {
+  test('opens by itself without taking focus, never over the hero chain, once per session', async ({ page }) => {
     await page.goto('/?chat=1');
     await settle(page);
+    // At the top of a 1440 x 900 page the chain's last steps stand where the panel would: it waits, past 4 s and past
+    // the chain's last beat (review F8).
+    await expect(page.locator('[data-hero-story][data-chain-done]')).toBeAttached({ timeout: 8000 });
+    await page.waitForTimeout(5000);
     await expect(panel(page)).toHaveCount(0);
-    await expect(panel(page)).toBeVisible({ timeout: 8000 });
+    // Scrolled until the chain is clear of the panel's box: now it opens.
+    await page.getByRole('heading', { name: 'How it works', level: 2 }).scrollIntoViewIfNeeded();
+    await page.evaluate(() => {
+      const chain = document.querySelector('[data-hero-story]')!.getBoundingClientRect();
+      window.scrollBy(0, Math.max(0, chain.bottom));
+    });
+    await expect(panel(page)).toBeVisible({ timeout: 4000 });
     await expect(panel(page).getByText(GREETING)).toBeVisible();
     expect(await page.evaluate(() => document.activeElement === document.body || document.activeElement === null)).toBe(true);
     await a11y(page);

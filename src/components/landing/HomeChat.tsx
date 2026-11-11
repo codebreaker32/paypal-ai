@@ -8,6 +8,7 @@ import { useBuyerConsole, type BuyerConsoleApi } from '@/components/shop/BuyerCo
 import { useKeyboardViewport } from '@/components/shop/use-keyboard-viewport';
 import { BotMark } from './BotMark';
 import { HomeChatPanel } from './chat/HomeChatPanel';
+import { chatMayOpen, HERO_CHAIN_DONE } from './hero-chain-signal';
 import type { ChatMenuItem } from './chat/types';
 import './home-chat.css';
 
@@ -32,7 +33,10 @@ const subscribe = (cb: () => void) => {
 /** true / false in the browser, null while server-rendering and hydrating. */
 const useIsDesktop = (): boolean | null => useSyncExternalStore(subscribe, () => window.matchMedia(DESKTOP).matches, () => null);
 
-/** How long after the page loads the chat opens itself (desktop) or says hello (phones). */
+/**
+ * How long after the page loads the chat says hello (phones) or may open itself (desktop, where it also waits until the
+ * hero chain has played through and is not under the panel: `chatMayOpen`).
+ */
 export const AUTO_OPEN_MS = 4000;
 /** Set once the chat has opened itself or shown its bubble: once per browser session. */
 const AUTO_KEY = 'shelfie:home-chat:auto';
@@ -112,23 +116,44 @@ export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boo
     if (readFlag(SEEN_KEY)) setUnread(false);
   }, []);
 
-  // Once per session, about 4 s in: the panel opens on a desktop (focus stays where it is), a phone gets the bubble.
+  // Once per session: a phone gets the bubble about 4 s in. A desktop opens the panel (focus stays where it is) from 4 s
+  // on, once the hero chain has played through and the panel would not cover it, or once the chain has scrolled away.
   useEffect(() => {
     if (!autoOpen || isDesktop === null || readFlag(AUTO_KEY)) return;
+    let stop = () => {};
     const timer = window.setTimeout(() => {
       if (readFlag(AUTO_KEY)) return;
-      // A short laptop screen keeps the page to itself (the panel would crowd the header); the launcher and its dot stay.
-      if (isDesktop && !window.matchMedia(TALL_ENOUGH).matches) return;
-      setFlag(AUTO_KEY);
-      if (isDesktop) {
+      if (!isDesktop) {
+        setFlag(AUTO_KEY);
+        setBubble(true);
+        return;
+      }
+      const tryOpen = () => {
+        if (readFlag(AUTO_KEY)) return stop();
+        // A short laptop screen keeps the page to itself (the panel would crowd the header); the launcher and its dot stay.
+        if (!window.matchMedia(TALL_ENOUGH).matches) return;
+        const chain = document.querySelector('[data-hero-story]');
+        if (!chatMayOpen(chain?.getBoundingClientRect() ?? null, !!chain?.hasAttribute('data-chain-done'), { width: window.innerWidth, height: window.innerHeight })) return;
+        stop();
+        setFlag(AUTO_KEY);
         setOpen(true);
         setUnread(false);
         setFlag(SEEN_KEY);
-      } else {
-        setBubble(true);
-      }
+      };
+      window.addEventListener('scroll', tryOpen, { passive: true });
+      window.addEventListener('resize', tryOpen);
+      window.addEventListener(HERO_CHAIN_DONE, tryOpen);
+      stop = () => {
+        window.removeEventListener('scroll', tryOpen);
+        window.removeEventListener('resize', tryOpen);
+        window.removeEventListener(HERO_CHAIN_DONE, tryOpen);
+      };
+      tryOpen();
     }, AUTO_OPEN_MS);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      stop();
+    };
   }, [autoOpen, isDesktop]);
 
   // Esc closes the desktop panel from anywhere on the page (the phone sheet is a modal dialog with its own Esc).
