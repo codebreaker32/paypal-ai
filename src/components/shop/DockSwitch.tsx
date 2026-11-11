@@ -46,14 +46,14 @@ export function DockSwitch({ active, count, itemsCents, onSwitch, disabled = fal
     onClick: () => {
       if (active !== panel) onSwitch(panel);
     },
-    className: cx(TAB, active === panel ? 'bg-surface text-ink shadow-xs' : 'text-ink-soft hover:text-ink'),
   });
+  const look = (panel: DockPanel) => (active === panel ? 'bg-surface text-ink shadow-xs' : 'text-ink-soft hover:text-ink');
 
   return (
     <div data-dock-switch="" className="shrink-0 px-4 pt-3 pb-2">
       <div role="tablist" aria-label="Assistant or your order" onKeyDown={onKeyDown} className="grid grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] gap-1 rounded-full bg-surface-sunken p-1">
-        <button {...tab('assistant')}>Assistant</button>
-        <button {...tab('order')} aria-label={count > 0 ? `Your order, ${count} ${count === 1 ? 'item' : 'items'}, ${formatUSD(itemsCents)}` : 'Your order, empty'}>
+        <button {...tab('assistant')} className={cx(TAB, look('assistant'))}>Assistant</button>
+        <button {...tab('order')} className={cx(TAB, look('order'))} aria-label={count > 0 ? `Your order, ${count} ${count === 1 ? 'item' : 'items'}, ${formatUSD(itemsCents)}` : 'Your order, empty'}>
           <span className="truncate">Your order</span>
           {/* Keyed by the count: each change remounts it and plays the bump once (none under reduced motion). */}
           <span key={count} data-dock-count={count} aria-hidden="true" data-bump={count !== firstCount || undefined} className={cx('dock-count inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full px-1.5 text-sm font-bold type-figures', count > 0 ? 'bg-ink text-surface' : 'bg-line text-ink-soft')}>
