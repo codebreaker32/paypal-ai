@@ -66,9 +66,10 @@ export function ShopCard({ shop }: { shop: BrowseShop }) {
         <div className="mt-auto pt-5">
           <Link
             href={`/s/${shop.slug}`}
+            aria-label={`Open shop: ${shop.name}`}
             className="inline-flex min-h-tap items-center gap-1.5 font-semibold text-accent-ink outline-none after:absolute after:inset-0 after:rounded-2xl after:content-[''] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4"
           >
-            Open shop<span className="sr-only">: {shop.name}</span>
+            Open shop
             <ArrowRight aria-hidden="true" className="size-4.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </Link>
         </div>
