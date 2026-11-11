@@ -25,9 +25,12 @@ function addMissingColumns(db: Db): void {
   if (!has('shops', 'logo_url')) db.exec('ALTER TABLE shops ADD COLUMN logo_url TEXT');
   if (!has('items', 'category')) db.exec('ALTER TABLE items ADD COLUMN category TEXT');
   if (!has('items', 'example_photo')) db.exec('ALTER TABLE items ADD COLUMN example_photo TEXT');
+  if (!has('shops', 'category')) db.exec('ALTER TABLE shops ADD COLUMN category TEXT');
+  if (!has('shops', 'seed_key')) db.exec('ALTER TABLE shops ADD COLUMN seed_key TEXT');
   if (!has('shops', 'account_id')) db.exec('ALTER TABLE shops ADD COLUMN account_id TEXT REFERENCES accounts(id)');
   // Here, not in schema.sql: on an older database the column only exists from the line above.
   db.exec('CREATE INDEX IF NOT EXISTS shops_account ON shops(account_id)');
+  db.exec('CREATE UNIQUE INDEX IF NOT EXISTS shops_seed_key ON shops(seed_key) WHERE seed_key IS NOT NULL');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

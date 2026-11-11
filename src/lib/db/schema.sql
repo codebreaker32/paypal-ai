@@ -48,7 +48,9 @@ CREATE TABLE IF NOT EXISTS shops (
   created_at TEXT NOT NULL,
   account_id TEXT REFERENCES accounts(id), -- the owning account (run 5); null = unattached, reached by its owner link; added by applySchema on older databases
   published_at TEXT,
-  payee_email TEXT -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
+  payee_email TEXT, -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
+  category TEXT, -- the Browse chip (src/lib/demo/shops.ts SHOP_CATEGORIES: food, drinks, gifts, repairs); null = on no chip; added by applySchema on older databases
+  seed_key TEXT -- set only on shops `npm run seed` made (src/lib/demo/shops.ts): how a re-run finds its own shops; added by applySchema on older databases
 );
 
 -- Slugs of deleted shops (SR19): never handed out again, so an old link or agent door can't start reaching a new shop.

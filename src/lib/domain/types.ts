@@ -28,6 +28,8 @@ export interface Shop {
   logoUrl: string | null;
   /** The account that owns the shop; null for an unattached shop (the seed and the harness), reached by its owner link. */
   accountId: string | null;
+  /** The Browse chip it is listed under (food, drinks, gifts, repairs), or null. */
+  category: string | null;
 }
 
 export type Confidence = 'high' | 'medium' | 'low';

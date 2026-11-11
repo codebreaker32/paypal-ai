@@ -1,5 +1,7 @@
 // npm run seed [-- --reset | --cancel-unpaid]
-// Creates the demo shop "Marigold Bakehouse" from the recorded menu reading, resolves its review issues as a seller
+// Publishes Marigold Bakehouse and the other seeded shops (src/lib/demo/shops.ts, `seedSellerShop` below; those need
+// PAYPAL_SANDBOX_SELLER_EMAIL, which pays them, and are skipped without it). --reset and --cancel-unpaid apply to all.
+// Marigold: created from the recorded menu reading, resolves its review issues as a seller
 // would, gives it the bundled cover and item photos (public/demo/marigold-bakehouse), publishes its items to the real
 // PayPal sandbox catalog with the setup flow's own publishShop, and marks it live. Idempotent: a second run reuses the shop and only publishes what is missing (an item PayPal turned down last
 // time, say). --reset deletes the shop (and its orders) and starts again. Every run reports the demo shop's orders still
@@ -11,13 +13,15 @@ import { normalizeExtraction } from '@/lib/ai/normalize';
 import type { MenuExtraction } from '@/lib/ai/schemas';
 import { RESERVED_SLUG, publishShop, type PublishResult } from '@/lib/catalog/publish';
 import { ConfigError, getConfig } from '@/lib/config';
+import { recordedReading, samplePhotoPath } from '@/lib/ai/samples';
 import { demoCoverFor, demoPhotoFor } from '@/lib/demo/photos';
+import { SEED_SHOPS, type SeedShopDef } from '@/lib/demo/shops';
 import { maskEmail, parsePayeeEmail } from '@/lib/domain/payee';
 import { getDb, type Db } from '@/lib/db';
 import * as items from '@/lib/db/repos/items';
 import * as orders from '@/lib/db/repos/orders';
 import * as shops from '@/lib/db/repos/shops';
-import type { Shop } from '@/lib/domain/types';
+import type { DraftItem, Shop } from '@/lib/domain/types';
 import { cancelOrder, syncOrder } from '@/lib/orders/service';
 import type { PayPalPort } from '@/lib/paypal/types';
 
@@ -30,6 +34,8 @@ export const DEMO_SHOP = {
   about: 'Small-batch breads and pastries, baked at home for weekend pickup or shipping.',
   fulfillment: 'both',
   shippingFeeCents: 800,
+  /** Its Browse chip (src/lib/demo/shops.ts). */
+  category: 'food',
 } as const;
 
 const FIXTURE = 'tests/ai/fixtures/marigold.json';
@@ -80,7 +86,6 @@ export interface SeedResult {
 
 export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   const { db, uploadsDir } = opts;
-  const log = opts.log ?? (() => {});
   let shop = shops.bySlug(db, DEMO_SHOP.slug);
   // Never adopt, change or delete a shop the seed didn't make (one published before the slug was reserved).
   if (shop && !isSeedShop(shop)) {
@@ -91,7 +96,6 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
   }
 
   if (shop && opts.reset) {
-    log(`Deleting ${shop.name} (${shop.id}) and its orders…`);
     db.prepare('DELETE FROM shops WHERE id = ?').run(shop.id);
     fs.rmSync(path.join(uploadsDir, shop.id), { recursive: true, force: true });
     shop = null;
@@ -115,36 +119,124 @@ export async function seedDemoShop(opts: SeedOptions): Promise<SeedResult> {
     if (shop.slug !== DEMO_SHOP.slug) throw new Error(`Expected slug ${DEMO_SHOP.slug}, got ${shop.slug}`);
     items.replaceDrafts(db, shop.id, catalog.items);
     resolveLikeASeller(db, shop.id);
-    log(`Created ${shop.name} with ${catalog.items.length} items from the recorded menu reading.`);
   }
 
   const shopId = shop.id;
   const payeeEmail = opts.payeeEmail ?? null;
   // Every run follows the env var: a changed or removed PAYPAL_SANDBOX_SELLER_EMAIL changes where new orders are paid.
-  shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)], payeeEmail });
-  applyDemoPhotos(db, shopId);
+  shops.update(db, shopId, { menuPhotoPaths: [ensurePhoto(uploadsDir, shopId)], payeeEmail, category: DEMO_SHOP.category });
+  applyDemoPhotos(db, shopId, DEMO_SHOP.slug);
   // The setup flow's own publish: same products, same request ids, and it makes the shop live.
-  const result = await publishShop({ db, paypal: opts.paypal }, shopId, (e) => {
-    const name = items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId;
-    log(e.ok ? `  PayPal product ${e.paypalProductId}  ${name}` : `  Not added: ${name}: ${e.message}`);
-  });
-  // Orders past their expiry no longer hold a caller's unpaid-order cap, so only live ones are reported.
-  const waiting = () => orders.listByShop(db, shopId, { status: ['awaiting_approval'] }).filter((o) => Date.parse(o.expiresAt) > Date.now());
-  let cancelled = 0;
-  if (opts.cancelUnpaid) {
-    const deps = { db, paypal: opts.paypal, appUrl: getConfig().appUrl };
-    for (const o of orders.listByShop(db, shopId, { status: ['awaiting_approval'] })) {
-      // Ask PayPal first: a buyer who approved a moment ago is captured, not cancelled.
-      const synced = await syncOrder(deps, o.id, 'poller').catch(() => o);
-      if (synced.status !== 'awaiting_approval') continue;
-      if ((await cancelOrder(deps, o.id, 'seller')).status === 'cancelled') cancelled++;
-    }
-  }
+  const result = await publishQuietly(opts, shopId);
+  const cancelled = opts.cancelUnpaid ? await cancelUnpaidOrders(opts, shopId) : 0;
   return {
     shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed,
-    unpaid: waiting().length, cancelled,
+    unpaid: waitingOrders(db, shopId), cancelled,
     payee: payeeEmail ? { kind: 'seller', maskedEmail: maskEmail(payeeEmail) } : { kind: 'platform' },
   };
+}
+
+/** The setup flow's own publish (same products, same request ids; it makes the shop live), logging only refusals. */
+function publishQuietly(opts: SeedOptions, shopId: string): Promise<PublishResult> {
+  const { db } = opts;
+  const log = opts.log ?? (() => {});
+  return publishShop({ db, paypal: opts.paypal }, shopId, (e) => {
+    if (e.ok) return;
+    log(`  Not added: ${items.byIdForShop(db, shopId, e.itemId)?.name ?? e.itemId}: ${e.message}`);
+  });
+}
+
+/** Orders still waiting for buyer approval; ones past their expiry no longer hold a caller's unpaid-order cap. */
+function waitingOrders(db: Db, shopId: string): number {
+  return orders.listByShop(db, shopId, { status: ['awaiting_approval'] }).filter((o) => Date.parse(o.expiresAt) > Date.now()).length;
+}
+
+/** Cancels the shop's orders still waiting for buyer approval (rehearsal orders); returns how many. */
+async function cancelUnpaidOrders(opts: SeedOptions, shopId: string): Promise<number> {
+  const { db } = opts;
+  const deps = { db, paypal: opts.paypal, appUrl: getConfig().appUrl };
+  let cancelled = 0;
+  for (const o of orders.listByShop(db, shopId, { status: ['awaiting_approval'] })) {
+    // Ask PayPal first: a buyer who approved a moment ago is captured, not cancelled.
+    const synced = await syncOrder(deps, o.id, 'poller').catch(() => o);
+    if (synced.status !== 'awaiting_approval') continue;
+    if ((await cancelOrder(deps, o.id, 'seller')).status === 'cancelled') cancelled++;
+  }
+  return cancelled;
+}
+
+export interface SellerSeedResult {
+  def: SeedShopDef;
+  /** Null when skipped: no PAYPAL_SANDBOX_SELLER_EMAIL, so nothing could pay it (only Marigold may be platform-paid). */
+  shop: Shop | null;
+  ownerToken: string | null;
+  created: boolean;
+  published: number;
+  failed: PublishResult['failed'];
+  unpaid: number;
+  cancelled: number;
+}
+
+/** The items a seller would type for a written-out shop, or the recorded reading of its sample menu, resolved. */
+function draftsFor(def: SeedShopDef): DraftItem[] {
+  if ('sample' in def.menu) {
+    const catalog = normalizeExtraction(recordedReading(def.menu.sample));
+    if ('unreadable' in catalog) throw new Error(`The recorded reading for ${def.name} is unreadable: ${catalog.reason}`);
+    return catalog.items;
+  }
+  return def.menu.items.map((i) => ({
+    section: i.section, name: i.name, description: i.description, sourceText: i.name, confidence: 'high', kind: def.kind === 'services' ? 'SERVICE' : 'PHYSICAL',
+    issues: [], issueDetail: null, status: 'draft', category: i.category, examplePhoto: null,
+    variants: i.prices.map((p) => ({ label: p.label, priceCents: p.cents })),
+  }));
+}
+
+/**
+ * One of the other seeded shops (src/lib/demo/shops.ts), made and published like Marigold: it is found again by its
+ * seed key (never by slug, so a visitor's shop of the same name is never touched), paid to `payeeEmail`, and given its
+ * bundled photos and Browse category on every run. Without a payee email it is skipped: only Marigold may be paid to
+ * the platform account (spec §8a), so an existing seeded shop is left as it was.
+ */
+export async function seedSellerShop(def: SeedShopDef, opts: SeedOptions): Promise<SellerSeedResult> {
+  const { db, uploadsDir } = opts;
+  const payeeEmail = opts.payeeEmail ?? null;
+  const none = { def, shop: null, ownerToken: null, created: false, published: 0, failed: [], unpaid: 0, cancelled: 0 };
+  let shop = shops.bySeedKey(db, def.key);
+  if (shop && opts.reset) {
+    db.prepare('DELETE FROM shops WHERE id = ?').run(shop.id);
+    fs.rmSync(path.join(uploadsDir, shop.id), { recursive: true, force: true });
+    shop = null;
+  }
+  if (!payeeEmail) return none;
+
+  let ownerToken: string | null = null;
+  const created = !shop;
+  if (!shop) {
+    const made = shops.create(db, {
+      name: def.name, about: def.about, kind: def.kind, fulfillment: def.fulfillment, pickupNotes: def.pickupNotes,
+      shippingFeeCents: def.shippingFeeCents, payeeEmail,
+    });
+    shop = made.shop;
+    ownerToken = made.ownerToken;
+    shops.setSeedKey(db, shop.id, def.key);
+    items.replaceDrafts(db, shop.id, draftsFor(def));
+    resolveLikeASeller(db, shop.id);
+  }
+  const shopId = shop.id;
+  const menuPhotoPaths = 'sample' in def.menu ? [copyOnce(uploadsDir, `${shopId}/seed-${def.menu.sample}.jpg`, samplePhotoPath(def.menu.sample))] : shop.menuPhotoPaths;
+  shops.update(db, shopId, { payeeEmail, category: def.category, menuPhotoPaths });
+  applyDemoPhotos(db, shopId, def.photos);
+  const result = await publishQuietly(opts, shopId);
+  const cancelled = opts.cancelUnpaid ? await cancelUnpaidOrders(opts, shopId) : 0;
+  return { def, shop: shops.byId(db, shopId)!, ownerToken, created, published: result.published, failed: result.failed, unpaid: waitingOrders(db, shopId), cancelled };
+}
+
+/** Marigold, then every other seeded shop. */
+export async function seedAllShops(opts: SeedOptions): Promise<{ marigold: SeedResult; others: SellerSeedResult[] }> {
+  const marigold = await seedDemoShop(opts);
+  const others: SellerSeedResult[] = [];
+  for (const def of SEED_SHOPS) others.push(await seedSellerShop(def, opts));
+  return { marigold, others };
 }
 
 /** What a seller does on the review screen: "Looks right" on every CHECK, "Ask in person" on market prices. */
@@ -163,24 +255,28 @@ function resolveLikeASeller(db: Db, shopId: string): void {
  * The bundled cover and item photos (src/lib/demo/photos.ts) on every run. A photo the seller uploaded (an /i/ URL)
  * is kept; an empty one or an older bundled one is set.
  */
-function applyDemoPhotos(db: Db, shopId: string): void {
+function applyDemoPhotos(db: Db, shopId: string, photoSet: string): void {
   const replaceable = (url: string | null) => url === null || url.startsWith('/demo/');
   const shop = shops.byId(db, shopId)!;
-  const cover = demoCoverFor(DEMO_SHOP.slug);
+  const cover = demoCoverFor(photoSet);
   if (replaceable(shop.coverUrl) && shop.coverUrl !== cover) shops.update(db, shopId, { coverUrl: cover });
   for (const item of items.listWithVariants(db, shopId)) {
-    const photo = demoPhotoFor(DEMO_SHOP.slug, item.name);
+    const photo = demoPhotoFor(photoSet, item.name);
     if (photo && replaceable(item.photoUrl) && item.photoUrl !== photo) items.update(db, item.id, { photoUrl: photo });
   }
 }
 
 /** Copies the sample photo to `${UPLOADS_DIR}/<shopId>/demo-marigold-bakehouse.jpg`; returns the path stored on the shop (relative to UPLOADS_DIR). */
 function ensurePhoto(uploadsDir: string, shopId: string): string {
-  const rel = `${shopId}/${DEMO_PHOTO}`;
+  return copyOnce(uploadsDir, `${shopId}/${DEMO_PHOTO}`, path.resolve(PHOTO));
+}
+
+/** Copies `src` to `${uploadsDir}/<rel>` unless it is there; returns `rel`. */
+function copyOnce(uploadsDir: string, rel: string, src: string): string {
   const dest = path.resolve(uploadsDir, rel);
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(path.resolve(PHOTO), dest);
+    fs.copyFileSync(src, dest);
   }
   return rel;
 }
@@ -198,37 +294,50 @@ async function main(): Promise<void> {
   }
   // Imported here so tests and Playwright can import seedDemoShop without PayPal credentials.
   const { getPayPal } = await import('@/lib/paypal');
-  const result = await seedDemoShop({
-    db: getDb(), paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, cancelUnpaid, payeeEmail, log: (l) => console.log(l),
+  const db = getDb();
+  const { marigold, others } = await seedAllShops({
+    db, paypal: getPayPal(), uploadsDir: cfg.uploadsDir, reset, cancelUnpaid, payeeEmail, log: (l) => console.log(l),
   });
-  const { shop } = result;
-  const live = items.listWithVariants(getDb(), shop.id).filter((i) => i.status === 'live');
+  const rows = [
+    { name: marigold.shop.name, shop: marigold.shop as Shop | null, created: marigold.created, token: marigold.ownerToken, published: marigold.published, failed: marigold.failed.length, unpaid: marigold.unpaid, cancelled: marigold.cancelled },
+    ...others.map((o) => ({ name: o.def.name, shop: o.shop, created: o.created, token: o.ownerToken, published: o.published, failed: o.failed.length, unpaid: o.unpaid, cancelled: o.cancelled })),
+  ];
+  const width = Math.max(...rows.map((r) => r.name.length));
+  let failed = 0;
+  let unpaid = 0;
+  let fake = false;
+  for (const r of rows) {
+    if (!r.shop) {
+      console.log(`${r.name.padEnd(width)}  skipped: set PAYPAL_SANDBOX_SELLER_EMAIL to publish it`);
+      continue;
+    }
+    const live = items.listWithVariants(db, r.shop.id).filter((i) => i.status === 'live');
+    fake ||= live.some((i) => i.paypalProductId?.startsWith('PROD-FAKE'));
+    failed += r.failed;
+    unpaid += r.unpaid;
+    const notes = [r.created ? 'created' : '', r.published ? `${r.published} published now` : '', r.failed ? `${r.failed} not added` : '', r.cancelled ? `${r.cancelled} unpaid cancelled` : '']
+      .filter(Boolean).join(', ');
+    console.log(`${r.name.padEnd(width)}  ${r.shop.status}, ${live.length} items in PayPal  ${cfg.appUrl}/s/${r.shop.slug}${notes ? `  (${notes})` : ''}`);
+  }
   console.log('');
-  console.log(`${shop.name} is ${shop.status}: ${live.length} items in the PayPal sandbox catalog${result.published ? ` (${result.published} published now)` : ''}.`);
-  if (result.failed.length) {
-    console.log(`${result.failed.length} item${result.failed.length === 1 ? '' : 's'} didn't reach PayPal. Run \`npm run seed\` again to retry ${result.failed.length === 1 ? 'it' : 'them'}.`);
+  if (failed) {
+    console.log(`${failed} item${failed === 1 ? '' : 's'} didn't reach PayPal. Run \`npm run seed\` again to retry.`);
     process.exitCode = 1;
   }
-  if (live.some((i) => i.paypalProductId?.startsWith('PROD-FAKE'))) {
-    console.log('Warning: this shop was seeded for tests with fake PayPal products. Run `npm run seed -- --reset` to publish it to the sandbox.');
-  }
-  if (result.cancelled) console.log(`Cancelled ${result.cancelled} order${result.cancelled === 1 ? '' : 's'} that ${result.cancelled === 1 ? 'was' : 'were'} waiting for payment.`);
-  if (result.unpaid) {
-    console.log(`${result.unpaid} order${result.unpaid === 1 ? ' is' : 's are'} waiting for payment. One caller can hold 3 unpaid orders per shop, so before recording run \`npm run seed -- --cancel-unpaid\`.`);
-  }
+  if (fake) console.log('Warning: some shops were seeded for tests with fake PayPal products. Run `npm run seed -- --reset` to publish them to the sandbox.');
+  if (unpaid) console.log(`${unpaid} order${unpaid === 1 ? ' is' : 's are'} waiting for payment. One caller can hold 3 unpaid orders per shop, so before recording run \`npm run seed -- --cancel-unpaid\`.`);
   console.log(
-    result.payee.kind === 'seller'
-      ? `  Paid to:           the sandbox seller's own PayPal account (${result.payee.maskedEmail}, PAYPAL_SANDBOX_SELLER_EMAIL)`
-      : "  Paid to:           Shelfie's own sandbox account (the app's). Set PAYPAL_SANDBOX_SELLER_EMAIL to pay a sandbox seller instead.",
+    marigold.payee.kind === 'seller'
+      ? `Paid to: the sandbox seller's own PayPal account (${marigold.payee.maskedEmail}, PAYPAL_SANDBOX_SELLER_EMAIL)`
+      : "Paid to: Shelfie's own sandbox account (Marigold only). Set PAYPAL_SANDBOX_SELLER_EMAIL to pay a sandbox seller and publish the other shops.",
   );
-  console.log(`  Shop:              ${cfg.appUrl}/s/${shop.slug}`);
-  console.log(`  Agent door (MCP):  ${cfg.appUrl}/s/${shop.slug}/mcp`);
-  console.log(`  Order with an AI:  ${cfg.appUrl}/s/${shop.slug}?assistant=1`);
-  if (result.ownerToken) {
-    console.log(`  Owner link:        ${cfg.appUrl}/claim/${result.ownerToken}`);
-    console.log('  (Shown once. It opens the dashboard on any device.)');
+  console.log(`Agent door (MCP): ${cfg.appUrl}/s/<slug>/mcp · order with an AI: ${cfg.appUrl}/s/<slug>?assistant=1`);
+  const links = rows.filter((r) => r.token);
+  if (links.length) {
+    console.log('Owner links (shown once; each opens that shop\'s dashboard on any device):');
+    for (const r of links) console.log(`  ${r.name.padEnd(width)}  ${cfg.appUrl}/claim/${r.token}`);
   } else {
-    console.log('  Owner link:        printed when the shop was created. `npm run seed -- --reset` recreates the shop with a new one.');
+    console.log('Owner links: printed when each shop was created. `npm run seed -- --reset` recreates the shops with new ones.');
   }
 }
 

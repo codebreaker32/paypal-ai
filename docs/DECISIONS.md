@@ -398,3 +398,11 @@ The owner approved mockup B ("Tall and shop-aware"). `?chatui=` and mockups A an
 - **The frame uses `overflow: clip`.** Reason: with `hidden`, a `scrollIntoView` inside the log scrolled the whole panel and pushed the cover strip out.
 - **Wording:** the subtitle is "Shelfie assistant" and the greeting "I’m taking orders for Marigold Bakehouse", with no "example shop" (a parallel change removes that phrase from public pages); the footer's test-mode sentence keeps the sandbox honest.
 - **`ConsoleComposer` takes `sendVariant`/`sendIcon`** (was the mockups' `iconSend`); the home chat's Send is the brand pill with no icon. Defaults give the shop console's composer unchanged.
+
+## Run 11: more seeded shops (2026-11-11)
+
+- **`npm run seed` publishes six shops**: Marigold (unchanged slug and path), Tía Lupe's Tacos and Ravi's Bike Repair (their recorded sample readings plus menu photo), and three written-out sellers (Little Ember Coffee, Sunny Side Lemonade, Fern & Wick; `src/lib/demo/shops.ts`). All go through `publishShop`.
+- **The other shops need `PAYPAL_SANDBOX_SELLER_EMAIL`; without it they are skipped** (one line each) and only Marigold is seeded, paid to the platform. Reason: the payee rule keeps one platform-paid shop; widening it to more slugs would let a visitor's same-named shop be platform-paid.
+- **A seeded shop is found again by `shops.seed_key`, never by slug.** A visitor who published "Little Ember Coffee" first keeps `little-ember-coffee`; the seed's gets `-2` and is never adopted or deleted. Marigold keeps its slug-plus-marker rule.
+- **`shops.category` (nullable) holds the Browse chip: `food`, `drinks`, `gifts`, `repairs`** (`SHOP_CATEGORIES`). Gifts rather than Flowers: the library has plants, candles and soap but no honest cut-flower photos. `listBrowseShops(db)` in the shops repo returns live, payable shops with what a card needs.
+- **The seed prints one line per shop**, then where it is paid and the owner links of shops it created (once); per-item PayPal product lines are gone (refusals still print).

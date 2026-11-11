@@ -57,7 +57,7 @@ describe('item photos and shop covers', () => {
     delete g.__shelfieDb;
     const file = tempDbPath('migrate-category');
     const old = new Database(file);
-    old.exec(SCHEMA_SQL.replace(/\n\s*category TEXT,[^\n]*/, '').replace(/\n\s*logo_url TEXT,[^\n]*/, ''));
+    old.exec(SCHEMA_SQL.replace(/\n\s*category TEXT,\s*-- the drawing[^\n]*/, '').replace(/\n\s*logo_url TEXT,[^\n]*/, ''));
     const colsOf = (t: string, d: { prepare(sql: string): { all(): unknown[] } }) =>
       (d.prepare(`PRAGMA table_info(${t})`).all() as { name: string }[]).map((c) => c.name);
     expect(colsOf('items', old)).not.toContain('category');
