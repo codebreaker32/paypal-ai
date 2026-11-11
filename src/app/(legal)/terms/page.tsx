@@ -40,9 +40,9 @@ export default function TermsPage() {
 
       <DocSection title="Closing an account">
         <p>
-          You can close your account by{' '}
-          <DocLink href="/help#contact">contacting us</DocLink>
-          . We may close or suspend an account or shop that misuses Shelfie, breaks the law or harms buyers.
+          You can delete your account and its shops yourself from{' '}
+          <DocLink href="/account">Account</DocLink>
+          {' '}(your password confirms it). We may close or suspend an account or shop that misuses Shelfie, breaks the law or harms buyers.
         </p>
       </DocSection>
     </DocPage>
