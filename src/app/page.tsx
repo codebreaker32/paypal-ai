@@ -5,13 +5,13 @@ import { Faq } from '@/components/landing/Faq';
 import { Hero } from '@/components/landing/Hero';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { HomeChat, type HomeChatShop } from '@/components/landing/HomeChat';
-import { parseChatUi } from '@/components/landing/chatui/types';
 import { starterPrompts } from '@/components/shop/starters';
 import { currentAccount, landingPath } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shops from '@/lib/db/repos/shops';
 import { LISTED_STATUSES } from '@/lib/domain/listed';
+import { pictureSource, pictureSrc } from '@/lib/library/picture';
 import { RESERVED_SLUG } from '@/lib/domain/payee';
 import { takesOrders } from '@/lib/orders/pricing';
 
@@ -55,10 +55,14 @@ function exampleShopChat(): HomeChatShop | null {
     const shop = shops.bySlug(db, RESERVED_SLUG);
     if (shop?.status !== 'live' || !takesOrders(shop)) return null;
     const items = itemsRepo.listWithVariants(db, shop.id, { status: [...LISTED_STATUSES] });
+    // Each item's picture by the Part A3 rules (own photo, else example photo); the cards under replies read it by id.
+    const pictures = itemsRepo.itemPictures(db, shop.id, shop.kind);
     const menu = items.flatMap((i) => {
       const prices = i.variants.map((v) => v.priceCents).filter((c): c is number => c !== null && c > 0);
       if (i.soldOut || !prices.length) return [];
-      return [{ id: i.id, name: i.name, section: i.section, description: i.description, priceCents: Math.min(...prices), photoUrl: i.photoUrl }];
+      const picture = pictures.get(i.id);
+      const src = picture ? pictureSrc(picture) : null;
+      return [{ id: i.id, name: i.name, priceCents: Math.min(...prices), photoUrl: src, example: !!picture && pictureSource(picture) === 'example' }];
     });
     return { slug: shop.slug, name: shop.name, starters: starterPrompts(shop, items, { takesOrders: true }), cover: shop.coverUrl, menu };
   } catch (err) {
@@ -71,9 +75,7 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
   const accountId = await readAccountId();
   const destination = accountId && destinationFor(accountId);
   if (destination) redirect(destination);
-  const { chat: chatParam, chatui: chatuiParam } = await searchParams;
-  // `?chatui=a|b|c` shows one of the three mockups of the open chat (docs/preview/chatui/README.md), opened at once.
-  const chatui = parseChatUi(chatuiParam);
+  const { chat: chatParam } = await searchParams;
   const chat = exampleShopChat();
   // `?chat=0` switches the chat's auto-open off and `?chat=1` on; the e2e harness (SHELFIE_TEST) starts with it off.
   const autoOpen = chatParam === '1' || (chatParam !== '0' && !process.env.SHELFIE_TEST);
@@ -86,7 +88,7 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
       <HowItWorks />
       <Faq />
       <Closing />
-      {chat && <HomeChat shop={chat} autoOpen={autoOpen && !chatui} chatui={chatui} />}
+      {chat && <HomeChat shop={chat} autoOpen={autoOpen} />}
     </>
   );
 }

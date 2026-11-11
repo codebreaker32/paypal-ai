@@ -15,7 +15,7 @@ import { m, useReducedMotion } from 'motion/react';
 import type { ConsoleEvent } from '@/lib/agent/buyer-console';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
 import type { OrderStatus } from '@/lib/domain/types';
-import { Button, ButtonLink } from '@/components/ui/button';
+import { Button, ButtonLink, type ButtonVariant } from '@/components/ui/button';
 import { PayPalLink } from '@/components/ui/paypal-link';
 import { FieldError, TextArea } from '@/components/ui/field';
 import { CountUp } from '@/components/motion/count-up';
@@ -583,15 +583,17 @@ export function ConsoleComposer({
   api,
   inputRef,
   placeholder = 'Message the assistant',
-  iconSend = false,
+  sendVariant = 'primary',
+  sendIcon = true,
   className,
   boxClassName,
 }: {
   api: BuyerConsoleApi;
   inputRef?: RefObject<HTMLTextAreaElement | null>;
   placeholder?: string;
-  /** A round icon-only Send (its name stays "Send"), for the home chat's mockups (`?chatui=`). */
-  iconSend?: boolean;
+  /** The home chat's Send is the brand pill with no icon. */
+  sendVariant?: ButtonVariant;
+  sendIcon?: boolean;
   className?: string;
   boxClassName?: string;
 }) {
@@ -652,22 +654,9 @@ export function ConsoleComposer({
         placeholder={placeholder}
         className={boxClassName ?? 'block min-w-0 flex-1 resize-none overscroll-contain py-[11px]'}
       />
-      {iconSend ? (
-        <button
-          type="submit"
-          aria-label="Send"
-          disabled={!draft.trim() || busy}
-          aria-busy={busy || undefined}
-          data-send=""
-          className="press-icon grid size-11 shrink-0 place-items-center rounded-full bg-accent text-on-accent enabled:hover:bg-accent-hover disabled:bg-line disabled:text-ink-faint"
-        >
-          <SendHorizontal aria-hidden className="size-5" />
-        </button>
-      ) : (
-        <Button type="submit" icon={SendHorizontal} loading={busy} disabled={!draft.trim()} className="shrink-0">
-          Send
-        </Button>
-      )}
+      <Button type="submit" variant={sendVariant} icon={sendIcon ? SendHorizontal : undefined} loading={busy} disabled={!draft.trim()} className="shrink-0">
+        Send
+      </Button>
     </form>
   );
 }

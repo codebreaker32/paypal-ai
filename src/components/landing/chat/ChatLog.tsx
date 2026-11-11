@@ -14,9 +14,12 @@ export interface EntryContext {
   fresh: boolean;
   /** An Activity step folded to one line (an older step of the turn). */
   collapsed: boolean;
-  /** The entry before this one, so a mockup can group consecutive messages from one side. */
+  /** The entry before and after this one, so consecutive messages from one side can group. */
   prev: Entry | undefined;
   next: Entry | undefined;
+  /** The whole conversation and this entry's place in it (a reply's cards read its turn's tool results). */
+  entries: readonly Entry[];
+  index: number;
 }
 
 export interface ChatLogProps {
@@ -32,7 +35,7 @@ export interface ChatLogProps {
 
 /**
  * The console's conversation with the look left to the caller: the same entries, scroll rules (console-scroll.ts),
- * entrances and "Start a new conversation" as `ConsoleConversation`, drawn by each `?chatui=` mockup its own way.
+ * entrances and "Start a new conversation" as `ConsoleConversation`, drawn by the home chat its own way.
  */
 function Log({ api, inputRef, empty, renderEntry, typing, className }: ChatLogProps) {
   const { state, reset } = api;
@@ -61,7 +64,7 @@ function Log({ api, inputRef, empty, renderEntry, typing, className }: ChatLogPr
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: MOTION_S.base, ease: EASE_OUT }}
             >
-              {renderEntry(entry, { fresh, collapsed: collapsedKeys.has(entry.key), prev: state.entries[i - 1], next: state.entries[i + 1] })}
+              {renderEntry(entry, { fresh, collapsed: collapsedKeys.has(entry.key), prev: state.entries[i - 1], next: state.entries[i + 1], entries: state.entries, index: i })}
             </m.div>
           );
         })}

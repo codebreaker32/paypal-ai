@@ -1,0 +1,58 @@
+/*
+ * The inside of the home chat (HomeChatPanel.tsx): the cover strip, bubbles, item cards, the pinned order and the
+ * message box. Its frame (the desktop panel, the phone sheet) is in ../home-chat.css. Only transform and opacity animate.
+ */
+
+/* The cover strip: 140 px on the panel, 104 px in the phone sheet; a dark wash keeps the white type legible on any photo. */
+.home-chat-cover { height: 8.75rem; }
+.home-chat-sheet .home-chat-cover { height: 6.5rem; }
+.home-chat-sheet .home-chat-who { padding-bottom: 0.75rem; }
+.home-chat-scrim { background: linear-gradient(180deg, rgb(0 0 0 / 0.08) 0%, rgb(20 8 12 / 0.25) 45%, rgb(20 8 12 / 0.72) 100%); }
+.home-chat-cover[data-cover] .home-chat-shop { color: var(--color-on-dark); text-shadow: 0 1px 10px rgb(0 0 0 / 0.4); }
+.home-chat-cover[data-cover] .home-chat-sub { color: var(--color-on-dark); text-shadow: 0 1px 8px rgb(0 0 0 / 0.4); }
+.home-chat-cover:not([data-cover]) .home-chat-shop { color: var(--color-ink); }
+.home-chat-cover:not([data-cover]) .home-chat-sub { color: var(--color-ink-soft); }
+.home-chat-avatar { border-radius: 9999px; box-shadow: 0 0 0 2px rgb(var(--white-rgb) / 0.9), 0 4px 12px -2px rgb(0 0 0 / 0.4); }
+
+/* Header buttons: white discs on the photo, so they read on any cover; 36 px drawn, 44 px to press. */
+.home-chat-hdr-btn { position: relative; background: rgb(var(--white-rgb) / 0.94); color: var(--color-ink); box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.35); }
+.home-chat-hdr-btn::after { content: ''; position: absolute; inset: -0.25rem; }
+@media (hover: hover) { .home-chat-hdr-btn:hover { background: var(--color-surface); } }
+.home-chat-hdr-btn:focus-visible { outline: 2px solid var(--color-on-dark); outline-offset: 2px; box-shadow: 0 0 0 4px var(--color-focus); }
+
+.home-chat-scroll { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+
+/* Item cards: the photo leans in on hover (transform only). */
+.home-chat-card-photo { transition: transform var(--duration-base) var(--ease-out); }
+@media (hover: hover) {
+  .home-chat-card:hover { border-color: var(--color-line-strong); }
+  .home-chat-card:hover .home-chat-card-photo { transform: scale(1.04); }
+}
+.home-chat-card:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+
+@media (hover: hover) { .home-chat-chip:hover { border-color: var(--color-accent); } }
+
+/* The message box: a pill beside the Send pill; its ring is the site's focus ring. */
+.home-chat-box { transition: border-color var(--duration-fast) var(--ease-out); }
+.home-chat-box::placeholder { color: var(--color-ink-muted); }
+.home-chat-box:focus-visible { border-color: var(--color-ink); outline: none; box-shadow: 0 0 0 3px rgb(var(--ink-rgb) / 0.1); }
+
+/* The pinned order rises in once. */
+.home-chat-summary { transition: opacity var(--duration-base) var(--ease-out), transform var(--duration-base) var(--ease-out); }
+@starting-style { .home-chat-summary { opacity: 0; transform: translateY(0.5rem); } }
+
+/* The typing indicator: three dots that rise in turn. Under reduced motion they sit still. */
+.home-chat-typing { display: inline-flex; align-items: center; gap: 0.25rem; }
+.home-chat-typing > span { width: 0.4375rem; height: 0.4375rem; border-radius: 9999px; background: currentColor; opacity: 0.35;
+  animation: home-chat-typing 1.1s var(--ease-out) infinite; }
+.home-chat-typing > span:nth-child(2) { animation-delay: 0.15s; }
+.home-chat-typing > span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes home-chat-typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.35; } 30% { transform: translateY(-0.25rem); opacity: 0.9; } }
+@media (prefers-reduced-motion: reduce) { .home-chat-typing > span { animation: none; opacity: 0.6; } }
+
+/* The "online" dot: a soft ring that breathes (opacity and scale only). */
+.home-chat-online { position: relative; display: inline-block; width: 0.5rem; height: 0.5rem; border-radius: 9999px; background: var(--color-ok); box-shadow: 0 0 0 1.5px rgb(var(--white-rgb) / 0.85); }
+.home-chat-online::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: inherit;
+  animation: home-chat-ping 2.4s var(--ease-out) infinite; }
+@keyframes home-chat-ping { 0% { transform: scale(1); opacity: 0.5; } 70%, 100% { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .home-chat-online::after { animation: none; opacity: 0; } }
