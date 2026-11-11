@@ -1,5 +1,4 @@
 import { Pressable } from '@/components/motion/pressable';
-import { Reveal } from '@/components/motion/reveal';
 import { cx } from '@/components/ui/cx';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemPicture } from '@/lib/domain/category';
@@ -121,15 +120,15 @@ export function Menu({ sections, kind, takesOrders = true }: { sections: MenuSec
               id={ids[i].id}
               className="scroll-mt-[calc(var(--shop-tabs-h)+1rem)] scroll-mb-[calc(var(--shop-bar-h)+1rem)]"
             >
-              {/* A section below the fold rises in once as it scrolls into view; the first screen paints as served. */}
-              <Reveal className="flex flex-col gap-3 @[36rem]/shop:gap-4">
+              {/* No per-section reveal (review F9): every section paints as served, so a full-page capture has no blank bands. */}
+              <div className="flex flex-col gap-3 @[36rem]/shop:gap-4">
                 <h3 className="type-title">{section.name}</h3>
                 <ul className="menu-grid">
                   {section.items.map((item) => (
                     <MenuItem key={item.id} item={item} tone={i} picture={pictures.get(item.id) ?? pictureOf(item, kind, null)} takesOrders={takesOrders} />
                   ))}
                 </ul>
-              </Reveal>
+              </div>
             </div>
           ))}
         </div>

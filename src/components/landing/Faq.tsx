@@ -2,7 +2,6 @@
 
 import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
-import { Reveal } from '@/components/motion';
 import { Icon } from '@/components/ui/icon';
 
 const QUESTIONS = [
@@ -61,7 +60,7 @@ export function Faq() {
           <span aria-hidden="true" className="mt-4 hidden h-1 w-20 rounded-full bg-on-dark md:block" />
         </div>
         <div id="faq-list" className={open ? 'mt-6 md:mt-0' : 'hidden md:block'}>
-          <Reveal className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {QUESTIONS.map(({ q, a }) => (
               <details key={q} className="group rounded-lg bg-accent-active">
                 <summary className="press-text flex min-h-12 list-none items-center justify-between gap-4 rounded-lg px-5 py-2 text-lg font-semibold hover:bg-accent-hover xl:text-xl [&::-webkit-details-marker]:hidden">
@@ -71,7 +70,7 @@ export function Faq() {
                 <p className="max-w-[68ch] px-5 pb-5 pt-1 text-base xl:text-lg">{a}</p>
               </details>
             ))}
-          </Reveal>
+          </div>
         </div>
       </div>
     </section>

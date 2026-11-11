@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import { Reveal } from '@/components/motion';
 import { AccentMarks } from './art';
 
 /** The home page's last band: the cupcake photo, one closing line and PayPal's mark, fading into the footer below. */
@@ -13,7 +12,7 @@ export function Closing() {
       {/* The band's foot fades into the footer's charcoal, so photo and footer read as one piece with no seam. */}
       <div aria-hidden="true" className="closing-floor absolute inset-0 -z-10" />
       <div className="relative mx-auto flex w-full max-w-site justify-end px-band-gutter pb-[calc(var(--spacing-band)*1.5)] pt-[calc(var(--spacing-band)*1.25)]">
-        <Reveal className="flex w-full flex-col items-center text-center max-md:pl-[36%] md:w-[52%]">
+        <div className="flex w-full flex-col items-center text-center max-md:pl-[36%] md:w-[52%]">
           <div className="relative">
             <h2 id="landing-close" className="type-band-closing">
               Put your counter online today.
@@ -27,7 +26,7 @@ export function Closing() {
             {/* eslint-disable-next-line @next/next/no-img-element -- a fixed SVG logo, no optimizer needed */}
             <img src="/brand/paypal/paypal-color.svg" alt="PayPal" width={170} height={48} className="h-6 w-auto" />
           </p>
-        </Reveal>
+        </div>
       </div>
     </section>
   );

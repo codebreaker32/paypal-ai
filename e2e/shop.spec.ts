@@ -497,6 +497,8 @@ test.describe('console states', () => {
     const coffee = page.getByRole('heading', { name: 'Coffee', level: 3 });
     await expect(coffee).toBeAttached();
     expect((await coffee.boundingBox())!.y).toBeGreaterThan(900);
+    // The menu's sections paint as served (review F9): no section waits for its own entrance.
+    await expect(page.locator('section[aria-labelledby="menu-title"] [data-slot="reveal"]')).toHaveCount(0);
     await expect(async () => {
       const hidden = await page.evaluate(() =>
         Array.from(document.querySelectorAll('[data-slot="reveal"], [data-slot="stagger-item"]')).filter(
