@@ -484,11 +484,18 @@ for (const [label, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
       await expect(log.locator('[data-tool="create_order"]')).toHaveText(`Placed your order · $${usd(total)} · waiting for your PayPal approval`);
       await expect(log.locator('[data-step][data-state="done"]')).toHaveCount(await log.locator('[data-step]').count());
       expect(await log.textContent()).not.toMatch(/create_order|list_products|\d ms|agent door/);
+      if (SHOTS) {
+        // The friendly steps and the pinned PayPal button together, mid-order.
+        await page.mouse.move(0, 0);
+        await log.locator('[data-tool="create_order"]').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(400);
+        await page.screenshot({ path: `${SHOTS}/activity-${label}.png` });
+      }
       const details = log.getByRole('group', { name: 'Activity', exact: true }).last().getByRole('button', { name: 'Details' });
       await expect(details).toHaveAttribute('aria-expanded', 'false');
       await details.click();
       await expect(log.locator('summary', { hasText: 'create_order' })).toBeVisible();
-      if (SHOTS) await page.screenshot({ path: `${SHOTS}/chat-b-${label}-details.png` });
+      if (SHOTS) await page.screenshot({ path: `${SHOTS}/activity-${label}-details.png` });
       await details.click();
       await expect(log.locator('summary', { hasText: 'create_order' })).toHaveCount(0);
       // The summary sits right above the message box.
