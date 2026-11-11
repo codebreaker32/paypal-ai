@@ -75,3 +75,25 @@ In order. Every item is S effort and independent of the others, so stop wherever
 11. If there is time left: **F14** pin Marigold first on Browse (5 min), **F5** remove the duplicate auth logo (10 min), **F10** status wrap (10 min).
 
 After the fixes: `npm test`, `npm run typecheck && npm run lint`, then `npm run screenshots:prod` and re-run `docs/reviews/final/capture-public.ts` for the touched screens.
+
+## After the fixes (run 17, 11 Nov 2026)
+
+The 13 owner-approved findings are fixed on `run-17-fixes`, one commit each. An adversarial review of the diff found two follow-ups, and both are fixed in `7be0a80`. The re-shot screens are in [`final/after/`](final/after/) (this report's capture script against a freshly seeded production server, plus `counter-card-print.png` under print media) and in `docs/judge/screenshots/run-17/` (`npm run screenshots:prod`, 102 shots, 0 axe failures).
+
+| # | Status | Commit | Check |
+|---|---|---|---|
+| F1 | Fixed | `e8bf390` | The name's `leading-[1.04]` comes after `cardNameSize()` on every card. `counter-card-1440` and the print preview show "Marigold / Bakehouse" on two clear lines. A unit test fails without the fix. |
+| F2 | Fixed | `8eb0eee`, `7be0a80` | `readBackFulfillment()`: a pickup read-back offers "Ship it to me instead", a shipping one "Make it pickup instead", and one that names neither or both only "Yes, place it". "PayPal will collect your address" doesn't count as pickup. Unit tests cover each case, and the real Claude turn in `home-chat-mid-order-1440` shows the pickup chips. |
+| F12 | Fixed | `526721e`, `7be0a80` | Terms now says you delete the account yourself from Account. The e2e phrase is updated. |
+| F13 | Fixed | `dbfe9a1` | Ravi's shop page says "Repairs", as Browse does. |
+| F7 | Fixed | `583ae25` | No count pill while the cart is empty. The tab is named "Your order (empty)" (unit and e2e). |
+| F3 | Fixed | `732fc74` | The greeting is "Hi! I'm the Shelfie assistant." and the header line is "Shelfie assistant · powered by Claude". Agent-name recording is unchanged. |
+| F9 | Fixed | `b61a8a3` | No per-section `Reveal` on the menu, the FAQ or the Closing band. The full-page `shop-seeded-1440` and `home-1440` have no blank bands. |
+| F11 | Fixed | `55040a9` | DocPage uses `max-w-site px-band-gutter`, so the Terms, Help and Privacy text starts on the logo's edge. |
+| F6 | Fixed | `7817f17` | No "Example" corner tag and no line above the list. Each example row shows "Example photo, replace with yours" once (`setup-review`, `review-paypal-email`). |
+| F8 | Fixed | `68bc637` | The auto-open waits until the chain has played and sits clear of the panel, or has scrolled away (`hero-chain-signal.ts`, unit and e2e). DESIGN.md is updated. |
+| F5 | Fixed | `b5742ce` | The panel lockup and the phone band's mark are removed. The header logo stays. |
+| F14 | Fixed | `03c967d` | Marigold leads `/browse` when it takes orders. The rest are newest first. |
+| F10 | Fixed | `3a0ef5a` | A row with no action gives its status the action column. "Waiting for approval" and "PayPal refused payment" each fit on one line. |
+
+**Gates:** `npm test` passed (2,378 tests). Typecheck, lint and build exited 0. The full e2e ran 550 passed, 34 skipped and 1 failed, and the failure was the stale Terms phrase. The capture gate passed all 3 real sandbox captures. `other-pages` and `home-chat` were then re-run: 28 passed, 1 skipped.
