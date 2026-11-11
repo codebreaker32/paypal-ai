@@ -127,3 +127,33 @@ export function shopJsonLd(shop: Shop, items: ItemWithVariants[], urls: ShopUrls
 export function jsonLdScript(data: Json): string {
   return JSON.stringify(data).replace(/</g, '\\u003c');
 }
+
+/**
+ * /browse as schema.org: an ItemList of every shop taking orders, each with its page and its agent door, so an agent
+ * that lands on the directory finds every door without reading the cards.
+ */
+export function browseJsonLd(shops: { slug: string; name: string; kind: ShopKind; line: string }[], appUrl: string): Json {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Shops on Shelfie',
+    url: `${appUrl}/browse`,
+    numberOfItems: shops.length,
+    itemListElement: shops.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': BUSINESS_TYPE[s.kind],
+        '@id': `${appUrl}/s/${s.slug}#shop`,
+        name: s.name,
+        url: `${appUrl}/s/${s.slug}`,
+        ...(s.line ? { description: s.line } : {}),
+        potentialAction: {
+          '@type': 'OrderAction',
+          name: 'Order through the agent door',
+          target: { '@type': 'EntryPoint', name: 'Agent door (MCP)', urlTemplate: `${appUrl}/s/${s.slug}/mcp`, httpMethod: 'POST', contentType: 'application/json' },
+        },
+      },
+    })),
+  };
+}

@@ -3,8 +3,10 @@ import { BrowseShops } from '@/components/browse/BrowseShops';
 import { ShopCard, hasPhotoCover } from '@/components/browse/ShopCard';
 import { ButtonLink } from '@/components/ui/button';
 import { parseBrowseFilter } from '@/lib/browse';
+import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import { listBrowseShops, type BrowseShop } from '@/lib/db/repos/browse';
+import { browseJsonLd, jsonLdScript } from '@/lib/discovery/jsonld';
 
 export const runtime = 'nodejs';
 
@@ -29,6 +31,8 @@ export default async function BrowsePage({ searchParams }: PageProps<'/browse'>)
   const shops = readShops();
   return (
     <>
+      {/* For agents (spec §10a): every shop here with its page and agent door, like /agents.txt. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(browseJsonLd(shops, getConfig().appUrl)) }} />
       <section aria-labelledby="browse-title" className="bg-blush">
         <div className="mx-auto w-full max-w-site px-band-gutter pt-band pb-8 lg:pb-10">
           <h1 id="browse-title" className="type-band text-balance text-ink">
