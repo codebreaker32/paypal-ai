@@ -47,15 +47,18 @@ export type PaidTo =
   | { kind: 'seller'; shopName: string; maskedEmail: string }
   | { kind: 'platform'; shopName: string; demo: boolean };
 
-/** "Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Shelfie’s demo PayPal account for Marigold Bakehouse". */
+/**
+ * "Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Shelfie’s PayPal account for Marigold Bakehouse". The
+ * buyer's words name no shop as a demo (`demo` is for the seller's screens).
+ */
 function accountText(p: PaidTo): string {
   if (p.kind === 'seller') return `${p.shopName}’s own PayPal account (${p.maskedEmail})`;
-  return `Shelfie’s ${p.demo ? 'demo ' : ''}PayPal account for ${p.shopName}`;
+  return `Shelfie’s PayPal account for ${p.shopName}`;
 }
 
 /**
- * "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s demo PayPal account for …"
- * (the demo shop) / "Paid to Shelfie’s PayPal account for …" (another shop's order from before it had an email).
+ * "Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)" / "Paid to Shelfie’s PayPal account for …"
+ * (the shop paid to the platform, or another shop's order from before it had an email).
  */
 export function paidToText(p: PaidTo): string {
   return `Paid to ${accountText(p)}`;

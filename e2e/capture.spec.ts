@@ -257,7 +257,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
         expect(info_.payments).toMatch(/own PayPal account/);
         expect(info_.payments!.includes(SELLER!)).toBe(false);
       } else {
-        expect(info_.payments).toMatch(/demo PayPal account/);
+        expect(info_.payments).toMatch(/Shelfie's own PayPal account/);
       }
 
       const list = await callTool<ProductList>(door, 'list_products');
@@ -305,7 +305,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
     await expect(page.getByRole('heading', { level: 1, name: `Paid. ${shopName} has your order.` })).toBeVisible({ timeout: 60_000 });
     await expect(page.getByText(`Order ${order.order_number}`)).toBeVisible();
     await expect(
-      page.getByText(mode === 'seller' ? `Paid to ${shopName}’s own PayPal account (` : `Paid to Shelfie’s demo PayPal account for ${shopName}`),
+      page.getByText(mode === 'seller' ? `Paid to ${shopName}’s own PayPal account (` : `Paid to Shelfie’s PayPal account for ${shopName}`),
     ).toBeVisible();
     if (mode === 'seller') expect((await page.locator('body').innerText()).includes(SELLER!)).toBe(false); // masked only
     await settle(page);

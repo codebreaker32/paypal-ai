@@ -127,7 +127,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
       limits: { max_qty_per_line: 20, max_lines: 15, max_order: '500.00' },
       how_ordering_works: expect.stringContaining('approval_url'),
       // The demo shop with no PayPal email (spec §8a).
-      payments: "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.",
+      payments: "Paid to Shelfie's own PayPal account, which collects for this shop.",
     });
   });
 

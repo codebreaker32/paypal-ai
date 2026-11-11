@@ -360,7 +360,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
 /** Where the money goes, for the agent to tell the user if asked. The seller's email is masked, never sent in full. */
 function paymentsNote(shop: Shop): string {
   if (shop.payeeEmail !== null) return `Paid straight to the shop's own PayPal account (${maskEmail(shop.payeeEmail)}).`;
-  if (canBePaid(shop)) return "Paid to Shelfie's demo PayPal account: this is Shelfie's sample shop.";
+  if (canBePaid(shop)) return "Paid to Shelfie's own PayPal account, which collects for this shop.";
   return "This shop hasn't set up where to be paid yet, so it can't take online orders.";
 }
 

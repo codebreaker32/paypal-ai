@@ -50,7 +50,7 @@ describe('receiptView paidTo', () => {
 
   it("a held payment for the demo shop is going to Shelfie's demo account", () => {
     expect(goingToText({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true })).toBe(
-      'Going to Shelfie’s demo PayPal account for Marigold Bakehouse.',
+      'Going to Shelfie’s PayPal account for Marigold Bakehouse.',
     );
   });
 
@@ -61,7 +61,7 @@ describe('receiptView paidTo', () => {
     await syncOrder(deps, o.id, 'return_url');
     const paidTo = receiptView(db, o.id)!.paidTo!;
     expect(paidTo).toEqual({ kind: 'platform', shopName: 'Marigold Bakehouse', demo: true });
-    expect(paidToText(paidTo)).toBe('Paid to Shelfie’s demo PayPal account for Marigold Bakehouse');
+    expect(paidToText(paidTo)).toBe('Paid to Shelfie’s PayPal account for Marigold Bakehouse');
   });
 
   it("an order a shop took before it had a PayPal email (paid to the platform) is Shelfie's account, not the demo's", async () => {
