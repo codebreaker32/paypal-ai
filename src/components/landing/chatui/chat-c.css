@@ -1,10 +1,10 @@
 /*
  * Mockup C, "Concierge drawer" (ChatC.tsx): a full-height blush drawer on the right from 1024 px that slides in from the
- * right edge, a blush bottom sheet below. White cards sit on the blush. Only transform and opacity animate.
+ * right edge (480 px x the full height, the page dimmed beside it), a full-screen blush sheet on phones. White cards sit on the blush. Only transform and opacity animate.
  */
 .chatui-panel[data-chatui="c"] {
   top: 0; right: 0; bottom: 0;
-  width: min(27.5rem, 100vw);
+  width: min(30rem, 100vw);
   background: var(--color-blush);
   border-left: 1px solid var(--color-blush-band);
   box-shadow: -1px 0 0 rgb(var(--ink-rgb) / 0.03), -32px 0 64px -24px rgb(var(--ink-rgb) / 0.22);
@@ -12,7 +12,16 @@
 }
 @starting-style { .chatui-panel[data-chatui="c"] { transform: translateX(100%); opacity: 0.6; } }
 
+/* The page beside the drawer dims; a click on it closes the drawer (HomeChat.tsx). */
+.chatui-scrim { position: fixed; inset: 0; z-index: var(--z-dock); background: rgb(var(--ink-rgb) / 0.32);
+  transition: opacity var(--duration-slow) var(--ease-out); }
+@starting-style { .chatui-scrim { opacity: 0; } }
+
+/* Phones: the whole screen, square corners. */
 .chatui-sheet:has([data-chatui-root="c"]) { background: var(--color-blush); }
+@media (width < 40rem) {
+  .chatui-sheet:has([data-chatui-root="c"]) { inset: 0 0 auto 0; height: var(--assistant-vh, 100dvh); border-radius: 0; }
+}
 
 /* White cards on the blush: a hairline of blush-ring and a soft lift, never a heavy box. */
 [data-chatui-root="c"] .cc-card {

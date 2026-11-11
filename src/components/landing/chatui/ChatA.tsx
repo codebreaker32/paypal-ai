@@ -152,7 +152,7 @@ export function ChatA(props: ChatVariantProps) {
         <IconButton icon={X} label="Close the chat" iconSize="md" onClick={onClose} className="text-ink-soft hover:bg-blush-ring/60" />
       </div>
 
-      <div data-chat-a-scroll="" className="overflow-y-auto overscroll-contain px-4 pt-6 pb-4">
+      <div data-chat-a-scroll="" className="mt-2 overflow-y-auto overscroll-contain px-5 pt-4 pb-4">
         <ChatLog api={api} inputRef={inputRef} empty={empty} typing={typing} renderEntry={renderEntry} className="chat-a-log" />
       </div>
 

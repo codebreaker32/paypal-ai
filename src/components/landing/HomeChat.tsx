@@ -231,6 +231,9 @@ export function HomeChat({ shop, autoOpen, chatui = null }: { shop: HomeChatShop
         {unread && <span data-unread="" aria-hidden className="home-chat-dot" />}
       </button>
 
+      {/* Mockup C's drawer dims the page beside it; a click there closes it, as Esc does. */}
+      {open && isDesktop && chatui === 'c' && <div aria-hidden data-entrance="" className="chatui-scrim" onClick={hide} />}
+
       {open && isDesktop && (
         <section
           ref={panelRef}

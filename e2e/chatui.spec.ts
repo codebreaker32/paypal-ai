@@ -173,7 +173,7 @@ for (const [label, viewport] of [['1440', DESKTOP], ['390', PHONE]] as const) {
         const pay = dialog.getByRole('link', { name: new RegExp(`\\$${(total / 100).toFixed(2)}.*PayPal|PayPal.*\\$${(total / 100).toFixed(2)}`) }).first();
         await expect(pay).toBeVisible();
         await expect(pay).toHaveAttribute('href', /sandbox\.paypal\.com/);
-        await expect(dialog.getByText(/contains nuts/).first()).toBeVisible();
+        await expect(dialog.getByText(/contains nuts/).filter({ visible: true }).first()).toBeVisible();
         await page.waitForTimeout(600);
         await a11y(page);
         if (SHOTS) await page.screenshot({ path: `${SHOTS}/${v}-${label}-conversation.png` });

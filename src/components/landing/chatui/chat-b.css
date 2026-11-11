@@ -3,11 +3,12 @@
  * the running order pinned above the message box. Only transform and opacity animate.
  */
 .chatui-panel[data-chatui="b"] {
-  right: var(--home-chat-edge);
-  bottom: calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem);
-  width: min(26.25rem, calc(100vw - 2 * var(--home-chat-edge)));
-  /* Clear of the sticky header (5rem at its tallest) and the launcher, with a gap under the header. */
-  height: min(45rem, calc(100dvh - 5rem - var(--home-chat-launcher) - 2 * var(--home-chat-edge) - 1.75rem));
+  /* A tall portrait beside the launcher: 440 px wide, the viewport's height less 96 px (72 above for the sticky header, 24
+     below), up to 62 rem on a very tall screen. */
+  right: calc(var(--home-chat-edge) + var(--home-chat-launcher) + 0.75rem);
+  bottom: var(--home-chat-edge);
+  width: min(27.5rem, calc(100vw - 2 * var(--home-chat-edge) - var(--home-chat-launcher) - 0.75rem));
+  height: min(62rem, calc(100dvh - 6rem));
   border-radius: var(--radius-2xl);
   border: 1px solid var(--color-line);
   background: var(--color-surface);
@@ -16,11 +17,14 @@
 }
 @starting-style { .chatui-panel[data-chatui="b"] { opacity: 0; transform: translateY(0.75rem) scale(0.97); } }
 
-/* Phones: the bottom sheet keeps its geometry; its corners clip the cover. */
+/* Phones: a bottom sheet of 90% of the screen; its corners clip the cover. */
 .chatui-sheet:has([data-chatui-root="b"]) { overflow: hidden; background: var(--color-surface); }
+@media (width < 40rem) {
+  .chatui-sheet:has([data-chatui-root="b"]) { height: min(90dvh, calc(var(--assistant-vh, 100dvh) - 0.5rem)); }
+}
 
-/* The cover header: 148 px on the panel, 112 px in the sheet. */
-.chat-b-header { height: 9.25rem; }
+/* The cover header: 140 px on the panel, 112 px in the sheet. */
+.chat-b-header { height: 8.75rem; }
 .chatui-sheet .chat-b-header { height: 7rem; }
 .chat-b-scrim {
   background: linear-gradient(180deg, rgb(var(--ink-rgb) / 0.35) 0%, rgb(var(--ink-rgb) / 0.05) 30%, rgb(var(--ink-rgb) / 0.55) 62%, rgb(var(--ink-rgb) / 0.85) 100%);

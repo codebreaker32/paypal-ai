@@ -1,9 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, CircleAlert, CircleCheck, CircleX, Hourglass, MessageCircleQuestion, ShieldCheck, ShoppingBag, Truck, X, type LucideIcon } from 'lucide-react';
+import { ChevronRight, CircleAlert, CircleCheck, CircleX, Hourglass, MessageCircleQuestion, RotateCcw, ShieldCheck, ShoppingBag, Truck, X, type LucideIcon } from 'lucide-react';
 import { useReducedMotion } from 'motion/react';
-import { ApprovalCard, ConsoleActions, ConsoleComposer } from '@/components/shop/BuyerConsole';
+import { ApprovalCard, ConsoleComposer, isConversationFull } from '@/components/shop/BuyerConsole';
 import { ActivityPanel } from '@/components/shop/ActivityPanel';
 import { RichText } from '@/components/shop/RichText';
 import { isPayPalApprovalUrl } from '@/components/shop/activity-format';
@@ -111,7 +111,7 @@ function OrderSummary({ entry, order, shopName, fresh }: { entry: Extract<Entry,
   const safe = isPayPalApprovalUrl(entry.approvalUrl);
   const number = entry.orderNumber ?? order.orderNumber;
   const shipping = money(order.shipping);
-  const how = order.fulfillment === 'shipping' ? 'Shipped' : order.fulfillment === 'pickup' ? 'Pickup' : null;
+  const how = order.fulfillment === 'shipping' ? 'Shipping' : order.fulfillment === 'pickup' ? 'Pickup' : null;
 
   return (
     <article aria-label="Your order" className="cc-order rounded-xl bg-surface">
@@ -268,6 +268,16 @@ export function ChatC({ api, shopName, starters, titleId, titleRef, inputRef, on
           </h2>
           <p className="text-sm leading-5 text-pretty text-ink-muted">{subtitle}</p>
         </div>
+        {!state.busy && state.entries.length > 0 && !isConversationFull(state) && (
+          <button
+            type="button"
+            aria-label="Start over"
+            onClick={api.reset}
+            className="press-icon grid size-11 shrink-0 place-items-center rounded-full text-ink-soft hover:bg-blush-band hover:text-ink"
+          >
+            <RotateCcw aria-hidden className="size-[1.125rem]" />
+          </button>
+        )}
         <button
           type="button"
           aria-label="Close the chat"
@@ -298,7 +308,6 @@ export function ChatC({ api, shopName, starters, titleId, titleRef, inputRef, on
             ))}
           </ul>
         )}
-        <ConsoleActions api={api} />
         <ConsoleComposer
           api={api}
           inputRef={inputRef}
