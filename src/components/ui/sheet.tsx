@@ -79,6 +79,9 @@ export function Sheet({ open, onClose, title, description, children, footer, med
     const dialog = ref.current;
     if (!dialog) return;
     const handleClose = () => {
+      // Another sheet opened in the same moment (the shop's assistant and order swap): focus stays in it.
+      const holder = document.activeElement?.closest('dialog[open]');
+      if (holder && holder !== dialog) return;
       const back = opener.current;
       (back?.isConnected && back !== document.body ? back : fallbackFocusRef?.current)?.focus();
     };

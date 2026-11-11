@@ -61,3 +61,17 @@
 @media (prefers-reduced-motion: reduce) {
   .compact-order-cta, .compact-order-cta[data-shown] { transition: none; }
 }
+
+/* The dock and the sheets hold the switch (DockSwitch.tsx) above one panel. */
+.assistant-box { display: flex; flex-direction: column; height: 100%; }
+.assistant-box > [role='tabpanel'] { flex: 1 1 auto; min-height: 0; }
+/* The order count answers each add: a short bump, transform only. */
+.dock-count[data-bump] { animation: dock-count-bump var(--duration-base) var(--ease-out); }
+@keyframes dock-count-bump { 0% { transform: scale(1); } 40% { transform: scale(1.25); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .dock-count[data-bump] { animation: none; } }
+
+/* Under 1024 px the order bar sits at the bottom of the screen: toasts rise above it, so "View order" stays in reach. */
+@media (max-width: 63.98rem) {
+  html:has([data-order-bar]) [data-toast-region] { bottom: calc(var(--button-h-lg) + 1.5rem + env(safe-area-inset-bottom) + 0.75rem); padding-bottom: 0; }
+}
+.assistant-box > [role='tabpanel'] { display: grid; grid-template-rows: minmax(0, 1fr); }

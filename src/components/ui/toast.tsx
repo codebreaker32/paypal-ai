@@ -17,12 +17,17 @@ export interface ToastInput {
   tone?: ToastTone;
   /** Defaults to 5 s. */
   durationMs?: number;
-  /** One link beside the text ("Open" the new order). */
-  action?: { label: string; href: string };
+  /** One link or button beside the text ("Open" the new order, "View order"). */
+  action?: { label: string; href: string } | { label: string; onClick: () => void };
+  /** A toast with the same key replaces the one showing (its timer starts again), so rapid repeats don't stack. */
+  key?: string;
 }
 
 interface ToastItem extends Required<Pick<ToastInput, 'title' | 'tone' | 'durationMs'>> {
   id: number;
+  key?: string;
+  /** Bumped when a keyed toast is replaced in place, which restarts its timer. */
+  rev: number;
   description?: string;
   action?: ToastInput['action'];
 }
@@ -44,10 +49,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   const show = useCallback((t: ToastInput) => {
     const id = nextId.current++;
-    setToasts((all) => [
-      ...all.slice(-2),
-      { id, title: t.title, description: t.description, action: t.action, tone: t.tone ?? 'neutral', durationMs: t.durationMs ?? 5000 },
-    ]);
+    setToasts((all) => {
+      const item = { key: t.key, title: t.title, description: t.description, action: t.action, tone: t.tone ?? 'neutral', durationMs: t.durationMs ?? 5000 } as const;
+      const same = t.key === undefined ? -1 : all.findIndex((o) => o.key === t.key);
+      // In place, so the card doesn't leave and come back for each repeat.
+      if (same >= 0) return all.map((o, i) => (i === same ? { ...item, id: o.id, rev: o.rev + 1 } : o));
+      return [...all.slice(-2), { ...item, id, rev: 0 }];
+    });
   }, []);
 
   return (
@@ -69,6 +77,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const ACTION = 'press-text -ml-1 mt-1 inline-flex min-h-tap cursor-pointer items-center self-start rounded-full px-1 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)';
+
 const HIDDEN = { opacity: 0, y: 16, scale: 0.98 };
 
 function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: number) => void }) {
@@ -79,7 +89,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
     timer.current = t;
     t.start();
     return () => t.stop();
-  }, [toast.id, toast.durationMs, onDismiss]);
+  }, [toast.id, toast.rev, toast.durationMs, onDismiss]);
 
   // A toast never leaves while someone is reading it or has tabbed into it.
   const leaveFocus = (e: FocusEvent<HTMLDivElement>) => {
@@ -106,15 +116,23 @@ function ToastCard({ toast, onDismiss }: { toast: ToastItem; onDismiss: (id: num
       <div className="flex min-w-0 flex-1 flex-col py-0.5">
         <p className="font-semibold text-pretty">{toast.title}</p>
         {toast.description && <p className="mt-0.5 text-sm opacity-85">{toast.description}</p>}
-        {toast.action && (
-          <Link
-            href={toast.action.href}
-            onClick={() => onDismiss(toast.id)}
-            className="press-text -ml-1 mt-1 inline-flex min-h-tap items-center self-start rounded-full px-1 font-semibold underline underline-offset-4 hover:bg-surface/10 focus-visible:outline-(--toast-fg)"
-          >
-            {toast.action.label}
-          </Link>
-        )}
+        {toast.action &&
+          ('href' in toast.action ? (
+            <Link href={toast.action.href} onClick={() => onDismiss(toast.id)} className={ACTION}>
+              {toast.action.label}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                onDismiss(toast.id);
+                (toast.action as { onClick: () => void }).onClick();
+              }}
+              className={ACTION}
+            >
+              {toast.action.label}
+            </button>
+          ))}
       </div>
       <button
         type="button"

@@ -578,7 +578,7 @@ test.describe('cart in the dock', () => {
     expect(box.y).toBe(0);
     expect(box.height).toBe(page.viewportSize()!.height);
 
-    await dock(page).getByRole('button', { name: 'Assistant', exact: true }).click();
+    await dock(page).getByRole('tab', { name: 'Assistant', exact: true }).click();
     await expect(dock(page).locator('[data-cart-panel]')).toHaveCount(0);
     await expect(dock(page).getByRole('heading', { name: 'Order with an assistant' })).toBeVisible();
     await expect(page.locator('[data-assistant-dock]')).toHaveCount(1);
@@ -620,7 +620,7 @@ test.describe('cart in the dock', () => {
     await expect(dock(page).getByRole('button', { name: /Opening PayPal/ })).toBeDisabled();
     await expect(addPlus(page)).toBeDisabled();
     await expect(tile(page).getByRole('button', { name: `Remove one ${ITEM}` })).toBeDisabled();
-    await expect(dock(page).getByRole('button', { name: 'Assistant', exact: true })).toBeDisabled();
+    await expect(dock(page).getByRole('tab', { name: 'Assistant', exact: true })).toBeDisabled();
     await expect(dock(page).getByRole('button', { name: 'Close your order' })).toBeDisabled();
     await dock(page).getByRole('heading', { name: 'Your order' }).focus();
     await page.keyboard.press('Escape');

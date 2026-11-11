@@ -97,8 +97,20 @@ export function useHistoryParam(param: string, docked?: () => boolean) {
     set(null);
   }, [param, set]);
 
+  /** Takes over the current entry from another panel (the assistant's sheet): `own` says that entry was pushed for it. */
+  const adopt = useCallback(
+    (next: string, own: boolean) => {
+      ownEntry.current = own;
+      const url = new URL(window.location.href);
+      url.searchParams.set(param, next);
+      History.prototype.replaceState.call(window.history, own ? withOwnMark(window.history.state) : withoutOwnMark(window.history.state), '', url);
+      set(next);
+    },
+    [param, set],
+  );
+
   /** This param's entry was pushed by this page, so it carries the own-entry mark. */
   const isOwn = useCallback(() => ownEntry.current, []);
 
-  return { value, open, close, dismiss, isOwn };
+  return { value, open, close, dismiss, adopt, isOwn };
 }

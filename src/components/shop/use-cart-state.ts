@@ -48,7 +48,8 @@ export interface CartState {
   notice: string | null;
   announcement: string;
   quantity: (itemId: string) => number;
-  add: (itemId: string, optionId: string, qty?: number) => void;
+  /** True when the line went in; false when it was refused (the refusal is already told). */
+  add: (itemId: string, optionId: string, qty?: number) => boolean;
   decrement: (itemId: string) => void;
   setQty: (itemId: string, optionId: string, qty: number) => void;
   setFulfillment: (f: CheckoutChoice) => void;
@@ -141,20 +142,21 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
   );
 
   const add = useCallback(
-    (itemId: string, optionId: string, qty = 1) => {
-      if (busyRef.current) return;
+    (itemId: string, optionId: string, qty = 1): boolean => {
+      if (busyRef.current) return false;
       const next = addLine(linesRef.current, itemId, optionId, qty);
       if (next === linesRef.current) {
         const message = addRefusal(next, itemId, optionId);
         setAnnouncement(message);
         toast?.({ title: message });
         feedback('tick'); // A press on a live control still answers; this add control leaves its tick to us.
-        return;
+        return false;
       }
       apply(next);
       setNotice(null);
       announce(itemId, 'added', next);
       feedback('add');
+      return true;
     },
     [announce, apply, toast],
   );

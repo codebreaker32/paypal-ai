@@ -25,8 +25,6 @@ export interface CartViewProps {
   onClose: () => void;
   /** Runs just before the menu is re-read from the server, which rewrites the URL (see `ShopAssistant`). */
   onRefresh?: () => void;
-  /** From 1024 px, where this and the assistant share one dock: how to switch to the assistant. */
-  onAssistant?: () => void;
 }
 
 function Segment({ value, checked, disabled, onChange, children }: { value: CheckoutChoice; checked: boolean; disabled: boolean; onChange: (v: CheckoutChoice) => void; children: string }) {
@@ -60,7 +58,7 @@ function Line({ line, disabled, onChange }: { line: CartLineView; disabled: bool
  * The buyer's order: the same view in the desktop dock and the phone sheet, in the assistant's box (header, one
  * scrolling middle, a footer that never moves). Every figure here is for display; the server prices the order.
  */
-export function CartView({ cart, data, titleId, titleRef, shopName, onClose, onRefresh, onAssistant }: CartViewProps) {
+export function CartView({ cart, data, titleId, titleRef, shopName, onClose, onRefresh }: CartViewProps) {
   const router = useRouter();
   const { views, busy, fulfillment, overCap } = cart;
   const both = data.fulfillment === 'both';
@@ -72,11 +70,6 @@ export function CartView({ cart, data, titleId, titleRef, shopName, onClose, onR
         <h2 ref={titleRef} id={titleId} tabIndex={-1} className="type-heading min-w-0 flex-1 truncate outline-none">
           Your order
         </h2>
-        {onAssistant && (
-          <Button variant="secondary" size="md" disabled={busy} onClick={onAssistant}>
-            Assistant
-          </Button>
-        )}
         <IconButton icon={X} label="Close your order" iconSize="md" disabled={busy} onClick={onClose} className="-mr-2" />
       </div>
 

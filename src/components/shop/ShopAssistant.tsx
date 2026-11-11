@@ -5,10 +5,12 @@ import { flushSync } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { formatUSD } from '@/lib/domain/money';
 import { Sheet } from '@/components/ui/sheet';
+import { useOptionalToast } from '@/components/ui/toast';
 import { AssistantShell } from './AssistantShell';
 import { CartContext, type CartApi } from './cart-context';
 import type { ShopCartData } from './cart';
 import { CartStatus, CartView } from './CartView';
+import { DockSwitch, type DockPanel } from './DockSwitch';
 import { ItemSheet } from './ItemSheet';
 import { useCartState, viewOrderLabel } from './use-cart-state';
 import { useHistoryParam } from './use-history-param';
@@ -56,11 +58,11 @@ const isDocked = () => window.matchMedia(DESKTOP).matches;
 const assistantInUrl = () => new URL(window.location.href).searchParams.get('assistant') === '1';
 
 /** Docked and deep-linked states rewrite the current entry; a modal opened by tap adds one, so Back closes it. */
-const setAssistantParam = (on: boolean, method: 'pushState' | 'replaceState' = 'replaceState') => {
+const setAssistantParam = (on: boolean, method: 'pushState' | 'replaceState' = 'replaceState', keepOwnMark = false) => {
   const url = new URL(window.location.href);
   if (on) url.searchParams.set('assistant', '1');
   else url.searchParams.delete('assistant');
-  const state = method === 'pushState' ? withOwnMark(window.history.state) : withoutOwnMark(window.history.state);
+  const state = method === 'pushState' || keepOwnMark ? withOwnMark(window.history.state) : withoutOwnMark(window.history.state);
   // The browser's own method, not Next's patch of it: on a section tab's entry (no state) the patch would write a state
   // that makes Next reload the page when the buyer comes back to that entry.
   History.prototype[method].call(window.history, state, '', url);
@@ -120,11 +122,17 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const cartTitleRef = useRef<HTMLHeadingElement>(null);
   const cartDialogRef = useRef<HTMLDialogElement>(null);
   const cartTitleId = useId();
+  const switchId = useId();
+  /** The switch moved between panels: focus stays on it, so the opening panel doesn't take it. */
+  const viaSwitch = useRef(false);
+  const toast = useOptionalToast();
   const cart = useCartState(slug, cartData);
   const cartParam = useHistoryParam('order', isDocked);
   const dismissCart = cartParam.dismiss;
   const openCartParam = cartParam.open;
   const closeCartParam = cartParam.close;
+  const adoptCartParam = cartParam.adopt;
+  const cartOwnEntry = cartParam.isOwn;
   const cartOpen = cartParam.value !== null;
   const itemParam = useHistoryParam('item');
   const closeItemParam = itemParam.close;
@@ -182,16 +190,43 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     if (isDocked()) keepPlace(() => closeCartParam());
     else closeCartParam();
   }, [closeCartParam, cartBusy]);
-  // The dock's switch: the assistant replaces the cart, nothing to go back to.
-  const switchToAssistant = useCallback(() => {
-    cartOpener.current = null;
-    keepPlace(() => {
-      dismissCart();
-      setOpen(true);
-    });
-    setAssistantParam(true);
-    ownEntry.current = false;
-  }, [dismissCart]);
+  // The switch: one panel replaces the other on the same history entry, so there is nothing to go back to between them.
+  const swapPanel = useCallback(
+    (to: DockPanel) => {
+      if (isDocked()) {
+        viaSwitch.current = true;
+        cartOpener.current = null;
+        keepPlace(() => {
+          if (to === 'assistant') {
+            dismissCart();
+            setOpen(true);
+          } else {
+            setOpen(false);
+            openCartParam('1', false);
+          }
+        });
+        setAssistantParam(to === 'assistant');
+        ownEntry.current = false;
+        return;
+      }
+      // Phone and side sheets: the entry the open sheet pushed (if it did) now belongs to the other, so Back still closes it.
+      if (to === 'order') {
+        const own = ownEntry.current;
+        ownEntry.current = false;
+        setOpen(false);
+        setAssistantParam(false);
+        adoptCartParam('1', own);
+      } else {
+        const own = cartOwnEntry();
+        dismissCart();
+        ownEntry.current = own;
+        setOpen(true);
+        setAssistantParam(true, 'replaceState', own);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `adoptCartParam` and `cartOwnEntry` are stable callbacks
+    [dismissCart, openCartParam],
+  );
 
   const showForDraft = useCallback(() => {
     if (!open) show();
@@ -237,8 +272,9 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   // opener or, when that is gone, the order button showing now. A `?assistant=1` load moves nothing. Modal forms: `Sheet`.
   const wasOpen = useRef(open);
   useEffect(() => {
-    if (isDesktop && open && !wasOpen.current) focusAtEnd(inputRef.current);
-    if (isDesktop && !open && wasOpen.current) {
+    if (isDesktop && open && !wasOpen.current && !viaSwitch.current) focusAtEnd(inputRef.current);
+    if (open) viaSwitch.current = false;
+    if (isDesktop && !open && wasOpen.current && !viaSwitch.current) {
       const back = opener.current;
       opener.current = null;
       [back !== document.body ? back : null, heroInView ? heroButton.current : null, compactButton.current, orderBarRef.current].find(canTakeFocus)?.focus();
@@ -290,7 +326,8 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   // The cart dock takes focus like the assistant's: its title on opening, the opener on closing.
   const wasCartOpen = useRef(cartOpen);
   useEffect(() => {
-    if (isDesktop && cartOpen && !wasCartOpen.current) cartTitleRef.current?.focus();
+    if (isDesktop && cartOpen && !wasCartOpen.current && !viaSwitch.current) cartTitleRef.current?.focus();
+    if (cartOpen) viaSwitch.current = false;
     // A phone sheet returns focus itself, except when the last line went: it unmounts with the closing, open, so no `close` event fires.
     if ((isDesktop || (isDesktop === false && !hasItems)) && !cartOpen && wasCartOpen.current && !open) {
       const back = cartOpener.current;
@@ -305,7 +342,6 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
   const refreshing = useRef(false);
   const seenCartData = useRef(cartData);
   const itemOwnEntry = itemParam.isOwn;
-  const cartOwnEntry = cartParam.isOwn;
   useLayoutEffect(() => {
     if (seenCartData.current === cartData) return;
     seenCartData.current = cartData;
@@ -319,7 +355,23 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     refreshing.current = true;
   }, []);
 
-  const { add, decrement, quantity, busy } = cart;
+  const { add: addLine, decrement, quantity, busy } = cart;
+  // Every add answers where the buyer is looking: the tile's stepper, the switch's count, and a toast whose
+  // `View order` reaches the order from wherever it is (the dock showing the assistant, or behind the phone's bar).
+  const itemName = useCallback((itemId: string) => cartData.items.find((i) => i.id === itemId)?.name ?? 'Item', [cartData.items]);
+  const add = useCallback(
+    (itemId: string, optionId: string, qty?: number) => {
+      if (!addLine(itemId, optionId, qty)) return;
+      const orderShowing = cartOpen && isDocked();
+      toast?.({
+        key: 'cart-add',
+        title: `${itemName(itemId)} added`,
+        tone: 'ok',
+        action: orderShowing ? undefined : { label: 'View order', onClick: () => (open && isDocked() ? swapPanel('order') : showCart()) },
+      });
+    },
+    [addLine, cartOpen, itemName, open, showCart, swapPanel, toast],
+  );
   const itemOpener = useRef<HTMLElement | null>(null);
   const openItemSheet = itemParam.open;
   const cartApi = useMemo<CartApi>(
@@ -360,6 +412,22 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
     if (!sheetItem) return;
     add(sheetItem.id, optionId, qty);
     closeItemParam();
+  };
+
+  // A shop that doesn't take orders has no order to switch to (unless lines are saved from before it paused).
+  const withSwitch = takesOrders || hasItems;
+  /** The switch above one panel, which is its tab panel. Ids per box: on phones both sheets can be mounted at once. */
+  const box = (active: DockPanel, panel: ReactNode) => {
+    if (!withSwitch) return panel;
+    const ids = { assistant: `${switchId}${active}-a`, order: `${switchId}${active}-o`, panel: `${switchId}${active}-p` };
+    return (
+      <div className="assistant-box">
+        <DockSwitch active={active} count={cart.count} itemsCents={cart.itemsCents} onSwitch={swapPanel} disabled={cart.busy} ids={ids} />
+        <div role="tabpanel" id={ids.panel} aria-labelledby={ids[active]}>
+          {panel}
+        </div>
+      </div>
+    );
   };
 
   const shell = <AssistantShell api={panelApi} title={title} titleId={titleId} titleRef={titleRef} shopName={shopName} starters={starters} inputRef={inputRef} takesOrders={takesOrders} onClose={hide} />;
@@ -413,20 +481,20 @@ export function ShopAssistant({ slug, shopName, starters, initiallyOpen, cover, 
             if (e.key === 'Escape') (cartOpen ? hideCart : hide)();
           }}
         >
-          {cartOpen ? <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} onAssistant={switchToAssistant} /> : shell}
+          {box(cartOpen ? 'order' : 'assistant', cartOpen ? <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} /> : shell)}
         </aside>
       )}
 
       {isDesktop === false && (
         <Sheet bare dialogRef={dialogRef} labelledBy={titleId} open={open} onClose={hide} className="assistant-sheet text-ink" initialFocusRef={titleRef} fallbackFocusRef={orderBarRef}>
-          {shell}
+          {box('assistant', shell)}
         </Sheet>
       )}
 
       {/* Mounted only with something to show: an empty page keeps one dialog, the assistant's. */}
       {isDesktop === false && (cartOpen || hasItems) && (
         <Sheet bare dialogRef={cartDialogRef} labelledBy={cartTitleId} open={cartOpen} onClose={hideCart} className="assistant-sheet text-ink" initialFocusRef={cartTitleRef} fallbackFocusRef={orderBarRef}>
-          <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} />
+          {box('order', <CartView cart={cart} data={cartData} titleId={cartTitleId} titleRef={cartTitleRef} shopName={shopName} onClose={hideCart} onRefresh={onRefresh} />)}
           {cartOpen && <CartStatus cart={cart} />}
         </Sheet>
       )}
