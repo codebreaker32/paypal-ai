@@ -468,9 +468,9 @@ function Conversation({ api, shopName, starters, takesOrders, inputRef, greeting
       <div className="flex flex-col gap-4">
         <p className="text-base leading-6 text-ink">
           {greeting ?? (takesOrders ? (
-            <>Hi! I’m Claude. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.</>
+            <>Hi! I’m the Shelfie assistant. Tell me what you’d like from {shopName}, and you’ll approve the payment on PayPal.</>
           ) : (
-            <>Hi! I’m Claude. {shopName} isn’t taking orders right now, but I can answer questions about the menu.</>
+            <>Hi! I’m the Shelfie assistant. {shopName} isn’t taking orders right now, but I can answer questions about the menu.</>
           ))}
         </p>
         <Starters prompts={starters} onPick={send} />

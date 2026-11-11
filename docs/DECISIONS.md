@@ -454,3 +454,9 @@ The owner: "Remove 'Add your shop' from footer and redesign footer, keep pic tha
 - **Owner:** "Keep 'New to Shelfie? Add your shop' in their obvious places, not on the header." On /login, /signup and /recover the header is now the logo alone, linking home (`headerView` returns `bare`; the `auth` kind is gone). Each form ends with `AuthSwitch` directly under its primary button: /login `New to Shelfie? Add your shop` (→ /signup), /signup `Have an account? Log in`, /recover `Remembered it? Log in` (→ /login). `Forgot password?` stays by the password field.
 - **Look:** centred, 15 px, prompt in ink-soft, link in `text-accent-ink` (pomegranate) with the underline only on hover or keyboard focus, a 44 px tap target, and `press-text` for the existing press/click feedback; the same on phones (the old header hid the prompt below `sm`).
 - On /signup the EMAIL_TAKEN error also has a `Log in` link, so the e2e now scopes that check to `#signup-email-error`.
+
+## Run 17: the final review's fixes (owner-approved list, `docs/reviews/2026-11-12-final-design-review.md`)
+
+- **F2:** the home chat's second quick reply is read from the assistant's read-back (`readBackFulfillment` in `landing/chat/order.ts`): pickup offers "Ship it to me instead", shipping offers "Make it pickup instead", neither or both offers only "Yes, place it". "no/free shipping" and "no delivery fee" are not read as shipping.
+- **F3:** the shop console's voice is "the Shelfie assistant" (greeting) and its header line is "Shelfie assistant · powered by Claude", short enough never to truncate; the greeting still names the shop. This reverses the run 10 note that kept "Hi! I'm Claude". Agent-name recording is unchanged.
+- **F7:** the dock tab's count pill is gone while the cart is empty; the tab's accessible name is "Your order (empty)".

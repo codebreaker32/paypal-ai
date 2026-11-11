@@ -19,7 +19,7 @@ export interface AssistantShellProps {
   /** False for a shop that isn't taking orders: the console greets with questions only. */
   takesOrders: boolean;
   onClose: () => void;
-  /** The line under the title; the shop page's is "Claude, for {shopName}". */
+  /** The line under the title; the shop page's is "Shelfie assistant · powered by Claude" (one name, as on home). */
   subtitle?: string;
   /** The picture beside the title; the shop page's is the Shelfie mark. */
   mark?: ReactNode;
@@ -57,7 +57,7 @@ export function AssistantShell({
             {title}
           </h2>
           <p data-assistant-subtitle="" className="type-meta truncate text-ink-muted">
-            {subtitle ?? `Claude, for ${shopName}`}
+            {subtitle ?? 'Shelfie assistant · powered by Claude'}
           </p>
         </div>
         <IconButton icon={X} label={closeLabel} iconSize="md" onClick={onClose} className="-mr-2" />
