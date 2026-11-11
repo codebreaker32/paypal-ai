@@ -51,6 +51,7 @@ describe('discovery across many shops', () => {
       const body = await (await route()).text();
       for (const s of open) expect(body).toContain(`${app()}/s/${s.shop.slug}/mcp`);
       for (const s of closed) expect(body).not.toContain(`/s/${s.shop.slug}`);
+      expect(body).toContain(`${app()}/browse`);
     }
   });
 

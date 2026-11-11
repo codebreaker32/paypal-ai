@@ -61,6 +61,7 @@ function agentsTxt(shops: IndexShop[], appUrl: string): string {
     '',
     'Site: Shelfie',
     `Site-URL: ${appUrl}`,
+    `Directory: ${appUrl}/browse`,
     `About: ${SUMMARY}`,
     '',
     '# The agent door: one per shop',
@@ -112,6 +113,8 @@ function llmsTxt(shops: IndexShop[], appUrl: string): string {
     'Each shop page also carries schema.org JSON-LD with an `OrderAction` whose target is its agent door, and ' +
       '`<link rel="alternate" type="application/json" title="Agent door (MCP)">`. The same list as fields: ' +
       `${appUrl}/agents.txt`,
+    '',
+    `People browse the same shops at ${appUrl}/browse, which carries them as a schema.org ItemList.`,
     '',
     '## Shops',
     '',
