@@ -7,6 +7,8 @@ import { AssistantShell } from '@/components/shop/AssistantShell';
 import { useBuyerConsole, type BuyerConsoleApi } from '@/components/shop/BuyerConsole';
 import { useKeyboardViewport } from '@/components/shop/use-keyboard-viewport';
 import { BotMark } from './BotMark';
+import { ChatVariant } from './chatui/ChatVariant';
+import type { ChatMenuItem, ChatUi } from './chatui/types';
 import './home-chat.css';
 
 /** What the home page's chat needs from the example shop (computed on the server, only while it is live and takes orders). */
@@ -14,6 +16,9 @@ export interface HomeChatShop {
   slug: string;
   name: string;
   starters: string[];
+  /** The shop's cover photo and listed menu, for the `?chatui=` mockups. */
+  cover?: string | null;
+  menu?: ChatMenuItem[];
 }
 
 const DESKTOP = '(min-width: 1024px)';
@@ -61,10 +66,11 @@ const focusAtEnd = (input: HTMLTextAreaElement | null) => {
  * compact panel above it from 1024 px, which opens by itself once per session without taking focus; a bottom sheet below
  * 1024 px, where a small greeting bubble stands in for the auto-open.
  */
-export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boolean }) {
+export function HomeChat({ shop, autoOpen, chatui = null }: { shop: HomeChatShop; autoOpen: boolean; chatui?: ChatUi | null }) {
   const isDesktop = useIsDesktop();
-  const [open, setOpen] = useState(false);
-  const [unread, setUnread] = useState(true);
+  // A mockup (`?chatui=`) opens at once, so the owner sees it without waiting or clicking.
+  const [open, setOpen] = useState(chatui !== null);
+  const [unread, setUnread] = useState(chatui === null);
   const [bubble, setBubble] = useState(false);
   const launcherRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLElement>(null);
@@ -159,7 +165,23 @@ export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boo
     () => <>Hi! I’m the Shelfie assistant. Try me: I’m taking orders for {shop.name}, an example shop. What would you like?</>,
     [shop.name],
   );
-  const shell = (
+  const shell = chatui ? (
+    <ChatVariant
+      chatui={chatui}
+      api={panelApi}
+      shopName={shop.name}
+      shopSlug={shop.slug}
+      starters={shop.starters}
+      cover={shop.cover ?? null}
+      menu={shop.menu ?? []}
+      titleId={titleId}
+      titleRef={titleRef}
+      inputRef={inputRef}
+      onClose={hide}
+      isDesktop={isDesktop}
+      greeting={greeting}
+    />
+  ) : (
     <AssistantShell
       api={panelApi}
       title="Shelfie assistant"
@@ -218,7 +240,8 @@ export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boo
           aria-labelledby={titleId}
           data-entrance=""
           data-home-chat-panel=""
-          className="home-chat-panel text-ink"
+          data-chatui={chatui ?? undefined}
+          className={chatui ? 'chatui-panel text-ink' : 'home-chat-panel text-ink'}
           onKeyDown={(e) => {
             if (e.key === 'Escape') {
               e.preventDefault();
@@ -232,7 +255,7 @@ export function HomeChat({ shop, autoOpen }: { shop: HomeChatShop; autoOpen: boo
       )}
 
       {isDesktop === false && (
-        <Sheet bare dialogRef={dialogRef} labelledBy={titleId} open={open} onClose={hide} className="home-chat-sheet text-ink" initialFocusRef={titleRef} fallbackFocusRef={launcherRef}>
+        <Sheet bare dialogRef={dialogRef} labelledBy={titleId} open={open} onClose={hide} className={chatui ? 'home-chat-sheet chatui-sheet text-ink' : 'home-chat-sheet text-ink'} initialFocusRef={titleRef} fallbackFocusRef={launcherRef}>
           {shell}
         </Sheet>
       )}

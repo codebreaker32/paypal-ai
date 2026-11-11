@@ -5,6 +5,7 @@ import { Faq } from '@/components/landing/Faq';
 import { Hero } from '@/components/landing/Hero';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { HomeChat, type HomeChatShop } from '@/components/landing/HomeChat';
+import { parseChatUi } from '@/components/landing/chatui/types';
 import { starterPrompts } from '@/components/shop/starters';
 import { currentAccount, landingPath } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
@@ -54,7 +55,12 @@ function exampleShopChat(): HomeChatShop | null {
     const shop = shops.bySlug(db, RESERVED_SLUG);
     if (shop?.status !== 'live' || !takesOrders(shop)) return null;
     const items = itemsRepo.listWithVariants(db, shop.id, { status: [...LISTED_STATUSES] });
-    return { slug: shop.slug, name: shop.name, starters: starterPrompts(shop, items, { takesOrders: true }) };
+    const menu = items.flatMap((i) => {
+      const prices = i.variants.map((v) => v.priceCents).filter((c): c is number => c !== null && c > 0);
+      if (i.soldOut || !prices.length) return [];
+      return [{ id: i.id, name: i.name, section: i.section, description: i.description, priceCents: Math.min(...prices), photoUrl: i.photoUrl }];
+    });
+    return { slug: shop.slug, name: shop.name, starters: starterPrompts(shop, items, { takesOrders: true }), cover: shop.coverUrl, menu };
   } catch (err) {
     console.error('Landing page: could not read the example shop for the chat', err instanceof Error ? err.message : err);
     return null;
@@ -65,7 +71,9 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
   const accountId = await readAccountId();
   const destination = accountId && destinationFor(accountId);
   if (destination) redirect(destination);
-  const { chat: chatParam } = await searchParams;
+  const { chat: chatParam, chatui: chatuiParam } = await searchParams;
+  // `?chatui=a|b|c` shows one of the three mockups of the open chat (docs/preview/chatui/README.md), opened at once.
+  const chatui = parseChatUi(chatuiParam);
   const chat = exampleShopChat();
   // `?chat=0` switches the chat's auto-open off and `?chat=1` on; the e2e harness (SHELFIE_TEST) starts with it off.
   const autoOpen = chatParam === '1' || (chatParam !== '0' && !process.env.SHELFIE_TEST);
@@ -78,7 +86,7 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
       <HowItWorks />
       <Faq />
       <Closing />
-      {chat && <HomeChat shop={chat} autoOpen={autoOpen} />}
+      {chat && <HomeChat shop={chat} autoOpen={autoOpen && !chatui} chatui={chatui} />}
     </>
   );
 }

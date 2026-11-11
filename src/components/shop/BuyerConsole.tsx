@@ -267,7 +267,7 @@ const SETTLED: Record<Extract<ApprovalCardView, { approve: false }>['label'], { 
  * The order to approve. A card that arrives during the conversation counts its total up from zero once (a card restored
  * after the trip to PayPal shows its total as is); the PayPal button presses in; a status change crossfades.
  */
-function ApprovalCard({ entry, shopName, fresh }: { entry: Extract<Entry, { kind: 'approval' }>; shopName: string; fresh: boolean }) {
+export function ApprovalCard({ entry, shopName, fresh }: { entry: Extract<Entry, { kind: 'approval' }>; shopName: string; fresh: boolean }) {
   const cents = parseAmountToCents(entry.total);
   const reduce = useReducedMotion();
   const [countFrom, setCountFrom] = useState(fresh && !reduce && cents !== null ? 0 : cents);
@@ -366,7 +366,7 @@ export interface ConsoleConversationProps {
  * size: a sheet opening (a closed one has no height) goes to the end; anything else, such as the keyboard or the action
  * row appearing, keeps a following buyer at the bottom.
  */
-function useConversationScroll(state: ConsoleState, inputRef: RefObject<HTMLElement | null> | undefined) {
+export function useConversationScroll(state: ConsoleState, inputRef: RefObject<HTMLElement | null> | undefined) {
   const end = useRef<HTMLDivElement>(null);
   const log = useRef<HTMLDivElement>(null);
   const place = useRef<{ scroller: HTMLElement | null; seen: SeenEntries | null; anchor: number; following: boolean; pastTurnStart: boolean; movedTo: number }>({
@@ -527,7 +527,7 @@ export const ConsoleConversation = memo(
   (a, b) => a.api.state === b.api.state && a.shopName === b.shopName && a.starters === b.starters && a.takesOrders === b.takesOrders && a.inputRef === b.inputRef && a.greeting === b.greeting,
 );
 
-function isConversationFull(state: ConsoleState): boolean {
+export function isConversationFull(state: ConsoleState): boolean {
   const last = state.entries.at(-1);
   return last?.kind === 'error' && last.code === 'CONVERSATION_FULL';
 }
@@ -579,7 +579,22 @@ function fitToText(el: HTMLTextAreaElement): void {
 }
 
 /** The message box: grows to four lines, Enter sends, Shift+Enter is a new line. Typing ahead is fine while the assistant works; sending waits. */
-export function ConsoleComposer({ api, inputRef }: { api: BuyerConsoleApi; inputRef?: RefObject<HTMLTextAreaElement | null> }) {
+export function ConsoleComposer({
+  api,
+  inputRef,
+  placeholder = 'Message the assistant',
+  iconSend = false,
+  className,
+  boxClassName,
+}: {
+  api: BuyerConsoleApi;
+  inputRef?: RefObject<HTMLTextAreaElement | null>;
+  placeholder?: string;
+  /** A round icon-only Send (its name stays "Send"), for the home chat's mockups (`?chatui=`). */
+  iconSend?: boolean;
+  className?: string;
+  boxClassName?: string;
+}) {
   const { draft, setDraft, send } = api;
   const id = useId();
   const ownRef = useRef<HTMLTextAreaElement>(null);
@@ -620,7 +635,7 @@ export function ConsoleComposer({ api, inputRef }: { api: BuyerConsoleApi; input
   };
 
   return (
-    <form onSubmit={onSubmit} className="flex items-end gap-2">
+    <form onSubmit={onSubmit} className={className ?? 'flex items-end gap-2'}>
       <label htmlFor={id} className="sr-only">
         Message to the assistant
       </label>
@@ -634,12 +649,25 @@ export function ConsoleComposer({ api, inputRef }: { api: BuyerConsoleApi; input
         maxLength={MAX_MESSAGE_CHARS}
         autoComplete="off"
         enterKeyHint="send"
-        placeholder="Message the assistant"
-        className="block min-w-0 flex-1 resize-none overscroll-contain py-[11px]"
+        placeholder={placeholder}
+        className={boxClassName ?? 'block min-w-0 flex-1 resize-none overscroll-contain py-[11px]'}
       />
-      <Button type="submit" icon={SendHorizontal} loading={busy} disabled={!draft.trim()} className="shrink-0">
-        Send
-      </Button>
+      {iconSend ? (
+        <button
+          type="submit"
+          aria-label="Send"
+          disabled={!draft.trim() || busy}
+          aria-busy={busy || undefined}
+          data-send=""
+          className="press-icon grid size-11 shrink-0 place-items-center rounded-full bg-accent text-on-accent enabled:hover:bg-accent-hover disabled:bg-line disabled:text-ink-faint"
+        >
+          <SendHorizontal aria-hidden className="size-5" />
+        </button>
+      ) : (
+        <Button type="submit" icon={SendHorizontal} loading={busy} disabled={!draft.trim()} className="shrink-0">
+          Send
+        </Button>
+      )}
     </form>
   );
 }
