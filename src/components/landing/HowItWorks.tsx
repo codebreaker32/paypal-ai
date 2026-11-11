@@ -9,7 +9,7 @@ import { AccentMarks } from './art';
  * e2e/home-chat.spec.ts). All are 960×720 WebP in public/landing/,
  * in the same 4:3 frame.
  */
-const STEPS: { title: string; body: string; image: string; alt: string }[] = [
+export const STEPS: { title: string; body: string; image: string; alt: string }[] = [
   {
     title: '1. Snap your price list',
     body: 'Take one photo of your menu.',
