@@ -1,5 +1,4 @@
 import { redirect, unstable_rethrow } from 'next/navigation';
-import { LIVE_SHOP_HREF } from '@/app/_start/samples';
 import { Closing } from '@/components/landing/Closing';
 import { Faq } from '@/components/landing/Faq';
 import { Hero } from '@/components/landing/Hero';
@@ -31,16 +30,6 @@ async function readAccountId(): Promise<string | null> {
   } catch (err) {
     unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
     console.error('Landing page: could not read the session', err instanceof Error ? err.message : err);
-    return null;
-  }
-}
-
-/** The example shop's address while it is live; no link at all on a deployment that hasn't seeded it. */
-function exampleShopHref(): string | null {
-  try {
-    return shops.bySlug(getDb(), RESERVED_SLUG)?.status === 'live' ? LIVE_SHOP_HREF : null;
-  } catch (err) {
-    console.error('Landing page: could not read the example shop', err instanceof Error ? err.message : err);
     return null;
   }
 }
@@ -80,11 +69,9 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
   // `?chat=0` switches the chat's auto-open off and `?chat=1` on; the e2e harness (SHELFIE_TEST) starts with it off.
   const autoOpen = chatParam === '1' || (chatParam !== '0' && !process.env.SHELFIE_TEST);
 
-  const exampleHref = exampleShopHref();
-
   return (
     <>
-      <Hero exampleShopHref={exampleHref} />
+      <Hero />
       <HowItWorks />
       <Faq />
       <Closing />

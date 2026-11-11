@@ -14,6 +14,7 @@ const SECTIONS = [
   { label: 'How it works', href: '/#how-it-works', id: 'how-it-works' },
   { label: 'FAQ', href: '/#faq', id: 'faq' },
 ] as const;
+const BROWSE = { label: 'Browse', href: '/browse' };
 const HELP = { label: 'Help', href: '/help' };
 
 const LINK = 'nav-link press-text inline-flex min-h-tap items-center whitespace-nowrap rounded-sm px-3 text-(length:--text-nav) leading-5 font-medium text-ink';
@@ -112,6 +113,11 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
         </Link>
         <nav aria-label="Main" className="hidden items-center md:flex">
           <ul className="flex items-center">
+            <li>
+              <Link href={BROWSE.href} aria-current={pathname === BROWSE.href ? 'page' : undefined} className={LINK}>
+                {BROWSE.label}
+              </Link>
+            </li>
             {SECTIONS.map((section) => (
               <li key={section.id}>
                 <Link href={section.href} aria-current={current(section.id)} className={LINK}>
@@ -165,7 +171,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
     </>
   );
 
-  const menuLinks = [...SECTIONS, HELP, ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }] : [])];
+  const menuLinks = [BROWSE, ...SECTIONS, HELP, ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }] : [])];
 
   return (
     <header

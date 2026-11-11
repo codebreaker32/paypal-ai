@@ -77,7 +77,7 @@ function SiteWideFooter() {
           <nav aria-label="Footer">
             <ul className="flex items-center gap-x-2 text-sm md:gap-x-5 md:text-base">
               {FOOTER_NAV.map((link, index) => (
-                <li key={link.label} className={cn('flex items-center gap-x-2 md:gap-x-5', link.native && 'max-md:hidden')}>
+                <li key={link.label} className={cn('flex items-center gap-x-2 md:gap-x-5', link.wideOnly && 'max-md:hidden')}>
                   {index > 0 && <span aria-hidden="true" className="h-4 w-px bg-on-dark-soft/50" />}
                   <FooterAnchor link={link} tone="band" />
                 </li>

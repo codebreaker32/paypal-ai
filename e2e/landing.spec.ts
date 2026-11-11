@@ -44,7 +44,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
         if (await part.getByRole('heading', { level: 1 }).count()) continue;
         expect(await part.innerText()).not.toContain('Marigold');
       }
-      expect(await page.getByRole('link', { name: 'See an example shop' }).count()).toBeLessThanOrEqual(1);
+      await expect(hero.getByRole('link', { name: 'Browse shops', exact: true })).toHaveAttribute('href', '/browse');
 
       await a11y(page);
       await noSideways(page);
@@ -66,7 +66,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       await page.goto('/');
       const footer = page.locator('body > footer');
       await expect(footer.getByText(TEST_MODE_LINE)).toBeVisible();
-      for (const name of ['Product', 'Help', 'Legal', ...(label === '1440' ? ['Open Source'] : []), 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
+      for (const name of ['Browse', 'Help', 'Legal', ...(label === '1440' ? ['Product', 'Open Source'] : []), 'Shelfie on GitHub', 'Privacy', 'agents.txt', 'llms.txt']) {
         await expect(footer.getByRole('link', { name, exact: true })).toBeVisible();
       }
       await expect(footer.getByRole('button', { name: 'Sound' })).toBeVisible();

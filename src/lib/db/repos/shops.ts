@@ -4,8 +4,6 @@ import { hashToken, newId, ownerToken, slugify } from '@/lib/domain/ids';
 import { RESERVED_SLUG } from '@/lib/domain/payee';
 import type { Shop, ShopFulfillment, ShopKind, ShopStatus } from '@/lib/domain/types';
 import { timingSafeEqual } from 'node:crypto';
-import { menuPhotoAvatarSrc, shopAvatar, type ShopAvatarSource } from '@/lib/domain/avatar';
-import { avatarItems } from './items';
 
 interface ShopRow {
   id: string; slug: string; name: string; about: string; kind: ShopKind; fulfillment: ShopFulfillment;
@@ -139,6 +137,12 @@ export function publish(db: Db, id: string): Shop {
 }
 
 /**
+ * Live and able to take orders (`takesOrders`, src/lib/orders/pricing.ts, in SQL): one `?` parameter, `RESERVED_SLUG`.
+ * The shops /agents.txt, /llms.txt and /browse list.
+ */
+export const ORDERABLE_WHERE = `status = 'live' AND (payee_email IS NOT NULL OR slug = ?)`;
+
+/**
  * The shops /agents.txt and /llms.txt list: live and able to take orders (a PayPal email, or the demo shop, which is
  * paid to the platform). Newest first, at most `limit`. Not paused, not draft.
  * The payee condition is `canBePaid` (src/lib/domain/payee.ts) written in SQL, which can't call it: change both together
@@ -147,7 +151,7 @@ export function publish(db: Db, id: string): Shop {
 export function listOrderableForIndex(db: Db, limit: number): { name: string; slug: string; about: string }[] {
   return db
     .prepare(
-      `SELECT name, slug, about FROM shops WHERE status = 'live' AND (payee_email IS NOT NULL OR slug = ?)
+      `SELECT name, slug, about FROM shops WHERE ${ORDERABLE_WHERE}
        ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC LIMIT ?`,
     )
     .all(RESERVED_SLUG, limit) as { name: string; slug: string; about: string }[];
@@ -164,43 +168,3 @@ export function setSeedKey(db: Db, id: string, key: string): void {
   db.prepare('UPDATE shops SET seed_key = ? WHERE id = ?').run(key, id);
 }
 
-/** A shop on the Browse page: what its card shows. */
-export interface BrowseShop {
-  slug: string;
-  name: string;
-  /** The Browse chip (food, drinks, gifts, repairs), or null. */
-  category: string | null;
-  coverUrl: string | null;
-  /** The shop's round picture, as the public shop header draws it (`shopAvatar`). */
-  avatar: ShopAvatarSource;
-  /** Where to get it (pickup notes), else its short description. */
-  line: string;
-  /** Its listed items' names, in menu order. */
-  itemNames: string[];
-}
-
-/**
- * Every shop that is live and can take orders (the predicate of `listOrderableForIndex` and `canBePaid`), newest first,
- * with what a Browse card needs.
- */
-export function listBrowseShops(db: Db): BrowseShop[] {
-  const rows = db
-    .prepare(
-      `SELECT * FROM shops WHERE status = 'live' AND (payee_email IS NOT NULL OR slug = ?)
-       ORDER BY COALESCE(published_at, created_at) DESC, rowid DESC`,
-    )
-    .all(RESERVED_SLUG) as ShopRow[];
-  return rows.map((r) => {
-    const shop = toShop(r);
-    const listed = avatarItems(db, shop.id);
-    return {
-      slug: shop.slug,
-      name: shop.name,
-      category: shop.category,
-      coverUrl: shop.coverUrl,
-      avatar: shopAvatar({ ...shop, menuPhotoSrc: menuPhotoAvatarSrc(shop, 'public') }, listed),
-      line: shop.pickupNotes.trim() || shop.about.trim(),
-      itemNames: listed.map((i) => i.name),
-    };
-  });
-}

@@ -48,8 +48,10 @@ describe('schema upgrade', () => {
     delete g.__shelfieDb;
     const file = tempDbPath('migrate-shop-category');
     const old = new Database(file);
-    // The shops table's last two columns: payee_email loses its trailing comma.
-    old.exec(SCHEMA_SQL.replace(/(payee_email TEXT),([^\n]*)\n\s*category TEXT,[^\n]*\n\s*seed_key TEXT[^\n]*\n\);/, '$1$2\n);'));
+    // Drop shops.category, and seed_key (the last column: payee_email loses its trailing comma).
+    old.exec(
+      SCHEMA_SQL.replace(/\n\s*category TEXT,\s*-- what \/browse[^\n]*/, '').replace(/(payee_email TEXT),([^\n]*)\n\s*seed_key TEXT[^\n]*\n\);/, '$1$2\n);'),
+    );
     const colsOf = (db: { prepare(sql: string): { all(): unknown[] } }) => (db.prepare('PRAGMA table_info(shops)').all() as { name: string }[]).map((c) => c.name);
     expect(colsOf(old)).not.toContain('category');
     expect(colsOf(old)).not.toContain('seed_key');

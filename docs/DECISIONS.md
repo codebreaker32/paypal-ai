@@ -406,3 +406,11 @@ The owner approved mockup B ("Tall and shop-aware"). `?chatui=` and mockups A an
 - **A seeded shop is found again by `shops.seed_key`, never by slug.** A visitor who published "Little Ember Coffee" first keeps `little-ember-coffee`; the seed's gets `-2` and is never adopted or deleted. Marigold keeps its slug-plus-marker rule.
 - **`shops.category` (nullable) holds the Browse chip: `food`, `drinks`, `gifts`, `repairs`** (`SHOP_CATEGORIES`). Gifts rather than Flowers: the library has plants, candles and soap but no honest cut-flower photos. `listBrowseShops(db)` in the shops repo returns live, payable shops with what a card needs.
 - **The seed prints one line per shop**, then where it is paid and the owner links of shops it created (once); per-item PayPal product lines are gone (refusals still print).
+
+## 2026-11-11 run 11: Browse shops (r11-browse)
+
+- **/browse lists exactly the shops whose agent door takes orders** (`ORDERABLE_WHERE` in `shops.ts`, shared with /agents.txt and /llms.txt; it is `takesOrders` in SQL). Reason: one rule for "a buyer can order here", wherever a shop is listed.
+- **`shops.category` is nullable TEXT, read through `parseShopCategory`** (food, drinks, flowers, repairs, any case); anything else shows under All only. Added here so the branch compiles; the r11-shops branch adds the same column, so the integrator keeps one migration line.
+- **Shops with photos lead the grid** (stable sort, newest first within each group). Reason: the page should open on real pictures, not drawings.
+- **The footer's main row drops Product below 768 px** (as Open Source already did): five links don't fit beside the logo and GitHub at 390 px, and How it works is in the header menu there.
+- **Buyer-facing words never call a shop a demo or sample** (receipt "Paid to Shelfie’s PayPal account for …", the agent door's `payments` note, the hero's `Browse shops`). The seller's own screens keep "demo shop" where it explains where money goes.

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS shops (
   about TEXT NOT NULL DEFAULT '',
   cover_url TEXT,               -- shop cover photo, site-relative like items.photo_url; null = designed fallback
   logo_url TEXT,                -- shop logo, a square WebP at /i/<file>; null = the avatar uses the cover, a menu photo or a drawing
+  category TEXT,                -- what /browse files it under (src/lib/domain/shop-category.ts); null = under All only
   kind TEXT NOT NULL DEFAULT 'food' CHECK (kind IN ('food','goods','services')),
   fulfillment TEXT NOT NULL DEFAULT 'pickup' CHECK (fulfillment IN ('pickup','shipping','both')),
   pickup_notes TEXT NOT NULL DEFAULT '',
@@ -49,7 +50,6 @@ CREATE TABLE IF NOT EXISTS shops (
   account_id TEXT REFERENCES accounts(id), -- the owning account (run 5); null = unattached, reached by its owner link; added by applySchema on older databases
   published_at TEXT,
   payee_email TEXT, -- the seller's PayPal email (run 2; only the demo shop may leave it empty); added by applySchema on older databases
-  category TEXT, -- the Browse chip (src/lib/demo/shops.ts SHOP_CATEGORIES: food, drinks, gifts, repairs); null = on no chip; added by applySchema on older databases
   seed_key TEXT -- set only on shops `npm run seed` made (src/lib/demo/shops.ts): how a re-run finds its own shops; added by applySchema on older databases
 );
 
