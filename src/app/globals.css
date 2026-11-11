@@ -494,6 +494,13 @@
   --sheet-shadow: var(--shadow-lg);
   --sheet-max-w: 32rem;
   --auth-form-w: 26rem;
+  /* Account screens (AuthFrame): the photo panel's width from lg, the card's inner padding, and the dark scrim over the bread
+     photo. Measured from the brightest pixel behind each text box at 1440 (axe can’t read images):
+     the line in white 7.2:1, the steps' white titles 10.1:1 and stone-300 lines 6.8:1. Re-measure if either changes. */
+  --auth-panel-w: min(42vw, 38rem);
+  --auth-card-w: 30rem;
+  --auth-card-wide-w: 40rem;
+  --auth-scrim: linear-gradient(180deg, rgb(var(--charcoal-rgb) / 0.5) 0%, rgb(var(--charcoal-rgb) / 0.72) 40%, rgb(var(--charcoal-rgb) / 0.9) 100%);
 
   /* Toast */
   --toast-bg: var(--color-ink);

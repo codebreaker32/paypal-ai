@@ -132,7 +132,8 @@ test.describe('/shops', () => {
     await page.goto('/shops');
     await page.waitForURL('**/shops/new');
     await expect(page.getByText('No photo handy? Try a sample:')).toBeVisible();
-    await expect(page.getByRole('main').locator('img')).toHaveCount(0);
+    // No picture before the seller picks one; the AuthFrame photo panel (an <aside>, decorative) is not the form's.
+    await expect(page.getByRole('main').locator('img:not(aside img)')).toHaveCount(0);
 
     const other = await freshContext(browser);
     const logged = await other.newPage();
