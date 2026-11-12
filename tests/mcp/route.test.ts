@@ -10,6 +10,8 @@ import * as shops from '@/lib/db/repos/shops';
 import { createFakePayPal } from '@/lib/paypal/fake';
 import { setPayPalForServices } from '@/lib/services';
 import { handleMcpRequest } from '@/lib/mcp/server';
+import { agentDoorPage } from '@/lib/mcp/door-page';
+import { getConfig } from '@/lib/config';
 import { DELETE, GET, POST, runtime } from '@/app/s/[slug]/mcp/route';
 import { seedShop, type SeededShop } from '../helpers/shop';
 import { tempDbPath } from '../helpers/temp-db';
@@ -138,6 +140,43 @@ describe('agent door route POST /s/[slug]/mcp', () => {
       db: getDb(), paypal: fake, appUrl: 'http://localhost:3000',
     });
     expect(viaHandler.status).toBe(405);
+  });
+
+  it('keeps the JSON 405 for a GET that does not ask for HTML (MCP clients)', async () => {
+    const res = await GET(new Request(`http://localhost:3000/s/${s.shop.slug}/mcp`, {
+      method: 'GET', headers: { accept: 'application/json, text/event-stream' },
+    }), ctx(s.shop.slug));
+    expect(res.status).toBe(405);
+    expect(res.headers.get('content-type')).toContain('application/json');
+    expect((await res.json()).error.message).toContain('POST only');
+  });
+
+  it('shows a browser a page explaining the link, with the shop link and the door URL', async () => {
+    const res = await GET(new Request(`http://localhost:3000/s/${s.shop.slug}/mcp`, {
+      method: 'GET', headers: { accept: 'text/html,application/xhtml+xml,*/*;q=0.8' },
+    }), ctx(s.shop.slug));
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toBe('text/html; charset=utf-8');
+    const html = await res.text();
+    const appUrl = getConfig().appUrl;
+    expect(html).toContain('This link is for AI assistants');
+    expect(html).toContain(s.shop.name);
+    expect(html).toContain(`href="${appUrl}/s/${s.shop.slug}"`);
+    expect(html).toContain(`${appUrl}/s/${s.shop.slug}/mcp`);
+    expect(html).toContain(`claude mcp add --transport http ${s.shop.slug} ${appUrl}/s/${s.shop.slug}/mcp`);
+    expect(html).not.toMatch(/<script[^>]+src=/);
+  });
+
+  it('a browser GET for an unknown shop is still a 404', async () => {
+    const res = await GET(new Request('http://localhost:3000/s/no-such-shop/mcp', { headers: { accept: 'text/html' } }), ctx('no-such-shop'));
+    expect(res.status).toBe(404);
+  });
+
+  it('escapes the shop name in the browser page', () => {
+    const html = agentDoorPage({ shopName: `<script>alert("x")</script> & Sons`, slug: 'x', appUrl: 'https://shelfie.example' });
+    expect(html).not.toContain('<script>alert');
+    expect(html).toContain('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; Sons');
+    expect(html).toContain('https://shelfie.example/s/x/mcp');
   });
 
   it('returns 404 for an unknown or draft shop', async () => {
