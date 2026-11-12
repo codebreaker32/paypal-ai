@@ -11,7 +11,7 @@
 ![PayPal Sandbox](https://img.shields.io/badge/PayPal-Sandbox-003087?logo=paypal&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude-claude--sonnet--5--5-D97757?logo=anthropic&logoColor=white)
 
-**[Watch the demo (under 3 minutes)](https://youtu.be/REPLACE_ME)** · **[Try it live](https://34-10-26-158.sslip.io)** · Agent door (MCP): `https://34-10-26-158.sslip.io/s/marigold-bakehouse/mcp`
+**[Watch the demo (under 3 minutes)](https://youtu.be/_ixn7vwRPOM)** · **[Try it live](https://34-10-26-158.sslip.io)** · Agent door (MCP): `https://34-10-26-158.sslip.io/s/marigold-bakehouse/mcp`
 
 </div>
 
