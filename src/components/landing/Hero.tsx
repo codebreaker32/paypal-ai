@@ -29,7 +29,9 @@ export function Hero() {
             Your price list, <br />
             open to <span className="text-accent-ink">AI shoppers.</span>
           </h1>
-          <p className="mt-3 text-2xl text-ink xl:mt-4 xl:text-3xl">Snap. Share. Get paid.</p>
+          <p data-hero-purpose="" className="mt-3 max-w-xl text-xl text-balance text-ink sm:text-2xl xl:mt-4">
+            Turn a photo of your price list into a shop AI assistants can order from.
+          </p>
           <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-6 xl:mt-8">
             <ButtonLink href="/signup" variant="brand" size="lg" iconEnd={ArrowRight} className="shadow-md max-sm:w-full">
               Add your shop

@@ -941,7 +941,7 @@ const SCREENS: Screen[] = [
     run: async (page, { context }) => {
       await signIn(context, setups.review.shopId, setups.review.ownerToken);
       await page.goto(`/shops/${setups.review.shopId}/setup`);
-      await expect(page.getByRole('button', { name: 'Add your PayPal email to publish.' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'add your PayPal email', exact: true })).toBeVisible();
       const field = page.getByLabel('Your PayPal email');
       await field.fill('rosa@example');
       await field.blur();

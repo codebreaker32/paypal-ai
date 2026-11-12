@@ -113,7 +113,7 @@ test('the hero story ends with every text readable, uncut and uncovered, at 390,
     await page.goto('/');
     await page.evaluate(() => document.fonts.ready);
     await page.locator('[data-hero-story]').scrollIntoViewIfNeeded();
-    await expect(page.locator('[data-hero-story]')).toContainText('Get paid on PayPal');
+    await expect(page.locator('[data-hero-story]')).toContainText('Paid to your PayPal');
     expect(await heroTextProblems(page), `at ${width}`).toEqual([]);
   }
 });
@@ -125,7 +125,7 @@ test('on phones the hero names all four steps, each beside its picture, in at le
     await page.goto('/');
     const steps = page.locator('[data-hero-phone-steps] > li');
     await expect(steps).toHaveCount(4);
-    for (const [i, name] of ['Snap your menu', 'Get a live shop', 'AI shoppers order', 'Get paid on PayPal'].entries()) {
+    for (const [i, name] of ['Photo of your price list', 'Live shop in minutes', 'Any AI assistant can order', 'Paid to your PayPal'].entries()) {
       const label = steps.nth(i).getByText(name, { exact: true });
       await expect(label).toBeVisible();
       expect(parseFloat(await label.evaluate((el) => getComputedStyle(el).fontSize)), `${name} at ${width}`).toBeGreaterThanOrEqual(14);

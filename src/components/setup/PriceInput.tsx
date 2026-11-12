@@ -18,6 +18,7 @@ export function PriceInput({
   hint,
   hideLabel,
   className,
+  required,
   ...rest
 }: {
   label: string;
@@ -29,7 +30,7 @@ export function PriceInput({
   className?: string;
 } & Omit<ComponentProps<'input'>, 'value' | 'onChange' | 'className'>) {
   return (
-    <Field label={label} hint={hint} error={error ?? undefined} hideLabel={hideLabel} className={className}>
+    <Field label={label} hint={hint} error={error ?? undefined} required={required} hideLabel={hideLabel} className={className}>
       {(control) => (
         <div className="relative">
           <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-muted">

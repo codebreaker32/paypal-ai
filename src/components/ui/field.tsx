@@ -23,7 +23,10 @@ export interface FieldProps {
   liveHint?: boolean;
   /** Say what went wrong and how to fix it: "Enter a price, like 4.50". */
   error?: ReactNode;
+  /** Marks the label with an asterisk (the control gets `required`, so screen readers say "required"). */
   required?: boolean;
+  /** Says "(optional)" after the label, for a field a person might think they must fill. */
+  optional?: boolean;
   /** Visually hide the label (it stays available to screen readers). */
   hideLabel?: boolean;
   className?: string;
@@ -31,7 +34,7 @@ export interface FieldProps {
 }
 
 /** Label, optional hint and inline error around one control. */
-export function Field({ label, id: givenId, hint, liveHint, error, required, hideLabel, className, children }: FieldProps) {
+export function Field({ label, id: givenId, hint, liveHint, error, required, optional, hideLabel, className, children }: FieldProps) {
   const generatedId = useId();
   const id = givenId ?? generatedId;
   const hintId = hint ? `${id}-hint` : undefined;
@@ -42,7 +45,12 @@ export function Field({ label, id: givenId, hint, liveHint, error, required, hid
     <div data-slot="field" className={cn('flex flex-col gap-1.5', className)}>
       <Label htmlFor={id} className={cn(hideLabel && 'sr-only')}>
         {label}
-        {required && <span className="text-ink-muted font-normal"> (required)</span>}
+        {required && (
+          <span aria-hidden="true" className="text-accent-ink font-semibold">
+            {' '}*
+          </span>
+        )}
+        {!required && optional && <span className="text-ink-muted font-normal"> (optional)</span>}
       </Label>
       {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined, required })}
       {hint && (
