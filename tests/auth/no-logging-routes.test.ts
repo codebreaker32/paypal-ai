@@ -14,6 +14,13 @@ const FILES = [
   'src/app/api/auth/google/start/route.ts',
   'src/app/api/auth/google/callback/route.ts',
   'src/lib/auth/google.ts',
+  'src/lib/buyer/paypal-login.ts',
+  'src/lib/buyer/session.ts',
+  'src/lib/db/repos/buyer-sessions.ts',
+  'src/app/api/buyer/paypal/start/route.ts',
+  'src/app/api/buyer/paypal/callback/route.ts',
+  'src/app/api/buyer/logout/route.ts',
+  'src/app/api/buyer/orders/route.ts',
   'src/app/api/account/recovery-key/route.ts',
   'src/lib/db/repos/payee-changes.ts',
 ];

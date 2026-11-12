@@ -200,3 +200,12 @@ CREATE TABLE IF NOT EXISTS assistant_sessions (
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
 );
+
+-- "Log in with PayPal" on /orders: a buyer's session holds only the PayPal account's email addresses, to find the
+-- orders they paid for. Separate from seller sessions; buyers have no accounts.
+CREATE TABLE IF NOT EXISTS buyer_sessions (
+  token_hash TEXT PRIMARY KEY,    -- SHA-256 of the cookie value
+  emails_json TEXT NOT NULL,      -- lower-cased emails from PayPal's userinfo
+  created_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL        -- created_at + 30 days, never extended
+);

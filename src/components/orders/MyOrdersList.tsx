@@ -9,12 +9,67 @@ import { forget, listMyOrders, type MyOrder } from '@/lib/client/my-orders';
 import { formatUSD } from '@/lib/domain/money';
 import type { OrderStatusEntry } from '@/lib/orders/receipt-types';
 
+/** A row of the list: from this device's localStorage, from the PayPal account (`GET /api/buyer/orders`), or both. */
+interface Row {
+  ref: string;
+  shopName: string;
+  total: number;
+  createdAt: string;
+  /** Remembered in this browser, so "Remove from this list" applies. */
+  onDevice: boolean;
+}
+
+/** One entry of `GET /api/buyer/orders`. */
+interface BuyerOrder {
+  ref: string;
+  shopName: string;
+  total: number;
+  createdAt: string;
+  statusLabel: string;
+}
+
+const toRow = (o: { ref: string; shopName: string; total: number; createdAt: string }, onDevice: boolean): Row => ({
+  ref: o.ref,
+  shopName: o.shopName,
+  total: o.total,
+  createdAt: o.createdAt,
+  onDevice,
+});
+
+/** Device rows plus PayPal rows, one per ref, newest first. */
+export function mergeOrders(device: MyOrder[], fromPayPal: BuyerOrder[]): Row[] {
+  const byRef = new Map<string, Row>();
+  for (const o of fromPayPal) byRef.set(o.ref, toRow(o, false));
+  for (const o of device) byRef.set(o.ref, toRow(o, true));
+  return [...byRef.values()].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+}
+
 const DATE = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
-/** The list on /orders: read after mount (localStorage is the browser's), then the live status words from the server. */
-export function MyOrdersList() {
+/**
+ * The list on /orders: read after mount (localStorage is the browser's), then the live status words from the server.
+ * With `withPayPal` (a buyer session from "Log in with PayPal"), the PayPal account's orders join the list.
+ */
+export function MyOrdersList({ withPayPal = false }: { withPayPal?: boolean }) {
   const [orders, setOrders] = useState<MyOrder[] | null>(null);
+  const [paypalOrders, setPayPalOrders] = useState<BuyerOrder[]>([]);
   const [statuses, setStatuses] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!withPayPal) return;
+    const ctrl = new AbortController();
+    fetch('/api/buyer/orders', { cache: 'no-store', signal: ctrl.signal })
+      .then((res) => (res.ok ? (res.json() as Promise<{ orders: BuyerOrder[] }>) : null))
+      .then((body) => {
+        if (!body) return;
+        setPayPalOrders(body.orders);
+        setStatuses((prev) => ({ ...Object.fromEntries(body.orders.map((o) => [o.ref, o.statusLabel])), ...prev }));
+      })
+      .catch(() => {
+        // Offline or aborted: this device's own list still shows.
+      });
+    return () => ctrl.abort();
+  }, [withPayPal]);
 
   useEffect(() => {
     const list = listMyOrders();
@@ -25,7 +80,7 @@ export function MyOrdersList() {
     fetch(`/api/orders/status?refs=${list.map((o) => o.ref).join(',')}`, { cache: 'no-store', signal: ctrl.signal })
       .then((res) => (res.ok ? (res.json() as Promise<{ orders: OrderStatusEntry[] }>) : null))
       .then((body) => {
-        if (body) setStatuses(Object.fromEntries(body.orders.map((o) => [o.ref, o.statusLabel])));
+        if (body) setStatuses((prev) => ({ ...prev, ...Object.fromEntries(body.orders.map((o) => [o.ref, o.statusLabel])) }));
       })
       .catch(() => {
         // Offline or aborted: the rows show without a status.
@@ -35,10 +90,12 @@ export function MyOrdersList() {
 
   if (orders === null) return <p className="mt-8 type-meta text-ink-muted">Loading your orders…</p>;
 
-  if (orders.length === 0) {
+  const rows = mergeOrders(orders, paypalOrders);
+
+  if (rows.length === 0) {
     return (
       <div className="mt-8 flex flex-col items-start gap-4">
-        <p className="type-heading">No orders on this device yet</p>
+        <p className="type-heading">{withPayPal ? 'No orders yet' : 'No orders on this device yet'}</p>
         <p className="type-body text-ink-soft">Orders you pay for on this device show up here. Each one also has its own receipt link.</p>
         <ButtonLink href="/browse" variant="primary">
           Browse shops
@@ -49,9 +106,13 @@ export function MyOrdersList() {
 
   return (
     <>
-      <p className="mt-3 type-body text-ink-soft">Orders opened on this device. The list stays in this browser only.</p>
+      <p className="mt-3 type-body text-ink-soft">
+        {withPayPal
+          ? 'Orders opened on this device and orders paid with your PayPal account.'
+          : 'Orders opened on this device. The list stays in this browser only.'}
+      </p>
       <ul className="mt-8 flex flex-col divide-y divide-line border-y border-line">
-        {orders.map((o) => (
+        {rows.map((o) => (
           <li key={o.ref} className="flex items-center gap-2 py-2">
             <Link
               href={`/o/${o.ref}`}
@@ -67,15 +128,17 @@ export function MyOrdersList() {
               </span>
               <Icon icon={ChevronRight} size="sm" className="shrink-0 text-ink-muted" />
             </Link>
-            <button
-              type="button"
-              aria-label={`Remove from this list: ${o.shopName} order`}
-              title="Remove from this list"
-              onClick={() => setOrders(forget(o.ref))}
-              className="press-icon inline-flex size-tap shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-surface-sunken hover:text-ink"
-            >
-              <Icon icon={X} size="sm" />
-            </button>
+            {o.onDevice && (
+              <button
+                type="button"
+                aria-label={`Remove from this list: ${o.shopName} order`}
+                title="Remove from this list"
+                onClick={() => setOrders(forget(o.ref))}
+                className="press-icon inline-flex size-tap shrink-0 items-center justify-center rounded-full text-ink-muted hover:bg-surface-sunken hover:text-ink"
+              >
+                <Icon icon={X} size="sm" />
+              </button>
+            )}
           </li>
         ))}
       </ul>
