@@ -52,17 +52,19 @@ Shelfie gives them a way in. The seller photographs the price list, and about 8 
 
 **For sellers**
 - Photo to draft menu: Claude reads 1 to 4 photos of a paper, chalkboard or whiteboard price list. Anything unclear (missing price, market price, "2 for $7", duplicates) is flagged for a one-tap fix.
+- Menus in any currency: Claude reads ₹, €, £ and about 35 other currencies as printed; checkout is in US dollars, so prices are converted at an approximate rate and the review step says so.
+- Publishing tells you what's missing: required fields carry a *, and the Publish bar lists anything still needed, each with a link to the field.
 - Publish to the PayPal catalog with progress; buyers pay into **your own PayPal account** (your PayPal email goes on every order as the payee).
 - Item and cover photos. An item without one shows an example photo from a bundled, Pexels-licensed library (labelled as an example), or a drawing when nothing fits. **Snap your counter**: one photo of the display case, and Claude proposes a cropped photo for each menu item it finds.
 - Dashboard: order list with status filters, order detail, an AI brief for each paid order, add tracking, mark items sold out, pause agent orders.
 - A printable counter card with a QR code, so regulars can find the shop and its agent door.
-- Accounts with email and password, up to 25 shops per login, a one-time recovery key (no email is sent).
+- Accounts with email and password (or **Continue with Google** when `GOOGLE_CLIENT_ID` is set), up to 25 shops per login, a one-time recovery key (no email is sent). Items up to $10,000.
 - Installable on a phone (PWA), with sound and vibration feedback you can switch off.
 
 **For buyers and AI agents**
 - A shop page with a cart: **Approve $… on PayPal** sends you to PayPal; the server works out every total from the shop's own prices.
 - **Order with an assistant**: a built-in Claude assistant that orders through the shop's agent door, showing each tool call as it happens.
-- An MCP agent door per shop (`POST /s/<slug>/mcp`) with four tools. Prices come only from the shop: a `price` argument is rejected.
+- An MCP agent door per shop (`POST /s/<slug>/mcp`) with four tools. Prices come only from the shop: a `price` argument is rejected. Opened in a browser, the same link shows a short page explaining it is for AI assistants, with setup steps.
 - A receipt page with the order's status that says whose PayPal account was paid, with the email masked.
 - Pickup or flat-fee shipping, and a note for the seller (allergies, timing).
 - **Browse shops** (`/browse`): every live shop, with search and category chips.
@@ -147,6 +149,7 @@ Required in `.env`: `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` and `ANTHROPIC_API_K
 | `PAYPAL_SANDBOX_SELLER_EMAIL` | No | A sandbox **Business** account email. `npm run seed` pays all six seeded shops into it (Marigold Bakehouse included). Empty: only Marigold Bakehouse is seeded, paid to the sandbox account that owns your app. |
 | `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` | No | A sandbox **Personal** account, used only by the end-to-end payment test (and the demo clip recorder) to pay by PayPal login. The app itself doesn't use them. |
 | `SHELFIE_RECORDED_SAMPLES` | No | `1`: sample menus use their recorded reading even with a key (instant, for recording a demo). Your own photos are always read live. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | No | A Google OAuth client (Web application, redirect URI `<APP_URL>/api/auth/google/callback`) for **Continue with Google**. Unset, the button is hidden. |
 | `SUPPORT_EMAIL` | No | The contact address on the Help page. Unset, Help points at GitHub Issues. |
 | `SHELFIE_ALLOW_GUEST_SHOPS` | No | Leave empty. Test harnesses only; ignored on Render and never for production. |
 | `DATABASE_PATH`, `UPLOADS_DIR` | No | Defaults `data/shelfie.db` and `data/uploads`. |
