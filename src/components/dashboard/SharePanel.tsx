@@ -84,7 +84,7 @@ export function SharePanel({ shopId, shopName, coverUrl, status, shopUrl, doorUr
     <div className="grid grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_20rem] xl:gap-8">
       <PanelList className="min-w-0">
         <PanelRow action={<CopyButton text={doorUrl} what="Agent door link" label="Copy agent door link" primary className={ROW_ACTION} />}>
-          <LinkRowBody id="share-door-url" title="Your agent door" detail="Give it to any AI assistant to order from you." url={doorUrl} />
+          <LinkRowBody id="share-door-url" title="Your agent door" detail="Give it to any AI assistant to order from you. It is not a web page: share your shop link with people." url={doorUrl} />
         </PanelRow>
         <PanelRow
           action={

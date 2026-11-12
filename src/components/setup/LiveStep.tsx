@@ -180,7 +180,7 @@ export function LiveStep(p: LiveProps) {
             <PanelRow action={<CopyButton text={p.agentDoorUrl} what="Agent door link" label="Copy agent door link" className={ROW_ACTION} />}>
               <div className="flex flex-col gap-1">
                 <RowHeading>Your agent door</RowHeading>
-                <p className="text-sm text-ink-soft">Give it to any AI assistant to order from you.</p>
+                <p className="text-sm text-ink-soft">Give it to any AI assistant to order from you. It is not a web page: share your shop link with people.</p>
                 <RowUrl>{p.agentDoorUrl}</RowUrl>
               </div>
             </PanelRow>
