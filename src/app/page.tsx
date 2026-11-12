@@ -1,11 +1,12 @@
-import { redirect, unstable_rethrow } from 'next/navigation';
+import Link from 'next/link';
+import { unstable_rethrow } from 'next/navigation';
+import { currentAccount, landingPath } from '@/lib/auth/session';
 import { Closing } from '@/components/landing/Closing';
 import { Faq } from '@/components/landing/Faq';
 import { Hero } from '@/components/landing/Hero';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 import { HomeChat, type HomeChatShop } from '@/components/landing/HomeChat';
 import { starterPrompts } from '@/components/shop/starters';
-import { currentAccount, landingPath } from '@/lib/auth/session';
 import { getDb } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as shops from '@/lib/db/repos/shops';
@@ -14,19 +15,11 @@ import { pictureSource, pictureSrc } from '@/lib/library/picture';
 import { RESERVED_SLUG } from '@/lib/domain/payee';
 import { takesOrders } from '@/lib/orders/pricing';
 
-/** Where a logged-in visitor goes instead, or null to show the page. The landing page must render even if storage is down. */
-function destinationFor(accountId: string): string | null {
+/** Where a signed-in seller's "Go to your shops" bar points, or null (signed out, or storage down: the page still renders). */
+async function signedInDestination(): Promise<string | null> {
   try {
-    return landingPath(accountId);
-  } catch (err) {
-    console.error('Landing page: could not read the account’s shops', err instanceof Error ? err.message : err);
-    return null;
-  }
-}
-
-async function readAccountId(): Promise<string | null> {
-  try {
-    return (await currentAccount())?.id ?? null;
+    const account = await currentAccount();
+    return account ? landingPath(account.id) : null;
   } catch (err) {
     unstable_rethrow(err); // let Next's own signals (dynamic rendering) through
     console.error('Landing page: could not read the session', err instanceof Error ? err.message : err);
@@ -61,9 +54,8 @@ function exampleShopChat(): HomeChatShop | null {
 }
 
 export default async function LandingPage({ searchParams }: PageProps<'/'>) {
-  const accountId = await readAccountId();
-  const destination = accountId && destinationFor(accountId);
-  if (destination) redirect(destination);
+  // Signed-in sellers see the home page too (no redirect), with a bar that takes them to their shops.
+  const dashboard = await signedInDestination();
   const { chat: chatParam } = await searchParams;
   const chat = exampleShopChat();
   // `?chat=0` switches the chat's auto-open off and `?chat=1` on; the e2e harness (SHELFIE_TEST) starts with it off.
@@ -71,6 +63,16 @@ export default async function LandingPage({ searchParams }: PageProps<'/'>) {
 
   return (
     <>
+      {dashboard && (
+        <div data-testid="signed-in-bar" className="border-b border-line bg-surface">
+          <div className="mx-auto flex w-full max-w-site flex-wrap items-center justify-between gap-x-4 gap-y-1 px-band-gutter py-2.5 text-sm text-ink">
+            <span>You’re signed in.</span>
+            <Link href={dashboard} className="press-text inline-flex min-h-tap items-center font-semibold text-accent-ink underline decoration-2 underline-offset-4">
+              Go to your shops →
+            </Link>
+          </div>
+        </div>
+      )}
       <Hero />
       <HowItWorks />
       <Faq />
