@@ -7,7 +7,6 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh: () => {}, push: () => {}, replace: () => {} }) }));
 
 const { ReviewStep } = await import('@/components/setup/ReviewStep');
-const { PAYEE_REQUIRED_MESSAGE } = await import('@/lib/domain/payee');
 type Props = Parameters<typeof ReviewStep>[0];
 
 const croissant: Props['items'][number] = {
@@ -40,20 +39,32 @@ describe('ReviewStep and the PayPal email', () => {
   it('a shop with no PayPal email can’t publish yet, and says why', () => {
     const html = render({ slug: 'draft-abcdefgh', payeeEmail: null });
     expect(publishButton(html)).toMatch(/\bdisabled=""/);
-    expect(html).toContain(PAYEE_REQUIRED_MESSAGE);
+    // The bar names exactly what is missing, as a button that goes to the field.
+    expect(html).toMatch(/To publish:/);
+    expect(html).toMatch(/<button[^>]*>add your PayPal email<\/button>/);
+    expect(publishButton(html)).toContain('aria-describedby="publish-reason"');
     expect(payeeInput(html)).toMatch(/\brequired=""/);
   });
 
   it('a shop with its PayPal email can publish', () => {
     const html = render({ slug: 'draft-abcdefgh', payeeEmail: 'rosa@example.com' });
     expect(publishButton(html)).not.toMatch(/\bdisabled=""/);
-    expect(html).not.toContain(PAYEE_REQUIRED_MESSAGE);
+    expect(html).not.toContain('To publish:');
   });
 
   it('the demo shop can publish without one (paid to the platform), and the field is optional', () => {
     const html = render({ slug: 'marigold-bakehouse', payeeEmail: null });
     expect(publishButton(html)).not.toMatch(/\bdisabled=""/);
-    expect(html).not.toContain(PAYEE_REQUIRED_MESSAGE);
+    expect(html).not.toContain('To publish:');
     expect(payeeInput(html)).not.toMatch(/\brequired=""/);
+    expect(html).toContain('(optional)');
+  });
+
+  it('required fields carry an asterisk (hidden from screen readers, which hear the required attribute)', () => {
+    const html = render({ slug: 'draft-abcdefgh', payeeEmail: null });
+    expect(html).toContain('are needed to publish');
+    expect(html).toMatch(/Shop name<span aria-hidden="true"[^>]*> \*<\/span>/);
+    expect(html).toMatch(/Your PayPal email<span aria-hidden="true"[^>]*> \*<\/span>/);
+    expect(html).not.toContain('(required)');
   });
 });

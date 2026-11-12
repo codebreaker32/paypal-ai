@@ -156,10 +156,10 @@ function PayCard() {
 }
 
 const STEPS = [
-  { caption: 'Snap your menu', on: AT.paper, card: <PaperCard />, arrow: AT.arrow1 },
-  { caption: 'Get a live shop', on: AT.shop, card: <ShopCard />, arrow: AT.arrow2 },
-  { caption: 'AI shoppers order', on: AT.assistant, card: <AssistantCard />, arrow: AT.arrow3 },
-  { caption: 'Get paid on PayPal', on: AT.pay, card: <PayCard />, arrow: null },
+  { caption: 'Photo of your price list', on: AT.paper, card: <PaperCard />, arrow: AT.arrow1 },
+  { caption: 'Live shop in minutes', on: AT.shop, card: <ShopCard />, arrow: AT.arrow2 },
+  { caption: 'Any AI assistant can order', on: AT.assistant, card: <AssistantCard />, arrow: AT.arrow3 },
+  { caption: 'Paid to your PayPal', on: AT.pay, card: <PayCard />, arrow: null },
 ];
 
 /** The four white cards with their captions, from 768 px. */
@@ -206,7 +206,7 @@ const PHONE_THUMBS = [
 ];
 
 /** One short line under each step's name on phones, where there is room for words but not for the full cards. */
-const PHONE_DETAILS = ['Take a photo of your price list.', 'Claude reads it and builds your shop.', 'Any AI assistant can order from it.', 'The money goes to your PayPal.'];
+const PHONE_DETAILS = ['Paper, a board or a printout.', 'Claude reads it and builds your shop.', 'People can order on your page too.', 'Each order is paid into your account.'];
 
 /** The four steps as a numbered list of captioned rows, on phones (below 768 px). */
 function PhoneList() {

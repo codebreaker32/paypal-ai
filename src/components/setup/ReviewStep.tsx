@@ -12,13 +12,14 @@ import { cx } from '@/components/ui/cx';
 import type { ItemWithVariants, SkippedLine } from '@/lib/domain/types';
 import type { ReviewShop } from '@/lib/catalog/setup';
 import { isPendingPublish, needsSeller } from '@/lib/catalog/rules';
-import { PAYEE_REQUIRED_MESSAGE, canBePaid } from '@/lib/domain/payee';
+import { canBePaid } from '@/lib/domain/payee';
 import { addItem, type ItemUpdate } from './api';
 import { IssueCard, PhotoContext, type OnUpdate } from './IssueCards';
 import { Disclosure, InPersonList, ReadyList, RemovedList, SkippedList } from './ItemLists';
 import { MenuPhoto, PhotoStrip } from './MenuPhotos';
 import { PublishProgress, usePublish } from './Publishing';
-import { PAYEE_FIELD_ID, ShopDetails } from './ShopDetails';
+import { PAYEE_FIELD_ID, SHIPPING_FEE_FIELD_ID, SHOP_NAME_INPUT_ID, ShopDetails, type DetailsValidity } from './ShopDetails';
+import { publishBlockers, type PublishBlockerKey } from './publish-blockers';
 import { StepHeader } from './StepHeader';
 import { Reveal } from '@/components/motion/reveal';
 import { applyLocal, cardId, flaggedCards, openSkipped, withNewItem } from './review-model';
@@ -84,10 +85,13 @@ export function ReviewStep(props: ReviewProps) {
   // Whether the shop can be paid as the PayPal email field stands: publishing needs that, with the server's rule
   // (`canBePaid`: a valid email, or the demo shop, which may leave it empty).
   const [payeeReady, setPayeeReady] = useState(canBePaid(props.shop));
+  // Whether the shop name and shipping fee fields, as they stand, can be published (ShopDetails reports them).
+  const [details, setDetails] = useState<DetailsValidity>({ name: true, fee: true });
   if (server.items !== props.items || server.shop !== props.shop) {
     setServer({ items: props.items, shop: props.shop });
     setItems(props.items);
     setPayeeReady(canBePaid(props.shop));
+    setDetails({ name: true, fee: true });
     setSynced((n) => n + 1);
   }
   const [skipped] = useState(props.skipped);
@@ -234,19 +238,26 @@ export function ReviewStep(props: ReviewProps) {
   }
 
   // ───────────── Review (step 2) ─────────────
-  const nothingToPublish = toPublish === 0 && !finishOnly;
-  const disabledReason = nothingToPublish
-    ? needYou > 0
-      ? 'Fix an item above, or give one a price, to publish.'
-      : 'Give at least one item a price to publish.'
-    : !payeeReady
-      ? PAYEE_REQUIRED_MESSAGE
-      : null;
-  // The PayPal email sits at the end of the shop details: the reason takes the seller straight to it.
-  const goToPayee = () => {
-    const field = document.getElementById(PAYEE_FIELD_ID);
-    field?.scrollIntoView({ block: 'center' });
-    field?.querySelector('input')?.focus({ preventScroll: true });
+  // One list decides both whether Publish is enabled and what the bar says is missing, so they never disagree.
+  const blockers = publishBlockers({ toPublish, finishOnly, needYou, payeeReady, nameReady: details.name, feeReady: details.fee });
+  const blocked = blockers.length > 0;
+  // Each missing thing takes the seller straight to its field (or the first card that needs them).
+  const goTo = (key: PublishBlockerKey) => {
+    const firstCard = cards[0];
+    const target =
+      key === 'payee'
+        ? document.getElementById(PAYEE_FIELD_ID)
+        : key === 'fee'
+          ? document.getElementById(SHIPPING_FEE_FIELD_ID)
+          : key === 'name'
+            ? document.getElementById(SHOP_NAME_INPUT_ID)
+            : firstCard
+              ? document.getElementById(cardId(firstCard))
+              : document.getElementById('ready-title');
+    if (!target) return;
+    target.scrollIntoView({ block: 'center' });
+    const focusable = target.matches('input, textarea, [tabindex]') ? target : target.querySelector<HTMLElement>('input, textarea, button');
+    focusable?.focus({ preventScroll: true });
   };
 
   return (
@@ -374,7 +385,7 @@ export function ReviewStep(props: ReviewProps) {
             )}
           </div>
 
-          <ShopDetails shop={server.shop} onChange={autosave.queueShop} onPayeeChange={setPayeeReady} />
+          <ShopDetails shop={server.shop} onChange={autosave.queueShop} onPayeeChange={setPayeeReady} onValidityChange={setDetails} />
         </div>
 
         <aside aria-label="Your menu photo" className="hidden lg:col-span-5 lg:block">
@@ -393,29 +404,35 @@ export function ReviewStep(props: ReviewProps) {
         <div className="mx-auto flex w-full max-w-page flex-col gap-2 px-gutter py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
           <div className="flex flex-col gap-0.5 sm:order-1">
             <SaveStatus state={autosave.state} onRetry={() => void autosave.flush().catch(() => {})} />
-            {(disabledReason || publishError) && (
+            {publishError ? (
               <span id="publish-reason" className="text-sm text-ink-soft">
-                {publishError ? (
-                  <FieldError>{publishError}</FieldError>
-                ) : disabledReason === PAYEE_REQUIRED_MESSAGE ? (
-                  <button
-                    type="button"
-                    onClick={goToPayee}
-                    className="press-text inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
-                  >
-                    {PAYEE_REQUIRED_MESSAGE}
-                  </button>
-                ) : (
-                  disabledReason
-                )}
+                <FieldError>{publishError}</FieldError>
               </span>
+            ) : (
+              blocked && (
+                <p id="publish-reason" data-publish-missing className="flex flex-wrap items-center gap-x-1 text-sm text-ink-soft">
+                  <span className="font-semibold text-ink">To publish:</span>
+                  {blockers.map((b, i) => (
+                    <span key={b.key} className="inline-flex items-center gap-x-1">
+                      {i > 0 && <span aria-hidden="true" className="text-ink-faint">·</span>}
+                      <button
+                        type="button"
+                        onClick={() => goTo(b.key)}
+                        className="press-text inline-flex min-h-tap items-center text-left font-medium text-ink underline decoration-ink-faint decoration-2 underline-offset-4 hover:decoration-ink"
+                      >
+                        {b.label}
+                      </button>
+                    </span>
+                  ))}
+                </p>
+              )
             )}
             {finishOnly && !publishError && (
               <span className="text-sm text-ink-soft">
                 {plural(inPayPal, 'item')} {inPayPal === 1 ? 'is' : 'are'} already in PayPal. Open your shop to finish.
               </span>
             )}
-            {!disabledReason && !finishOnly && !publishError && needYou > 0 && (
+            {!blocked && !finishOnly && !publishError && needYou > 0 && (
               <span className="hidden text-sm text-ink-soft sm:block">
                 {needYou === 1 ? '1 item that needs you stays' : `${needYou} items that need you stay`} off your shop for now.
               </span>
@@ -425,8 +442,8 @@ export function ReviewStep(props: ReviewProps) {
             size="lg"
             icon={Send}
             onClick={() => void doPublish()}
-            disabled={nothingToPublish || !payeeReady}
-            aria-describedby={disabledReason || publishError ? 'publish-reason' : undefined}
+            disabled={blocked}
+            aria-describedby={blocked || publishError ? 'publish-reason' : undefined}
             className="sm:order-2"
           >
             {finishOnly ? 'Open your shop' : `Publish ${plural(toPublish, 'item')} to PayPal`}

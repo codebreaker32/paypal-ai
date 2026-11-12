@@ -19,6 +19,15 @@ const OPTIONS: { value: ShopFulfillment; label: string }[] = [
 
 /** The wrapper of the PayPal email field: the publish bar's "Add your PayPal email" focuses the field inside it. */
 export const PAYEE_FIELD_ID = 'payee-email';
+/** The shop name input and the shipping fee's wrapper, for the publish bar's "To publish:" links. */
+export const SHOP_NAME_INPUT_ID = 'shop-name-input';
+export const SHIPPING_FEE_FIELD_ID = 'shipping-fee';
+
+/** Whether the name and fee fields, as they stand, can be published (a blank name or an unreadable fee can't). */
+export interface DetailsValidity {
+  name: boolean;
+  fee: boolean;
+}
 
 /**
  * Name, about, pickup notes, how orders reach people and where the money goes. Every valid change autosaves.
@@ -29,10 +38,12 @@ export function ShopDetails({
   shop,
   onChange,
   onPayeeChange,
+  onValidityChange,
 }: {
   shop: ReviewShop;
   onChange: (p: ShopPatch) => void;
   onPayeeChange?: (valid: boolean) => void;
+  onValidityChange?: (v: DetailsValidity) => void;
 }) {
   const [payee, setPayee] = useState(shop.payeeEmail ?? '');
   const [payeeTouched, setPayeeTouched] = useState(false);
@@ -52,17 +63,28 @@ export function ShopDetails({
   const feeCents = parseFeeInput(fee);
   const ships = fulfillment !== 'pickup';
   const services = shop.kind === 'services';
+  const report = (next: { name?: string; fee?: string; fulfillment?: ShopFulfillment }) => {
+    const n = next.name ?? name;
+    const f = next.fee ?? fee;
+    const ff = next.fulfillment ?? fulfillment;
+    onValidityChange?.({ name: n.trim() !== '', fee: ff === 'pickup' || parseFeeInput(f) !== null });
+  };
 
   return (
     <section aria-labelledby="shop-details-title" className="flex flex-col gap-6 border-t border-line pt-10">
-      <h2 id="shop-details-title" className="type-title">
-        Your shop
-      </h2>
+      <div className="flex flex-col gap-1">
+        <h2 id="shop-details-title" className="type-title">
+          Your shop
+        </h2>
+        <p className="type-meta text-ink-muted">
+          Fields marked <span className="font-semibold text-accent-ink">*</span> are needed to publish.
+        </p>
+      </div>
 
       <CoverPicker shopId={shop.id} shopName={name.trim() || shop.name} coverUrl={cover} onChange={setCover} />
       <LogoPicker shopId={shop.id} shopName={name.trim() || shop.name} logoUrl={logo} onChange={setLogo} />
 
-      <Field label="Shop name" required error={name.trim() === '' ? 'Give your shop a name' : undefined}>
+      <Field label="Shop name" id={SHOP_NAME_INPUT_ID} required error={name.trim() === '' ? 'Give your shop a name' : undefined}>
         {(c) => (
           <TextInput
             {...c}
@@ -72,13 +94,14 @@ export function ShopDetails({
             onChange={(e) => {
               const v = e.currentTarget.value;
               setName(v);
+              report({ name: v });
               if (v.trim()) onChange({ name: v.trim() });
             }}
           />
         )}
       </Field>
 
-      <Field label="About">
+      <Field label="About" optional>
         {(c) => (
           <TextArea
             {...c}
@@ -94,7 +117,7 @@ export function ShopDetails({
         )}
       </Field>
 
-      <Field label={services ? 'Drop-off notes' : 'Pickup notes'}>
+      <Field label={services ? 'Drop-off notes' : 'Pickup notes'} optional>
         {(c) => (
           <TextArea
             {...c}
@@ -111,7 +134,12 @@ export function ShopDetails({
       </Field>
 
       <fieldset className="flex flex-col">
-        <legend className="type-label mb-2">How do people get their order?</legend>
+        <legend className="type-label mb-2">
+          How do people get their order?
+          <span aria-hidden="true" className="font-semibold text-accent-ink">
+            {' '}*
+          </span>
+        </legend>
         <div className="grid grid-cols-3 gap-1 rounded-full bg-surface-sunken p-1">
           {OPTIONS.map((o) => {
             const checked = fulfillment === o.value;
@@ -128,10 +156,12 @@ export function ShopDetails({
                 <input
                   type="radio"
                   name="fulfillment"
+                  required
                   value={o.value}
                   checked={checked}
                   onChange={() => {
                     setFulfillment(o.value);
+                    report({ fulfillment: o.value });
                     onChange({ fulfillment: o.value });
                   }}
                   className="absolute inset-0 m-0 cursor-pointer appearance-none rounded-full opacity-0"
@@ -144,12 +174,15 @@ export function ShopDetails({
       </fieldset>
 
       {ships && (
+        <div id={SHIPPING_FEE_FIELD_ID} className="scroll-mt-24">
         <PriceInput
           label="Flat shipping fee"
+          required
           hint="One fee per order. PayPal adds it to the buyer’s total."
           value={fee}
           onValueChange={(t) => {
             setFee(t);
+            report({ fee: t });
             const c = parseFeeInput(t);
             if (c !== null) onChange({ shippingFeeCents: c });
           }}
@@ -157,6 +190,7 @@ export function ShopDetails({
           error={feeTouched && feeCents === null ? 'Enter a fee like 8 or 8.50' : null}
           className="w-56"
         />
+        </div>
       )}
 
       {/* Where the money goes: each shop is paid into its seller's own PayPal account. */}
@@ -164,6 +198,7 @@ export function ShopDetails({
         <Field
           label="Your PayPal email"
           required={!payeeOptional}
+          optional={payeeOptional}
           hint={
             payeeOptional
               ? 'Buyers pay you there. Left empty, this demo shop is paid to Shelfie’s demo PayPal account.'
