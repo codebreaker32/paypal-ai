@@ -1,4 +1,4 @@
-// The not-found, /claim/<bad>, Help, Terms and Privacy pages (brief WP7, Other pages). Run: E2E_PORT=3251 npx playwright test e2e/other-pages.spec.ts
+// The not-found, /claim/<bad>, Help, Terms and Privacy pages. Run: E2E_PORT=3251 npx playwright test e2e/other-pages.spec.ts
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE, a11y, settle, smallTargets } from './helpers';
 import { TEST_MODE_LINE } from '../src/lib/brand/test-mode';
@@ -46,7 +46,7 @@ test('the footer’s main links are one named navigation', async ({ page }) => {
   expect(await nav.getByRole('link').allInnerTexts()).toEqual(['Browse shops', 'How it works', 'FAQ', 'Help', 'agents.txt', 'llms.txt', 'Terms', 'Privacy', 'Open source on GitHub']);
 });
 
-test('404, logged out: the brief’s copy with Go to Shelfie and Log in', async ({ page }) => {
+test('404, logged out: its copy with Go to Shelfie and Log in', async ({ page }) => {
   const res = await page.goto('/no-such-page');
   expect(res?.status()).toBe(404);
   await expect(page.getByRole('heading', { level: 1, name: 'We can’t find that page' })).toBeVisible();
@@ -79,7 +79,7 @@ test('a bad owner link is a branded 404 page with a way to log in', async ({ pag
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test('Help has every anchor, the brief’s copy, and a contact', async ({ page }) => {
+test('Help has every anchor, its copy, and a contact', async ({ page }) => {
   await page.goto('/help');
   for (const id of ['test-mode', 'get-paid', 'locked-out', 'delete', 'contact']) await expect(page.locator(`#${id}`)).toHaveCount(1);
   await expect(page.locator('#test-mode')).toContainText(
@@ -96,7 +96,7 @@ for (const [path, title, required] of [
   ['/terms', 'Terms', ['early access', 'PayPal sandbox', 'allergens', 'PayPal’s own terms', 'no warranty', 'delete your account and its shops yourself']],
   ['/privacy', 'Privacy', ['hash of your password', 'hash of your recovery key', 'PayPal email', 'ship-to', 'hashed caller id', 'Conversations with the shop assistant', 'Anthropic', 'Pexels', 'session cookie', 'returning cookie', 'owner cookie', 'no analytics and no ads']],
 ] as const) {
-  test(`${title} carries the draft heading and what the brief requires`, async ({ page }) => {
+  test(`${title} carries the draft heading and every required topic`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1, name: DRAFT })).toBeVisible();
     const main = page.locator('#main');

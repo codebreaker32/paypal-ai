@@ -1,6 +1,6 @@
-// Installable on a phone (spec §4c): Chromium reports no installability errors, the manifest has what an install needs,
+// Installable on a phone: Chromium reports no installability errors, the manifest has what an install needs,
 // every icon is served at its stated size, the iOS meta is there, and no service worker is registered (order, payment
-// and dashboard pages are never cached). Saves the manifest and an icon sheet for the judge to data/pwa/.
+// and dashboard pages are never cached). Saves the manifest and an icon sheet to data/pwa/.
 //
 // Run: E2E_PORT=3150 npx playwright test e2e/pwa.spec.ts
 import fs from 'node:fs';

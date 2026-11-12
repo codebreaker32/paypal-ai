@@ -1,4 +1,4 @@
-// The agent door: one fresh McpServer per request over a stateless Streamable HTTP transport (spec §10).
+// The agent door: one fresh McpServer per request over a stateless Streamable HTTP transport.
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { doorRateIdentity } from '@/lib/agent/console-key';

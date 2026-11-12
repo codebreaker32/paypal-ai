@@ -41,7 +41,7 @@ export function HowItWorks() {
           </h2>
           <p className="mt-2 text-base text-ink xl:mt-3 xl:text-lg">A shop, in minutes. No website needed.</p>
         </div>
-        {/* Heading and line first, then the picture (owner, run 12). From lg each step spans two rows of a shared
+        {/* Heading and line first, then the picture. From lg each step spans two rows of a shared
             subgrid, so the headings start on one line and the pictures on another, however the short lines wrap. */}
         <Stagger
           as="ol"

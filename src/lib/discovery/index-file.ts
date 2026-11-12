@@ -1,4 +1,4 @@
-// /agents.txt and /llms.txt (spec §10a): one text for agents that land on Shelfie itself rather than on a shop page.
+// /agents.txt and /llms.txt: one text for agents that land on Shelfie itself rather than on a shop page.
 // It says what an agent door is and how to order through one, then lists the live shops with their doors.
 // Seller text (shop names and about lines) is made single-line first, so it can't add fields, entries or headings.
 import { sanitizeLabel } from '@/lib/text';

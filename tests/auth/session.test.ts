@@ -1,4 +1,4 @@
-// Server-side sessions (SR13) and their cookies (SR14).
+// Server-side sessions and their cookies.
 import { createHash } from 'node:crypto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
@@ -91,7 +91,7 @@ describe('sessions', () => {
     });
   });
 
-  describe('startSession (SR13)', () => {
+  describe('startSession', () => {
     it('puts 32 random bytes in the cookie and only their SHA-256 in the database', async () => {
       await startSession(accountId);
       const token = state.jar.get(sessionCookieName())!;
@@ -142,7 +142,7 @@ describe('sessions', () => {
     });
   });
 
-  describe('cookies (SR14)', () => {
+  describe('cookies', () => {
     it('on http: shelfie_session, httpOnly, lax, path /, not secure, 30 days', async () => {
       await startSession(accountId);
       expect(sessionCookieName()).toBe('shelfie_session');

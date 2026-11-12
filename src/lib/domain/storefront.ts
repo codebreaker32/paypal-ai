@@ -1,10 +1,10 @@
 // The shop's own page as an order source (the cart's checkout route). Client-safe: the seller views and the receipt use it.
 
-/** Stored as `orders.agent_name` for an order placed from the shop page's cart. Reserved: an agent can never use it (SR29). */
+/** Stored as `orders.agent_name` for an order placed from the shop page's cart. Reserved: an agent can never use it. */
 export const STOREFRONT_AGENT_NAME = 'shelfie-storefront';
 
 const WINDOW_MINUTES = 60;
-/** A cart buyer is already on the page, so an abandoned checkout should stop holding an open-order slot sooner (SR28). */
+/** A cart buyer is already on the page, so an abandoned checkout should stop holding an open-order slot sooner. */
 const STOREFRONT_WINDOW_MINUTES = 20;
 
 /** The reserved name and the words a seller sees for it (`agentLabel`: "via your shop page"), normalised. */

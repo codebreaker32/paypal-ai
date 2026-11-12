@@ -1,6 +1,6 @@
 // POST /api/account/password { currentPassword, password } → 204: the password changed, every other session ended, this
 // one kept. Errors: 400 WEAK_PASSWORD; 401 LOGIN_REQUIRED; 403 PASSWORD_REQUIRED or PASSWORD_WRONG; 429 RATE_LIMITED
-// (before any hash, SR8); 503 BUSY.
+// (before any hash); 503 BUSY.
 import { authFailure, checkCurrentPassword, loginRequired, noStoreEmpty, passwordWrong, readFields } from '@/lib/auth/http';
 import { checkNewPassword, hashPassword } from '@/lib/auth/password';
 import { accountIdOfSession, currentSession } from '@/lib/auth/session';

@@ -1,4 +1,4 @@
-// GET /agents.txt (spec §10a): what an agent door is, how to order through one, and every live shop's door, as plain
+// GET /agents.txt: what an agent door is, how to order through one, and every live shop's door, as plain
 // fields. The same in Markdown at /llms.txt.
 import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';

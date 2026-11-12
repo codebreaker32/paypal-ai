@@ -1,4 +1,4 @@
-// The findable door (spec §10a): the shop page's JSON-LD and <link rel="alternate">, /agents.txt and /llms.txt, and the
+// The findable door: the shop page's JSON-LD and <link rel="alternate">, /agents.txt and /llms.txt, and the
 // counter card (owner only, prints alone). Uses LABELLED TEST FIXTURE shops written to the e2e database and removed
 // afterwards; no Claude or PayPal calls. The printed card is saved for a human look: data/discovery/counter-card.pdf
 // (letter, as Chrome prints it with background graphics off) and counter-card-print.png.

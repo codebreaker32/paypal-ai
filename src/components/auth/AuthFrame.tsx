@@ -69,7 +69,7 @@ function PhotoPanel({ current }: { current?: number }) {
         className="-z-20 object-cover object-[30%_50%]"
       />
       <div aria-hidden="true" className="absolute inset-0 -z-10 bg-(image:--auth-scrim)" />
-      {/* No logo here (review F5): the header's logo is the page's one. */}
+      {/* No logo here: the header's logo is the page's one. */}
       <div className="flex w-full flex-col justify-end gap-12 px-10 py-12 xl:px-14 xl:py-14">
         <div className="flex flex-col gap-8">
           <p className="type-band-closing text-balance">{LINE}</p>

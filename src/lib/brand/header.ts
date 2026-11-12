@@ -1,4 +1,4 @@
-// What the public header shows (brief WP6, Header): the table of states as one pure function, so the page only draws it.
+// What the public header shows: the table of states as one pure function, so the page only draws it.
 
 export interface HeaderInput {
   pathname: string;
@@ -14,7 +14,7 @@ export type HeaderView =
 
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
-/** Log in, sign up and recovery: the logo alone. Each form carries its own way to the other door, under its button (owner, run 15). */
+/** Log in, sign up and recovery: the logo alone. Each form carries its own way to the other door, under its button. */
 const AUTH_PAGES = new Set(['/login', '/signup', '/recover']);
 
 /** One owner cookie opens that shop; several are listed on the start page, so there the link would go nowhere. */

@@ -1,4 +1,4 @@
-// "Snap your counter" (spec §4b): a display-case photo → Claude's boxes → one proposed 4:3 crop per item, for the seller
+// "Snap your counter": a display-case photo → Claude's boxes → one proposed 4:3 crop per item, for the seller
 // to keep or skip. Stateless: nothing is stored until the seller uploads a crop through the item-photo route.
 import sharp from 'sharp';
 import { beforeEach, describe, expect, it, vi } from 'vitest';

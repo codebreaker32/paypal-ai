@@ -1,4 +1,4 @@
-// Start page behaviour and accessibility. /api/shops is mocked; the real route arrives in Task 6.
+// Start page behaviour and accessibility. /api/shops is mocked.
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DESKTOP, PHONE, samplePhoto, signUpForShops } from './helpers';

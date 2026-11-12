@@ -1,4 +1,4 @@
-// Screen-clip stage for the demo video (docs/DEMO.md, video/clips/README.md).
+// Screen-clip stage for the demo video (video/clips/README.md).
 //
 // A virtual X display (Xvfb) at 1920x1080, a real headed Chromium driven by Playwright, and ffmpeg's x11grab
 // recording the whole display at a constant 30 fps into H.264 MP4. Phone shots put a 390x844 browser window in

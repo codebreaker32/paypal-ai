@@ -1,4 +1,4 @@
-// Deleting a shop for good (SR19): rows and slug in the caller's transaction, then its files once that has committed.
+// Deleting a shop for good: rows and slug in the caller's transaction, then its files once that has committed.
 // Only files this shop owns are touched: its upload folder and the exact "/i/<file>" URLs on its rows, never a bundled
 // /demo/ or /samples/ photo, and never the library cache other shops share.
 import type { Db } from '@/lib/db';

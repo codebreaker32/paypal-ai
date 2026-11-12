@@ -63,7 +63,7 @@ export function applyShopPatch(db: Db, shop: Shop, patch: ShopPatchInput): Shop 
   if (patch.status && shop.status === 'draft') {
     throw new EditError('NOT_PUBLISHED', 409, 'Publish the shop before pausing or resuming it.');
   }
-  // A published shop's orders need somewhere to be paid; only the demo shop falls back to the platform account (spec §8a).
+  // A published shop's orders need somewhere to be paid; only the demo shop falls back to the platform account.
   if (patch.payeeEmail === null && shop.status !== 'draft' && !isDemoShop(shop)) {
     throw new EditError('PAYEE_REQUIRED', 409, PAYEE_KEEP_MESSAGE);
   }

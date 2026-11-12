@@ -1,4 +1,4 @@
-// Who owns an account-owned shop (SR15): its account's session, and never an owner token.
+// Who owns an account-owned shop: its account's session, and never an owner token.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 

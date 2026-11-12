@@ -1,4 +1,4 @@
-// /claim/<bad> (brief WP7): a real 404, as a small branded page rather than bare text, the same for every kind of bad link.
+// /claim/<bad>: a real 404, as a small branded page rather than bare text, the same for every kind of bad link.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 

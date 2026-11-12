@@ -3,7 +3,7 @@
 import { authLimitsSkipped } from '@/lib/auth/guest';
 import { hashToken } from '@/lib/domain/ids';
 
-/** A key's own window, so eviction never judges it by another caller's (SR10). */
+/** A key's own window, so eviction never judges it by another caller's. */
 interface Bucket {
   windowMs: number;
   hits: number[];
@@ -53,8 +53,8 @@ export function resetRateLimits(): void {
 const HOUR = 60 * 60_000;
 
 /**
- * Per-address limits on starting shops, uploading retakes, live menu readings and item photos or covers (spec §15:
- * they spend the Anthropic key and the disk). The e2e and screenshot servers run with SHELFIE_TEST and
+ * Per-address limits on starting shops, uploading retakes, live menu readings and item photos or covers (they
+ * spend the Anthropic key and the disk). The e2e and screenshot servers run with SHELFIE_TEST and
  * start dozens of shops from one address, so they skip these limits.
  */
 export const SETUP_RATES = {
@@ -76,9 +76,9 @@ const MINUTE = 60_000;
 const QUARTER_HOUR = 15 * MINUTE;
 
 /**
- * Limits on signing up, logging in, recovering and re-entering a password (SR11). The attempt limits are per address;
+ * Limits on signing up, logging in, recovering and re-entering a password. The attempt limits are per address;
  * the failure limits are what stop guessing without letting a stranger lock a seller out, and the login and recovery
- * buckets are separate so a lockout on one leaves the other open. Every check happens before any password hash (SR8).
+ * buckets are separate so a lockout on one leaves the other open. Every check happens before any password hash.
  */
 export const AUTH_RATES = {
   signup: { limit: 10, windowMs: HOUR },
@@ -91,13 +91,13 @@ export const AUTH_RATES = {
   passwordFailures: { limit: 10, windowMs: QUARTER_HOUR },
   /**
    * Counted right or wrong: a correct password buys hash work too, and the hash gate is shared by every seller. Both sit
-   * above MAX_SHOPS_PER_ACCOUNT, because each shop's PayPal email change needs the password once (SR18).
+   * above MAX_SHOPS_PER_ACCOUNT, because each shop's PayPal email change needs the password once.
    */
   passwordAttemptsAccount: { limit: 30, windowMs: HOUR },
   passwordAttemptsIp: { limit: 30, windowMs: HOUR },
 } as const;
 
-/** Rate-limit keys hold this, never the address (SR10). Whether an account exists makes no difference. */
+/** Rate-limit keys hold this, never the address. Whether an account exists makes no difference. */
 const emailKey = (email: string): string => hashToken(email.trim().toLowerCase());
 
 /** Hands a reserved failure back: nothing to keep when the guess was right, or was never checked. Safe to call twice. */

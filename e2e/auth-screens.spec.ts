@@ -1,4 +1,4 @@
-// The account screens (brief WP6): sign-up, recovery key, log in and out, the header's states and the account menu.
+// The account screens: sign-up, recovery key, log in and out, the header's states and the account menu.
 import { expect, test, type Page } from '@playwright/test';
 import { DESKTOP, PHONE, a11y, settle } from './helpers';
 

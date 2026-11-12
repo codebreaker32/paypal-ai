@@ -17,7 +17,7 @@ const MAX_NAME = 127;
 const MAX_DESCRIPTION = 256;
 const MAX_SOURCE = 500;
 
-// Spec §9. Matched against name, description and source text.
+// Prompt-injection guard: matched against name, description and source text.
 const INSTRUCTION_RE = /ignore (all|previous)|instructions|system prompt|you are|assistant:/i;
 // Something on the menu was crossed out or struck through ("cross-out", "crossout", "strikes",
 // "striked", "scored out", "scratched out"). Whole words only: "across" and a "hot cross bun" are not.

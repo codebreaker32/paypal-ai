@@ -1,6 +1,4 @@
-// Accounts end to end (brief WP6 acceptance): the journey, the shop list, Add a shop, /account, the recovery banner and the PayPal email check.
-// Acceptance, by number: 1 'the journey' (first test). 2 'a second browser'. 3 '/shops' (two shops, one shop). 4 'a shop owned by an account' (first test).
-// 5 and 6 their own describes below. 7 the shell test plus its own describe. 8 'the recovery banner' plus its own describe. 9 'changing the PayPal email'.
+// Accounts end to end: the journey, the shop list, Add a shop, /account, the recovery banner and the PayPal email check.
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test';
 import { getDb } from '../src/lib/db';
 import { DESKTOP, PHONE, a11y } from './helpers';
@@ -307,7 +305,7 @@ test.describe('/shops/new and /account', () => {
   }
 });
 
-test.describe('acceptance 5: a logged-in visitor to /login goes to landingPath', () => {
+test.describe('a logged-in visitor to /login goes to landingPath', () => {
   const visitLogin = async (page: Page) => {
     const res = await page.request.get('/login', { maxRedirects: 0 });
     expect(res.status()).toBe(307);
@@ -352,7 +350,7 @@ test.describe('acceptance 5: a logged-in visitor to /login goes to landingPath',
   });
 });
 
-test.describe('acceptance 6: password managers and the keyboard', () => {
+test.describe('password managers and the keyboard', () => {
   test('Forgot password? is reached with Tab alone and Enter opens it', async ({ page }) => {
     await page.goto('/login');
     const forgot = page.getByRole('link', { name: 'Forgot password?' });
@@ -391,7 +389,7 @@ test.describe('acceptance 6: password managers and the keyboard', () => {
   });
 });
 
-test.describe('acceptance 7: the account menu outside the sidebar', () => {
+test.describe('the account menu outside the sidebar', () => {
   test('the public header on /shops: opens by keyboard, closes on Esc, returns focus', async ({ page }) => {
     await page.setViewportSize(DESKTOP);
     ownedShop(await signUp(page));
@@ -426,7 +424,7 @@ test.describe('acceptance 7: the account menu outside the sidebar', () => {
   });
 });
 
-test.describe('acceptance 8: Download at sign-up', () => {
+test.describe('Download at sign-up', () => {
   test('the banner never comes back once the key from sign-up is downloaded', async ({ page }) => {
     const address = email('download');
     await page.goto('/signup');
@@ -463,7 +461,7 @@ test.describe('acceptance 8: Download at sign-up', () => {
   });
 });
 
-test.describe('review round 1', () => {
+test.describe('form and navigation edge cases', () => {
   test('text typed before React arrives is kept, and Log in waits for it instead of losing it', async ({ browser }) => {
     const context = await freshContext(browser);
     const held: (() => void)[] = [];

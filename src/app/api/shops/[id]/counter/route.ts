@@ -1,4 +1,4 @@
-// "Snap your counter" (owner only, spec §4b): one photo of the display case → proposed item photos, nothing stored.
+// "Snap your counter" (owner only): one photo of the display case → proposed item photos, nothing stored.
 // POST /api/shops/[id]/counter: multipart field "photo" → 200 { proposals: [{ itemId, name, confidence, image }] }, where
 //   image is a 4:3 WebP data URL; the seller keeps one by uploading it to /api/shops/[id]/items/[itemId]/photo.
 //   Errors: 404 NOT_FOUND; 503 NO_AI_KEY; 400 NO_PHOTOS; 413 PHOTO_TOO_LARGE; 415 BAD_IMAGE; 411 LENGTH_REQUIRED;

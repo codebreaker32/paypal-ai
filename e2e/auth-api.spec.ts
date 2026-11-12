@@ -4,7 +4,7 @@ import { expect, test } from '@playwright/test';
 
 const PASSWORD = 'a long sentence only this test says';
 
-test('an account owns its shop by session, and logging out closes it (SR13 to SR17)', async ({ request, playwright, baseURL }) => {
+test('an account owns its shop by session, and logging out closes it', async ({ request, playwright, baseURL }) => {
   const email = `e2e-${Date.now()}@example.com`;
 
   const signup = await request.post('/api/auth/signup', { data: { email, password: PASSWORD } });

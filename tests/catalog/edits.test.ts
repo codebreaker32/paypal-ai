@@ -194,7 +194,7 @@ describe('edits', () => {
       expect(itemCategory(renamed, 'food')).toBe('drink');
     });
 
-    it('stores Claude’s example photo, keeps it on other edits and drops it on a rename (Part A3)', () => {
+    it('stores Claude’s example photo, keeps it on other edits and drops it on a rename', () => {
       const [taco] = items.replaceDrafts(db, shopId, [draft('Al pastor', [300], { category: 'taco', examplePhoto: 'taco-1' })]);
       expect(taco.examplePhoto).toBe('taco-1');
       applyItemUpdates(db, shopId, parseItemUpdates({ updates: [{ itemId: taco.id, description: 'Pork and pineapple' }] }));

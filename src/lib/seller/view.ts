@@ -152,7 +152,7 @@ export function timelineEntries(events: OrderEventRow[], order: Pick<Order, 'ful
         entry(order.fulfillment === 'pickup' ? 'Marked picked up' : 'Marked shipped', 'info');
         break;
       case 'tracking_added':
-        // Saved: a seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform, spec §8a).
+        // Saved: a seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform).
         entry(`${d.atPayPal === false ? 'Tracking saved' : 'Tracking added'}: ${String(d.carrier ?? '')} ${String(d.trackingNumber ?? '')}`.trim(), 'info');
         break;
       default:

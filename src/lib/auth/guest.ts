@@ -1,4 +1,4 @@
-// The two test-harness switches, which mean nothing on a real deployment (SR20).
+// The two test-harness switches, which mean nothing on a real deployment.
 
 const onRender = (): boolean => Boolean(process.env.RENDER);
 

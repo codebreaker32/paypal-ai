@@ -120,7 +120,7 @@ export function Menu({ sections, kind, takesOrders = true }: { sections: MenuSec
               id={ids[i].id}
               className="scroll-mt-[calc(var(--shop-tabs-h)+1rem)] scroll-mb-[calc(var(--shop-bar-h)+1rem)]"
             >
-              {/* No per-section reveal (review F9): every section paints as served, so a full-page capture has no blank bands. */}
+              {/* No per-section reveal: every section paints as served, so a full-page capture has no blank bands. */}
               <div className="flex flex-col gap-3 @[36rem]/shop:gap-4">
                 <h3 className="type-title">{section.name}</h3>
                 <ul className="menu-grid">

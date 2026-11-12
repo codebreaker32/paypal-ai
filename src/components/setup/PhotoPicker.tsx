@@ -232,9 +232,9 @@ export function ItemPhotoPicker({ shopId, itemId, name, photoUrl, category, exam
 }
 
 /**
- * Under an item whose thumbnail is a library example (Part A3): says so plainly, so the seller never mistakes it for
+ * Under an item whose thumbnail is a library example: says so plainly, so the seller never mistakes it for
  * their own photo and knows the thumbnail beside it replaces it. Nothing shows for the seller's own photo. It is the one
- * example disclosure on a seller's screen (review F6): no corner tag on the thumbnail, no line above the list.
+ * example disclosure on a seller's screen: no corner tag on the thumbnail, no line above the list.
  */
 export function ExampleCaption({ show }: { show: boolean }) {
   if (!show) return null;

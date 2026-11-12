@@ -1,4 +1,4 @@
-// Part A3, optional: a live Pexels search for an item's example photo, used only when PEXELS_API_KEY is set (server
+// Optional: a live Pexels search for an item's example photo, used only when PEXELS_API_KEY is set (server
 // side; the key never reaches a browser). After a menu reading, each item with no photo of its own and no pick from
 // Claude is searched by name in the background; a hit is downloaded once, stored as WebP at
 // `${UPLOADS_DIR}/library/pexels-<id>.webp` (served by GET /i/library/[file]) and the item keeps `pexels:<id>`.

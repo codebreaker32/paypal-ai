@@ -24,7 +24,7 @@ export function LoginForm({ next }: { next: string | null }) {
       checkLogin(email, password),
       async () => {
         const { next: to } = await login(email, password, next ?? undefined);
-        // A full replace, so the login page leaves this tab's history and every page reads the new session (SR21).
+        // A full replace, so the login page leaves this tab's history and every page reads the new session.
         window.location.replace(to);
       },
       loginProblem,

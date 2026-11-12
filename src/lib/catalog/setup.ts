@@ -50,7 +50,7 @@ export function assertUnderShopLimit(db: Db, accountId: string | null): void {
 /**
  * A shop starts with a throwaway slug; publishShop gives it the real one from its final name. The count and the insert
  * are one synchronous transaction: the caller's early check ran before the awaits that read and decode the photos, so a
- * burst of requests all passed it (SR17).
+ * burst of requests all passed it.
  */
 async function createDraftShop(
   db: Db,
@@ -255,7 +255,7 @@ export interface ReviewShop {
   fulfillment: Shop['fulfillment'];
   shippingFeeCents: number;
   kind: Shop['kind'];
-  /** The seller's PayPal email (where buyers' money goes); publishing needs it, except for the demo shop (spec §8a). */
+  /** The seller's PayPal email (where buyers' money goes); publishing needs it, except for the demo shop. */
   payeeEmail: string | null;
   /** The shop's cover photo (site-relative), set from the review screen's shop details; absent counts as none. */
   coverUrl?: string | null;

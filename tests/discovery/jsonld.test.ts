@@ -1,4 +1,4 @@
-// Schema.org JSON-LD on the shop page (spec §10a): the menu as offers, PayPal as payment, and the agent door as an
+// Schema.org JSON-LD on the shop page: the menu as offers, PayPal as payment, and the agent door as an
 // OrderAction while the shop is live. The <script> it goes in must stay inert whatever the seller's text says.
 import { afterAll, describe, expect, it } from 'vitest';
 import fs from 'node:fs';

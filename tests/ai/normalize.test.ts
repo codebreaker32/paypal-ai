@@ -597,7 +597,7 @@ describe('category (the drawing shown without a photo)', () => {
   });
 });
 
-describe('example_photo (Claude’s pick from the example-photo library, Part A3)', () => {
+describe('example_photo (Claude’s pick from the example-photo library)', () => {
   const lib: LibraryPhoto[] = [
     { id: 'croissant-1', file: '/library/croissant-1.webp', type: 'croissant', category: 'pastry', tags: ['croissant'], shows: 'A butter croissant on a plate', source: 'https://www.pexels.com/photo/1/', photographer: 'A', licence: 'Pexels License' },
     { id: 'taco-1', file: '/library/taco-1.webp', type: 'taco', category: 'taco', tags: ['taco'], shows: 'Three al pastor tacos', source: 'https://www.pexels.com/photo/2/', photographer: 'B', licence: 'Pexels License' },

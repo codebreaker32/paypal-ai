@@ -19,7 +19,7 @@ const draft = (name: string, prices: (number | null)[], extra: Partial<DraftItem
 const byName = (db: Database.Database, shopId: string, name: string) =>
   items.listWithVariants(db, shopId).find((i) => i.name === name)!;
 
-/** A seller's PayPal email: every shop but the demo shop needs one to publish (spec §8a). */
+/** A seller's PayPal email: every shop but the demo shop needs one to publish. */
 const SELLER = 'seller@example.com';
 
 describe('publishShop', () => {

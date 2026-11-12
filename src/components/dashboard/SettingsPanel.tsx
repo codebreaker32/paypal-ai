@@ -28,7 +28,7 @@ export interface SettingsPanelProps {
   onDeletingChange: (deleting: boolean) => void;
   /** The saved PayPal email (the owner sees it in full). */
   payeeEmail: string | null;
-  /** Shelfie's demo shop: with no email it is paid to Shelfie's demo PayPal account (spec §8a). */
+  /** Shelfie's demo shop: with no email it is paid to Shelfie's demo PayPal account. */
   isDemo: boolean;
   /** A draft isn't told by the shell's banner that it needs an email, so the section says so itself. */
   draft: boolean;

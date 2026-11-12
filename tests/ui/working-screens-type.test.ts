@@ -1,4 +1,4 @@
-// Working screens use only type-page (24/32) and type-section (16/24) for headings (spec WP4, acceptance 12).
+// Working screens use only type-page (24/32) and type-section (16/24) for headings.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';

@@ -30,7 +30,7 @@ export async function settle(page: Page) {
   await page.addStyleTag({ content: 'nextjs-portal { display: none !important; }' });
   await page.evaluate(() => document.fonts.ready);
   // networkidle is a hint, not a gate: on a CPU-starved machine the browser can take minutes to report it even when
-  // every request finished in under a second (round-6 trace). What a screenshot needs is the load event, the fonts
+  // every request finished in under a second (seen in a trace). What a screenshot needs is the load event, the fonts
   // (above) and every image decoded (below).
   await page.waitForLoadState('load');
   await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => {});

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-/** The other door (log in / add your shop), centred under the form's primary button, not in the header (owner, run 15). */
+/** The other door (log in / add your shop), centred under the form's primary button, not in the header. */
 export function AuthSwitch({ prompt, label, href }: { prompt: string; label: string; href: string }) {
   return (
     <p className="text-center text-[0.9375rem] text-ink-soft">

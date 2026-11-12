@@ -51,7 +51,7 @@ describe('orders from the storefront', () => {
       ...over,
     });
 
-  describe('the approval window (SR28)', () => {
+  describe('the approval window', () => {
     it('is 20 minutes for the storefront and stays 60 for every agent', async () => {
       expect(STOREFRONT_APPROVAL_WINDOW_MS).toBe(20 * MIN);
       expect(APPROVAL_WINDOW_MS).toBe(60 * MIN);
@@ -115,7 +115,7 @@ describe('orders from the storefront', () => {
     it.each([
       ['a changed note', 'Actually, extra nuts'],
       ['a removed note', null],
-    ])('refuses %s instead of returning an order with the old one (SR27)', async (_what, buyerNote) => {
+    ])('refuses %s instead of returning an order with the old one', async (_what, buyerNote) => {
       await order({ ...NOTE, buyerNote: 'No nuts please' });
       await expect(order({ ...NOTE, buyerNote })).rejects.toMatchObject({ code: 'IDEMPOTENCY_CONFLICT' });
       expect(fake.calls.filter((c) => c.method === 'createOrder')).toHaveLength(1);

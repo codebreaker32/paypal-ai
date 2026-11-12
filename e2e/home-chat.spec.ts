@@ -4,7 +4,7 @@
 // starts with auto-open off; `?chat=1` turns it on here.
 //
 // Run: E2E_PORT=3231 npx playwright test e2e/home-chat.spec.ts
-// Screenshots: HOME_CHAT_SHOTS=docs/preview E2E_PORT=3231 npx playwright test e2e/home-chat.spec.ts
+// Screenshots: HOME_CHAT_SHOTS=artifacts/home-chat E2E_PORT=3231 npx playwright test e2e/home-chat.spec.ts
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -26,7 +26,7 @@ const ndjson = (events: Record<string, unknown>[]) => events.map((e) => JSON.str
 
 const LAUNCHER = 'Chat with the Shelfie assistant';
 const GREETING = /Hi! I’m the Shelfie assistant\. I’m taking orders for Marigold Bakehouse\. What would you like\?/;
-/** The panel's place (spec): 440 px wide, the viewport's height less 96 px, 24 px from the right and bottom. */
+/** The panel's place: 440 px wide, the viewport's height less 96 px, 24 px from the right and bottom. */
 const PANEL_W = 440;
 const EDGE = 24;
 
@@ -175,7 +175,7 @@ test.describe('at 1440 px', () => {
     await page.goto('/?chat=1');
     await settle(page);
     // At the top of a 1440 x 900 page the chain's last steps stand where the panel would: it waits, past 4 s and past
-    // the chain's last beat (review F8).
+    // the chain's last beat.
     await expect(page.locator('[data-hero-story][data-chain-done]')).toBeAttached({ timeout: 8000 });
     await page.waitForTimeout(5000);
     await expect(panel(page)).toHaveCount(0);

@@ -1,6 +1,6 @@
 // POST /api/auth/recover { email, recoveryKey, newPassword } → 200 { recoveryKey, next }: a new key, every old session
 // ended, a new session here. Errors: 401 BAD_RECOVERY, the same for an unknown email and a wrong key; 400
-// WEAK_PASSWORD; 429 RATE_LIMITED (before any hash, SR8); 503 BUSY. The swap is atomic (SR12: `redeemRecoveryKey`).
+// WEAK_PASSWORD; 429 RATE_LIMITED (before any hash); 503 BUSY. The swap is atomic (`redeemRecoveryKey`).
 import { authFailure, noStoreJson, readFields, stringField, tooManyTries } from '@/lib/auth/http';
 import { checkNewPassword } from '@/lib/auth/password';
 import { redeemRecoveryKey } from '@/lib/auth/recovery';

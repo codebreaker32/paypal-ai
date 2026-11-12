@@ -25,7 +25,7 @@ export const generateMetadata = (): Metadata => ({
   description:
     'Snap a photo of your paper price list. Shelfie reads it, lists it with PayPal, and opens an agent door any AI assistant can order and pay through.',
   applicationName: PWA.name,
-  // Installable on a phone (spec §4c): Next adds apple-mobile-web-app-capable and the status-bar style from this.
+  // Installable on a phone: Next adds apple-mobile-web-app-capable and the status-bar style from this.
   appleWebApp: { capable: true, title: PWA.shortName, statusBarStyle: 'default' },
 });
 

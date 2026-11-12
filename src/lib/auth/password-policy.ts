@@ -1,4 +1,4 @@
-// The rules for a new password (SR6). No node:crypto here, so a browser form can import the limits.
+// The rules for a new password. No node:crypto here, so a browser form can import the limits.
 import { isCommonPassword } from './common-passwords';
 
 export const MIN_PASSWORD_LENGTH = 15;

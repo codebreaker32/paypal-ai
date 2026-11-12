@@ -1,4 +1,4 @@
-// SR25: what the production pass removed or decided not to build stays gone.
+// Features that were removed, or deliberately never built, stay gone.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -16,7 +16,7 @@ const files = allFiles(ROOT);
 const read = (f: string) => fs.readFileSync(f, 'utf8');
 const relativeRoute = (f: string) => path.relative(ROOT, f).split(path.sep).join('/');
 
-describe('SR25 removal guard', () => {
+describe('removal guard', () => {
   it.each(['is_demo', 'api/auth/demo'])('nothing in src mentions %s', (text) => {
     // A route's path comes from its directory, so a real route need not mention its own path.
     const hits = files.filter((f) => read(f).includes(text) || relativeRoute(f).includes(text)).map((f) => path.relative(ROOT, f));

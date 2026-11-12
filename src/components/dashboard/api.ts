@@ -1,5 +1,5 @@
 // Browser-side calls for the seller dashboard and order detail.
-// Task 8 routes: GET orders, POST fulfil, POST tracking. Task 6 routes (wave-2 contract): PATCH shop status, PATCH items.
+// Routes: GET orders, POST fulfil, POST tracking, PATCH shop status, PATCH items.
 import { ApiError, call as request } from '@/lib/client/http';
 import type { ItemWithVariants, Order, Shop, Tracker } from '@/lib/domain/types';
 

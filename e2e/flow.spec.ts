@@ -64,7 +64,7 @@ test('a sample menu becomes a live PayPal shop, and an AI assistant orders from 
   }
   await page.getByRole('radio', { name: /Both/ }).check();
   await page.getByLabel('Flat shipping fee').fill('8');
-  // Where buyers' money goes (spec §8a): the sandbox seller when .env names one. Never printed.
+  // Where buyers' money goes: the sandbox seller when .env names one. Never printed.
   await page.getByLabel('Your PayPal email').fill(process.env.PAYPAL_SANDBOX_SELLER_EMAIL || 'seller@example.com');
   await expect(page.getByText('Saved', { exact: true })).toBeVisible();
 

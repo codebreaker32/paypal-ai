@@ -1,4 +1,4 @@
-// Every control in the app answers a press (brief WP1, Controls). A raw <button>, <a>, <Link>, <summary>, or a <label>
+// Every control in the app answers a press. A raw <button>, <a>, <Link>, <summary>, or a <label>
 // that wraps a file or radio input carries one of the press utilities, gets its look from a primitive (`buttonClasses`),
 // presses the row around it (`data-stretched-link`), or is named below with its reason. And no transition list may name
 // `transform` for a press, nor any `active:` class move a control: Tailwind 4's translate-* and scale-* write the CSS

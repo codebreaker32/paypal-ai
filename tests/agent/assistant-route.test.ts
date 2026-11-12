@@ -45,7 +45,7 @@ const post = (signal?: AbortSignal) =>
     signal,
   });
 
-describe('POST /api/assistant/[slug] body size (R9)', () => {
+describe('POST /api/assistant/[slug] body size', () => {
   it('refuses a chunked body over 64 KB with 413, without buffering it', async () => {
     let pulled = 0;
     const body = new ReadableStream<Uint8Array>(

@@ -5,7 +5,7 @@ import { TEST_MODE_LINE } from '@/lib/brand/test-mode';
 import { TERMS_VERSION } from '@/lib/legal/version';
 
 describe('TEST_MODE_LINE', () => {
-  it('is the sentence the brief fixes', () => {
+  it('is the fixed sentence', () => {
     expect(TEST_MODE_LINE).toBe('Payments run in the PayPal sandbox, so no real money moves.');
   });
 });

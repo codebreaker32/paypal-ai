@@ -1,4 +1,4 @@
-// SR1: no proxy or middleware stands in front of uploads, so a 14 MB menu photo reaches POST /api/shops whole.
+// No proxy or middleware stands in front of uploads, so a 14 MB menu photo reaches POST /api/shops whole.
 // (The check that no proxy or middleware file exists is in tests/http/same-origin.test.ts; e2e/large-upload.spec.ts
 // sends the same upload through a real server.)
 import fs from 'node:fs';

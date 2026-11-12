@@ -231,7 +231,7 @@ describe('POST /api/account/recovery-key attempt limits', () => {
   });
 });
 
-describe('failure limits hold under a burst (SR11)', () => {
+describe('failure limits hold under a burst', () => {
   it('login: 15 wrong guesses at once run 10 hashes, the rest are 429', async () => {
     enforceLimits();
     makeAccount();

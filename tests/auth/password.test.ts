@@ -1,4 +1,4 @@
-// Password storage (SR5), the rules for a new password (SR6) and the global hash gate (SR7).
+// Password storage, the rules for a new password and the global hash gate.
 import type * as Crypto from 'node:crypto';
 import { randomBytes, scryptSync } from 'node:crypto';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -36,7 +36,7 @@ afterEach(() => {
   stub.scrypt = null;
 });
 
-describe('SR5: storing a password', () => {
+describe('storing a password', () => {
   it('stores scrypt$32768$8$3$ with a 16-byte salt and a 32-byte key in base64url', async () => {
     const stored = await hashPassword(PHRASE);
     const m = /^scrypt\$32768\$8\$3\$([\w-]+)\$([\w-]+)$/.exec(stored);
@@ -104,7 +104,7 @@ describe('SR5: storing a password', () => {
   });
 });
 
-describe('SR6: the rules for a new password', () => {
+describe('the rules for a new password', () => {
   const ok = (p: unknown) => checkNewPassword(p, EMAIL).ok;
   const problem = (p: unknown, email = EMAIL) => {
     const r = checkNewPassword(p, email);
@@ -179,7 +179,7 @@ describe('SR6: the rules for a new password', () => {
   });
 });
 
-describe('SR7: the global hash gate', () => {
+describe('the global hash gate', () => {
   /** Holds every scrypt call open until the test releases it. */
   function holdScrypt() {
     const calls: { finish: (err?: Error) => void }[] = [];

@@ -1,5 +1,5 @@
 /**
- * The buyer's small "Example photo" note on a menu tile whose picture comes from the library (Part A3): a pill in the
+ * The buyer's small "Example photo" note on a menu tile whose picture comes from the library: a pill in the
  * photo's corner that fades in (opacity only) when the tile is hovered or holds keyboard focus. It takes no pointer and
  * no focus, and is hidden from screen readers because the photo's alt already says "example photo". Never a badge that
  * is always on: the example is a visual aid, and the item sheet states it in words.

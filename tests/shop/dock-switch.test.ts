@@ -1,4 +1,4 @@
-// The dock's tab names the order's count only when the cart has something in it (review F7: "Your order 0" right after
+// The dock's tab names the order's count only when the cart has something in it ("Your order 0" right after
 // the assistant had placed an order read as if that order were empty).
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

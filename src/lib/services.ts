@@ -15,7 +15,7 @@ export function setPayPalForServices(p: PayPalPort | undefined): void {
 }
 
 /**
- * Runs after an order becomes paid: writes the AI order brief in the background (spec §9 A2).
+ * Runs after an order becomes paid: writes the AI order brief in the background.
  * Fire-and-forget: it yields first so the sync that called it finishes untouched, and writeOrderBrief never throws.
  * Without ANTHROPIC_API_KEY (tests, e2e) writeOrderBrief stores the labelled template brief.
  */

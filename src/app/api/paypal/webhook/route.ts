@@ -1,4 +1,4 @@
-// PayPal webhook (spec §7, "three ways to paid"): verify the signature, dedupe by event id, map the resource to our
+// PayPal webhook (one of three ways an order becomes paid): verify the signature, dedupe by event id, map the resource to our
 // order and re-read the order from PayPal through syncOrder. The payload's own status is never trusted.
 import { getConfig } from '@/lib/config';
 import * as eventsRepo from '@/lib/db/repos/events';

@@ -1,5 +1,5 @@
 // Browser-side calls for the account routes. Every failure is an ApiError carrying the route's `code`, so a form picks
-// its exact sentence by code. A finished login or logout ends with window.location.replace (SR21), which is the form's job.
+// its exact sentence by code. A finished login or logout ends with window.location.replace, which is the form's job.
 import { call } from './http';
 
 const post = (body?: unknown): RequestInit => ({

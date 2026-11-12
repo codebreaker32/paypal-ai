@@ -1,4 +1,4 @@
-// POST /api/checkout/[slug]: the cart's one money path (addendum section 5, SR26 to SR28).
+// POST /api/checkout/[slug]: the cart's one money path.
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -104,7 +104,7 @@ describe('POST /api/checkout/[slug]', () => {
     });
   });
 
-  describe('same origin and rate limit come first (SR26)', () => {
+  describe('same origin and rate limit come first', () => {
     it('refuses another site before anything else', async () => {
       const req = post(body(), { headers: { origin: 'https://evil.example' } });
       const res = await send(req);
@@ -139,7 +139,7 @@ describe('POST /api/checkout/[slug]', () => {
     });
   });
 
-  describe('validation (SR26)', () => {
+  describe('validation', () => {
     it.each([
       ['unitCents on a line', (b: Record<string, unknown>) => ({ ...b, lines: [{ itemId: 'x', quantity: 1, unitCents: 1 }] })],
       ['price on a line', (b: Record<string, unknown>) => ({ ...b, lines: [{ itemId: 'x', quantity: 1, price: '1.00' }] })],
@@ -195,7 +195,7 @@ describe('POST /api/checkout/[slug]', () => {
     });
   });
 
-  describe('prices (SR26, SR27)', () => {
+  describe('prices', () => {
     it('answers PRICE_CHANGED with no PayPal call when the total differs', async () => {
       const res = await checkout({ expectedTotalCents: 900 });
       expect(res.status).toBe(409);
@@ -217,7 +217,7 @@ describe('POST /api/checkout/[slug]', () => {
     });
   });
 
-  describe('retries (SR27)', () => {
+  describe('retries', () => {
     it('returns the same order for the same request id, with one PayPal call', async () => {
       const a = (await (await checkout()).json()) as Success;
       const again = await checkout();
@@ -268,7 +268,7 @@ describe('POST /api/checkout/[slug]', () => {
   });
 
   describe('things that can’t be ordered', () => {
-    it('removes an item from another shop by name-free refusal (SR26)', async () => {
+    it('removes an item from another shop by name-free refusal', async () => {
       const other = seedShop(getDb(), { name: `Other Bakery ${n} ${Date.now()}` });
       const res = await checkout({ lines: [{ itemId: other.item['Almond croissant'].id, quantity: 1 }], expectedTotalCents: 475 });
       expect(res.status).toBe(409);
@@ -313,7 +313,7 @@ describe('POST /api/checkout/[slug]', () => {
     });
   });
 
-  describe('open-order limits have their own copy (SR28)', () => {
+  describe('open-order limits have their own copy', () => {
     const fresh = (i: number) => `request-${n}-${String(i).padStart(4, '0')}`;
 
     it('tells the buyer when it’s their own orders', async () => {

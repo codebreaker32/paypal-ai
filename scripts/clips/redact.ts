@@ -1,4 +1,4 @@
-// What the clips must never show (docs/DEMO.md, video/clips/README.md): the sandbox logins and owner links.
+// What the clips must never show (video/clips/README.md): the sandbox logins and owner links.
 import fs from 'node:fs';
 import path from 'node:path';
 import { maskEmail } from '@/lib/domain/payee';

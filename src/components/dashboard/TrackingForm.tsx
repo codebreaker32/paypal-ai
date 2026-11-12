@@ -22,7 +22,7 @@ type State =
   | { kind: 'sent'; carrier: string; trackingNumber: string; atPayPal: boolean }
   | { kind: 'error'; message: string };
 
-/** What the seller reads once a seller-paid order's tracking is saved (PayPal refuses it from Shelfie, spec §8a). */
+/** What the seller reads once a seller-paid order's tracking is saved (PayPal refuses it from Shelfie). */
 export const SAVED_NOT_AT_PAYPAL = `Saved. The buyer’s assistant can see it now. ${TRACK_IN_YOUR_PAYPAL}`;
 
 /**

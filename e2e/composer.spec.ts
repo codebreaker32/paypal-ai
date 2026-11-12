@@ -1,5 +1,4 @@
-// The assistant's message box and the item draft (spec 2026-11-08 production pass WP3 "Composer" and "Tile to draft",
-// addendum table). The draft path is driven through the `[data-order-item]` delegate by an injected button, the same
+// The assistant's message box and the item draft. The draft path is driven through the `[data-order-item]` delegate by an injected button, the same
 // attribute the item sheet's "Ask the assistant" uses. No Claude or PayPal calls: the console's route is replaced.
 //
 // Run: E2E_PORT=3231 npx playwright test e2e/composer.spec.ts

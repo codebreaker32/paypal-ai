@@ -166,7 +166,7 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
           </div>
         </dl>
         <div className="flex flex-col gap-1 border-t border-line pt-4 text-sm text-ink-soft">
-          {/* Whose PayPal account was paid (spec §8a): the shop's own, with its email masked, or Shelfie's demo account.
+          {/* Whose PayPal account was paid: the shop's own, with its email masked, or Shelfie's demo account.
               While PayPal still holds the payment, where it is going instead (it isn't paid yet). */}
           {order.paidTo && <p className="font-semibold text-ink [overflow-wrap:anywhere]">{paidToText(order.paidTo)}</p>}
           {order.goingTo && <p className="font-semibold text-ink [overflow-wrap:anywhere]">{goingToText(order.goingTo)}</p>}

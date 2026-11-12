@@ -51,7 +51,7 @@ describe('item photos and shop covers', () => {
     expect(shops.update(db, shop.id, { logoUrl: null }).logoUrl).toBeNull();
   });
 
-  it('adds items.category and shops.logo_url (run 3) to an older database', () => {
+  it('adds items.category and shops.logo_url to an older database', () => {
     const g = globalThis as unknown as { __shelfieDb?: { close(): void } };
     g.__shelfieDb?.close();
     delete g.__shelfieDb;

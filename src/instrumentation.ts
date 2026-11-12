@@ -1,4 +1,4 @@
-// Runs once when the Next.js server starts: starts the order poller (spec §7, polling fallback).
+// Runs once when the Next.js server starts: starts the order poller (the polling fallback for payment status).
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     if (process.env.SHELFIE_TEST) return;

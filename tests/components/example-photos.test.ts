@@ -1,4 +1,4 @@
-// Part A3: an item with no photo of its own shows a library example on every surface, labelled as one; the seller's
+// An item with no photo of its own shows a library example on every surface, labelled as one; the seller's
 // own photo always wins and carries no note. The library is swapped for a one-photo stand-in.
 import { createElement, type ReactNode } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -106,7 +106,7 @@ describe('example photos', () => {
         }),
       );
 
-    // One disclosure per example (review F6): the seller's line, visible on every surface; no corner tag on the photo
+    // One disclosure per example: the seller's line, visible on every surface; no corner tag on the photo
     // and no line above the list.
     it.each([
       ['review ready row', review],

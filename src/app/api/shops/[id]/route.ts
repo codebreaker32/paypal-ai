@@ -1,13 +1,13 @@
 // PATCH /api/shops/[id] (owner): { name?, about?, pickupNotes?, fulfillment?, shippingFeeCents?, status?, payeeEmail?,
 // currentPassword? } → 200 { shop }. `status` only toggles live ↔ paused on a published shop (the dashboard's pause).
 // `payeeEmail` is the seller's PayPal email (400 INVALID_PAYEE_EMAIL if malformed; null is refused once live, except for
-// the demo shop). Changing it on an account-owned published or paused shop needs `currentPassword` (SR18): 403
+// the demo shop). Changing it on an account-owned published or paused shop needs `currentPassword`: 403
 // PASSWORD_REQUIRED or PASSWORD_WRONG, 429 RATE_LIMITED, 503 BUSY; 409 SHOP_CHANGED if the shop's status or email moved
 // while the request was in flight. Every change on a published shop is recorded, masked, in the same transaction as the
 // update, and the transaction reads the row and the session itself: what was checked earlier may be stale by then, so a
 // session ended while the body was arriving is 404 and writes nothing.
 // DELETE /api/shops/[id] (owner): { confirmName, currentPassword } → 204, the shop's rows and files gone and its slug
-// retired (SR19). 403 DEMO_SHOP; 403 ACCOUNT_REQUIRED (no account, and guest shops are off); 400 NAME_MISMATCH;
+// retired. 403 DEMO_SHOP; 403 ACCOUNT_REQUIRED (no account, and guest shops are off); 400 NAME_MISMATCH;
 // 403 PASSWORD_REQUIRED or PASSWORD_WRONG; 409 OPEN_ORDERS; 429 RATE_LIMITED; 503 BUSY. An unattached shop reached with
 // guests on has no password to ask for.
 import { guestShopsAllowed } from '@/lib/auth/guest';
@@ -40,7 +40,7 @@ function takePassword(body: unknown): { currentPassword: unknown; rest: unknown 
 const changesEmail = (shop: Shop, patch: ShopPatchInput): boolean =>
   patch.payeeEmail !== undefined && patch.payeeEmail !== shop.payeeEmail;
 
-/** SR18: an account-owned shop that is published or paused needs the password to change where its money goes. */
+/** An account-owned shop that is published or paused needs the password to change where its money goes. */
 const needsPassword = (shop: Shop, patch: ShopPatchInput): boolean =>
   Boolean(shop.accountId) && shop.status !== 'draft' && changesEmail(shop, patch);
 

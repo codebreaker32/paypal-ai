@@ -1,4 +1,4 @@
-// SR11 under concurrency: a failure is reserved before the hash and handed back on success, so a burst cannot run more
+// Auth rate limits under concurrency: a failure is reserved before the hash and handed back on success, so a burst cannot run more
 // guesses than the limit. The current-password check also counts attempts, because a correct password buys hash work too.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MAX_SHOPS_PER_ACCOUNT } from '@/lib/catalog/setup';
@@ -169,7 +169,7 @@ describe('reserving a failure before the hash', () => {
     });
   });
 
-  describe('SHELFIE_TEST (SR20)', () => {
+  describe('SHELFIE_TEST', () => {
     it('skips every reservation off Render', () => {
       vi.stubEnv('SHELFIE_TEST', '1');
       times(60, () => {

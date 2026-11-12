@@ -1,6 +1,6 @@
-// Seller actions on a paid order (spec §4 Dashboard / Order detail, §8 Add tracking):
+// Seller actions on a paid order (dashboard and order detail):
 // Mark picked up (pickup orders) and Add tracking (shipping orders: sent to PayPal through the Agent Toolkit for a
-// platform-paid order; saved in Shelfie only for an order paid into the seller's own PayPal account, spec §8a).
+// platform-paid order; saved in Shelfie only for an order paid into the seller's own PayPal account).
 import * as eventsRepo from '@/lib/db/repos/events';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import type { Order, Shop, Tracker } from '@/lib/domain/types';

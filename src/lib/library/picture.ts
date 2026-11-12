@@ -5,7 +5,7 @@ import { LIBRARY } from './catalog';
 import type { LibraryPhoto } from './types';
 
 /**
- * The one place that decides what an item's picture is (Part A3), in this order: the seller's own photo (`photoUrl`,
+ * The one place that decides what an item's picture is, in this order: the seller's own photo (`photoUrl`,
  * which also holds a "Snap your counter" crop they kept), else an example photo from the library (`exampleUrls`), else
  * the drawing of its category. Every surface that shows an item (shop tile, setup review, Menu tab, order pages) reads
  * it through here. For people only: agents and the JSON-LD send `photoUrl` and nothing else.

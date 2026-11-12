@@ -1,4 +1,4 @@
-// Click sounds against the real app (production-pass addendum, Click sounds). A spy in every page counts AudioContexts and
+// Click sounds against the real app. A spy in every page counts AudioContexts and
 // oscillator starts: a tick is one start, the order chime four (two notes, each with its octave partial).
 //
 // Run: E2E_PORT=3271 npx playwright test e2e/sounds.spec.ts

@@ -1,4 +1,4 @@
-// The installable app's identity (spec §4c). The colours mirror the design tokens in src/app/globals.css (the manifest
+// The installable app's identity. The colours mirror the design tokens in src/app/globals.css (the manifest
 // can't read CSS variables): `theme` is the browser/status-bar colour, `background` the splash screen behind the icon.
 export const PWA = {
   name: 'Shelfie',

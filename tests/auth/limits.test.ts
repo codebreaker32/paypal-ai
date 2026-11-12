@@ -1,4 +1,4 @@
-// SR11: the limits on signing up, logging in, recovering and checking a password.
+// The limits on signing up, logging in, recovering and checking a password.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   allowLogin,
@@ -126,7 +126,7 @@ describe('auth rate limits', () => {
     for (const key of keys()) expect(key).not.toContain('rosa');
   });
 
-  describe('SHELFIE_TEST (SR20)', () => {
+  describe('SHELFIE_TEST', () => {
     const exhaust = () => {
       times(60, () => {
         allowSignup('1.1.1.1', t0);

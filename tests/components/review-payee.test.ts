@@ -1,4 +1,4 @@
-// The review screen's Publish button follows the server's payee rule (spec §8a, `assertPayee`): a shop needs its
+// The review screen's Publish button follows the server's payee rule (`assertPayee`): a shop needs its
 // seller's PayPal email to publish, except the demo shop, which may publish without one (it is then paid to the platform).
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

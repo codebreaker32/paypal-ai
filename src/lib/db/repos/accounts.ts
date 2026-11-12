@@ -57,7 +57,7 @@ export function byEmail(db: Db, email: string): Account | null {
 }
 
 /**
- * Stores a stronger hash of the same password (SR5): not a password change, so password_changed_at stays. Pass the hash
+ * Stores a stronger hash of the same password: not a password change, so password_changed_at stays. Pass the hash
  * that was just verified: false, and nothing written, if the row no longer holds it (recovery got there first).
  */
 export function setPasswordHash(db: Db, id: string, passwordHash: string, verifiedHash?: string): boolean {
@@ -115,7 +115,7 @@ export interface RecoverAccountInput {
 }
 
 /**
- * SR12: swaps the password and the recovery key and ends every session, in one transaction. The WHERE clause on the old
+ * Swaps the password and the recovery key and ends every session, in one transaction. The WHERE clause on the old
  * key means that of two concurrent uses exactly one changes the row. False (and nothing changed) when the key is not
  * the current one.
  */

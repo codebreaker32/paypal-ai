@@ -1,4 +1,4 @@
-// The console's empty state: a shop that isn't taking orders must not promise a PayPal approval (spec WP2).
+// The console's empty state: a shop that isn't taking orders must not promise a PayPal approval.
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';

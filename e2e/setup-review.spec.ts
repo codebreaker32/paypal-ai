@@ -312,7 +312,7 @@ test('on a phone: Check cards keep their actions on one line, and example photos
   expect((await remove.getByText('Remove').first().boundingBox())!.width).toBeLessThanOrEqual(1); // an icon on a phone, its word for screen readers
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-  // Examples: one disclosure per row (review F6), the seller's visible line; no corner tag and no line above the list.
+  // Examples: one disclosure per row, the seller's visible line; no corner tag and no line above the list.
   await expect(page.getByText('Example photos are marked in the corner', { exact: false })).toHaveCount(0);
   const ready = page.getByRole('region', { name: /Ready for PayPal/ });
   await expect(ready.locator('[data-example-mark]')).toHaveCount(0);

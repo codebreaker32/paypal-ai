@@ -1,4 +1,4 @@
-// Prices an order from the shop's database rows only. Agent input never carries a price (spec §2, §10).
+// Prices an order from the shop's database rows only. Agent input never carries a price.
 import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import { formatUSD, toPayPalValue } from '@/lib/domain/money';

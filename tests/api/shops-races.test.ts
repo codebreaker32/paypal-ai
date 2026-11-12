@@ -1,5 +1,5 @@
-// POST /api/shops and the PayPal email change under concurrency: the 25-shop cap (SR17) and the rule for a change on a
-// published shop (SR18) must hold against the row as it is when the write happens, not as it was when the request began.
+// POST /api/shops and the PayPal email change under concurrency: the 25-shop cap and the rule for a change on a
+// published shop must hold against the row as it is when the write happens, not as it was when the request began.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -81,7 +81,7 @@ beforeEach(async () => {
 });
 afterEach(() => vi.unstubAllEnvs());
 
-describe('POST /api/shops: the 25-shop cap under concurrency (SR17)', () => {
+describe('POST /api/shops: the 25-shop cap under concurrency', () => {
   let dir: string;
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'shelfie-races-'));
@@ -125,7 +125,7 @@ describe('POST /api/shops: the 25-shop cap under concurrency (SR17)', () => {
   });
 });
 
-describe('PATCH /api/shops/[id]: the PayPal email on a stale row (SR18)', () => {
+describe('PATCH /api/shops/[id]: the PayPal email on a stale row', () => {
   const patch = (shopId: string, body: Record<string, unknown>) =>
     PATCH(new Request('http://localhost/x', { method: 'PATCH', body: JSON.stringify(body) }), ctx(shopId));
 

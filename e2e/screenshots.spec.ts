@@ -1,5 +1,5 @@
-// Screenshots for judging: every screen at 390×844 and 1440×900 into SCREENSHOTS_DIR (default data/screenshots/, which
-// is gitignored, so a plain run never overwrites a committed round), each checked with axe (WCAG 2.1 A/AA). Serious or
+// Screenshots for review: every screen at 390×844 and 1440×900 into SCREENSHOTS_DIR (default data/screenshots/, which
+// is gitignored, so a plain run never touches tracked files), each checked with axe (WCAG 2.1 A/AA). Serious or
 // critical violations fail the test; every violation found is written to axe-results.json in the same folder.
 //
 // One story across the set: the demo shop Marigold Bakehouse (scripts/seed-demo.ts, here with a fake PayPal), its
@@ -14,7 +14,7 @@
 // answers). Each one is listed in the screenshots README (dashboard-loading: NOTES-dashboard-loading.md).
 //
 // Run: E2E_PORT=3111 npx playwright test e2e/screenshots.spec.ts   (or: npm run screenshots)
-// SCREENSHOTS_DIR=docs/judge/screenshots/round-4 writes a judged round's set (npm run screenshots:prod does this).
+// SCREENSHOTS_DIR=artifacts/screenshots writes the set elsewhere (npm run screenshots:prod does this against a production build).
 import fs from 'node:fs';
 import path from 'node:path';
 import AxeBuilder from '@axe-core/playwright';
@@ -61,7 +61,7 @@ let empty: FixtureShop;
 let briefShop: FixtureShop;
 const orders = {} as Record<'nut' | 'pickup' | 'waiting' | 'pending' | 'shipped' | 'pickedUp' | 'cancelled' | 'expired' | 'refused', Order>;
 const setups = {} as Record<'reading' | 'review' | 'retake' | 'failed' | 'live' | 'publish', Setup>;
-/** Orders on briefShop paid into the seller's own PayPal account (spec §8a). */
+/** Orders on briefShop paid into the seller's own PayPal account. */
 const sellerOrders = {} as Record<'paid' | 'held', Order>;
 
 const AUSTIN = { name: 'Dana Whitfield', line1: '2104 E 6th St', line2: 'Apt 3', city: 'Austin', state: 'TX', postalCode: '78702', countryCode: 'US' };
@@ -209,7 +209,7 @@ function demoPhotos(shopId: string) {
 }
 
 /**
- * Orders paid into the seller's own PayPal account (spec §8a), on the second Marigold Bakehouse (a seller's shop, paid
+ * Orders paid into the seller's own PayPal account, on the second Marigold Bakehouse (a seller's shop, paid
  * to FIXTURE_PAYEE): one paid, and one PayPal holds because it was made while her email had a typo (UNILATERAL).
  */
 function seedSellerPaidOrders(f: FixtureShop) {
@@ -832,7 +832,7 @@ const SCREENS: Screen[] = [
       await expect(page.getByRole('status').filter({ hasText: "We can’t reach PayPal right now." })).toBeVisible();
     },
   },
-  // Counter card (run 2, findable door): Share tab → Print counter card. Its print view: e2e/discovery.spec.ts.
+  // Counter card (findable door): Share tab → Print counter card. Its print view: e2e/discovery.spec.ts.
   {
     name: 'counter-card',
     run: async (page, { context }) => {
@@ -892,7 +892,7 @@ const SCREENS: Screen[] = [
       await expect(page.locator('section[aria-labelledby="action-title"]')).toContainText('9400111899223197428490');
     },
   },
-  // Paying each seller (spec §8a)
+  // Paying each seller
   {
     name: 'dashboard-settings',
     run: async (page, { context }) => {
@@ -954,7 +954,7 @@ const SCREENS: Screen[] = [
 ];
 
 for (const [label, size] of [['390', PHONE], ['1440', DESKTOP]] as const) {
-  test.describe(`round-1 screens at ${label} px`, () => {
+  test.describe(`screens at ${label} px`, () => {
     test.use({ viewport: size });
     for (const screen of SCREENS) {
       test(screen.name, async ({ page, context }) => {

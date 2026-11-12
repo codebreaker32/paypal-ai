@@ -2,8 +2,8 @@ import type { ReactNode, RefObject } from 'react';
 import type { BuyerConsoleApi } from '@/components/shop/BuyerConsole';
 
 /**
- * One listed menu item as the home chat shows it on a card: its real name, lowest listed price and picture (Part A3,
- * `src/lib/library/picture.ts`: the seller's own photo, else an example photo; null leaves the card without a photo).
+ * One listed menu item as the home chat shows it on a card: its real name, lowest listed price and picture
+ * (`src/lib/library/picture.ts`: the seller's own photo, else an example photo; null leaves the card without a photo).
  */
 export interface ChatMenuItem {
   id: string;

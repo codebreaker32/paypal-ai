@@ -1,4 +1,4 @@
-// What the public footer shows (brief WP7, Footer): the table of pages, so the component only draws it.
+// What the public footer shows: the table of pages, so the component only draws it.
 
 export type FooterKind = 'site' | 'buyer' | 'compact';
 
@@ -15,7 +15,7 @@ export interface FooterLink {
 const SITE_PAGE = /^\/(browse|help|terms|privacy)?\/?$/;
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
-/** Everything not listed in the brief (log in, sign up, setup, a 404) gets the one-row footer, as the seller's pages do. */
+/** Everything not listed above (log in, sign up, setup, a 404) gets the one-row footer, as the seller's pages do. */
 export function footerKind(pathname: string): FooterKind {
   if (BUYER_PAGE.test(pathname)) return 'buyer';
   return SITE_PAGE.test(pathname) ? 'site' : 'compact';

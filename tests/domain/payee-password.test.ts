@@ -1,4 +1,4 @@
-// When the Settings form asks for the password (SR18): the same rule the PATCH route enforces.
+// When the Settings form asks for the password: the same rule the PATCH route enforces.
 import { describe, expect, it } from 'vitest';
 import { payeeChangeNeedsPassword } from '@/lib/domain/payee';
 

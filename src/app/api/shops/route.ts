@@ -1,7 +1,7 @@
 // POST /api/shops: start a shop from 1-4 menu photos (multipart field "photos") or from a sample
 // menu (JSON { sample }). Answers 201 { shopId }. With a session the shop belongs to the account, and its owner token is
 // generated and discarded: no cookie, no owner link. With no session and guests allowed it is an unattached shop, opened
-// by this browser's owner cookie (SR17).
+// by this browser's owner cookie.
 // Errors: LOGIN_REQUIRED 401 (no session and guests off), SHOP_LIMIT 409 (25 shops on the account), NO_PHOTOS 400, TOO_MANY_PHOTOS 400, PHOTO_TOO_LARGE 413 (one photo over 15 MB, or a request
 // over 4 × 15 MB + 1 MB, refused from its Content-Length before the body is read), BAD_IMAGE 415,
 // UNKNOWN_SAMPLE 400, BODY_TOO_LARGE 413 (a JSON body over 64 KB), RATE_LIMITED 429 (over 10 shops from one address in an hour, refused before the body is read).

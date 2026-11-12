@@ -8,7 +8,7 @@ export interface ReceiptLine {
   unitCents: number;
 }
 
-/** `GET /api/orders/[ref]` → `{ order: ReceiptOrder }` (wave-2 contract, plus itemsCents, shippingCents and declined). */
+/** `GET /api/orders/[ref]` → `{ order: ReceiptOrder }` (with itemsCents, shippingCents and declined). */
 export interface ReceiptOrder {
   number: string;
   status: OrderStatus;
@@ -32,7 +32,7 @@ export interface ReceiptOrder {
    * charged; automatic retries have stopped (only the buyer coming back from PayPal, or a webhook, tries again).
    */
   captureRefused: boolean;
-  /** Who the payment went to, once paid (spec §8a). The email is only ever masked here. */
+  /** Who the payment went to, once paid. The email is only ever masked here. */
   paidTo: PaidTo | null;
   /** While PayPal still holds the payment (payment_pending): whose account it is going to. Not paid yet, so not paidTo. */
   goingTo: PaidTo | null;

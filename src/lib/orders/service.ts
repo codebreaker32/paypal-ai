@@ -1,5 +1,5 @@
 // Order service: create (idempotent), sync with PayPal (capture claim), cancel, fulfil.
-// advanceOrder() is the only writer of orders.status (compare-and-set, spec §7).
+// advanceOrder() is the only writer of orders.status (compare-and-set).
 import { createHash } from 'node:crypto';
 import type { Db } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
@@ -82,7 +82,7 @@ export function advanceOrder(
 const inflight = new Map<string, Promise<Order>>();
 
 /**
- * Prices the order from the database, creates the PayPal order (PayPal-Request-Id `ord-<orderId>`, spec §8), stores
+ * Prices the order from the database, creates the PayPal order (PayPal-Request-Id `ord-<orderId>`), stores
  * the snapshot. Idempotent per (shop, clientRequestId) through our database and an in-process in-flight map: a retry
  * returns the stored order and makes no PayPal call. The PayPal request id is deliberately per attempt, not per key:
  * if PayPal's response was lost, the retry gets a fresh PayPal order whose custom_id and return URL point at the row
@@ -436,7 +436,7 @@ async function approveAndCapture(deps: OrderDeps, order: Order, pp: PayPalOrder,
   if (!ordersRepo.claimCapture(db, order.id, nowMs)) return order; // another caller holds the capture claim
 
   const paypalId = order.paypalOrderId;
-  // First attempt: `cap-<paypalOrderId>` (spec §8). After a declined or refused capture PayPal may replay its cached
+  // First attempt: `cap-<paypalOrderId>`. After a declined or refused capture PayPal may replay its cached
   // answer for a reused request id, so each later attempt gets `-N`. Transient errors keep the same id (idempotent retry).
   const refused = declines + countEvents(db, order.id, 'capture_failed');
   const requestId = refused > 0 ? `cap-${paypalId}-${refused}` : `cap-${paypalId}`;
@@ -505,7 +505,7 @@ function settle(deps: OrderDeps, order: Order, pp: PayPalOrder, source: EventSou
     if (order.status !== 'approved') return order;
     return advanceOrder(db, order, 'capture_pending', source, { patch: { ...payerPatch(pp), captureId: cap.id }, detail }).order;
   }
-  // DECLINED / FAILED / anything else on an order PayPal already completed: final (coordinator ruling). Going back to
+  // DECLINED / FAILED / anything else on an order PayPal already completed: final. Going back to
   // awaiting_approval here would loop, because the next GET shows COMPLETED again. Only a 422 INSTRUMENT_DECLINED on
   // our capture call sends the buyer back to approve.
   if (order.status === 'approved' || order.status === 'payment_pending') {

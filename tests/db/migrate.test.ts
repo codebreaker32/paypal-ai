@@ -1,4 +1,4 @@
-// An existing database from before orders.client_key (R7) gets the column when the app opens it.
+// An existing database from before orders.client_key gets the column when the app opens it.
 import Database from 'better-sqlite3';
 import { describe, expect, it } from 'vitest';
 import { getDb } from '@/lib/db';
@@ -19,7 +19,7 @@ describe('schema upgrade', () => {
     expect(cols).toContain('client_key');
   });
 
-  it('adds shops.payee_email and orders.payee_email (run 2) to an older database, keeping its rows', () => {
+  it('adds shops.payee_email and orders.payee_email to an older database, keeping its rows', () => {
     // The open connection from the test above is closed so getDb() opens this file.
     const g = globalThis as unknown as { __shelfieDb?: { close(): void } };
     g.__shelfieDb?.close();
@@ -42,7 +42,7 @@ describe('schema upgrade', () => {
     expect(colsOf(db, 'orders')).toContain('payee_email');
     expect(shops.byId(db, 'shp_old')).toMatchObject({ name: 'Old Shop', status: 'live', payeeEmail: null });
   });
-  it('adds shops.category and shops.seed_key (run 11) to an older database, keeping its rows', () => {
+  it('adds shops.category and shops.seed_key to an older database, keeping its rows', () => {
     const g = globalThis as unknown as { __shelfieDb?: { close(): void } };
     g.__shelfieDb?.close();
     delete g.__shelfieDb;

@@ -61,7 +61,7 @@ export interface SeedOptions {
   cancelUnpaid?: boolean;
   /**
    * The sandbox seller's PayPal email (PAYPAL_SANDBOX_SELLER_EMAIL, already checked): the demo shop is paid there, like
-   * any other shop. Without it the demo shop is paid to the platform account (spec §8a). Applied on every run.
+   * any other shop. Without it the demo shop is paid to the platform account. Applied on every run.
    */
   payeeEmail?: string | null;
   log?: (line: string) => void;
@@ -195,7 +195,7 @@ function draftsFor(def: SeedShopDef): DraftItem[] {
  * One of the other seeded shops (src/lib/demo/shops.ts), made and published like Marigold: it is found again by its
  * seed key (never by slug, so a visitor's shop of the same name is never touched), paid to `payeeEmail`, and given its
  * bundled photos and Browse category on every run. Without a payee email it is skipped: only Marigold may be paid to
- * the platform account (spec §8a), so an existing seeded shop is left as it was.
+ * the platform account, so an existing seeded shop is left as it was.
  */
 export async function seedSellerShop(def: SeedShopDef, opts: SeedOptions): Promise<SellerSeedResult> {
   const { db, uploadsDir } = opts;

@@ -1,4 +1,4 @@
-// SR1 (no proxy) and SR3 (the origin rules behind assertSameOrigin).
+// No proxy, and the origin rules behind assertSameOrigin.
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -79,7 +79,7 @@ describe('assertSameOrigin', () => {
   });
 });
 
-describe('SR1', () => {
+describe('no proxy', () => {
   it('has no proxy or middleware file, which would truncate large uploads', () => {
     for (const name of ['src/proxy.ts', 'src/middleware.ts', 'proxy.ts', 'middleware.ts', 'src/proxy.js', 'src/middleware.js', 'proxy.js', 'middleware.js']) {
       expect(fs.existsSync(path.join(process.cwd(), name)), name).toBe(false);

@@ -20,7 +20,7 @@ const item = (name: string, over: Partial<ItemWithVariants> = {}): ItemWithVaria
   ...over,
 });
 
-// What a row shows: its drawing's id, or (Part A3) the example photo's file when the library has a match.
+// What a row shows: its drawing's id, or the example photo's file when the library has a match.
 const drawing = (html: string) =>
   html.match(/href="\/illustrations\.svg#([a-z_]+)"/)?.[1] ?? html.match(/src="(\/library\/[a-z0-9-]+\.webp)"/)?.[1];
 const publicMenu = (it: ItemWithVariants, kind: ShopKind) => drawing(renderToStaticMarkup(createElement(Menu, { sections: menuSections([it]), kind })));
@@ -60,7 +60,7 @@ describe('row pictures match the public menu', () => {
   });
 });
 
-// Part A3: an item the library has a photo for shows the same example photo on every surface.
+// An item the library has a photo for shows the same example photo on every surface.
 const exampleCases: [string, ShopKind, ItemKind][] = [
   ['Inner tube', 'services', 'PHYSICAL'],
   ['Beeswax candle', 'goods', 'PHYSICAL'],

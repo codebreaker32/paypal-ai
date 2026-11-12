@@ -1,4 +1,4 @@
-// Order detail (spec §4): one order end to end. Owner only, SQLite only; refreshes itself while payment or the brief is pending.
+// Order detail: one order end to end. Owner only, SQLite only; refreshes itself while payment or the brief is pending.
 import { kindDefault, linePicture, type ItemPicture } from '@/lib/domain/category';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -50,7 +50,7 @@ function SectionTitle({ id, children }: { id: string; children: React.ReactNode 
 function ActionCard({
   shop, order, trackers, declined, byShop, held, className,
 }: { shop: Shop; order: Order; trackers: Tracker[]; declined: boolean; byShop: boolean; held: boolean; className?: string }) {
-  // Paid into the seller's own PayPal account: PayPal refuses Shelfie's tracker on it, so tracking is saved here (spec §8a).
+  // Paid into the seller's own PayPal account: PayPal refuses Shelfie's tracker on it, so tracking is saved here.
   const sellerPaid = order.payeeEmail !== null;
   const body = (() => {
     if (order.status === 'paid' && order.fulfillment === 'pickup') {

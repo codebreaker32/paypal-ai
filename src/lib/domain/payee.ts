@@ -1,5 +1,5 @@
 import type { ShopStatus } from '@/lib/domain/types';
-// Where a shop's money goes (spec §8a): the seller's own PayPal account, named by the email they log in with.
+// Where a shop's money goes: the seller's own PayPal account, named by the email they log in with.
 // Pure, so the setup and Settings screens can check an email in the browser with the same rule as the server.
 
 /**
@@ -15,7 +15,7 @@ export const PAYEE_REQUIRED_MESSAGE = 'Add your PayPal email to publish.';
 /** A published shop (live or paused) can change its email but not clear it: the 409 for clearing it. */
 export const PAYEE_KEEP_MESSAGE = 'Your shop needs a PayPal email to take orders. To change it, enter the new one.';
 export const MAX_EMAIL_LENGTH = 254;
-/** Tracking on a seller-paid order stays in Shelfie: PayPal refuses it from the platform (spec §8a, verified). */
+/** Tracking on a seller-paid order stays in Shelfie: PayPal refuses it from the platform (verified in the sandbox). */
 export const TRACK_IN_YOUR_PAYPAL = 'PayPal only lets the account that was paid add tracking, so add it to this payment in your PayPal account too.';
 
 export type PayeeEmailResult = { ok: true; email: string } | { ok: false; message: string };
@@ -65,13 +65,13 @@ export function maskEmail(email: string): string {
 export const isDemoShop = (shop: { slug: string }): boolean => shop.slug === RESERVED_SLUG;
 
 /**
- * The one rule for where a shop's money goes (spec §8a): into the seller's own PayPal account, so it needs their email.
+ * The one rule for where a shop's money goes: into the seller's own PayPal account, so it needs their email.
  * Only the demo shop may have none, and is then paid to the platform account. Publishing, taking orders and the
  * dashboard's warning ask this; whether the email may be left empty or cleared is its other half, `isDemoShop`.
  * `listOrderableForIndex` repeats it in SQL.
  */
 export const canBePaid = (shop: { slug: string; payeeEmail: string | null }): boolean => shop.payeeEmail !== null || isDemoShop(shop);
 
-/** Whether changing a shop's PayPal email needs the owner's password (SR18). The route's own check is the authority. */
+/** Whether changing a shop's PayPal email needs the owner's password. The route's own check is the authority. */
 export const payeeChangeNeedsPassword = ({ accountOwned, status, changes }: { accountOwned: boolean; status: ShopStatus; changes: boolean }): boolean =>
   accountOwned && status !== 'draft' && changes;

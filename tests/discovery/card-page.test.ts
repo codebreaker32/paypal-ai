@@ -1,4 +1,4 @@
-// The counter card page /shops/[id]/card (spec §4, §10a). A draft shop's slug is a throwaway `draft-xxxxxxxx` that first
+// The counter card page /shops/[id]/card. A draft shop's slug is a throwaway `draft-xxxxxxxx` that first
 // publish replaces, so a card printed from a draft would never open the shop: a draft gets no QR, no links and no Print
 // button, only the way back to finishing setup. Owner only (requireOwner).
 import { createElement, type ReactElement } from 'react';

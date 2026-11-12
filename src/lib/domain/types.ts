@@ -1,4 +1,4 @@
-// Shared domain contracts. Frozen in Task 0: change only with a ledger ruling.
+// Shared domain contracts.
 import type { ItemCategory } from './category';
 
 export type ShopKind = 'food' | 'goods' | 'services';
@@ -20,7 +20,7 @@ export interface Shop {
   menuPhotoPaths: string[];
   createdAt: string;
   publishedAt: string | null;
-  /** The seller's PayPal email (lower-cased): where buyers' payments go. Only the demo shop may have none (spec §8a). */
+  /** The seller's PayPal email (lower-cased): where buyers' payments go. Only the demo shop may have none. */
   payeeEmail: string | null;
   /** Cover photo, a site-relative URL (`/demo/...` bundled, `/i/<file>` uploaded); null shows the designed fallback. */
   coverUrl: string | null;
@@ -135,7 +135,7 @@ export type OrderStatus =
   | 'expired'
   | 'fulfilled';
 
-/** Events the pure state machine understands (spec §7). */
+/** Events the pure state machine understands. */
 export type OrderEvent =
   | 'created'
   | 'paypal_approved'

@@ -1,4 +1,4 @@
-// Draws the PWA icons (spec §4c) from the brand mark: public/icons/icon-192.png, icon-512.png, icon-maskable-512.png
+// Draws the PWA icons from the brand mark: public/icons/icon-192.png, icon-512.png, icon-maskable-512.png
 // and src/app/apple-icon.png (180 px; Next adds the apple-touch-icon link for it).
 //
 // Run: npx tsx scripts/make-icons.ts public/brand/mark.svg '#ffffff'

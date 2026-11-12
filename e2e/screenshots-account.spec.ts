@@ -1,7 +1,7 @@
-// The account and public screens for the judge's screenshot set (WP7 acceptance 7), at 390 and 1440 px with an axe
+// The account and public screens for the screenshot set, at 390 and 1440 px with an axe
 // check. Skipped unless SCREENSHOTS_DIR names a folder; run against a production build beside e2e/screenshots.spec.ts.
 //
-// SCREENSHOTS_DIR=docs/judge/screenshots/round-12 E2E_PORT=3190 E2E_REUSE_SERVER=1 npx playwright test e2e/screenshots-account.spec.ts
+// SCREENSHOTS_DIR=artifacts/screenshots E2E_PORT=3190 E2E_REUSE_SERVER=1 npx playwright test e2e/screenshots-account.spec.ts
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';

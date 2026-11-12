@@ -1,4 +1,4 @@
-// SR29: nobody reaches the storefront's name, its label or its shorter window through the agent door.
+// Nobody reaches the storefront's name, its label or its shorter window through the agent door.
 import { beforeAll, describe, expect, it } from 'vitest';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -48,7 +48,7 @@ async function viaHttp(query: string, ip: string): Promise<Order> {
   return orders.byId(getDb(), body.result.structuredContent.order_ref)!;
 }
 
-describe('the reserved storefront name at the agent door (SR29)', () => {
+describe('the reserved storefront name at the agent door', () => {
   it.each([
     '?agent=shelfie-storefront',
     '?agent=Shelfie-Storefront',

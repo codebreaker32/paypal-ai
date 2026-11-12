@@ -1,4 +1,4 @@
-// What the seller shell reads on the server (spec WP4). Pure rules live in shell-view.ts, which the browser can import.
+// What the seller shell reads on the server. Pure rules live in shell-view.ts, which the browser can import.
 import { unstable_rethrow } from 'next/navigation';
 import type { ShellValues } from '@/components/app/shell-store';
 import { currentAccount } from '@/lib/auth/session';

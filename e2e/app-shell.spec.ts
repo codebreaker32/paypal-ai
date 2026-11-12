@@ -1,4 +1,4 @@
-// The seller app shell (spec WP4): sidebar and tab bar, section switching without a server round trip, the one banner
+// The seller app shell: sidebar and tab bar, section switching without a server round trip, the one banner
 // slot, skip link and landmarks. Run: E2E_PORT=3221 npx playwright test e2e/app-shell.spec.ts
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -20,7 +20,7 @@ type Marked = { __marker?: number };
 let shop: FixtureShop;
 let orderId: string;
 
-/** Every screen the shell wraps, for the checks that apply to all of them (acceptance 3, 13, 21). */
+/** Every screen the shell wraps, for the checks that apply to all of them. */
 const shellScreens = () =>
   [
     ['Orders', `/shops/${shop.shop.id}`],

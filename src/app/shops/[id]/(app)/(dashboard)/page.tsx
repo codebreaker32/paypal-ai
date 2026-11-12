@@ -1,4 +1,4 @@
-// Seller dashboard (spec §4): Orders · Menu · Share · Settings. Owner only; reads SQLite, then the client re-reads its API every 5 s.
+// Seller dashboard: Orders · Menu · Share · Settings. Owner only; reads SQLite, then the client re-reads its API every 5 s.
 import type { Metadata } from 'next';
 import { withFallbackBrief } from '@/lib/ai/template';
 import { Dashboard } from '@/components/dashboard/Dashboard';

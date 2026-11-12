@@ -1,4 +1,4 @@
-// Hand-written blocklist (SR6): passwords and phrases people really pick that still clear the 15-character minimum.
+// Hand-written blocklist: passwords and phrases people really pick that still clear the 15-character minimum.
 // Entries are lower case; compare with `isCommonPassword`. Anything shorter than 15 is already refused by length.
 
 export const COMMON_PASSWORDS: readonly string[] = [

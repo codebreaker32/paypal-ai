@@ -1,4 +1,4 @@
-// When the home chat may open by itself (review F8): never over the hero chain's last steps. The chain marks its root
+// When the home chat may open by itself: never over the hero chain's last steps. The chain marks its root
 // `data-chain-done` and sends HERO_CHAIN_DONE once it has played through; the chat then waits until the chain is no
 // longer under its panel (beside it, or scrolled away).
 

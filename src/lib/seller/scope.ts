@@ -1,4 +1,4 @@
-// Tenant safety on the shared sandbox merchant (spec §8): the seller toolkit may only touch this shop's own ids.
+// Tenant safety on the shared sandbox merchant: the seller toolkit may only touch this shop's own ids.
 import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';
 import * as ordersRepo from '@/lib/db/repos/orders';

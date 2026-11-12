@@ -1,4 +1,4 @@
-// Part A3: items that never went through a Claude reading (added by hand on the Menu tab, the sample menus' recorded
+// Items that never went through a Claude reading (added by hand on the Menu tab, the sample menus' recorded
 // readings, older readings) have no stored pick (`example_photo` null); they get a real example by name and category
 // whenever the library has a fit, because every picture is matched when it is read (`itemPictures`).
 import { describe, expect, it, vi } from 'vitest';

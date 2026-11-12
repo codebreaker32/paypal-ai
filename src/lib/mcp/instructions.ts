@@ -1,4 +1,4 @@
-// Server instructions for the agent door (spec §10). A fixed template: the only seller data is the sanitised shop name.
+// Server instructions for the agent door. A fixed template: the only seller data is the sanitised shop name.
 import { sanitizeLabel } from '@/lib/text';
 
 export const SHOP_NAME_MAX = 60;

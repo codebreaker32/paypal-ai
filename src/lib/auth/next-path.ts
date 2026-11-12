@@ -1,4 +1,4 @@
-// The only places a login may send someone back to (SR4). Pure, so a page can check `?next=` as well as the API.
+// The only places a login may send someone back to. Pure, so a page can check `?next=` as well as the API.
 
 /** Only used to parse relative paths; an absolute URL never matches it. */
 const BASE = 'http://shelfie.invalid';

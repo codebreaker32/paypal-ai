@@ -1,4 +1,4 @@
-// SR20: the harness flags mean nothing on a real deployment.
+// The harness flags mean nothing on a real deployment.
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { authLimitsSkipped, guestShopsAllowed } from '@/lib/auth/guest';
 

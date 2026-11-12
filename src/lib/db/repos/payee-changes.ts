@@ -2,7 +2,7 @@ import type { Db } from '@/lib/db';
 import { now } from '@/lib/db';
 import { maskEmail } from '@/lib/domain/payee';
 
-/** One change of a published shop's PayPal email (SR18). Only masked addresses are kept. */
+/** One change of a published shop's PayPal email. Only masked addresses are kept. */
 export interface PayeeChange {
   id: number;
   shopId: string;

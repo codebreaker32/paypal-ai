@@ -143,7 +143,7 @@ describe('joinCart', () => {
 
 describe('storage', () => {
   const now = 1_000_000_000;
-  it('keeps only itemId, optionId and qty (SR30)', () => {
+  it('keeps only itemId, optionId and qty', () => {
     const raw = JSON.parse(serializeCart([{ ...L('a'), priceCents: 1 } as CartLine], now));
     expect(raw.lines).toEqual([L('a')]);
   });
@@ -213,7 +213,7 @@ describe('checkout request', () => {
   it('leaves out an empty note', () => {
     expect(checkoutBody({ lines: [L('a')], fulfillment: 'shipping', note: '  ', expectedTotalCents: 1, requestId: 'r-12345678' })).not.toHaveProperty('note');
   });
-  it('keeps the request id only while lines, fulfilment and note stay the same (SR27)', () => {
+  it('keeps the request id only while lines, fulfilment and note stay the same', () => {
     let n = 0;
     const make = () => `id-${++n}`;
     const base = { lines: [L('a')], fulfillment: 'pickup' as const, note: '' };

@@ -1,4 +1,4 @@
-// The one-time recovery key (SR12): shape, stored hash, and the atomic swap when it is used.
+// The one-time recovery key: shape, stored hash, and the atomic swap when it is used.
 import { createHash } from 'node:crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';
@@ -49,7 +49,7 @@ describe('the recovery key', () => {
   });
 });
 
-describe('redeemRecoveryKey (SR12)', () => {
+describe('redeemRecoveryKey', () => {
   let db: Db;
   let accountId: string;
   let key: string;

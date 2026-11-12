@@ -1,5 +1,5 @@
-// The item sheet and the cart (production pass addendum sections 4 and 5). The checkout route is stubbed in the browser:
-// its refusals are unit-tested (tests/api/checkout-route.test.ts), and a real capture is the coordinator's gate.
+// The item sheet and the cart. The checkout route is stubbed in the browser:
+// its refusals are unit-tested (tests/api/checkout-route.test.ts), and a real capture is covered by e2e/capture.spec.ts.
 //
 // Run: E2E_PORT=3231 npx playwright test e2e/cart.spec.ts
 import { expect, test, type Page, type Route } from '@playwright/test';
@@ -197,7 +197,7 @@ test.describe('cart on a phone', () => {
     await expect(bar(page).getByRole('button', { name: /View order/ })).toHaveCount(0);
   });
 
-  test('checkout sends lines and goes only to PayPal; SR27 rotates when the note changes', async ({ page }) => {
+  test('checkout sends lines and goes only to PayPal; the request id rotates when the note changes', async ({ page }) => {
     await clearCart(page);
     await hydrate(page);
     await addPlus(page).click();
@@ -209,7 +209,7 @@ test.describe('cart on a phone', () => {
     await bar(page).getByRole('button', { name: /View order/ }).click();
     const pay = sheet(page).getByRole('button', { name: /on PayPal/ });
     await pay.click();
-    // Not a PayPal URL: stays on the shop with an alert (SR30).
+    // Not a PayPal URL: stays on the shop with an alert.
     await expect(sheet(page).getByRole('alert')).toContainText('can’t reach PayPal');
     expect(new URL(page.url()).pathname).toBe(SHOP);
     expect(bodies[0].lines).toEqual([expect.objectContaining({ quantity: 1 })]);
@@ -304,7 +304,7 @@ test.describe('cart on a phone', () => {
     await expect(sheet(page).getByPlaceholder('Allergies, timing')).toBeEnabled();
   });
 
-  test('the shop-wide open-order limit shows the line that does not blame the buyer (SR28)', async ({ page }) => {
+  test('the shop-wide open-order limit shows the line that does not blame the buyer', async ({ page }) => {
     await clearCart(page);
     await hydrate(page);
     await addPlus(page).click();

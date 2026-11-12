@@ -1,4 +1,4 @@
-// What the receipt says for each order state (spec §4: confirming, paid, pending, declined, cancelled, expired; plus
+// What the receipt says for each order state (confirming, paid, pending, declined, cancelled, expired; plus
 // an approved order whose capture PayPal refused), and when it keeps re-reading the order.
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

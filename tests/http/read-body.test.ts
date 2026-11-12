@@ -1,4 +1,4 @@
-// Reading a request body with a byte cap (R13, R9, R2/R5): the cap counts the stream, not just Content-Length.
+// Reading a request body with a byte cap: the cap counts the stream, not just Content-Length.
 import { describe, expect, it } from 'vitest';
 import { BodyTooLargeError, readJsonLimited, readTextLimited } from '@/lib/http/read-body';
 

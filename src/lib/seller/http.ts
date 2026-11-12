@@ -1,4 +1,4 @@
-// JSON responses for Task 8's route handlers. Errors follow the wave-2 contract: { error: { code, message } }.
+// JSON responses for the seller route handlers. Errors are { error: { code, message } }.
 import { MAX_JSON_BODY_BYTES, readJsonLimited } from '@/lib/http/read-body';
 
 export function json(body: unknown, status = 200): Response {

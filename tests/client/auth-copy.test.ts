@@ -1,4 +1,4 @@
-// The exact sentences of the three account forms (brief WP6).
+// The exact sentences of the three account forms.
 import { describe, expect, it } from 'vitest';
 import {
   type AuthProblem,
@@ -76,7 +76,7 @@ describe('signupProblem', () => {
 });
 
 describe('loginProblem', () => {
-  it('bad credentials link to the reset page and name no field (SR9)', () => {
+  it('bad credentials link to the reset page and name no field', () => {
     const p = loginProblem(err('BAD_CREDENTIALS', 'x', 401));
     expect(p.field).toBe('form');
     expect(text(p)).toBe('That email and password don’t match. Try again, or reset your password.');

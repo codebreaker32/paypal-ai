@@ -1,5 +1,5 @@
 // POST /api/auth/signup { email, password } → 201 { recoveryKey, next }, session set. The key is shown once.
-// Errors: 400 INVALID_EMAIL, WEAK_PASSWORD; 409 EMAIL_TAKEN; 429 RATE_LIMITED (before any hash, SR8); 503 BUSY.
+// Errors: 400 INVALID_EMAIL, WEAK_PASSWORD; 409 EMAIL_TAKEN; 429 RATE_LIMITED (before any hash); 503 BUSY.
 import { authFailure, noStoreJson, readFields, tooManyTries } from '@/lib/auth/http';
 import { checkNewPassword, hashPassword } from '@/lib/auth/password';
 import { generateRecoveryKey, hashRecoveryKey } from '@/lib/auth/recovery';

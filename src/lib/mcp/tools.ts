@@ -1,4 +1,4 @@
-// The four agent-door tools (spec §10): strict inputs, output schemas, structuredContent + the same JSON as text.
+// The four agent-door tools: strict inputs, output schemas, structuredContent + the same JSON as text.
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult, ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
@@ -99,7 +99,7 @@ export const TOOL_OUTPUT_SCHEMAS = {
     currency: z.literal('USD'),
     limits: z.object({ max_qty_per_line: z.number().int(), max_lines: z.number().int(), max_order: z.string() }),
     how_ordering_works: z.string(),
-    /** Whose PayPal account is paid (spec §8a). Only ever the masked email. */
+    /** Whose PayPal account is paid. Only ever the masked email. */
     payments: z.string(),
   }),
   list_products: z.object({
@@ -219,7 +219,7 @@ export function registerShopTools(server: McpServer, shopId: string, deps: ShopS
     return shop;
   };
 
-  // The storefront's name is reserved: an agent that claims it (client name or ?agent=) is recorded as unnamed (SR29).
+  // The storefront's name is reserved: an agent that claims it (client name or ?agent=) is recorded as unnamed.
   const agentName = (): string | null => {
     const name = server.server.getClientVersion()?.name || deps.agentName || null;
     return isStorefrontAgentName(name) ? null : name;

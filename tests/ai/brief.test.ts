@@ -1,4 +1,4 @@
-// Order brief agent (spec §9 A2) with a stub Claude (real SDK, scripted HTTP) and a stub PayPal toolkit.
+// Order brief agent with a stub Claude (real SDK, scripted HTTP) and a stub PayPal toolkit.
 import Anthropic from '@anthropic-ai/sdk';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';

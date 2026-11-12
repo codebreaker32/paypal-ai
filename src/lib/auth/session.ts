@@ -1,4 +1,4 @@
-// Server-side sessions: the cookie holds 32 random bytes, the database their SHA-256 (SR13). 30 days, never extended.
+// Server-side sessions: the cookie holds 32 random bytes, the database their SHA-256. 30 days, never extended.
 import { randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
@@ -19,7 +19,7 @@ export const RETURNING_COOKIE = 'shelfie_returning';
 
 const isHttps = (): boolean => getConfig().appUrl.startsWith('https:');
 
-/** SR14: the `__Host-` prefix needs Secure, so it is only used on https. */
+/** The `__Host-` prefix needs Secure, so it is only used on https. */
 export const sessionCookieName = (): string => (isHttps() ? '__Host-shelfie_session' : 'shelfie_session');
 
 const cookieOptions = (maxAge: number) =>

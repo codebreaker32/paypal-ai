@@ -1,4 +1,4 @@
-// Order brief agent (spec §9 A2). After an order is paid, Claude reads PayPal's own record of it through the
+// Order brief agent. After an order is paid, Claude reads PayPal's own record of it through the
 // shop-scoped Agent Toolkit (get_order, get_shipment_tracking; read-only) and saves a short prep brief through a
 // strict local submit_brief tool. Anything short of a submitted brief stores a labelled template instead.
 // writeOrderBrief never throws: it runs fire-and-forget after payment.

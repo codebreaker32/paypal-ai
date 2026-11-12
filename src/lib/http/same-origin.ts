@@ -1,5 +1,5 @@
-// Cross-site write protection (SR2, SR3): the first statement of every state-changing route handler.
-// No src/proxy.ts on purpose (SR1): a proxy truncated a 14 MB upload to 10 MB when measured.
+// Cross-site write protection: the first statement of every state-changing route handler.
+// No src/proxy.ts on purpose: a proxy truncated a 14 MB upload to 10 MB when measured.
 import { getConfig } from '@/lib/config';
 import { jsonError } from './json-error';
 

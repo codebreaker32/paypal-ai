@@ -1,4 +1,4 @@
-// A real account from end to end (brief WP7 acceptance 6), and setup's ways out for an account's draft.
+// A real account from end to end, and setup's ways out for an account's draft.
 // The menu reading is written straight into the database (no Claude); the publish is a real PayPal sandbox catalog call.
 // Run: E2E_PORT=3251 npx playwright test e2e/account-publish.spec.ts
 import fs from 'node:fs';

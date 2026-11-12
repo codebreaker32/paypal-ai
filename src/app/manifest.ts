@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { PWA, PWA_ICONS } from '@/lib/brand/pwa';
 
-// Installable on a phone (spec §4c). There is deliberately no service worker: order, payment and dashboard pages are
+// Installable on a phone. There is deliberately no service worker: order, payment and dashboard pages are
 // never served from a cache, because a stale payment page is worse than none.
 export default function manifest(): MetadataRoute.Manifest {
   return {

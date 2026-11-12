@@ -1,4 +1,4 @@
-// Schema.org JSON-LD for the public shop page (spec §10a): what search engines and AI agents read from the page itself.
+// Schema.org JSON-LD for the public shop page: what search engines and AI agents read from the page itself.
 // The menu goes in as offers (prices from the shop's rows, as PayPal strings) with each item's photo, the cover as
 // the shop's image, PayPal as the way to pay, and, while the shop takes orders, an OrderAction whose EntryPoint is the
 // agent door.

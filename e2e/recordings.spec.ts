@@ -1,8 +1,8 @@
-// Screen recordings of the motion for the judge (run 3, Part A): the start page's story, the shop page (scroll, a
+// Screen recordings of the motion: the start page's story, the shop page (scroll, a
 // section jump, a console order) and the dashboard (a waiting order turns paid while the seller watches), each at
 // 1440 and 390 px. Not a test of behaviour: it only records. Skipped unless SHELFIE_RECORDINGS names an output folder.
 //
-// Run: SHELFIE_RECORDINGS=docs/judge/recordings/round-9 E2E_PORT=3190 npx playwright test e2e/recordings.spec.ts
+// Run: SHELFIE_RECORDINGS=artifacts/recordings E2E_PORT=3190 npx playwright test e2e/recordings.spec.ts
 // The console's stream is the recorded run in e2e/fixtures/console-turns.json (no Claude or PayPal calls); the
 // dashboard's shop and orders are labelled fixtures (e2e/task8-fixtures.ts) written straight into the e2e database.
 import fs from 'node:fs';
@@ -129,7 +129,7 @@ for (const size of SIZES) {
     });
   });
 
-  // Run 5: the assistant attaches to a viewport edge, and opening and closing it never moves the page's place.
+  // The assistant attaches to a viewport edge, and opening and closing it never moves the page's place.
   test(`assistant open and close ${size.label}`, async ({ browser }) => {
     await record(browser, `assistant-${size.label}`, size.viewport, async (page) => {
       await page.goto(`/s/${DEMO_SHOP.slug}`);
@@ -148,7 +148,7 @@ for (const size of SIZES) {
     });
   });
 
-  // Run 5: every control answers a press. Slow, deliberate presses so each frame of the response is visible.
+  // Every control answers a press. Slow, deliberate presses so each frame of the response is visible.
   test(`pressing controls ${size.label}`, async ({ browser, baseURL }) => {
     const f: FixtureShop = createFixtureShop('Juniper Press Co');
     seedAllStates(f);

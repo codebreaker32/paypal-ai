@@ -1,4 +1,4 @@
-// The shop page's first screen and item tile (spec 2026-11-08 production pass WP3, addendum section 2): tracks at each
+// The shop page's first screen and item tile: tracks at each
 // width and with the dock open, the orphan tile, what fits on the first screen, tap targets and the tile's states.
 //
 // Run: E2E_PORT=3231 npx playwright test e2e/tiles.spec.ts
@@ -234,7 +234,7 @@ test('a paused shop has no add controls, and its prices still show', async ({ pa
   await expect(page.locator('[data-menu-item]').first()).toContainText('$3.50');
 });
 
-test.describe('a tile opens the sheet (addendum: 5 and 6)', () => {
+test.describe('a tile opens the sheet', () => {
   test.use({ viewport: PHONE });
   const sheet = (page: Page) => page.locator('dialog[open]');
   const open = (page: Page, name: string) => page.locator(`[data-menu-item="${name}"] h4 button`).click();
@@ -305,7 +305,7 @@ test('at 1024 docked the menu has two tracks (2)', async ({ page }) => {
   expect(new Set(await tracks(page))).toEqual(new Set([2]));
 });
 
-// Judge round 12, "Proper placing": no text wraps alone onto its own line at 390 px; and the phone bar's count and total
+// No text wraps alone onto its own line at 390 px; and the phone bar's count and total
 // are separate, with a gap between them.
 test.describe('tile text and the order bar at 390 px', () => {
   test.use({ viewport: { width: 390, height: 844 } });

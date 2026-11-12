@@ -82,7 +82,7 @@ describe('POST /api/shops', () => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
 
-  it('refuses the 11th shop from one address in an hour with a 429, before reading the body (R11)', async () => {
+  it('refuses the 11th shop from one address in an hour with a 429, before reading the body', async () => {
     vi.stubEnv('SHELFIE_TEST', ''); // the e2e and screenshot servers skip this limit
     resetRateLimits();
     onTestFinished(() => {
@@ -105,7 +105,7 @@ describe('POST /api/shops', () => {
     expect((await POST(from('198.51.100.2'))).status).toBe(201);
   });
 
-  it('refuses a chunked JSON body over 64 KB with 413, without buffering it (R13)', async () => {
+  it('refuses a chunked JSON body over 64 KB with 413, without buffering it', async () => {
     let pulled = 0;
     const body = new ReadableStream<Uint8Array>(
         { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },

@@ -1,5 +1,5 @@
 // What the /api/auth and /api/account routes share. Nothing here logs: passwords, keys and tokens must never reach the
-// console (SR23), and `errorResponse` logs only an error's own message.
+// console, and `errorResponse` logs only an error's own message.
 import { errorResponse } from '@/lib/catalog/http';
 import type { Account } from '@/lib/db/repos/accounts';
 import { jsonError } from '@/lib/http/json-error';
@@ -7,7 +7,7 @@ import { BodyTooLargeError, MAX_JSON_BODY_BYTES, readJsonLimited } from '@/lib/h
 import { reservePasswordCheck } from '@/lib/rate-limit';
 import { HashBusyError, busyResponse, verifyPassword } from './password';
 
-/** A response carrying a recovery key or starting a session: never cached (SR23). */
+/** A response carrying a recovery key or starting a session: never cached. */
 export const noStoreJson = (body: unknown, status = 200): Response =>
   Response.json(body, { status, headers: { 'cache-control': 'no-store' } });
 
@@ -24,7 +24,7 @@ export const passwordWrong = (): Response => jsonError(403, 'PASSWORD_WRONG', 'T
 
 /**
  * A sensitive action's `currentPassword` field: null to carry on, else the refusal. Missing is 403 PASSWORD_REQUIRED and
- * wrong is 403 PASSWORD_WRONG. The limits come before the hash (SR8); a failure is reserved first and handed back on a
+ * wrong is 403 PASSWORD_WRONG. The limits come before the hash; a failure is reserved first and handed back on a
  * right password, so a burst cannot run more guesses than the limit. May throw HashBusyError, which costs the seller nothing. The caller must write
  * with a compare-and-set on `account.passwordHash`, which may be stale by the time this returns.
  */

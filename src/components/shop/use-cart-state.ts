@@ -222,7 +222,7 @@ export function useCartState(slug: string, data: ShopCartData): CartState {
       const body = (await res.json().catch(() => null)) as { orderRef?: string; approvalUrl?: string; error?: { code?: string; message?: string; itemId?: string } } | null;
 
       if (res.ok && body?.orderRef && body.approvalUrl) {
-        // SR30: the only place the buyer leaves for, and only when it is PayPal over HTTPS.
+        // The only place the buyer leaves for, and only when it is PayPal over HTTPS.
         if (!isPayPalApprovalUrl(body.approvalUrl)) return fail(PAYPAL_DOWN);
         try {
           savePendingOrder(slug, body.orderRef, window.localStorage);

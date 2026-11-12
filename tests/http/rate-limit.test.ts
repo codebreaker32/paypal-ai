@@ -1,4 +1,4 @@
-// SR10: each key keeps its own window, eviction follows that key's window, and limits can be checked without counting.
+// Each key keeps its own window, eviction follows that key's window, and limits can be checked without counting.
 import { beforeEach, describe, expect, it } from 'vitest';
 import { allow, peek, recordHit, resetRateLimits } from '@/lib/rate-limit';
 
@@ -37,7 +37,7 @@ describe('recordHit', () => {
   });
 });
 
-describe('eviction (SR10)', () => {
+describe('eviction', () => {
   beforeEach(() => resetRateLimits());
 
   it('a 15-minute caller over 10,000 keys leaves a live hourly bucket intact', () => {

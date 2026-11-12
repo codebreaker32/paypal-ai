@@ -1,4 +1,4 @@
-// Publish a shop's reviewed menu to PayPal's catalog (spec §8, "Publish, per item").
+// Publish a shop's reviewed menu to PayPal's catalog, one item at a time.
 // Each publishable item becomes a PayPal product; prices stay in Shelfie. Safe to re-run:
 // items that already have a PayPal product are skipped, and the request id is stable per item.
 import type { Db } from '@/lib/db';
@@ -88,7 +88,7 @@ function describeError(err: unknown): string {
 
 /**
  * Every shop is paid into its own PayPal account, so it needs the seller's PayPal email to publish. Only the demo shop
- * may publish without one: it is then paid to the platform account (spec §8a). Throws EditError PAYEE_REQUIRED (409).
+ * may publish without one: it is then paid to the platform account. Throws EditError PAYEE_REQUIRED (409).
  */
 export function assertPayee(shop: Shop): void {
   if (!canBePaid(shop)) throw new EditError('PAYEE_REQUIRED', 409, PAYEE_REQUIRED_MESSAGE);

@@ -1,4 +1,4 @@
-// Polling fallback (spec §7): every 15 s, sync open orders under 3 h old, plus the expiry sweep.
+// Polling fallback: every 15 s, sync open orders under 3 h old, plus the expiry sweep.
 import * as ordersRepo from '@/lib/db/repos/orders';
 import { lastCaptureFailure, syncOrder, type OrderDeps } from './service';
 

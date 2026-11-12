@@ -1,6 +1,6 @@
 // DELETE /api/account { currentPassword } → 204: the account, its shops (rows and files) and its sessions are gone, each
-// shop's slug is retired (SR19) and this browser's cookie is cleared. Errors: 401 LOGIN_REQUIRED; 403 PASSWORD_REQUIRED or
-// PASSWORD_WRONG; 409 OPEN_ORDERS naming the shops; 429 RATE_LIMITED (before any hash, SR8); 503 BUSY.
+// shop's slug is retired and this browser's cookie is cleared. Errors: 401 LOGIN_REQUIRED; 403 PASSWORD_REQUIRED or
+// PASSWORD_WRONG; 409 OPEN_ORDERS naming the shops; 429 RATE_LIMITED (before any hash); 503 BUSY.
 import { authFailure, checkCurrentPassword, loginRequired, noStoreEmpty, passwordWrong, readFields } from '@/lib/auth/http';
 import { accountIdOfSession, currentSession, endSession } from '@/lib/auth/session';
 import { deleteAccountRows, removeFiles } from '@/lib/catalog/delete-shop';

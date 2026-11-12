@@ -1,4 +1,4 @@
-// The public header's table of states (brief WP6, Header).
+// The public header's table of states.
 import { describe, expect, it } from 'vitest';
 import { headerView } from '@/lib/brand/header';
 

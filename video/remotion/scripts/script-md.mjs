@@ -33,7 +33,7 @@ const rows = starts.map(({ scene, from, frames }) =>
 
 let body = `# Shelfie demo video: script
 
-_Generated from \`demo.json\` by \`video/remotion/scripts/script-md.mjs\`; do not edit by hand. Voice: Kokoro-82M \`${m.voice?.voice}\` (lang \`${m.voice?.lang}\`, speed ${m.voice?.speed ?? 1}). Every spoken claim comes from \`docs/DEMO.md\` ("Facts we may say" or its shot table)._
+_Generated from \`demo.json\` by \`video/remotion/scripts/script-md.mjs\`; do not edit by hand. Voice: Kokoro-82M \`${m.voice?.voice}\` (lang \`${m.voice?.lang}\`, speed ${m.voice?.speed ?? 1}). Every spoken claim comes from the demo script in \`video/project/demo.json\`._
 
 **Runtime ${mmss(totalFrames / fps)}** (${(totalFrames / fps).toFixed(2)} s): ${speech.toFixed(2)} s of narration (${words} words), the rest is the ${m.pacing?.breathSec ?? 0.45} s breath after each line, per-scene holds for the screen (\`holdSec\`), the end card and ${(m.transitions || []).length} transition(s).
 

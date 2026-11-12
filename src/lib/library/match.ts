@@ -4,7 +4,7 @@ import { LIBRARY } from './catalog';
 import type { LibraryPhoto } from './types';
 
 /**
- * Which bundled library photo shows an item as an *example* (Part A3): the item's own photo always wins (callers check
+ * Which bundled library photo shows an item as an *example*: the item's own photo always wins (callers check
  * `photoUrl` first), then Claude's pick from the menu reading, then the photo whose tags best match the item's words,
  * then a photo of the item's category for the specific categories only. Nothing fits: null, and the item keeps its
  * drawing. Pure and deterministic: the same menu gives the same photos on every render.

@@ -1,4 +1,4 @@
-// Where login may send you (SR4): only our own seller pages, never another site or an open redirect.
+// Where login may send you: only our own seller pages, never another site or an open redirect.
 import { describe, expect, it } from 'vitest';
 import { loginPath, safeNext } from '@/lib/auth/next-path';
 

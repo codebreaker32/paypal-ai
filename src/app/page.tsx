@@ -44,7 +44,7 @@ function exampleShopChat(): HomeChatShop | null {
     const shop = shops.bySlug(db, RESERVED_SLUG);
     if (shop?.status !== 'live' || !takesOrders(shop)) return null;
     const items = itemsRepo.listWithVariants(db, shop.id, { status: [...LISTED_STATUSES] });
-    // Each item's picture by the Part A3 rules (own photo, else example photo); the cards under replies read it by id.
+    // Each item's picture by the usual rules (own photo, else example photo); the cards under replies read it by id.
     const pictures = itemsRepo.itemPictures(db, shop.id, shop.kind);
     const menu = items.flatMap((i) => {
       const prices = i.variants.map((v) => v.priceCents).filter((c): c is number => c !== null && c > 0);

@@ -1,6 +1,6 @@
 // Browser-side calls for the Start page.
 //
-// Contract with POST /api/shops (route built in Task 6):
+// Contract with POST /api/shops:
 //   - multipart/form-data, one or more "photos" file fields (1 to 4 images)  → 201 { shopId }
 //   - application/json { sample: SampleId }                                   → 201 { shopId }
 //   - errors: JSON { error: { code, message } }. Codes the Start page understands:

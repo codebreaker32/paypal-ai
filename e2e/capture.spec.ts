@@ -1,6 +1,6 @@
-// The capture gate (spec §12): the money path end to end against the real PayPal sandbox, no mocks. Two gates:
+// The capture gate: the money path end to end against the real PayPal sandbox, no mocks. Two gates:
 //
-// Gate 1, seller payout (spec §8a). Needs PAYPAL_SANDBOX_SELLER_EMAIL and the sandbox buyer's login
+// Gate 1, seller payout. Needs PAYPAL_SANDBOX_SELLER_EMAIL and the sandbox buyer's login
 // (PAYPAL_SANDBOX_BUYER_EMAIL / _PASSWORD) in .env:
 //   1. A seller starts a shop from the sample menu, Shelfie reads it, she turns on shipping ($8 flat), gives her PayPal
 //      email (the sandbox seller) and publishes: real products in the PayPal sandbox catalog.
@@ -10,11 +10,11 @@
 //      Shelfie's return URL, which captures the payment.
 //   4. The receipt says Paid and who was paid; PayPal's own record names the seller as payee, capture COMPLETED.
 //   5. The seller's dashboard shows the order paid, with the AI brief (written by Claude from PayPal's record).
-//   6. The seller adds USPS tracking. PayPal refuses tracking from the platform on the seller's capture (spec §8a), so
+//   6. The seller adds USPS tracking. PayPal refuses tracking from the platform on the seller's capture, so
 //      it is saved in Shelfie and the seller is told to add it in PayPal too.
 //   7. get_order_status over the agent door returns the tracking number.
 //
-// Gate 2, the platform-paid demo shop (spec §8a's one fallback). Needs only the app keys:
+// Gate 2, the platform-paid demo shop (the one shop that may be paid to the platform account). Needs only the app keys:
 //   the seeded demo shop with no seller email → the same door order → guest card checkout → Paid ("Shelfie's demo
 //   PayPal account") → capture COMPLETED at PayPal → tracking sent to PayPal through the Agent Toolkit (SHIPPED) →
 //   get_order_status. The seed here uses --reset, so run the gate against its own database.
@@ -23,7 +23,7 @@
 // shop, sandbox products, two sandbox orders (~$27 each) and trackers. Nothing from .env is ever logged.
 //
 //   E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
-// Refresh the committed screenshots (docs/judge/screenshots/capture/):
+// Save this run's screenshots into artifacts/capture/ (gitignored):
 //   SHELFIE_SCREENSHOTS=1 E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
 //
 // The app must send PayPal's buyer back to this server: playwright.config.ts gives the server it starts
@@ -52,8 +52,8 @@ const BUYER = env('PAYPAL_SANDBOX_BUYER_EMAIL') && env('PAYPAL_SANDBOX_BUYER_PAS
 /** Same as OWNER_COOKIE_PREFIX in src/lib/auth/owner.ts (not imported: it pulls in next/headers). */
 const ownerCookieName = (shopId: string) => `shelfie_owner_${shopId}`;
 
-const OUT = 'docs/judge/screenshots/capture';
-/** Screenshots are committed, so only SHELFIE_SCREENSHOTS=1 rewrites them; every run attaches its own to the report. */
+const OUT = 'artifacts/capture';
+/** Only SHELFIE_SCREENSHOTS=1 copies them into OUT; every run attaches its own to the report. */
 const SHOTS = process.env.SHELFIE_SCREENSHOTS === '1';
 const SHIPPING_FEE_CENTS = 800;
 const BUYER_NOTE = 'Nut allergy in our house, so please pack this away from anything with nuts. Would love it by Friday!';
@@ -127,7 +127,7 @@ const AGENT = 'shelfie-capture-gate';
 /**
  * Connects like the app's own buyer console: the agent names itself with `?agent=`. The stateless door builds a fresh
  * server per HTTP request, so the name from MCP initialize (clientInfo) is gone by the time create_order arrives and
- * the order would otherwise be attributed to the User-Agent ("node"). See the Task 9a report.
+ * the order would otherwise be attributed to the User-Agent ("node").
  */
 async function openDoor(origin: string, slug: string): Promise<Client> {
   const client = new Client({ name: AGENT, version: '1.0.0' });
@@ -263,7 +263,7 @@ async function runGate(page: Page, info: TestInfo, origin: string, run: GateRun)
       const list = await callTool<ProductList>(door, 'list_products');
       const orderable = list.sections.flatMap((s) => s.items).filter((i) => i.orderable && i.options[0]?.price);
       expect(orderable.length).toBeGreaterThan(0);
-      // Two almond croissants and a sourdough loaf (spec §3), or whatever this reading made orderable.
+      // Two almond croissants and a sourdough loaf, or whatever this reading made orderable.
       const almond = orderable.find((i) => /almond/i.test(i.name)) ?? orderable[0];
       const bread = orderable.find((i) => i !== almond && /sourdough|loaf/i.test(i.name)) ?? orderable.find((i) => i !== almond);
       const picks = [{ item: almond, quantity: 2 }, ...(bread ? [{ item: bread, quantity: 1 }] : [])];
@@ -484,7 +484,7 @@ test.describe('capture gate (real PayPal sandbox)', () => {
     await runGate(page, info, origin, { mode: 'platform', shop, prefix: '' });
   });
 
-  // The cart's own money path (addendum, WP3b): no agent door. A buyer adds from the menu and pays through the shop page.
+  // The cart's own money path: no agent door. A buyer adds from the menu and pays through the shop page.
   test('cart checkout: a buyer adds from the menu → wallet login → Paid to the seller → capture COMPLETED → cart cleared → brief', async ({ page, baseURL }, info) => {
     test.skip(!SELLER || !BUYER, 'Needs PAYPAL_SANDBOX_SELLER_EMAIL and PAYPAL_SANDBOX_BUYER_EMAIL / _PASSWORD in .env.');
     test.setTimeout(12 * 60_000);

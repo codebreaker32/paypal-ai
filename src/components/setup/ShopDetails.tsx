@@ -159,7 +159,7 @@ export function ShopDetails({
         />
       )}
 
-      {/* Where the money goes (spec §8a): each shop is paid into its seller's own PayPal account. */}
+      {/* Where the money goes: each shop is paid into its seller's own PayPal account. */}
       <div id={PAYEE_FIELD_ID} className="flex scroll-mt-24 flex-col gap-3">
         <Field
           label="Your PayPal email"

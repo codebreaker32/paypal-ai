@@ -1,4 +1,4 @@
-// "Can't reach PayPal" banner (spec §4 Dashboard). Seller pages only read SQLite, so this is inferred from what the
+// "Can't reach PayPal" banner. Seller pages only read SQLite, so this is inferred from what the
 // order syncs left behind: a recent failed attempt to take a payment, or open orders nobody has checked lately
 // (the 15 s poller isn't getting through), or open orders while PayPal's latest reply to an order read was a failure.
 import type { Db } from '@/lib/db';

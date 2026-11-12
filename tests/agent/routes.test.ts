@@ -55,7 +55,7 @@ const EXPECTED_WARNINGS = [
   /^\[shelfie\] PayPal unavailable during get order: /,
   /^\[shelfie\] return URL sync for ord_\w+ failed: /,
   /^\[shelfie\] cancel URL for ord_\w+ failed: /,
-  /^\[shelfie\] order brief for SHF-\w+: using the template \(ANTHROPIC_API_KEY is not set\)$/, // Task 8's onPaid hook
+  /^\[shelfie\] order brief for SHF-\w+: using the template \(ANTHROPIC_API_KEY is not set\)$/, // the onPaid hook
 ];
 let warn: MockInstance<typeof console.warn>;
 const warned = () => warn.mock.calls.map((c) => String(c[0]));
@@ -218,7 +218,7 @@ describe('GET /api/orders/[ref]', () => {
     logged.mockRestore();
     let body = await (await orderGET(get(`/api/orders/${order.id}`), refCtx(order.id))).json();
     expect(body.order).toMatchObject({ status: 'approved', captureRefused: true, declined: false, approvalUrl: null });
-    // A reload within 5 s is throttled (R4): no second capture attempt.
+    // A reload within 5 s is throttled: no second capture attempt.
     const captures = () => fake.calls.filter((c) => c.method === 'captureOrder' && c.args[0] === order.paypalOrderId).length;
     await returnGET(get(`/api/paypal/return?o=${order.id}`));
     expect(captures()).toBe(1);

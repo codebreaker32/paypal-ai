@@ -1,4 +1,4 @@
-// Pure order state machine (spec §7). No I/O: the service applies the result with compare-and-set.
+// Pure order state machine. No I/O: the service applies the result with compare-and-set.
 import type { OrderEvent, OrderStatus } from '@/lib/domain/types';
 
 export type OrderEffect = 'capture' | 'brief';
@@ -27,7 +27,7 @@ const ALLOWED: Partial<Record<From, Partial<Record<OrderEvent, { next: OrderStat
     capture_completed: { next: 'paid', effects: ['brief'] },
     capture_pending: { next: 'payment_pending', effects: [] },
     capture_declined: { next: 'awaiting_approval', effects: [] },
-    // Coordinator ruling (spec §7 to be amended): PayPal shows the order COMPLETED with a DECLINED/FAILED capture.
+    // PayPal shows the order COMPLETED with a DECLINED/FAILED capture: final.
     capture_denied: { next: 'failed', effects: [] },
     mismatch: { next: 'failed', effects: [] },
     // PayPal refused the capture (non-transient 4xx) and then voided/dropped the order, or the order's window passed.

@@ -1,6 +1,6 @@
 # Edit tools
 
-Small helpers the Part B worker wrote to cut `video/project/demo.json` against recorded clips (run 3). They read clips and renders; none records the screen or calls a service.
+Small helpers to cut `video/project/demo.json` against recorded clips. They read clips and renders; none records the screen or calls a service.
 
 - `edit_beats.py <demo.json>`: re-applies the whole edit (each scene's beats, rates and caption placement); change the numbers there.
 - `check_beats.py <demo.json> <clips dir>`: prints each beat's clip window and any frozen tail (a clip shorter than its beat).

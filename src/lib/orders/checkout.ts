@@ -1,5 +1,5 @@
 // The cart's checkout (POST /api/checkout/[slug]): its request shape and what each refusal says to the buyer.
-// The client never sends a price (SR26): `expectedTotalCents` is only compared with what the server computes.
+// The client never sends a price: `expectedTotalCents` is only compared with what the server computes.
 import { z } from 'zod';
 import type { Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';

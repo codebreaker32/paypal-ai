@@ -3,7 +3,7 @@ import type { LibraryPhoto } from './types';
 /**
  * The bundled example-photo library: real photos (Pexels License) of common item types, 3-4 per type, so a new
  * seller's menu can show what an item looks like until they add their own. Files are `public/library/<id>.webp`
- * (800x600 WebP); sources, photographers and licences are listed in docs/ASSETS.md "Example photo library (Part A3)".
+ * (800x600 WebP); sources, photographers and licences are listed in docs/ASSETS.md "Example photo library".
  */
 export const LIBRARY: readonly LibraryPhoto[] = [
   {

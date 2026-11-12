@@ -1,4 +1,4 @@
-// SR23: nothing in the account modules writes to the console, where a password, key or token could end up.
+// Nothing in the account modules writes to the console, where a password, key or token could end up.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';

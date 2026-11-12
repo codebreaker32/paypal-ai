@@ -1,4 +1,4 @@
-// The rows of /shops (brief WP6): order, wording and where each one goes.
+// The rows of /shops: order, wording and where each one goes.
 import { describe, expect, it } from 'vitest';
 import { createTestDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';

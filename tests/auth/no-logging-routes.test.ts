@@ -1,4 +1,4 @@
-// SR23: nothing on the account routes writes to the console, where a password, key or token could end up.
+// Nothing on the account routes writes to the console, where a password, key or token could end up.
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,4 @@
-// /help's contact (brief WP7): SUPPORT_EMAIL when set, else GitHub Issues.
+// /help's contact: SUPPORT_EMAIL when set, else GitHub Issues.
 import { describe, expect, it } from 'vitest';
 import { contactFor } from '@/lib/brand/contact';
 

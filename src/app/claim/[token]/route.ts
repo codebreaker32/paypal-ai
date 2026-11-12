@@ -1,6 +1,6 @@
 // GET /claim/<token>: the owner link of an unattached shop (the seed and the test harness). Opening it on another
 // phone makes that browser an owner too (sets the owner cookie) and lands on the dashboard. A shop with an account has
-// no owner link: its token never opens it (SR15), so it answers like an unknown link.
+// no owner link: its token never opens it, so it answers like an unknown link.
 import { setOwnerCookie } from '@/lib/auth/owner';
 import { getDb } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';

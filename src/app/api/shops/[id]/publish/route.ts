@@ -29,7 +29,7 @@ export async function POST(req: Request, ctx: RouteContext<'/api/shops/[id]/publ
   const { id } = await ctx.params;
   const owned = await ownedShop(id);
   if (!owned) return notFound();
-  // Where the money goes comes first: without the seller's PayPal email nothing is sent to PayPal (spec §8a).
+  // Where the money goes comes first: without the seller's PayPal email nothing is sent to PayPal.
   try {
     assertPayee(owned);
   } catch (err) {

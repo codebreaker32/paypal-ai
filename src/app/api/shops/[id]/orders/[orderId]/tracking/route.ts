@@ -1,6 +1,6 @@
 // POST /api/shops/[id]/orders/[orderId]/tracking (owner): { carrier, trackingNumber, carrierName? } → { order, trackers,
 // atPayPal }. A platform-paid order's tracker goes to PayPal
-// through the Agent Toolkit; a seller-paid order's is saved here only (spec §8a). Then the order is fulfilled.
+// through the Agent Toolkit; a seller-paid order's is saved here only. Then the order is fulfilled.
 import { getOwnedShop } from '@/lib/auth/owner';
 import { getOrderDeps } from '@/lib/services';
 import { addTracking, parseTrackingInput, SellerActionError } from '@/lib/seller/actions';

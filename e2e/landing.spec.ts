@@ -1,5 +1,5 @@
-// The landing page and public footer, and the rest of brief WP7's acceptance: 1 to 5, 7 and 8 here (7's Help, Terms,
-// Privacy and 404 are in e2e/other-pages.spec.ts, 6 is e2e/account-publish.spec.ts, 9 is the recorded Lighthouse run).
+// The landing page and public footer, axe and sideways-scroll checks on the account pages, and the test-mode line
+// (Help, Terms, Privacy and 404 are in e2e/other-pages.spec.ts, an account's publish in e2e/account-publish.spec.ts).
 // Run: E2E_PORT=3251 npx playwright test e2e/landing.spec.ts
 import { expect, test, type Page } from '@playwright/test';
 import { getDb } from '@/lib/db';
@@ -56,7 +56,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
       if (SHOTS) await page.screenshot({ path: `${SHOTS}/landing-${label}.png`, fullPage: true });
     });
 
-    test('the FAQ is native disclosures with the brief’s words', async ({ page }) => {
+    test('the FAQ is native disclosures with the agreed wording', async ({ page }) => {
       await page.goto('/');
       await settle(page);
       await expect(page.locator('main details')).toHaveCount(6);
@@ -147,7 +147,7 @@ test('a server error renders the error page, and Try again recovers', async ({ p
 });
 
 for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
-  test.describe(`acceptance 7 at ${label} px`, () => {
+  test.describe(`account pages at ${label} px`, () => {
     test.use({ viewport });
 
     const check = async (page: Page, name: string) => {
@@ -184,7 +184,7 @@ for (const [label, viewport] of [['390', PHONE], ['1440', DESKTOP]] as const) {
     });
   });
 
-  test.describe(`acceptance 8 at ${label} px`, () => {
+  test.describe(`the test-mode line at ${label} px`, () => {
     test.use({ viewport });
 
     const shown = (page: Page) => expect(page.getByText(TEST_MODE_LINE).locator('visible=true').first()).toBeVisible();

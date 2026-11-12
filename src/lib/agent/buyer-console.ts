@@ -1,4 +1,4 @@
-// The in-app buyer assistant (spec §9 A3): Claude orders through the shop's agent door over real HTTP, exactly like an
+// The in-app buyer assistant: Claude orders through the shop's agent door over real HTTP, exactly like an
 // outside agent, and every step comes back as a ConsoleEvent the shop page can show.
 import { createHash } from 'node:crypto';
 import type Anthropic from '@anthropic-ai/sdk';

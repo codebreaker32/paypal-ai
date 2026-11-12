@@ -1,4 +1,4 @@
-// One real order on a seeded shop that is not Marigold (run 11), against the PayPal sandbox, no mocks: the seed
+// One real order on a seeded shop that is not Marigold, against the PayPal sandbox, no mocks: the seed
 // publishes Little Ember Coffee (scripts/seed-demo.ts seedSellerShop, paid to PAYPAL_SANDBOX_SELLER_EMAIL), a buyer adds
 // two items on its page, approves on PayPal with the sandbox buyer's login, and the receipt and the stored order say
 // Paid, with PayPal's capture COMPLETED to the seller. Needs the app keys, PAYPAL_SANDBOX_SELLER_EMAIL and the sandbox

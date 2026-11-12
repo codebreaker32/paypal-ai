@@ -12,7 +12,7 @@ import { assertSameOrigin } from '@/lib/http/same-origin';
 
 export const runtime = 'nodejs';
 
-/** 20 console turns per IP per hour (spec §15: Anthropic spend). */
+/** 20 console turns per IP per hour (each one spends the Anthropic key). */
 const CONSOLE_RATE = { limit: 20, windowMs: 60 * 60_000 } as const;
 
 const Body = z

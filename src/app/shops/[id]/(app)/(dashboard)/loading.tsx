@@ -1,4 +1,4 @@
-// Dashboard loading skeleton (spec §4), drawn inside the app shell: the page title, the filter, then order rows.
+// Dashboard loading skeleton, drawn inside the app shell: the page title, the filter, then order rows.
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardLoading() {

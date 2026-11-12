@@ -1,4 +1,4 @@
-// The rows of /shops (brief WP6). Server side: ShopRow and the page render from this.
+// The rows of /shops. Server side: ShopRow and the page render from this.
 import type { ShopAvatarProps } from '@/components/shop/ShopAvatar';
 import { getDb, type Db } from '@/lib/db';
 import * as itemsRepo from '@/lib/db/repos/items';

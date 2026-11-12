@@ -1,4 +1,4 @@
-// The dock's two-way switch and the add feedback (run 14): a buyer who taps `+` with the assistant open always sees
+// The dock's two-way switch and the add feedback: a buyer who taps `+` with the assistant open always sees
 // what happened and how to reach the order. Checkout is not called here (cart.spec.ts covers it).
 //
 // Run: E2E_PORT=3232 npx playwright test e2e/cart-dock.spec.ts
@@ -13,7 +13,7 @@ import { DESKTOP, PHONE, settle } from './helpers';
 const SHOP = `/s/${DEMO_SHOP.slug}`;
 const FIRST = 'Almond croissant';
 const SECOND = 'Cardamom bun';
-const SHOTS = 'docs/preview';
+const SHOTS = 'artifacts/cart-dock';
 
 test.beforeAll(async () => {
   const db = getDb();

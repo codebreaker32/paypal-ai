@@ -1,4 +1,4 @@
-// Owner auth (spec §11): the owner cookie, the 404 for anyone else, and the /claim/<token> link.
+// Owner auth: the owner cookie, the 404 for anyone else, and the /claim/<token> link.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 

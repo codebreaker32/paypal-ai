@@ -1,4 +1,4 @@
-// Who to contact, on /help (brief WP7): SUPPORT_EMAIL when the deployment sets it, else the repository's issues.
+// Who to contact, on /help: SUPPORT_EMAIL when the deployment sets it, else the repository's issues.
 import { REPO_URL } from '@/lib/brand/footer';
 
 export interface Contact {

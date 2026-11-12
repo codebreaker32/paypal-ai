@@ -1,6 +1,6 @@
 // POST /api/auth/login { email, password, next? } → 200 { next }, session set.
-// Errors: 401 BAD_CREDENTIALS, the same for an unknown email and a wrong password (SR9); 429 RATE_LIMITED (before any
-// hash, SR8); 503 BUSY.
+// Errors: 401 BAD_CREDENTIALS, the same for an unknown email and a wrong password; 429 RATE_LIMITED (before any
+// hash); 503 BUSY.
 import { authFailure, noStoreJson, readFields, stringField, tooManyTries } from '@/lib/auth/http';
 import { safeNext } from '@/lib/auth/next-path';
 import { dummyVerify, hashPassword, needsRehash, verifyPassword } from '@/lib/auth/password';

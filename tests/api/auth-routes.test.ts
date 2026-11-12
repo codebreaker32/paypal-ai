@@ -1,5 +1,5 @@
-// The account routes: sign-up, login, logout, recovery and the recovery-key routes (SR8, SR9, SR11, SR12, SR13, SR14,
-// SR23). Password hashing is stubbed: scrypt's real cost is tested in tests/auth/password.test.ts, and what matters here
+// The account routes: sign-up, login, logout, recovery and the recovery-key routes.
+// Password hashing is stubbed: scrypt's real cost is tested in tests/auth/password.test.ts, and what matters here
 // is which calls happen and in what order.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
@@ -106,7 +106,7 @@ describe('POST /api/auth/signup', () => {
     expect(state.jar.get(RETURNING_COOKIE)).toBe('1');
   });
 
-  it('never stores the recovery key or the session token raw (SR13)', async () => {
+  it('never stores the recovery key or the session token raw', async () => {
     const res = await signup(req('/api/auth/signup', body));
     const { recoveryKey } = (await res.json()) as { recoveryKey: string };
     const token = state.jar.get(sessionCookieName())!;
@@ -117,7 +117,7 @@ describe('POST /api/auth/signup', () => {
     expect(sessions.byTokenHash(state.db, hashToken(token))).not.toBeNull();
   });
 
-  it('marks the key response no-store (SR23)', async () => {
+  it('marks the key response no-store', async () => {
     const res = await signup(req('/api/auth/signup', body));
     expect(res.headers.get('cache-control')).toBe('no-store');
   });
@@ -172,7 +172,7 @@ describe('POST /api/auth/signup', () => {
     expect(accounts.byEmail(state.db, EMAIL)).toBeNull();
   });
 
-  it('after 10 sign-ups from one address is 429, before any hash (SR8, SR11)', async () => {
+  it('after 10 sign-ups from one address is 429, before any hash', async () => {
     enforceLimits();
     for (let i = 0; i < 10; i++) {
       expect((await signup(req('/api/auth/signup', { email: `u${i}@example.com`, password: PASSWORD }))).status).toBe(201);
@@ -232,7 +232,7 @@ describe('POST /api/auth/login', () => {
     },
   );
 
-  it('answers an unknown email and a wrong password identically (SR9)', async () => {
+  it('answers an unknown email and a wrong password identically', async () => {
     makeAccount();
     const wrong = await login(req('/api/auth/login', { email: EMAIL, password: 'not the right sentence' }));
     const unknown = await login(req('/api/auth/login', { email: 'nobody@example.com', password: 'not the right sentence' }));
@@ -243,7 +243,7 @@ describe('POST /api/auth/login', () => {
     expect(a).toMatchObject({ error: { code: 'BAD_CREDENTIALS' } });
   });
 
-  it('runs a dummy hash for an unknown email, and the real check for a known one (SR9)', async () => {
+  it('runs a dummy hash for an unknown email, and the real check for a known one', async () => {
     await login(req('/api/auth/login', { email: 'nobody@example.com', password: 'whatever it is here' }));
     expect(hashes.dummy).toHaveBeenCalledTimes(1);
     expect(hashes.verify).not.toHaveBeenCalled();
@@ -269,7 +269,7 @@ describe('POST /api/auth/login', () => {
     expect(state.jar.has(sessionCookieName())).toBe(false);
   });
 
-  it('stores a fresh hash when the old one is out of date (SR5)', async () => {
+  it('stores a fresh hash when the old one is out of date', async () => {
     const account = makeAccount();
     hashes.rehash.mockReturnValueOnce(true);
     hashes.hash.mockResolvedValueOnce('rehashed');
@@ -278,7 +278,7 @@ describe('POST /api/auth/login', () => {
     expect(accounts.byId(state.db, account.id)!.passwordChangedAt).toBe(account.passwordChangedAt);
   });
 
-  it('a logged-in visitor’s login replaces only this browser’s session (SR13)', async () => {
+  it('a logged-in visitor’s login replaces only this browser’s session', async () => {
     const account = makeAccount();
     await login(req('/api/auth/login', creds));
     const first = state.jar.get(sessionCookieName());
@@ -301,7 +301,7 @@ describe('POST /api/auth/login', () => {
     expect((await login(req('/api/auth/login', creds))).status).toBe(200);
   });
 
-  describe('limits (SR8, SR11)', () => {
+  describe('limits', () => {
     beforeEach(() => {
       enforceLimits();
       makeAccount();
@@ -354,7 +354,7 @@ describe('POST /api/auth/login', () => {
 });
 
 describe('POST /api/auth/logout', () => {
-  it('deletes the session, clears the cookie and keeps the returning cookie (SR13, SR14)', async () => {
+  it('deletes the session, clears the cookie and keeps the returning cookie', async () => {
     const account = makeAccount();
     await login(req('/api/auth/login', { email: EMAIL, password: PASSWORD }));
     const res = await logout(req('/api/auth/logout'));
@@ -403,7 +403,7 @@ describe('POST /api/auth/recover', () => {
     expect((await recover(req('/api/auth/recover', { ...body, recoveryKey: 'abcdefghjklmnpqrstuv' }))).status).toBe(200);
   });
 
-  it('answers a wrong key and an unknown email identically, and hashes in both (SR12)', async () => {
+  it('answers a wrong key and an unknown email identically, and hashes in both', async () => {
     makeAccount();
     const wrong = await recover(req('/api/auth/recover', { ...body, recoveryKey: 'ZZZZZ-ZZZZZ-ZZZZZ-ZZZZZ' }));
     const unknown = await recover(req('/api/auth/recover', { ...body, email: 'nobody@example.com' }));
@@ -436,7 +436,7 @@ describe('POST /api/auth/recover', () => {
     expect((await errorOf(res)).code).toBe('WEAK_PASSWORD');
   });
 
-  it('of two concurrent uses, exactly one succeeds (SR12)', async () => {
+  it('of two concurrent uses, exactly one succeeds', async () => {
     const account = makeAccount();
     const [a, b] = await Promise.all([
       recover(req('/api/auth/recover', body)),
@@ -460,7 +460,7 @@ describe('POST /api/auth/recover', () => {
     expect((await recover(req('/api/auth/recover', body))).status).toBe(200);
   });
 
-  describe('limits (SR8, SR11)', () => {
+  describe('limits', () => {
     beforeEach(() => {
       enforceLimits();
       makeAccount();
@@ -543,7 +543,7 @@ describe('the recovery-key routes', () => {
       expect(accounts.byId(state.db, account.id)!.recoveryHash).toBe(hashRecoveryKey(KEY));
     });
 
-    it('after 10 wrong passwords is 429, and hashes nothing (SR8, SR11)', async () => {
+    it('after 10 wrong passwords is 429, and hashes nothing', async () => {
       enforceLimits();
       await asRosa();
       for (let i = 0; i < 10; i++) {
@@ -580,7 +580,7 @@ describe('the recovery-key routes', () => {
   });
 });
 
-describe('cross-site requests (SR2)', () => {
+describe('cross-site requests', () => {
   const evil = { origin: 'https://evil.example' };
 
   it.each([

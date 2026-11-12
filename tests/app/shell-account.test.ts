@@ -1,4 +1,4 @@
-// currentShellAccount with a real session (brief WP6, SR22): the shell's account slot and recovery banner read this.
+// currentShellAccount with a real session: the shell's account slot and recovery banner read this.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type Database from 'better-sqlite3';
 

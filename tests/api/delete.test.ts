@@ -1,4 +1,4 @@
-// Deleting shops and accounts, changing passwords and ending sessions (SR19, with SR7, SR8 and SR11 on the password checks).
+// Deleting shops and accounts, changing passwords and ending sessions, with the hash gate and rate limits on the password checks.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -237,7 +237,7 @@ describe('DELETE /api/shops/[id]', () => {
     expect(shopRows()).toBe(1);
   });
 
-  it('stops hashing after ten wrong passwords (SR8, SR11)', async () => {
+  it('stops hashing after ten wrong passwords', async () => {
     vi.stubEnv('SHELFIE_TEST', '');
     for (let i = 0; i < 10; i++) await remove({ confirmName: NAME, currentPassword: 'not the password at all' });
     hashes.verify.mockClear();
@@ -247,7 +247,7 @@ describe('DELETE /api/shops/[id]', () => {
     expect(shopRows()).toBe(1);
   });
 
-  it('answers 503 BUSY when the hash gate is full (SR7)', async () => {
+  it('answers 503 BUSY when the hash gate is full', async () => {
     hashes.verify.mockRejectedValueOnce(new password.HashBusyError());
     const res = await remove();
     expect(res.status).toBe(503);
@@ -423,7 +423,7 @@ describe('the account routes', () => {
       expect(sessions.byTokenHash(state.db, OTHER)).not.toBeNull();
     });
 
-    it('stops hashing after ten wrong passwords (SR8, SR11)', async () => {
+    it('stops hashing after ten wrong passwords', async () => {
       vi.stubEnv('SHELFIE_TEST', '');
       for (let i = 0; i < 10; i++) await change({ currentPassword: 'not the password at all', password: NEW_PASSWORD });
       hashes.verify.mockClear();
@@ -433,7 +433,7 @@ describe('the account routes', () => {
       expect(hashes.hash).not.toHaveBeenCalled();
     });
 
-    it('answers 503 BUSY when the new hash cannot run (SR7)', async () => {
+    it('answers 503 BUSY when the new hash cannot run', async () => {
       hashes.hash.mockRejectedValueOnce(new password.HashBusyError());
       const res = await change();
       expect(res.status).toBe(503);
@@ -556,7 +556,7 @@ describe('the account routes', () => {
       expect(accounts.byId(state.db, account.id)).not.toBeNull();
     });
 
-    it('stops hashing after ten wrong passwords (SR8, SR11)', async () => {
+    it('stops hashing after ten wrong passwords', async () => {
       vi.stubEnv('SHELFIE_TEST', '');
       for (let i = 0; i < 10; i++) await close({ currentPassword: 'not the password at all' });
       hashes.verify.mockClear();
@@ -564,7 +564,7 @@ describe('the account routes', () => {
       expect(hashes.verify).not.toHaveBeenCalled();
     });
 
-    it('answers 503 BUSY when the hash gate is full (SR7)', async () => {
+    it('answers 503 BUSY when the hash gate is full', async () => {
       hashes.verify.mockRejectedValueOnce(new password.HashBusyError());
       expect((await close()).status).toBe(503);
       expect(accounts.byId(state.db, account.id)).not.toBeNull();

@@ -153,7 +153,7 @@ describe('order service', () => {
       expect(orders.listByShop(db, s.shop.id)).toHaveLength(1);
     });
 
-    it('refuses a reused clientRequestId with different content instead of returning the other order (R6)', async () => {
+    it('refuses a reused clientRequestId with different content instead of returning the other order', async () => {
       const alice = await createOrderForShop(deps, s.shop, {
         lines: [{ itemId: s.item['Almond croissant'].id, quantity: 2 }], fulfillment: 'pickup', clientRequestId: 'order-1',
       });
@@ -199,7 +199,7 @@ describe('order service', () => {
       expect(calls('createOrder')).toHaveLength(10);
     });
 
-    it('caps unpaid orders per client, so one caller cannot block the shop for everyone (R7)', async () => {
+    it('caps unpaid orders per client, so one caller cannot block the shop for everyone', async () => {
       const mine: Order[] = [];
       for (let i = 0; i < MAX_OPEN_ORDERS_PER_CLIENT; i++) mine.push(await order({ clientKey: '198.51.100.66' }));
       const e = await rejection(order({ clientKey: '198.51.100.66' }));
@@ -225,7 +225,7 @@ describe('order service', () => {
       expect((await order({ clientKey: 'past-ip' })).status).toBe('awaiting_approval');
     });
 
-    it('enforces the per-client and shop-wide caps under concurrent create calls (R7)', async () => {
+    it('enforces the per-client and shop-wide caps under concurrent create calls', async () => {
       const one = await Promise.allSettled(Array.from({ length: 25 }, () => order({ clientKey: 'same-ip' })));
       expect(one.filter((r) => r.status === 'fulfilled')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
       expect(calls('createOrder')).toHaveLength(MAX_OPEN_ORDERS_PER_CLIENT);
@@ -386,7 +386,7 @@ describe('order service', () => {
       expect(calls('captureOrder').map((c) => c.args[1])).toEqual([`cap-${o.paypalOrderId}`, `cap-${o.paypalOrderId}-1`]);
     });
 
-    it('throttles return-URL syncs per order, so reloads cannot drive repeated captures on a declined card (R4)', async () => {
+    it('throttles return-URL syncs per order, so reloads cannot drive repeated captures on a declined card', async () => {
       const o = await order();
       fake.nextCapture = 'DECLINED_422';
       fake.approve(o.paypalOrderId);
@@ -408,7 +408,7 @@ describe('order service', () => {
       expect(calls('captureOrder')).toHaveLength(3);
     });
 
-    it('skips the capture for a webhook approval older than the last declined capture, but not for a newer one (R4)', async () => {
+    it('skips the capture for a webhook approval older than the last declined capture, but not for a newer one', async () => {
       const o = await order();
       const approvedAt = new Date(Date.now() - 60_000).toISOString();
       fake.nextCapture = 'DECLINED_422';
@@ -494,7 +494,7 @@ describe('order service', () => {
           type: 'capture_failed', source: 'return_url', detail: { status: err.status, issue: err.issue, debugId: err.debugId },
         });
         expect(logged.mock.calls.map((c) => String(c[0])).join('\n')).toContain(err.debugId!);
-        // The seller dashboard reads the refusal off the order itself (R3).
+        // The seller dashboard reads the refusal off the order itself.
         expect(after.captureRefused).toBe(true);
         expect(orders.listByShop(db, s.shop.id).find((x) => x.id === o.id)!.captureRefused).toBe(true);
         // The poller and the agent's status checks do not hammer PayPal with the same refused capture.
@@ -510,7 +510,7 @@ describe('order service', () => {
       logged.mockRestore();
     });
 
-    describe('a refused capture has an exit (R3)', () => {
+    describe('a refused capture has an exit', () => {
       const refusedOrder = async () => {
         const o = await order();
         fake.approve(o.paypalOrderId);
@@ -647,7 +647,7 @@ describe('order service', () => {
     });
   });
 
-  describe("paying the seller's own PayPal account (spec §8a)", () => {
+  describe("paying the seller's own PayPal account", () => {
     let seller: SeededShop;
     beforeEach(() => {
       seller = seedShop(db, { name: 'Rosa Bakes', payeeEmail: 'rosa@example.com' });

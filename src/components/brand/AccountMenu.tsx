@@ -61,7 +61,7 @@ export function AccountMenu({ email, placement = 'down', className, panelClassNa
     setLeaving(true);
     try {
       await logout();
-      // A full replace, so no logged-in page is left in this tab's history or cache (SR21).
+      // A full replace, so no logged-in page is left in this tab's history or cache.
       window.location.replace('/');
     } catch {
       setLeaving(false);

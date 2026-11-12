@@ -1,4 +1,4 @@
-// Which footer each page gets (brief WP7, Footer), and that its links are the ones the brief names.
+// Which footer each page gets, and that its links are the intended ones.
 import { describe, expect, it } from 'vitest';
 import { FOOTER_GROUPS, REPO_URL, footerKind } from '@/lib/brand/footer';
 
@@ -31,7 +31,7 @@ describe('the site footer links', () => {
       ['The project', ['Terms', 'Privacy', 'Open source on GitHub']],
     ]);
   });
-  it('links where the brief says', () => {
+  it('links to the intended pages', () => {
     expect(Object.fromEntries(all.map((l) => [l.label, l.href]))).toEqual({
       'Browse shops': '/browse',
       'How it works': '/#how-it-works',

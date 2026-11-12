@@ -98,7 +98,7 @@ async function measure(sample: string, run: number): Promise<Result> {
     if (!res.ok) throw new Error(`resolve: ${res.status} ${(await res.text()).slice(0, 200)}`);
   }
 
-  // Where buyers' money goes (spec §8a): publishing needs the seller's PayPal email. The sandbox seller when .env
+  // Where buyers' money goes: publishing needs the seller's PayPal email. The sandbox seller when .env
   // names one (never printed); setting it makes no PayPal call, so it stays outside the publish timing.
   const payee = await call(
     `/api/shops/${shopId}`,

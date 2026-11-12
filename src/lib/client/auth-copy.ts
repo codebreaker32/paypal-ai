@@ -1,4 +1,4 @@
-// The exact sentences of the sign-up, login and recovery forms (brief WP6). A route's failure arrives as an ApiError with
+// The exact sentences of the sign-up, login and recovery forms. A route's failure arrives as an ApiError with
 // a `code`; each form turns it into one problem, naming the field it belongs under. Pure, so the copy is testable.
 import { MIN_PASSWORD_LENGTH, passwordLength } from '@/lib/auth/password-policy';
 import { parsePayeeEmail } from '@/lib/domain/payee';

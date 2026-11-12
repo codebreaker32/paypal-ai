@@ -1,4 +1,4 @@
-// Counter card (spec §4, §10a): a 5 × 7 in card for the counter. Its QR code opens the shop page, which carries the
+// Counter card: a 5 × 7 in card for the counter. Its QR code opens the shop page, which carries the
 // agent door; the door's address is printed small for anyone setting up an assistant by hand. Owner only, outside the
 // dashboard's tabs; printing shows the card alone (globals.css, `data-print-alone`). A draft shop has no card yet: its
 // `draft-xxxxxxxx` address is replaced at first publish, so a card printed before then would never open the shop.

@@ -31,7 +31,7 @@ export default async function BrowsePage({ searchParams }: PageProps<'/browse'>)
   const shops = readShops();
   return (
     <>
-      {/* For agents (spec §10a): every shop here with its page and agent door, like /agents.txt. */}
+      {/* For agents: every shop here with its page and agent door, like /agents.txt. */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(browseJsonLd(shops, getConfig().appUrl)) }} />
       <section aria-labelledby="browse-title" className="bg-blush">
         <div className="mx-auto w-full max-w-site px-band-gutter pt-band pb-8 lg:pb-10">

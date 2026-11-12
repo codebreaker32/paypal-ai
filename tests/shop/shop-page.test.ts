@@ -1,4 +1,4 @@
-// The public shop page /s/[slug] (spec §10a): what it tells agents in <head>, and whether it says it is taking orders.
+// The public shop page /s/[slug]: what it tells agents in <head>, and whether it says it is taking orders.
 // Both follow one rule, `takesOrders` (live, and it can be paid), the same as the JSON-LD OrderAction, /agents.txt and
 // /llms.txt and the agent door's create_order.
 import { createElement, isValidElement, type ReactElement, type ReactNode } from 'react';

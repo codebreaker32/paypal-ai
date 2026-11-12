@@ -42,7 +42,7 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     expect(again.id).toBe(o.id);
   });
 
-  it("echoes the payee email exactly, even one no PayPal account uses (spec §8a: a typo'd email isn't a mismatch)", async () => {
+  it("echoes the payee email exactly, even one no PayPal account uses (a typo'd email isn't a mismatch)", async () => {
     // An address no PayPal account has: PayPal still creates the order, and later holds the payment (UNILATERAL).
     const nobody = `nobody-shelfie-${Date.now()}@example.com`;
     const o = await client.createOrder({ ...input, orderId: `ord_${randomUUID().slice(0, 8)}`, payeeEmail: nobody }, `test-${randomUUID()}`);
@@ -71,7 +71,7 @@ describe.skipIf(!have)('PayPal sandbox', () => {
     expect((await toolkit.getOrder(orderId)).id).toBe(orderId);
   });
 
-  it('a toolkit holding an expired token gets a real 401, is rebuilt once and the call is retried (R1)', async () => {
+  it('a toolkit holding an expired token gets a real 401, is rebuilt once and the call is retried', async () => {
     const real = () =>
       new PayPalAgentToolkit({
         clientId: process.env.PAYPAL_CLIENT_ID ?? '',

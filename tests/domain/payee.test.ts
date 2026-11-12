@@ -123,7 +123,7 @@ describe('isDemoShop', () => {
 });
 
 describe('canBePaid', () => {
-  // The one rule (spec §8a): a shop is paid into its seller's PayPal account; only the demo shop may have none.
+  // The one rule: a shop is paid into its seller's PayPal account; only the demo shop may have none.
   it.each([
     ['rosa-bakes', 'rosa@example.com', true],
     ['rosa-bakes', null, false],

@@ -1,4 +1,4 @@
-// Review F8: the home chat never opens itself over the hero chain's last steps.
+// The home chat never opens itself over the hero chain's last steps.
 import { describe, expect, it } from 'vitest';
 import { chatMayOpen } from '@/components/landing/hero-chain-signal';
 

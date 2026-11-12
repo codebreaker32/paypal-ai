@@ -1,5 +1,5 @@
 // An account delete can commit while a new shop's photos are being written. Writing recreates the folder the delete
-// removed, and no row points at it afterwards, so the code that wrote the photos has to clean up (SR19).
+// removed, and no row points at it afterwards, so the code that wrote the photos has to clean up.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

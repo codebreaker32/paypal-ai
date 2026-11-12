@@ -1,4 +1,4 @@
-// LABELLED TEST FIXTURES for the Task 8 dashboard e2e and screenshots. Not product data.
+// LABELLED TEST FIXTURES for the dashboard e2e and screenshots. Not product data.
 // Writes a shop and orders in every dashboard state straight into the e2e SQLite file through the repos, so the UI
 // states can be shown without PayPal. PayPal ids here are fake ("E2E…"). The server must use the same
 // DATABASE_PATH (data/e2e.db; playwright.config.ts sets it for both).
@@ -36,7 +36,7 @@ export interface FixtureShop {
   items: Record<string, { id: string; variantId: string; label: string | null; priceCents: number; paypalProductId: string | null }>;
 }
 
-/** The fixture seller's PayPal email: every shop but the demo shop is paid into its seller's own account (spec §8a). */
+/** The fixture seller's PayPal email: every shop but the demo shop is paid into its seller's own account. */
 export const FIXTURE_PAYEE = 'rosa@example.com';
 
 /** A published bakery with a realistic menu (test fixture), paid to `payeeEmail` (default FIXTURE_PAYEE). */
@@ -112,7 +112,7 @@ let seq = 0;
 /** One order in the given state, with the events that would have led there (test fixture). */
 export function addFixtureOrder(f: FixtureShop, spec: OrderSpec): Order {
   const payeeEmail = spec.payeeEmail === undefined ? f.shop.payeeEmail : spec.payeeEmail;
-  // A seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform, spec §8a).
+  // A seller-paid order's tracker stays in Shelfie (PayPal refuses it from the platform).
   const atPayPal = payeeEmail === null;
   const lines: OrderLine[] = spec.lines.map(([name, qty]) => {
     const it = f.items[name];

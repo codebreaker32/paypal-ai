@@ -72,7 +72,7 @@ describe('extractMenu', () => {
   });
 });
 
-describe('extractMenu time budget (R12)', () => {
+describe('extractMenu time budget', () => {
   // The real SDK client with a fetch that never answers: every SDK retry and the re-prompt
   // together must give up before the setup page calls the reading dead (READING_STALE_MS).
   // Otherwise "Try again" starts a second paid reading while the first is still running.

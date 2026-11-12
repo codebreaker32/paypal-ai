@@ -35,7 +35,7 @@ export interface CreateShopInput {
   accountId?: string | null;
 }
 
-/** Whether `slug` is used by a shop other than `exceptId`, or belonged to a deleted shop (SR19). */
+/** Whether `slug` is used by a shop other than `exceptId`, or belonged to a deleted shop. */
 export function slugTaken(db: Db, slug: string, exceptId: string | null = null): boolean {
   return (
     db.prepare('SELECT 1 FROM shops WHERE slug = ? AND id IS NOT ?').get(slug, exceptId) !== undefined ||
@@ -124,7 +124,7 @@ export function setSlug(db: Db, id: string, name: string): Shop {
   return byId(db, id)!;
 }
 
-/** Deletes the shop (its items, orders and the rest cascade) and retires its slug for good (SR19). Run inside the caller's transaction. */
+/** Deletes the shop (its items, orders and the rest cascade) and retires its slug for good. Run inside the caller's transaction. */
 export function deleteAndRetireSlug(db: Db, shop: Pick<Shop, 'id' | 'slug'>): void {
   db.prepare('INSERT OR IGNORE INTO retired_slugs (slug, retired_at) VALUES (?, ?)').run(shop.slug, now());
   db.prepare('DELETE FROM shops WHERE id = ?').run(shop.id);

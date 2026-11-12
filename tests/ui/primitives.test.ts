@@ -95,7 +95,7 @@ describe('PayPalLink', () => {
   });
 });
 
-describe('copyAndReport (acceptance 10)', () => {
+describe('copyAndReport', () => {
   it('reports success quietly: no toast', async () => {
     const toast = vi.fn();
     expect(await copyAndReport('abc', toast, async () => {})).toBe(true);
@@ -155,7 +155,7 @@ describe('CopyButton', () => {
   });
 });
 
-describe('Switch (acceptance 11)', () => {
+describe('Switch', () => {
   const render = (props: Partial<ComponentProps<typeof Switch>> = {}) =>
     renderToStaticMarkup(createElement(Switch, { checked: false, onChange: () => {}, label: 'Pause agent orders', ...props }));
 

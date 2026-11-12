@@ -1,4 +1,4 @@
-// /shops/[id]/setup: Reading → Review → Publishing → Live on one route (spec §4, Setup row).
+// /shops/[id]/setup: Reading → Review → Publishing → Live on one route.
 // The step comes from the database on every request, so a refresh always lands on the right one.
 import type { Metadata } from 'next';
 import { AppShell } from '@/components/app/AppShell';

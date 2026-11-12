@@ -1,4 +1,4 @@
-// The shop page's cart, as pure functions. A line is only `{itemId, optionId, qty}` (SR30): every name and price is
+// The shop page's cart, as pure functions. A line is only `{itemId, optionId, qty}`: every name and price is
 // joined from the server-rendered menu, and every total here is for display. The server prices the order.
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemPicture } from '@/lib/domain/category';
@@ -229,7 +229,7 @@ export interface RequestId {
   fingerprint: string;
 }
 
-/** A new id whenever the lines, the fulfilment or the note change (SR27): a request id means exactly one order. */
+/** A new id whenever the lines, the fulfilment or the note change: a request id means exactly one order. */
 export function requestIdFor(current: RequestId | null, input: CheckoutInput, makeId: () => string = newRequestId): RequestId {
   const fingerprint = JSON.stringify([input.lines, input.fulfillment, input.note.trim()]);
   return current?.fingerprint === fingerprint ? current : { id: makeId(), fingerprint };

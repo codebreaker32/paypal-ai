@@ -1,5 +1,5 @@
 // The three sample menus a visitor can try from the Start page, with a recorded real reading of
-// each (claude-sonnet-5-5 output, recorded by scripts/record-samples.ts). Run 3 added each item's
+// each (claude-sonnet-5-5 output, recorded by scripts/record-samples.ts). A later pass added each item's
 // `category` (its drawing) from a live pass with the current prompt; every other field is the
 // earlier recording's, so names, prices and the e2e counts did not move. The recording is used
 // only when no ANTHROPIC_API_KEY is set (or SHELFIE_RECORDED_SAMPLES=1); with a key, samples are

@@ -1,4 +1,4 @@
-// Seller dashboard and order detail (Task 8). Data comes from labelled test fixtures written straight to
+// Seller dashboard and order detail. Data comes from labelled test fixtures written straight to
 // data/e2e.db (see e2e/task8-fixtures.ts). The PATCH routes (pause, sold out) are mocked here.
 // Screenshots of these screens come from e2e/screenshots.spec.ts.
 //
@@ -361,7 +361,7 @@ test.describe('dashboard', () => {
     const form = page.locator('#tracking');
     await expect(form).toBeVisible();
 
-    // 56 px top bar (scroll-padding-top, WP4) + the section's 16 px scroll margin: the form stops clear of the bar.
+    // 56 px top bar (scroll-padding-top) + the section's 16 px scroll margin: the form stops clear of the bar.
     await expect.poll(() => form.evaluate((el) => Math.round(el.getBoundingClientRect().top))).toBe(72);
     expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
   });
@@ -448,7 +448,7 @@ test.describe('order detail', () => {
   });
 
   test('fulfilled shipping order shows its tracking', async ({ page }) => {
-    // Paid into the seller's own PayPal account: the tracker was saved in Shelfie, not sent to PayPal (spec §8a).
+    // Paid into the seller's own PayPal account: the tracker was saved in Shelfie, not sent to PayPal.
     await page.goto(detail(full, orders.shipped.id));
     const action = page.locator('section[aria-labelledby="action-title"]');
     await expect(action.getByRole('heading', { name: 'Shipped' })).toBeVisible();

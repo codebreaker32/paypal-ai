@@ -1,4 +1,4 @@
-// The receipt's "Paid to" line (spec §4 Receipt, §8a): the seller's own PayPal account, masked, or Shelfie's demo account.
+// The receipt's "Paid to" line: the seller's own PayPal account, masked, or Shelfie's demo account.
 // While PayPal still holds the payment it says where the money is going instead, never "Paid to".
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createTestDb, type Db } from '@/lib/db';

@@ -1,10 +1,10 @@
 // The assistant's three surfaces: where the box sits at each width, at every scroll position and with any amount of
-// conversation (spec 2026-11-08 production pass, WP2 acceptance). The console's stream is replayed from a recorded run,
+// conversation. The console's stream is replayed from a recorded run,
 // so no Claude or PayPal calls happen here.
 //
 // Run: E2E_PORT=3211 npx playwright test e2e/assistant-layout.spec.ts
-// Titles carry the brief's acceptance numbers: `--grep "A6"` runs the tests for item 6. Items 9 and 16 fake the visual
-// viewport and the stream, as the brief allows; everything else is measured in the browser.
+// Titles carry check numbers: `--grep "A6"` runs the tests for check 6. Checks 9 and 16 fake the visual
+// viewport and the stream; everything else is measured in the browser.
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -152,7 +152,7 @@ test.describe('docked from 1024 px', () => {
         await expectDocked(page);
       }
       await page.evaluate(() => window.scrollTo(0, 0));
-      // The dock's top row is its Assistant / Your order switch (run 14): that row lines up with the site header.
+      // The dock's top row is its Assistant / Your order switch: that row lines up with the site header.
       const panelHeader = await box(page.locator('[data-assistant-dock] [data-dock-switch]'));
       const siteHeader = await box(page.locator('header').first());
       expect(Math.abs(panelHeader.y + panelHeader.height - (siteHeader.y + siteHeader.height))).toBeLessThanOrEqual(1);
@@ -940,7 +940,7 @@ test.describe('A18: reduced motion, measured the moment each surface opens', () 
   });
 });
 
-// Review round 1: history, focus and the first look at the page.
+// History, focus and the first look at the page.
 test.describe('the URL and the assistant agree after leaving and coming back', () => {
   const close = (page: Page) => page.getByRole('button', { name: 'Close the assistant' }).click();
   const hasParam = (page: Page) => new URL(page.url()).searchParams.has('assistant');
@@ -1125,7 +1125,7 @@ test.describe('opening the dock at the top of the page', () => {
       await expect(page.locator('[data-assistant-dock]')).toBeVisible();
       await page.evaluate(() => new Promise(requestAnimationFrame));
       expect(await page.evaluate(() => window.scrollY)).toBe(0);
-      // The dock's top row is its Assistant / Your order switch (run 14): that row lines up with the site header.
+      // The dock's top row is its Assistant / Your order switch: that row lines up with the site header.
       const panelHeader = await box(page.locator('[data-assistant-dock] [data-dock-switch]'));
       const siteHeader = await box(page.locator('header').first());
       expect(Math.abs(panelHeader.y + panelHeader.height - (siteHeader.y + siteHeader.height))).toBeLessThanOrEqual(1);

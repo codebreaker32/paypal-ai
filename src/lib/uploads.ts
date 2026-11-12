@@ -1,4 +1,4 @@
-// Menu photos on disk (spec §5). Every upload is decoded by sharp, turned upright from its EXIF
+// Menu photos on disk. Every upload is decoded by sharp, turned upright from its EXIF
 // orientation, shrunk to at most 1600 px on the long edge and re-encoded as JPEG q85, so what we
 // store and send to Claude is always a small, clean JPEG. The MIME type a browser sends is never
 // trusted: if sharp can't decode the bytes as a photo, it is BAD_IMAGE. Item photos and shop covers

@@ -24,7 +24,7 @@ function BuyerNote({ note }: { note: string }) {
   );
 }
 
-/** The AI brief (spec §4 Order detail): generating / ready / fallback (labelled). Server-safe. */
+/** The AI brief: generating / ready / fallback (labelled). Server-safe. */
 export function BriefCard({ order, className }: { order: Order; className?: string }) {
   const paid = order.status === 'paid' || order.status === 'fulfilled';
   const brief = order.brief;

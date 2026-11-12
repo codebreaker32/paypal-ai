@@ -88,7 +88,7 @@ describe('seller view helpers', () => {
     expect(pickup[0].text).toBe('Marked picked up');
   });
 
-  it('says plainly when PayPal refused the capture: nothing charged, do not hand over or ship (R3)', () => {
+  it('says plainly when PayPal refused the capture: nothing charged, do not hand over or ship', () => {
     const ev = (type: string, detail: unknown = null): OrderEventRow => ({
       id: `evt_${type}`, orderId: base.id, type, source: 'return_url', detail, createdAt: '2026-11-06T18:00:00.000Z',
     });
@@ -115,7 +115,7 @@ describe('seller view helpers', () => {
     expect(actionWords(o({ status: 'approved' }))[1]).toMatch(/few seconds/);
   });
 
-  describe("an order paid into the seller's own PayPal account (spec §8a)", () => {
+  describe("an order paid into the seller's own PayPal account", () => {
     const ev = (type: string, detail: unknown = null, source: OrderEventRow['source'] = 'return_url'): OrderEventRow => ({
       id: `evt_${type}`, orderId: base.id, type, source, detail, createdAt: '2026-11-06T18:00:00.000Z',
     });

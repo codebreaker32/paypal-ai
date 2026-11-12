@@ -1,4 +1,4 @@
-// From 1024 px exactly one order button shows (hero, else compact), and neither while the assistant is docked (spec WP2).
+// From 1024 px exactly one order button shows (hero, else compact), and neither while the assistant is docked.
 import { describe, expect, it } from 'vitest';
 import { orderCtaShown } from '@/components/shop/OrderCta';
 

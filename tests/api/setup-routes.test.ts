@@ -72,7 +72,7 @@ describe('setup routes', () => {
     const created = await createShopFromSample(state.db, 'marigold-bakehouse');
     shopId = created.shop.id;
     state.jar.set(ownerCookieName(shopId), created.ownerToken);
-    // The seller's PayPal email, which publishing needs (spec §8a; refused without it below).
+    // The seller's PayPal email, which publishing needs (refused without it below).
     shops.update(state.db, shopId, { payeeEmail: 'seller@example.com' });
   });
   afterEach(() => {
@@ -150,7 +150,7 @@ describe('setup routes', () => {
     expect(reads).toBe(0);
   });
 
-  it('refuses the 21st live reading from one address in an hour with a 429 and a plain message (R11)', async () => {
+  it('refuses the 21st live reading from one address in an hour with a 429 and a plain message', async () => {
     vi.stubEnv('SHELFIE_TEST', ''); // the e2e and screenshot servers skip this limit
     resetRateLimits();
     onTestFinished(() => {
@@ -171,7 +171,7 @@ describe('setup routes', () => {
     expect(status).toEqual({ status: 'failed', message: body.error.message });
   });
 
-  it('owner JSON routes refuse a chunked body over 64 KB with 413, without buffering it (R13)', async () => {
+  it('owner JSON routes refuse a chunked body over 64 KB with 413, without buffering it', async () => {
     let pulled = 0;
     const body = new ReadableStream<Uint8Array>(
         { pull: (c) => { pulled++; c.enqueue(new Uint8Array(16 * 1024).fill(0x20)); } },

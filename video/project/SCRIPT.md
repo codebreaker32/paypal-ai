@@ -1,6 +1,6 @@
 # Shelfie demo video: script
 
-_Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
+_Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from the demo script in `video/project/demo.json`._
 
 **Runtime 2:47.5** (167.53 s): 144.48 s of narration (356 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 

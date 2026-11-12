@@ -119,7 +119,7 @@ export function countOpen(db: Db, shopId: string, nowIso: string = now()): numbe
   ).n;
 }
 
-/** Orders that block deleting the shop (SR19): money is moving or owed a handover. An awaiting_approval past its expiry doesn't count. */
+/** Orders that block deleting the shop: money is moving or owed a handover. An awaiting_approval past its expiry doesn't count. */
 export function countUnfinished(db: Db, shopId: string, nowIso: string = now()): number {
   return (
     db

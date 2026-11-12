@@ -1,4 +1,4 @@
-// "Snap your counter" (spec §4b, stretch): the seller photographs the display case and Claude finds which menu items
+// "Snap your counter": the seller photographs the display case and Claude finds which menu items
 // are in it, with a box around the best example of each. We crop those boxes into item photos, and the seller picks
 // which to keep: AI drafts, the seller decides. Menu text and the photo are data only; the answer can only name ids
 // from the list and give boxes, so nothing in the photo can do more than mis-box an item.

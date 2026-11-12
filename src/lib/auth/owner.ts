@@ -1,4 +1,4 @@
-// Who owns a shop. An account-owned shop belongs to its account's session and nothing else (SR15). An unattached shop
+// Who owns a shop. An account-owned shop belongs to its account's session and nothing else. An unattached shop
 // (the seed, the test harness) belongs to whoever holds its owner token: one httpOnly cookie per shop holds the raw
 // token and the database stores only its SHA-256 hash.
 import { cookies } from 'next/headers';

@@ -65,7 +65,7 @@ function ProposalActions({
 }
 
 /**
- * "Snap your counter" (spec §4b, stretch): one photo of the display case; Claude proposes a crop for each menu item it
+ * "Snap your counter": one photo of the display case; Claude proposes a crop for each menu item it
  * can see, and the seller keeps (Use) or skips each one. Nothing is stored until Use uploads the crop as the item's photo.
  */
 export function CounterSnap({

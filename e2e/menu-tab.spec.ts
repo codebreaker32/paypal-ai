@@ -1,4 +1,4 @@
-// The dashboard's Menu tab, photo-first (spec §4b): a photo per item (add, replace, remove), the cover, and
+// The dashboard's Menu tab, photo-first: a photo per item (add, replace, remove), the cover, and
 // "Snap your counter" with /api/shops/*/counter mocked (no live Claude in e2e). Sold out today: e2e/dashboard.spec.ts.
 // Run: E2E_PORT=3211 npx playwright test e2e/menu-tab.spec.ts
 import fs from 'node:fs';

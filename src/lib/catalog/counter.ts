@@ -1,4 +1,4 @@
-// "Snap your counter" (spec §4b): the seller photographs the display case, Claude boxes the menu items it can see
+// "Snap your counter": the seller photographs the display case, Claude boxes the menu items it can see
 // (src/lib/ai/counter.ts), and each box becomes a proposed 4:3 item photo (src/lib/photos/crop.ts). Stateless: the
 // proposals go back to the browser as data URLs and nothing is stored; the seller's "Use" uploads a crop through the
 // item-photo route, so every kept photo still passes the one upload path.

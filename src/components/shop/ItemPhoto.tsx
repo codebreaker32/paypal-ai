@@ -31,7 +31,7 @@ export interface ItemPhotoProps {
 
 /**
  * An item's photo (the seller's own, or a crop they kept from "Snap your counter"), else an example photo from the
- * bundled library (Part A3: for people only, labelled as an example where it shows), or its designed fallback: a Shelfie
+ * bundled library (for people only, labelled as an example where it shows), or its designed fallback: a Shelfie
  * drawing of what the item is (a loaf, a croissant, a taco …) on its section's tint, so a menu with no photos still
  * reads as a deliberate, colour-coded grid of pictures rather than grey boxes or letters.
  */

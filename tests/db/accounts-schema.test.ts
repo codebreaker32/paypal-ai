@@ -1,4 +1,4 @@
-// Run 5 schema: accounts, sessions, payee_changes, shops.account_id, and the upgrade path for a database from before them.
+// The accounts schema: accounts, sessions, payee_changes, shops.account_id, and the upgrade path for a database from before them.
 import Database from 'better-sqlite3';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -42,7 +42,7 @@ const FIRST_RELEASE_SHOPS = `CREATE TABLE shops (
 );`;
 
 describe('account tables on a fresh database', () => {
-  it('has the accounts, sessions and payee_changes columns the spec names', () => {
+  it('has the accounts, sessions and payee_changes columns', () => {
     const db = createTestDb();
     expect(columnsOf(db, 'accounts')).toEqual([
       'id', 'email', 'password_hash', 'recovery_hash', 'recovery_saved_at', 'terms_version', 'terms_accepted_at',

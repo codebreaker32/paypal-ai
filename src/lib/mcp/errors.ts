@@ -1,4 +1,4 @@
-// Tool results for the agent door. Errors are `{ error: { code, message, hint, retryable, ...details } }` (spec §10).
+// Tool results for the agent door. Errors are `{ error: { code, message, hint, retryable, ...details } }`.
 //
 // Errors are returned as `isError: true` with the JSON in a text block only, never as structuredContent: the MCP SDK
 // client (1.32) validates structuredContent against the tool's outputSchema even on error results, so an error object

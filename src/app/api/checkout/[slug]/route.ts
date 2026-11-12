@@ -58,7 +58,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ slug: string }
       agentName: STOREFRONT_AGENT_NAME,
       clientRequestId: body.requestId,
       clientKey: ip,
-      // Null, not undefined, so dropping a note on a retried request id counts as a different request (SR27).
+      // Null, not undefined, so dropping a note on a retried request id counts as a different request.
       buyerNote: body.note ?? null,
     });
 

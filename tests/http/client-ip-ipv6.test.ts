@@ -1,4 +1,4 @@
-// SR10: one IPv6 customer holds a whole /64, so a limit keyed on the full address is a limit on nothing.
+// One IPv6 customer holds a whole /64, so a limit keyed on the full address is a limit on nothing.
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { clientIp } from '@/lib/http/client-ip';
 

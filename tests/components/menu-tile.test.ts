@@ -1,4 +1,4 @@
-// The shop page's item tile (addendum section 2): structure, truncation, the tap target and the state table.
+// The shop page's item tile: structure, truncation, the tap target and the state table.
 // `Menu` is rendered alone, so its client islands run on the cart's inert default.
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';

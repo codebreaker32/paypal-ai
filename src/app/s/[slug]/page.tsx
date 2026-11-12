@@ -186,7 +186,7 @@ export default async function ShopPage({ params, searchParams }: PageProps<'/s/[
 
   return (
     <>
-      {/* For agents that read the page itself (spec §10a): React hoists the link into <head>; the JSON-LD is the menu
+      {/* For agents that read the page itself: React hoists the link into <head>; the JSON-LD is the menu
           as schema.org offers. Both name the agent door only while the shop takes orders (live, and it can be paid),
           like /agents.txt and /llms.txt. */}
       {ordersOpen && <link rel="alternate" type="application/json" title="Agent door (MCP)" href={doorUrl} />}

@@ -1,4 +1,4 @@
-// POST /api/shops with accounts (SR17) and the PayPal email change on PATCH /api/shops/[id] (SR18).
+// POST /api/shops with accounts and the PayPal email change on PATCH /api/shops/[id].
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -171,7 +171,7 @@ describe('POST /api/shops', () => {
     });
   });
 
-  it('refuses a cross-site POST before anything happens (SR2)', async () => {
+  it('refuses a cross-site POST before anything happens', async () => {
     let read = false;
     const req = new Request('http://localhost/api/shops', {
       method: 'POST',
@@ -195,7 +195,7 @@ describe('POST /api/shops', () => {
   });
 });
 
-describe('PATCH /api/shops/[id]: the PayPal email (SR18)', () => {
+describe('PATCH /api/shops/[id]: the PayPal email', () => {
   const OLD = 'rosa@paypal.example';
   const NEW = 'thief@paypal.example';
   let accountId: string;
@@ -318,7 +318,7 @@ describe('PATCH /api/shops/[id]: the PayPal email (SR18)', () => {
     expect(email(id)).toBe(OLD);
   });
 
-  it('after 10 wrong passwords is 429, and hashes nothing (SR8, SR11)', async () => {
+  it('after 10 wrong passwords is 429, and hashes nothing', async () => {
     vi.stubEnv('SHELFIE_TEST', '');
     const id = accountShop();
     for (let i = 0; i < 10; i++) {
@@ -349,7 +349,7 @@ describe('PATCH /api/shops/[id]: the PayPal email (SR18)', () => {
     expect(changes(shop.id)).toHaveLength(1);
   });
 
-  it('refuses a cross-site PATCH before anything happens (SR2)', async () => {
+  it('refuses a cross-site PATCH before anything happens', async () => {
     const id = accountShop('draft');
     const res = await PATCH(
       new Request('http://localhost/x', { method: 'PATCH', headers: { origin: 'https://evil.example' }, body: JSON.stringify({ payeeEmail: NEW }) }),

@@ -10,7 +10,7 @@ const EVENTS: OrderEvent[] = [
   'mismatch', 'cancelled', 'expired', 'fulfilled', 'capture_refused',
 ];
 
-// Spec §7, row by row.
+// Every allowed transition, row by row.
 const ALLOWED: [OrderStatus | null, OrderEvent, OrderStatus, ('capture' | 'brief')[]][] = [
   [null, 'created', 'awaiting_approval', []],
   ['awaiting_approval', 'paypal_approved', 'approved', ['capture']],
@@ -19,10 +19,10 @@ const ALLOWED: [OrderStatus | null, OrderEvent, OrderStatus, ('capture' | 'brief
   ['payment_pending', 'capture_completed', 'paid', ['brief']],
   ['payment_pending', 'capture_denied', 'failed', []],
   ['approved', 'capture_declined', 'awaiting_approval', []],
-  // Coordinator ruling (fix round 1): a COMPLETED PayPal order whose capture is DECLINED/FAILED is final.
+  // A COMPLETED PayPal order whose capture is DECLINED/FAILED is final.
   ['approved', 'capture_denied', 'failed', []],
   ['approved', 'mismatch', 'failed', []],
-  // R3: a refused capture is final once PayPal voids/drops the order or its window passes.
+  // A refused capture is final once PayPal voids/drops the order or its window passes.
   ['approved', 'capture_refused', 'failed', []],
   ['awaiting_approval', 'cancelled', 'cancelled', []],
   ['awaiting_approval', 'expired', 'expired', []],

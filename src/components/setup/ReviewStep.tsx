@@ -79,7 +79,7 @@ export function ReviewStep(props: ReviewProps) {
   const [server, setServer] = useState({ items: props.items, shop: props.shop });
   const [synced, setSynced] = useState(0);
   // Whether the shop can be paid as the PayPal email field stands: publishing needs that, with the server's rule
-  // (`canBePaid`: a valid email, or the demo shop, which may leave it empty; spec §8a).
+  // (`canBePaid`: a valid email, or the demo shop, which may leave it empty).
   const [payeeReady, setPayeeReady] = useState(canBePaid(props.shop));
   if (server.items !== props.items || server.shop !== props.shop) {
     setServer({ items: props.items, shop: props.shop });

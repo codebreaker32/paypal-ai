@@ -19,7 +19,7 @@ function layers(html: string) {
 const shape = (html: string) => layers(html).map((l) => l.layer);
 const opening = (html: string) => /<button[^>]*>/.exec(html)![0];
 
-describe('Button states (acceptance 4)', () => {
+describe('Button states', () => {
   it('stacks the same three layers, in one grid cell, in every status', () => {
     const idle = render();
     expect(shape(idle)).toEqual(['idle', 'loading', 'success']);

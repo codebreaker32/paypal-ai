@@ -20,7 +20,7 @@ export interface SeedOpts {
   orderCapCents?: number;
   /**
    * The seller's PayPal email. Default: none for the demo shop (the default name gets the reserved `marigold-bakehouse`
-   * slug, which is paid to the platform account, spec §8a) and `seller@example.com` for any other shop, as a real one needs.
+   * slug, which is paid to the platform account) and `seller@example.com` for any other shop, as a real one needs.
    */
   payeeEmail?: string | null;
 }

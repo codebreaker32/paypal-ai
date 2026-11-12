@@ -67,7 +67,7 @@
   --tile-lilac-bg: #eee9fb;
   --tile-lilac-ink: #4b3091;
 
-  /* ── Illustrations (run 3, Task 2): the 12 item drawings in public/illustrations.svg, drawn on the tile tints.
+  /* ── Illustrations: the 12 item drawings in public/illustrations.svg, drawn on the tile tints.
      One ink outline, two or three of these flat fills each, one pomegranate detail. Read only by that sprite. ── */
   --ill-ink: #1d1a1c;
   --ill-dough: #fff4e0;

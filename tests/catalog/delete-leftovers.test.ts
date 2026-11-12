@@ -1,4 +1,4 @@
-// What a delete promises (SR19, "photos ... are deleted"): no upload may outlive its row, whichever way the row went.
+// What a delete promises ("photos ... are deleted"): no upload may outlive its row, whichever way the row went.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';

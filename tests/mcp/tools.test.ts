@@ -126,7 +126,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
       currency: 'USD',
       limits: { max_qty_per_line: 20, max_lines: 15, max_order: '500.00' },
       how_ordering_works: expect.stringContaining('approval_url'),
-      // The demo shop with no PayPal email (spec §8a).
+      // The demo shop with no PayPal email.
       payments: "Paid to Shelfie's own PayPal account, which collects for this shop.",
     });
   });
@@ -334,7 +334,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(fail(await call(late, 'create_order', defaultOrder()))).toMatchObject({ code: 'TOO_MANY_OPEN_ORDERS', max_open_orders: 10 });
   });
 
-  it('caps unpaid orders per caller, so one IP cannot block the shop for other buyers (R7)', async () => {
+  it('caps unpaid orders per caller, so one IP cannot block the shop for other buyers', async () => {
     const client = await connect();
     for (let i = 0; i < 3; i++) ok('create_order', await call(client, 'create_order', defaultOrder()));
     expect(fail(await call(client, 'create_order', defaultOrder()))).toMatchObject({ code: 'TOO_MANY_OPEN_ORDERS', max_open_orders_per_client: 3 });
@@ -399,7 +399,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(gets()).toBe(2);
   });
 
-  it('get_order_status shares one PayPal sync between concurrent calls for an order (R8)', async () => {
+  it('get_order_status shares one PayPal sync between concurrent calls for an order', async () => {
     const client = await connect();
     const { order_ref } = ok<{ order_ref: string }>('create_order', await call(client, 'create_order', defaultOrder()));
     const realGet = fake.getOrder.bind(fake);

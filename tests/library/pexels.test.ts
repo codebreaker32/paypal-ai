@@ -1,4 +1,4 @@
-// Part A3, optional: with PEXELS_API_KEY set, items with no photo and no pick get a live Pexels match, cached in
+// Optional: with PEXELS_API_KEY set, items with no photo and no pick get a live Pexels match, cached in
 // library_cache and stored as `pexels:<id>`. Here the network is a fake fetch: nothing leaves the machine.
 import fs from 'node:fs';
 import os from 'node:os';

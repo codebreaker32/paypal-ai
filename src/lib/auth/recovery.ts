@@ -25,7 +25,7 @@ export const hashRecoveryKey = (key: string): string => hashToken(normalizeRecov
 export type RedeemResult = { ok: true; account: accounts.Account; recoveryKey: string } | { ok: false };
 
 /**
- * SR12. Hashes the new password first, always, so an unknown email costs the same as a known one. The swap itself is
+ * Hashes the new password first, always, so an unknown email costs the same as a known one. The swap itself is
  * one transaction guarded by the old key's hash (`accounts.recoverAccount`), so two concurrent uses cannot both win.
  * `email` is normalised (by `parsePayeeEmail`); the password must already have passed `checkNewPassword`.
  * Throws HashBusyError when the hash gate is full.

@@ -1,4 +1,4 @@
-// SR1: no proxy or middleware stands in front of uploads. A proxy once cut a 14 MB upload to 10 MB, so this sends one
+// No proxy or middleware stands in front of uploads. A proxy once cut a 14 MB upload to 10 MB, so this sends one
 // through a real server: a truncated multipart body has no closing boundary and would fail to parse (400 NO_PHOTOS).
 import { expect, test } from '@playwright/test';
 import sharp from 'sharp';

@@ -1,4 +1,4 @@
-// Order errors with stable codes. The agent door turns these into tool errors (spec §10).
+// Order errors with stable codes. The agent door turns these into tool errors.
 
 export type OrderErrorCode =
   | 'INVALID_ARGUMENTS'

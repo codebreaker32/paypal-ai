@@ -1,6 +1,6 @@
 // npm run clips [-- --only 03,06] [--base-url http://localhost:3251] [--display :97] [--port 3251] [--build]
 //
-// Records the raw screen clips for the demo video, one MP4 per shot of docs/DEMO.md, into video/clips/ (1920x1080,
+// Records the raw screen clips for the demo video, one MP4 per scene of video/project/demo.json, into video/clips/ (1920x1080,
 // constant 30 fps, H.264). No narration, music or editing: a person cuts the video from these. video/clips/README.md
 // lists the clips and what each shows.
 //
@@ -442,7 +442,7 @@ async function sceneHome(display: Display, app: App): Promise<void> {
       await panel.waitFor({ state: 'visible', timeout: 15_000 });
       await settled(panel);
       await hold(2500); // the greeting and the starter chips
-      // Run 18: a starter chip asked (a live turn), so the chat's item cards (photo, name, price) show.
+      // A starter chip asked (a live turn), so the chat's item cards (photo, name, price) show.
       const chip = panel.locator('ul[aria-label="Try asking"] button').first();
       await press(chip, 600);
       await panel.getByRole('button', { name: 'Start over' }).waitFor({ state: 'visible', timeout: 120_000 });
@@ -492,7 +492,7 @@ async function sceneDoor(display: Display, app: App): Promise<void> {
 const CART_ITEMS = ['Butter croissant', 'Almond croissant', 'Cardamom bun'];
 
 /**
- * Run 18: Browse shops first (the six seeded shops; recorded before 02/03 add a second Marigold), the demo shop's card
+ * Browse shops first (the six seeded shops; recorded before 02/03 add a second Marigold), the demo shop's card
  * → its page with the assistant docked → + on three items (each answered by the "{Item} added" toast and the switch's
  * count) → the switch's **Your order** tab: lines, total, Approve on PayPal (hovered, never pressed) → **Assistant** and
  * back, so both sides of the switch show.
@@ -842,7 +842,7 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
       await hold(1000);
       await sayToConsole(CONSOLE_ASK);
       await hold(3000); // the friendly steps ("Checked the menu") and the read-back, with the $8 shipping
-      // Run 18: the steps' quiet Details view (the agent-door calls), opened for a moment and closed again.
+      // The steps' quiet Details view (the agent-door calls), opened for a moment and closed again.
       const details = region.locator('[data-activity] > button[aria-expanded]').last();
       if (await details.count()) {
         await bring(details, 'center', 300);

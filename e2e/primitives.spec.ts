@@ -1,4 +1,4 @@
-// Button states, Copy and Switch against the real dashboard (production-pass WP1, acceptance 9, 10 and 11).
+// Button states, Copy and Switch against the real dashboard.
 // Fixture data is written straight to data/e2e.db (see e2e/task8-fixtures.ts); only the routes under test are mocked.
 //
 // Run: E2E_PORT=3201 npx playwright test e2e/primitives.spec.ts

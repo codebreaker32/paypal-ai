@@ -25,7 +25,7 @@ export function buildOrderBody(input: CreatePayPalOrderInput): object {
           ...(i.sku !== null ? { sku: i.sku } : {}),
           ...(i.kind === 'PHYSICAL' ? { category: 'PHYSICAL_GOODS' } : {}),
         })),
-        // PayPal pays the seller's own account; the platform app still creates and captures the order (spec §8a).
+        // PayPal pays the seller's own account; the platform app still creates and captures the order.
         ...(input.payeeEmail !== null ? { payee: { email_address: input.payeeEmail } } : {}),
       },
     ],

@@ -1,4 +1,4 @@
-// Static checks over every route handler and seller page (SR2, SR16): the rules that must hold for code not yet written.
+// Static checks over every route handler and seller page: the rules that must hold for code not yet written.
 import fs from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
@@ -204,7 +204,7 @@ function startsWithOriginCheck(fn: Fn, sourceFile: ts.SourceFile): boolean {
   );
 }
 
-describe('SR2: assertSameOrigin is the first statement of every state-changing API handler', () => {
+describe('assertSameOrigin is the first statement of every state-changing API handler', () => {
   const handlers = routeFiles.flatMap((f) => handlersIn(f, WRITE_METHODS));
 
   it('finds the handlers (the route tree has not moved)', () => {
@@ -242,7 +242,7 @@ function containsCall(fn: Fn, names: string[]): boolean {
   return found;
 }
 
-describe('SR16: every owner surface checks the owner', () => {
+describe('every owner surface checks the owner', () => {
   const API_SHOP = path.join(APP, 'api/shops/[id]');
   const shopRoutes = filesUnder(API_SHOP, (n) => n === 'route.ts' || n === 'route.tsx');
   const handlers = shopRoutes.flatMap((f) => handlersIn(f, ALL_METHODS));

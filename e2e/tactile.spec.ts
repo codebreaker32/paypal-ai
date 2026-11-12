@@ -1,4 +1,4 @@
-// Press, loading and response against the real app (production-pass WP1, acceptance 5 to 14).
+// Press, loading and response against the real app.
 // Fixture data goes straight to data/e2e.db (see e2e/task8-fixtures.ts); only the routes under test are held or mocked.
 //
 // Timing is measured inside the page (a requestAnimationFrame sampler and a MutationObserver): a Playwright round trip
