@@ -2,6 +2,33 @@
   "name": "shelfie",
   "version": "0.1.0",
   "private": true,
+  "description": "Snap a photo of your price list; Shelfie turns it into a PayPal-backed shop any AI assistant can order from.",
+  "keywords": [
+    "paypal",
+    "ai",
+    "claude",
+    "anthropic",
+    "mcp",
+    "model-context-protocol",
+    "agentic-commerce",
+    "ai-agents",
+    "nextjs",
+    "small-business",
+    "menu",
+    "sqlite"
+  ],
+  "homepage": "https://github.com/codebreaker32/paypal-ai#readme",
+  "bugs": {
+    "url": "https://github.com/codebreaker32/paypal-ai/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codebreaker32/paypal-ai.git"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -52,10 +79,5 @@
     "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^5.1.0"
-  },
-  "description": "Snap a photo of your price list; Shelfie turns it into a PayPal-backed shop any AI assistant can order from.",
-  "license": "MIT",
-  "engines": {
-    "node": ">=22"
   }
 }

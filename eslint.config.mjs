@@ -11,6 +11,12 @@ const eslintConfig = defineConfig([
     ".claude/**",
     ".superpowers/**",
     "public/samples/**",
+    // Generated test and local output.
+    "test-results/**",
+    "playwright-report/**",
+    "artifacts/**",
+    "data/**",
+    "coverage/**",
     // The demo video is its own package (video/remotion, Remotion + JSX) with its own tooling.
     "video/**",
     // Default ignores of eslint-config-next:
