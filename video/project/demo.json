@@ -278,17 +278,17 @@
         {
           "atSec": 3.0,
           "shot": "screen",
-          "videoStartSec": 16.5
+          "videoStartSec": 18.0
         },
         {
           "atSec": 5.5,
           "shot": "screen",
-          "videoStartSec": 43.5
+          "videoStartSec": 36.0
         },
         {
           "atSec": 8.0,
           "shot": "screen",
-          "videoStartSec": 56.5
+          "videoStartSec": 47.9
         }
       ]
     },
