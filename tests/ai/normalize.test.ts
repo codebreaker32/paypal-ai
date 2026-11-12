@@ -662,7 +662,8 @@ describe('menus in another currency', () => {
     expect(c.nonUsd).toBe(true);
   });
   it('a stored reading from before the currency field still parses, as US dollars', () => {
-    const { currency: _drop, ...old } = raw({ name: 'Loaf' });
+    const old: Partial<MenuExtraction> = raw({ name: 'Loaf' });
+    delete old.currency;
     const parsed = parseStoredReading(old);
     expect(parsed.success && parsed.data.currency).toBeNull();
   });
