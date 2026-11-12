@@ -1,264 +1,326 @@
-# Shelfie
+<div align="center">
 
-<img src="public/brand/lockup.svg" alt="Shelfie" width="240">
+<img src="public/brand/lockup.svg" alt="Shelfie" width="260">
 
-**Shelfie is for sellers with a paper menu and no website: one photo of the price list, and AI shoppers can order from them and pay with PayPal, straight into the seller's own account.**
+**Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop that any AI assistant can order from.**
 
-Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop with an "agent door": a special address any AI assistant can use to read your menu and order, with the buyer approving payment on PayPal.
+[![License: MIT](https://img.shields.io/badge/License-MIT-c21a4b.svg)](LICENSE)
+[![CI](https://github.com/codebreaker32/paypal-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/codebreaker32/paypal-ai/actions/workflows/ci.yml)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![PayPal Sandbox](https://img.shields.io/badge/PayPal-Sandbox-003087?logo=paypal&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude-claude--sonnet--5--5-D97757?logo=anthropic&logoColor=white)
 
-Built for the PayPal AI Hackathon. PayPal **sandbox** only. Licensed MIT ([LICENSE](LICENSE)).
+**[Watch the demo (under 3 minutes)](https://youtu.be/REPLACE_ME)**
 
-| The shop a photo becomes (laptop) | On a buyer's phone |
-|---|---|
-| <img src="docs/images/shop-desktop.webp" alt="Marigold Bakehouse's shop page: a cover photo, the shop's name and hours, and photo tiles for each item with prices" width="600"> | <img src="docs/images/shop-phone.webp" alt="The same shop on a phone: item rows with thumbnails and a sticky Order with an assistant bar" width="200"> |
-| **An AI assistant orders through the agent door** | **The seller's orders, with Claude's brief** |
-| <img src="docs/images/assistant-order.webp" alt="The buyer console: Claude placed the order through the shop's agent door and shows an Approve $27.00 on PayPal button" width="420"> | <img src="docs/images/dashboard-orders.webp" alt="The seller dashboard's order list: thumbnails, status filters, paid totals and an AI brief flagging a nut allergy" width="420"> |
+</div>
 
-Screenshots from a production build with the seeded demo shop (every screen: [`docs/judge/screenshots/round-12/`](docs/judge/screenshots/round-12/)).
+Built for the PayPal AI Hackathon. PayPal **sandbox** only.
 
-## The problem
+| Landing page | Browse shops | A shop with its cart open |
+|---|---|---|
+| <img src="docs/images/home.webp" alt="Shelfie's landing page: the headline Your price list, open to AI shoppers, and the four steps from snapping a menu to getting paid on PayPal" width="300"> | <img src="docs/images/browse.webp" alt="Browse shops: a search box, category chips and cards for the seeded shops" width="300"> | <img src="docs/images/shop-cart.webp" alt="Marigold Bakehouse's shop page with the Your order panel open: two sourdough loaves and a seeded rye, pickup or shipping, and an Approve $28.50 on PayPal button" width="300"> |
+| **An AI assistant places an order** | **The seller's dashboard** | **On a phone** |
+| <img src="docs/images/assistant-order.webp" alt="The Order with an assistant console after Claude placed an order through the shop's agent door, with an Approve $28.50 on PayPal button" width="300"> | <img src="docs/images/dashboard.webp" alt="The seller dashboard's Orders: a paid order to prepare with its AI brief and a Mark picked up button, and an order waiting for payment" width="300"> | <img src="docs/images/shop-phone.webp" alt="The shop page on a phone: cover photo, menu tabs, item tiles and an Order with an assistant button pinned at the bottom" width="160"> |
 
-PayPal's agent-commerce tools start from an existing store. Agent Ready is for "existing PayPal merchants", and its agent checkout "is limited to Store Sync customers today", for merchants "using their existing website storefronts" ([sources](docs/EVIDENCE.md)). A home baker, food truck, market stall or repair shop with a chalkboard and no website is invisible to AI shopping assistants. In the US Census data we cite, 47% of accommodation and food-service employer firms reported having no website (data year 2016).
+## Contents
 
-Shelfie is for those sellers. Photograph the price list, and about 8 to 14 seconds of machine time later (measured, see [docs/EVIDENCE.md](docs/EVIDENCE.md)) the shop is live: its items are products in a PayPal catalog, and it has its own MCP endpoint that Claude Code or any MCP client can order through.
+- [Why Shelfie](#why-shelfie)
+- [Features](#features)
+- [How it works](#how-it-works)
+- [Architecture](#architecture)
+- [Tech stack](#tech-stack)
+- [Quick start](#quick-start)
+- [Try it](#try-it)
+- [Connect an AI assistant](#connect-an-ai-assistant)
+- [Testing](#testing)
+- [Project structure](#project-structure)
+- [AI tools used](#ai-tools-used)
+- [PayPal APIs used](#paypal-apis-used)
+- [Deployment](#deployment)
+- [Limitations and roadmap](#limitations-and-roadmap)
+- [Contributing and security](#contributing-and-security)
+- [Credits and license](#credits-and-license)
 
-## How it works
+## Why Shelfie
 
-1. **Snap.** The seller photographs a paper, chalkboard or whiteboard price list (1 to 4 photos), or tries a sample menu.
-2. **Claude reads it.** `claude-sonnet-5-5` (vision, structured output) returns items, sizes and prices. Anything unclear (crossed-out price, "2 for $7", "market price", blur) is flagged for a one-tap fix. Unresolved items stay off the shop.
-3. **Publish to PayPal.** Each item becomes a product through the PayPal **Catalog Products API**. The seller also types **Your PayPal email**: every order names it as the PayPal `payee`, so buyers pay straight into the seller's own account.
-4. **The agent door opens.** `POST /s/<slug>/mcp` speaks MCP (Streamable HTTP). Prices come only from the shop; an agent cannot send one.
-5. **An agent orders.** `create_order` builds a **PayPal Orders v2** order from the shop's own data and returns the approval link. The human approves on PayPal (a PayPal login, or a guest card for the demo shop), and Shelfie **captures** the payment into the seller's account. Confirmation arrives by the return URL, a **webhook** (deployed only) or a 15 s poller.
-6. **AI brief.** For each paid order a Claude agent reads PayPal's own record through the **PayPal Agent Toolkit** (`get_order`, `get_shipment_tracking`) and writes the seller a short prep brief.
-7. **Tracking.** The seller adds a carrier and tracking number. For an order paid to Shelfie's own account (the demo shop), Shelfie sends it to PayPal with the Agent Toolkit's `create_shipment_tracking`. PayPal only lets the account that was paid add tracking (verified), so for an order paid into the seller's own account Shelfie saves it for the buyer's assistant and tells the seller to add it to the payment in their PayPal account too.
-8. **Read back.** The buyer's assistant calls `get_order_status` and sees the tracking number.
+A home baker, a food truck, a market stall or a bike repair shop often has a chalkboard or a paper menu and no website. People are starting to shop through AI assistants, and an assistant can't order from a chalkboard: these sellers stay invisible to it. In the US Census data we cite, 47% of accommodation and food-service employer firms reported having no website (data year 2016; see [docs/EVIDENCE.md](docs/EVIDENCE.md)).
 
-The in-app **buyer console** ("Order with an assistant") is a Claude agent that is an MCP client of the shop's own agent door over real HTTP, so you can try everything without any external AI setup. Details: [docs/AI_TOOLS.md](docs/AI_TOOLS.md). A buyer who would rather not talk to an assistant uses the shop page's **cart**, which creates the same PayPal order from the shop's own prices.
+Shelfie gives them a way in. The seller photographs the price list, and about 8 to 14 seconds of machine time later (measured, see [docs/EVIDENCE.md](docs/EVIDENCE.md)) the shop is live: its items are products in a PayPal catalog, it has a shop page with a cart, and it has its own MCP endpoint (the "agent door") that Claude Code or any MCP client can order through. Buyers pay on PayPal, straight into the seller's own PayPal account.
 
 ## Features
 
-**Seller**
-- Photo to draft menu, with review flags (missing price, market price, check, duplicate) resolved in one tap
-- Publish to the PayPal catalog, with progress
-- A photo per item and a cover photo, added while reviewing or on the **Menu** tab (an item without one shows a real *example* photo from a bundled, Pexels-licensed library that Claude picks while reading the menu, labelled "Example photo, replace with yours" for the seller and "Example photo" on tap for buyers, and never sent to agents as the product; a drawing only when nothing fits); **Snap your counter**: one photo of the display case, and Claude proposes a photo for each menu item it finds, which you keep or skip
-- Paid into your own PayPal account: **Your PayPal email** during setup (Publish waits for it) or in the **Settings** tab; each order keeps the email it was created with
-- A shop page and an agent door per shop, findable by assistants: a printable counter card with a QR code, schema.org JSON-LD, `/agents.txt` and `/llms.txt` ([how](#how-assistants-find-a-shop))
-- Dashboard: a compact order list with thumbnails and status filters, order detail, an AI brief per paid order (a labelled template if Claude is unavailable)
-- Add tracking (sent to PayPal for orders paid to the platform's demo account; saved in Shelfie for orders paid to the seller, because PayPal accepts tracking only from the account that was paid); mark items sold out for today; pause agent orders
-- A real account: sign up with an email and a password of 15 or more characters, and run up to 25 shops from one login (**Your shops**, **Add a shop**, **Account**). Shelfie sends no email yet, so a one-time recovery key, shown once at sign-up, resets a forgotten password
-- A seller app with a sidebar on a laptop and a tab bar on a phone (Orders · Menu · Share · Settings), and **Sound and vibration** in Settings
-- Installable on a phone (a PWA: manifest, icons, iOS meta), with no offline cache of order, payment or dashboard pages
+**For sellers**
+- Photo to draft menu: Claude reads 1 to 4 photos of a paper, chalkboard or whiteboard price list. Anything unclear (missing price, market price, "2 for $7", duplicates) is flagged for a one-tap fix.
+- Publish to the PayPal catalog with progress; buyers pay into **your own PayPal account** (your PayPal email goes on every order as the payee).
+- Item and cover photos. An item without one shows an example photo from a bundled, Pexels-licensed library (labelled as an example), or a drawing when nothing fits. **Snap your counter**: one photo of the display case, and Claude proposes a cropped photo for each menu item it finds.
+- Dashboard: order list with status filters, order detail, an AI brief for each paid order, add tracking, mark items sold out, pause agent orders.
+- A printable counter card with a QR code, so regulars can find the shop and its agent door.
+- Accounts with email and password, up to 25 shops per login, a one-time recovery key (no email is sent).
+- Installable on a phone (PWA), with sound and vibration feedback you can switch off.
 
-**Buyer or agent**
-- A cart on the shop page: a tile opens the item's sheet (options, quantity, the full description), and `+` adds a single-option item straight away. **Approve $… on PayPal** goes to PayPal for the pay step, and the server works out every total from the shop's own prices
-- A soft click on every press and a warmer one on add to order, with one off switch per device (the sound button in the page footer)
-- MCP tools with server-enforced prices and strict input schemas (a `price` argument is rejected)
-- Idempotent orders (`client_request_id`), order limits, rate limits
-- PayPal approval link, then a receipt page (Paid, cancelled, expired) that says whose PayPal account was paid (email masked, `r•••@example.com`)
-- Pickup or flat-fee shipping; a note for the seller (allergies, timing)
+**For buyers and AI agents**
+- A shop page with a cart: **Approve $… on PayPal** sends you to PayPal; the server works out every total from the shop's own prices.
+- **Order with an assistant**: a built-in Claude assistant that orders through the shop's agent door, showing each tool call as it happens.
+- An MCP agent door per shop (`POST /s/<slug>/mcp`) with four tools. Prices come only from the shop: a `price` argument is rejected.
+- A receipt page with the order's status that says whose PayPal account was paid, with the email masked.
+- Pickup or flat-fee shipping, and a note for the seller (allergies, timing).
+- **Browse shops** (`/browse`): every live shop, with search and category chips.
+
+**Under the hood**
+- PayPal Orders v2 create, approve and capture, with a `PayPal-Request-Id` on every money call.
+- Orders confirmed three ways (return URL, webhook, 15 s poller), raced safely by a compare-and-set state machine.
+- Idempotent orders (`client_request_id`), order limits and rate limits.
+- Shops are discoverable by assistants: schema.org JSON-LD, `<link rel="alternate">`, `/agents.txt` and `/llms.txt`.
+
+## How it works
+
+1. **Snap a photo, Claude reads it.** The seller photographs the price list (or tries a sample menu). `claude-sonnet-5-5` with vision and structured output returns items, sizes and prices, and flags anything unclear for review.
+2. **Publish.** Each item becomes a product through the PayPal **Catalog Products API**, and the shop's agent door opens at `/s/<slug>/mcp`.
+3. **Get orders.** A buyer orders from the cart, or any AI agent orders over MCP. Shelfie creates a **PayPal Orders v2** order from the shop's own prices, the buyer approves on PayPal, and Shelfie captures the payment into the seller's account. On the dashboard, a Claude agent reads the order through the **PayPal Agent Toolkit** and writes the seller a short prep brief; the seller adds tracking, and the buyer's assistant can read it back with `get_order_status`.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  photo["Menu photo"] --> vision["Claude vision<br/>(menu extraction)"]
+  vision --> review["Seller review"]
+  review --> catalog["PayPal Catalog<br/>Products API"]
+
+  buyer["Buyer (cart)"] --> checkout["/api/checkout/{slug}"]
+  agent["AI agent (MCP client)"] --> door["Agent door<br/>/s/{slug}/mcp"]
+  checkout --> orders["Orders service<br/>(state machine)"]
+  door --> orders
+  orders --> ppo["PayPal Orders v2<br/>create · approve · capture"]
+  ppo --> confirm["Confirmation<br/>return URL · webhook · poller"]
+  confirm --> db[("SQLite")]
+  orders --> db
+  db --> dash["Seller dashboard"]
+  brief["AI brief agent<br/>Agent Toolkit: get_order,<br/>get_shipment_tracking"] --> dash
+  track["Tracking<br/>create_shipment_tracking"] --> dash
+```
+
+- **Prices are server-enforced.** The cart and the agent door send only item ids, option ids and quantities; strict schemas reject any price field, and totals are computed from the shop's own data.
+- **Compare-and-set state machine.** Orders move through a pure state machine with compare-and-set writes, so the return URL, the webhook and the poller can confirm the same payment without double-processing it.
+- **Idempotency.** Every PayPal money call carries a `PayPal-Request-Id`; agents pass a `client_request_id`, so a retried `create_order` returns the same order.
+- **The seller is the payee.** Each order sets `purchase_units[0].payee.email_address` to the shop's PayPal email (snapshotted on the order). Only the seeded demo shop may have none, and is then paid to the platform's own sandbox account.
+- **The Agent Toolkit stays on the seller side.** It is created with an allowlist (`orders.get`, `shipment.create`, `shipment.get`) and every call is scoped to the shop's own orders; buying agents only ever see the agent door.
+- **One composition root.** `src/lib/services.ts` wires the database, the PayPal client (or a fake for unit tests), the toolkit and Anthropic.
+
+## Tech stack
+
+| Layer | Choice |
+|---|---|
+| App | Next.js 16 (App Router), React 19, TypeScript |
+| UI | Tailwind CSS 4, shadcn/ui primitives, `motion`, Figtree |
+| Data | SQLite via `better-sqlite3`; money as integer cents |
+| AI | Anthropic Claude `claude-sonnet-5-5` via `@anthropic-ai/sdk` |
+| Payments | PayPal REST APIs (sandbox), `@paypal/agent-toolkit` |
+| Agents | `@modelcontextprotocol/sdk` (Streamable HTTP server and client) |
+| Images | `sharp` (WebP), Next.js image optimizer, `qrcode` |
+| Tests | Vitest, Playwright, axe-core |
 
 ## Quick start
 
-Requirements: Node.js 22 or newer, npm, a free PayPal developer account, an Anthropic API key.
+Requirements: Node.js 22 or newer, npm, a free PayPal developer account and an Anthropic API key.
 
 ```bash
-git clone https://github.com/codebreaker32/paypal-ai.git shelfie && cd shelfie
+git clone https://github.com/codebreaker32/paypal-ai.git && cd paypal-ai
 npm install
-cp .env.example .env
+cp .env.example .env      # then fill in the keys below
+npm run seed              # optional: publishes the seeded shops to your PayPal sandbox catalog
+npm run dev               # http://localhost:3000
 ```
 
-Fill in `.env`. No credentials are committed; here is how to get yours.
+Required in `.env`: `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` and `ANTHROPIC_API_KEY`. No credentials are committed.
 
-| Variable | How to get it |
-|---|---|
-| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` | [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → Create App. Use the app's Client ID, and its **Secret** as `PAYPAL_SECRET_KEY`. |
-| `ANTHROPIC_API_KEY` | [console.anthropic.com](https://console.anthropic.com) → API keys. Without it, sample menus still work (recorded reading), but your own photos, order briefs and the buyer console do not. |
-| `APP_URL` (optional) | Public base URL for PayPal return links and the agent door. Default `http://localhost:<port>`, the port the server runs on (normally 3000); on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
-| `SHELFIE_RECORDED_SAMPLES` (optional) | Set to `1` and the sample menus use Claude's saved reading of the sample photo even when a key is set: instant, for recording a demo. Your own photos are always read live. |
-| `PAYPAL_WEBHOOK_ID` (optional) | Only once deployed on a public HTTPS URL: the webhook id from your PayPal app. Locally the 15 s poller confirms payments. |
-| `PAYPAL_SANDBOX_SELLER_EMAIL` (optional) | The email of a sandbox **Business** account (developer dashboard → Testing Tools → Sandbox Accounts). `npm run seed` then pays the demo shop into that account, like any other shop. Leave it empty and the demo shop is paid to the sandbox account that owns your app, so the demo runs with the keys above alone (see [Paying in the sandbox](#paying-in-the-sandbox)). |
-| `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` (optional) | A sandbox **Personal** (buyer) account. The capture gate (`e2e/capture.spec.ts`) logs in with it to pay by PayPal login (`payWithPayPalLogin` in `e2e/paypal-buyer.ts`); the app itself doesn't use them. Not needed to try the app: you pay on PayPal's own page (see [Paying in the sandbox](#paying-in-the-sandbox)). |
-| `SUPPORT_EMAIL` (optional) | The contact address on the Help page. Unset, Help points at GitHub Issues. |
-| `SHELFIE_ALLOW_GUEST_SHOPS` | Leave empty. Test harnesses only: `1` lets a shop start without an account. It is ignored on Render and must never be set in production. |
-| `DATABASE_PATH`, `UPLOADS_DIR` (optional) | Defaults `data/shelfie.db` and `data/uploads`. |
+<details>
+<summary><b>All environment variables</b></summary>
 
-```bash
-npm run seed   # optional: publishes the demo shop "Marigold Bakehouse" to your PayPal sandbox catalog
-npm run dev    # http://localhost:3000
-```
+| Variable | Required | What it is |
+|---|---|---|
+| `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` | Yes | Your PayPal **sandbox** app's Client ID and Secret (see below). |
+| `ANTHROPIC_API_KEY` | Yes | From [console.anthropic.com](https://console.anthropic.com) → API keys. Without it, sample menus use a recorded reading and order briefs a plain template, but your own photos and the assistant need it. |
+| `PEXELS_API_KEY` | No | A free key from [pexels.com/api](https://www.pexels.com/api/): a live search for an item's example photo when the bundled library has no close match (results are cached). Unset, only the bundled library is used. |
+| `APP_URL` | No | Public base URL for PayPal return links and the agent door. Default `http://localhost:<port>`; on Render, the service's own URL (`RENDER_EXTERNAL_URL`). |
+| `PAYPAL_WEBHOOK_ID` | No | Only once deployed on a public HTTPS URL: the webhook id from your PayPal app. Locally the 15 s poller confirms payments. |
+| `PAYPAL_SANDBOX_SELLER_EMAIL` | No | A sandbox **Business** account email. `npm run seed` pays all six seeded shops into it (Marigold Bakehouse included). Empty: only Marigold Bakehouse is seeded, paid to the sandbox account that owns your app. |
+| `PAYPAL_SANDBOX_BUYER_EMAIL`, `PAYPAL_SANDBOX_BUYER_PASSWORD` | No | A sandbox **Personal** account, used only by the end-to-end payment test (and the demo clip recorder) to pay by PayPal login. The app itself doesn't use them. |
+| `SHELFIE_RECORDED_SAMPLES` | No | `1`: sample menus use their recorded reading even with a key (instant, for recording a demo). Your own photos are always read live. |
+| `SUPPORT_EMAIL` | No | The contact address on the Help page. Unset, Help points at GitHub Issues. |
+| `SHELFIE_ALLOW_GUEST_SHOPS` | No | Leave empty. Test harnesses only; ignored on Render and never for production. |
+| `DATABASE_PATH`, `UPLOADS_DIR` | No | Defaults `data/shelfie.db` and `data/uploads`. |
 
-`npm run seed` does not need the server running. It prints where the demo shop is paid (the seller's account, with the email masked, or the app's own account), the shop URL, the agent door URL, an "Order with an AI" link and, the first time only, an **owner link** (`/claim/<token>`) that opens that shop's seller dashboard. The demo shop belongs to no account, so that link is the way into its dashboard; a shop you create after signing up has no owner link and opens with your login. `npm run seed -- --reset` recreates the shop with a new owner link. The menu has 10 items and 9 go to PayPal: the market-price galette stays "ask in person". Every run follows `PAYPAL_SANDBOX_SELLER_EMAIL` as it is then, so set or clear it and run `npm run seed` again to change where new orders are paid (orders already sent to PayPal keep theirs). The links assume port 3000; if your server runs on another port, run `PORT=<port> npm run seed` or change the port in the link. Each run also says how many of the shop's orders are waiting for payment; `npm run seed -- --cancel-unpaid` asks PayPal about each one and cancels, in Shelfie, those nobody approved (PayPal has no cancel for an unapproved order; it expires there) (one caller can hold 3 unpaid orders per shop). Those rehearsal orders then read "cancelled by the shop" on the seller page, the receipt and `get_order_status`. Sample menus need no seeding: see [Try it](#try-it).
+</details>
 
-### Paying in the sandbox
+### Get PayPal sandbox credentials and test accounts
 
-**Who gets paid.** Every shop is paid into its seller's own PayPal account: the email typed as **Your PayPal email** during setup (or later in the dashboard's **Settings** tab) goes on each PayPal order as `purchase_units[0].payee.email_address`. Shelfie's app still creates and captures the order. Each order keeps the email it was created with, so changing it in Settings only affects new orders. **The one exception** is the demo shop from `npm run seed` (`marigold-bakehouse`): without `PAYPAL_SANDBOX_SELLER_EMAIL` it has no seller email and is paid to the sandbox Business account that owns your app (listed under Sandbox Accounts in the developer dashboard), so a fresh clone with only the app keys still runs the whole demo, guest card and tracking at PayPal included. No other shop can publish or take orders without an email.
+1. Sign in at [developer.paypal.com](https://developer.paypal.com) → **Apps & Credentials** → **Sandbox** → **Create App**. Copy the **Client ID** into `PAYPAL_CLIENT_ID` and the **Secret** into `PAYPAL_SECRET_KEY`.
+2. Under **Testing Tools** → **Sandbox Accounts**, use (or create) a **Business** account (the seller, who gets paid) and a **Personal** account (the buyer). **View/Edit account** shows each one's email and password.
+3. To pay:
+   - **The demo shop (Marigold Bakehouse, seeded without `PAYPAL_SANDBOX_SELLER_EMAIL`, so paid to your app's account): pay by guest card.** On PayPal's approval page choose **Pay with Credit or Debit Card**, country **United States**, card `4012000033330026` (PayPal sandbox test Visa), any future expiry (for example 12/30), CVV `123`, any US address. Switch **off** "Save info & create your PayPal account", then **Pay Now**. No PayPal login needed.
+   - **A shop paid to a seller's account: pay with a PayPal login**, using a US sandbox **Personal** account. Set the shop's PayPal email to a US sandbox Business account's email.
 
-**A shop you set up (paid to a seller's account): pay with a PayPal login.** Use a US sandbox **Business** account's email as the shop's PayPal email, and pay by logging in with a US sandbox **Personal** account (both from Sandbox Accounts, where **View/Edit account** shows each one's password). Verified on 6 Nov 2026: the payment captured COMPLETED into the seller's account, which PayPal's order names as its payee. The sandbox declines guest card checkout on an order paid to a seller's account, so use a login here. If the email has no PayPal account, PayPal still takes the payment but holds it (capture PENDING, reason UNILATERAL, verified); the seller's order page says so and links to Settings.
+<details>
+<summary><b>More on paying in the sandbox</b></summary>
 
-**The demo shop (paid to your app's account): pay by guest card.** On PayPal's approval page choose **Pay with Credit or Debit Card**, country **United States**, card `4012000033330026` (PayPal sandbox test Visa), any future expiry (for example 12/30), CVV `123`, any US address. Switch **off** "Save info & create your PayPal account", then **Pay Now**. This guest checkout needs no PayPal login. Paying the demo shop by PayPal login is unverified: our app's own sandbox account and our first buyer were both India accounts, and PayPal blocked that same-country wallet payment.
+- **Who gets paid.** Every shop is paid into its seller's own PayPal account: the email entered as **Your PayPal email** during setup (or later under **Settings**) goes on each order as `purchase_units[0].payee.email_address`. Shelfie's app still creates and captures the order. Each order keeps the email it was created with, so changing it only affects new orders.
+- **The one exception** is the demo shop from `npm run seed` (`marigold-bakehouse`): without `PAYPAL_SANDBOX_SELLER_EMAIL` it has no seller email and is paid to the sandbox Business account that owns your app, so a fresh clone with only the app keys runs the whole demo, guest card and tracking at PayPal included. No other shop can publish or take orders without an email.
+- **Guest card checkout** works only on orders paid to the app's own account; the sandbox declines it on an order paid to a seller's account, so use a PayPal login there (verified: the payment captured COMPLETED into the seller's account).
+- **An email with no PayPal account:** PayPal still takes the payment but holds it (capture PENDING, reason UNILATERAL). The seller's order page says so and links to Settings.
+- **Seeing a payment:** log in to [sandbox.paypal.com](https://www.sandbox.paypal.com) with the account that was paid. The order page's **PayPal** card and the receipt both say which account that is.
 
-To see a payment, log in to [sandbox.paypal.com](https://www.sandbox.paypal.com) with the account that was paid: the seller's Business account, or (demo shop) the one that owns your app. The order page's **PayPal** card and the receipt both say which.
+</details>
 
 ## Try it
 
-There are no shared logins. Accounts live in your own database, and signing up takes about 15 seconds: any email address (nothing is sent to it) and a password of 15 or more characters. Two ways in:
+There are no shared logins: accounts live in your own database, and signing up takes any email address (nothing is sent to it) and a password of 15 or more characters.
 
-- **Sign up and use a sample** (the steps below): your own shop, paid into a sandbox seller account.
-- **`npm run seed` and its owner link:** open the printed `/claim/<token>` link and you land on the dashboard of the published demo shop, with no sign-up. Its shop page is `/s/marigold-bakehouse`. Unless `PAYPAL_SANDBOX_SELLER_EMAIL` is set, buyers can pay it by guest card.
+**Seeded shops.** `npm run seed` (no server needed) publishes **Marigold Bakehouse** and, when `PAYPAL_SANDBOX_SELLER_EMAIL` is set, five more: Tía Lupe's Tacos, Ravi's Bike Repair, Little Ember Coffee, Sunny Side Lemonade and Fern & Wick ([`src/lib/demo/shops.ts`](src/lib/demo/shops.ts)), all six then paid into that account. It prints each shop's link, its agent door and, **the first time only**, an owner link (`/claim/<token>`) that opens the shop's dashboard without signing up. `npm run seed -- --reset` recreates them with new owner links; `-- --cancel-unpaid` cancels orders nobody approved (one caller can hold 3 unpaid orders per shop). The links assume port 3000 (`PORT=<port> npm run seed` otherwise).
 
-### The whole flow in 5 minutes
+**Look around.** Open `/` and `/browse`. Open a shop (`/s/marigold-bakehouse`), add items to the cart, and tap **Approve $… on PayPal**. Or tap **Order with an assistant** and ask for what you want in plain words. Open the owner link to see the order on the dashboard with its AI brief.
 
-1. Open `http://localhost:3000`, tap **Add your shop** and create an account. Save the recovery key on the next screen (it is shown once), then tap **Continue**. Under **No photo handy? Try a sample:**, tap **Marigold Bakehouse** (or **Snap your price list** with your own photo). With an `ANTHROPIC_API_KEY` Claude reads the sample photo live; without one you get the recorded reading.
-2. Resolve each flagged item with one tap. Under **How do people get their order?** choose **Both** and enter a **Flat shipping fee** (for example 8): a new shop is pickup-only, and steps 7 and 8 need a shipped order. In **Your PayPal email**, enter a US sandbox Business account's email (buyers pay into it; Publish waits for a valid email). Then tap **Publish N items to PayPal**. The shop goes live (about 10 s).
-3. On the live screen tap **Watch an AI order from you** (or open the shop page and use **Order with an assistant**). Type "Two almond croissants and a sourdough, shipped to me." To order by hand instead, open the shop page, tap `+` on a tile or tap the tile for its sheet, then **View order**.
-4. Watch the Activity panel show each tool call. Say yes to the read-back, then **Approve $… on PayPal** and log in with a US sandbox Personal account to pay (see [Paying in the sandbox](#paying-in-the-sandbox); to pay by guest card instead, do steps 3 to 8 on the seeded demo shop, `/s/marigold-bakehouse`).
-5. You return to the receipt, marked **Paid** and naming the account that was paid (masked).
-6. Open the seller dashboard: **Orders** in the app's sidebar or tab bar. On another device, log in at `/login` with the same email and password. The order shows its AI brief.
-7. Open the order and **Add tracking** (carrier and number). For your own shop it is saved in Shelfie and you're asked to add it in the seller's PayPal account too; for the demo shop it goes to PayPal.
+**Your own shop.** Tap **Add your shop**, sign up (save the recovery key), and pick a sample menu under **No photo handy? Try a sample:** or snap your own price list.
+
+<details>
+<summary><b>The whole flow in 5 minutes</b></summary>
+
+1. Open `http://localhost:3000`, tap **Add your shop** and create an account. Save the recovery key, then tap **Continue**. Pick the **Marigold Bakehouse** sample (or **Snap your price list**).
+2. Resolve each flagged item with one tap. Under **How do people get their order?** choose **Both** and enter a **Flat shipping fee** (for example 8). In **Your PayPal email**, enter a US sandbox Business account's email. Tap **Publish N items to PayPal**; the shop goes live.
+3. Tap **Watch an AI order from you** (or **Order with an assistant** on the shop page) and type "Two almond croissants and a sourdough, shipped to me."
+4. Watch the Activity panel show each tool call. Confirm, then **Approve $… on PayPal** and log in with a US sandbox Personal account. (To pay by guest card instead, do steps 3 to 8 on the seeded `/s/marigold-bakehouse`, seeded without `PAYPAL_SANDBOX_SELLER_EMAIL`.)
+5. You return to the receipt, marked **Paid**, naming the (masked) account that was paid.
+6. Open **Orders** in the seller app: the order shows its AI brief.
+7. Open the order and **Add tracking**. For a shop paid to a seller's account it is saved in Shelfie (PayPal accepts tracking only from the account that was paid); for the demo shop paid to your app's account it goes to PayPal.
 8. Back in the assistant: "Where's my order?" It calls `get_order_status` and reads the tracking back.
 
-## Connect a real AI assistant to a shop's agent door
+</details>
 
-The MCP URL is `http://localhost:3000/s/<slug>/mcp` (Streamable HTTP, POST only, stateless). The seeded demo shop's slug is `marigold-bakehouse`; a shop you publish from a sample gets its own slug (for example `marigold-bakehouse-2`), shown on its live screen.
+## Connect an AI assistant
 
-- **curl:** a plain JSON-RPC POST works without an `initialize` call. The `Accept` header is required (without it the server answers 406; a GET answers 405).
+Every live shop has an MCP endpoint: `http://localhost:3000/s/<slug>/mcp` (Streamable HTTP, POST only, stateless).
+
+- **curl** (no `initialize` needed; without the `Accept` header the server answers 406):
 
   ```bash
   curl -s -X POST http://localhost:3000/s/marigold-bakehouse/mcp \
     -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
     -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"list_products","arguments":{}}}'
   ```
-- **Claude Code:** `claude mcp add --transport http <slug> http://localhost:3000/s/<slug>/mcp`. To try it without changing your Claude Code settings, pass a config file for one run instead. For example, `claude -p "<your order>" --mcp-config docs/judge/evidence/claude-code-mcp.json --strict-mcp-config --allowedTools "mcp__marigold-bakehouse__*"`. We ran this against the demo shop: Claude Code placed a real sandbox order and returned its PayPal link. The config points at port 3143, so edit the URL for your port. Transcript: [docs/judge/evidence/outside-client-claude-code.md](docs/judge/evidence/outside-client-claude-code.md).
-- **MCP Inspector:** `npx @modelcontextprotocol/inspector`, choose Streamable HTTP, paste the URL. Call `create_order` with an extra `"price": 0.01`: the server rejects it with `INVALID_ARGUMENTS`.
-- **Claude.ai, ChatGPT and other hosted assistants** need a public HTTPS URL, so deploy the app first ([Deploy to Render](#deploy-to-render)).
 
-Tools:
+- **Claude Code:**
+
+  ```bash
+  claude mcp add --transport http marigold-bakehouse http://localhost:3000/s/marigold-bakehouse/mcp
+  ```
+
+  Or for one run, without touching your settings: `claude -p "<your order>" --mcp-config docs/evidence/claude-code-mcp.json --strict-mcp-config --allowedTools "mcp__marigold-bakehouse__*"` (that config points at port 3143; edit it for yours). We ran this: Claude Code placed a real sandbox order and got its PayPal link ([transcript](docs/evidence/outside-client-claude-code.md)).
+- **MCP Inspector:** `npx @modelcontextprotocol/inspector`, choose Streamable HTTP and paste the URL. Try `create_order` with an extra `"price": 0.01`: the server rejects it with `INVALID_ARGUMENTS`.
+- **Hosted assistants** need a public HTTPS URL, so [deploy](#deployment) first.
 
 | Tool | What it does |
 |---|---|
 | `get_shop_info` | Shop name, pickup and shipping options, shipping fee, limits, whether it is taking orders |
-| `list_products` | Items with `item_id`, `option_id` and price; optional `query` and `section` filters; in-person-only items are marked not orderable |
-| `create_order` | Item ids, option ids and quantities only, plus fulfillment, buyer name and note, `client_request_id`; returns `order_ref` and the PayPal `approval_url` |
+| `list_products` | Items with `item_id`, `option_id` and price; optional `query` and `section` filters |
+| `create_order` | Item ids, option ids and quantities only, plus fulfillment, buyer name, note and `client_request_id`; returns `order_ref` and the PayPal `approval_url` |
 | `get_order_status` | Status, total, paid time and shipping tracking for an `order_ref` |
 
-## How assistants find a shop
-
-Nobody should have to paste a link for a regular to reach the agent door. Each shop can be found three ways:
-
-- **Counter card.** Dashboard → Share → **Print counter card** (`/shops/<id>/card`, owner only) prints a 5 × 7 in card: the shop name, "Order ahead with any AI assistant, pay with PayPal", a QR code of the shop link, the link itself, and the agent door's address in small type. The QR code is made on our server with the `qrcode` package (no third-party service). Print styles show the card alone.
-- **The shop page itself.** `/s/<slug>` carries schema.org JSON-LD: a `FoodEstablishment`, `Store` or `LocalBusiness` with the menu as offers (prices from the shop's own data) and `paymentAccepted: PayPal`, plus, while the shop is live, an `OrderAction` whose `EntryPoint` is the agent door (`POST`, `application/json`). Its `<head>` has `<link rel="alternate" type="application/json" title="Agent door (MCP)" href="…/mcp">`, and the visible page shows the door's address with setup snippets. Seller text in the JSON-LD has every `<` escaped, so a name like `</script>` stays data.
-- **`/agents.txt` and `/llms.txt`.** Plain text (`/agents.txt` as fields, `/llms.txt` as Markdown in the [llmstxt.org](https://llmstxt.org) layout) saying what an agent door is, its four tools and that the buyer approves payment on PayPal, then every live shop (newest 200) with its shop link and door URL. Paused and unpublished shops are left out.
+**How assistants find a shop.** Each shop page (`/s/<slug>`) carries schema.org JSON-LD with the menu as offers and an `OrderAction` pointing at the agent door, plus `<link rel="alternate" title="Agent door (MCP)">` in its `<head>`. `/agents.txt` and `/llms.txt` list every live shop with its door. Given only a shop's web address, Claude Code found the door this way and placed a sandbox order ([transcript](docs/evidence/discovery-claude-code.md)).
 
 ```bash
 curl -s http://localhost:3000/llms.txt
-curl -s http://localhost:3000/s/marigold-bakehouse | grep -o '<link rel="alternate"[^>]*>'
 ```
 
-## Deploy to Render
-
-**Not yet run.** `render.yaml` validates against Render's published Blueprint schema, and the app's Render fallback is unit-tested, but nobody has deployed it yet.
-
-[`docs/DEPLOY.md`](docs/DEPLOY.md) has the same steps in more detail, with a post-deploy smoke test (health, discovery, the agent door by `curl`, one paid order, the webhook delivery).
-
-`render.yaml` is a Render Blueprint for one Node web service, `shelfie`, with a 1 GB persistent disk mounted at `/var/data`. The SQLite database and uploaded menu photos live on that disk.
-
-- **A persistent disk needs a paid instance type.** The Blueprint uses Starter (`0.5c-512mb`). The free type has no disk, so the database would be wiped on every deploy and restart.
-- With a disk, each deploy has a few seconds of downtime, and the service runs as one instance.
-
-1. Push the repo to GitHub, or fork it.
-2. In the Render Dashboard choose **New → Blueprint**, connect the repo and pick the branch. Render reads `render.yaml`.
-3. Render asks for the secret values once, when it creates the Blueprint. Paste these:
-
-   | Key | Value |
-   |---|---|
-   | `PAYPAL_CLIENT_ID` | Your sandbox app's Client ID (see [Quick start](#quick-start)) |
-   | `PAYPAL_SECRET_KEY` | Your sandbox app's Secret |
-   | `ANTHROPIC_API_KEY` | Your Anthropic API key |
-   | `PAYPAL_WEBHOOK_ID` | Leave it empty for now (step 6) |
-
-   `render.yaml` sets the rest: `NODE_VERSION=22`, `PORT=10000`, `DATABASE_PATH=/var/data/shelfie.db` and `UPLOADS_DIR=/var/data/uploads`. Don't set `APP_URL`. The app uses `RENDER_EXTERNAL_URL` (`https://<service>.onrender.com`), which Render sets for you. Set `APP_URL` only if you add a custom domain. Don't set `SHELFIE_ALLOW_GUEST_SHOPS` either. `SUPPORT_EMAIL` is optional; add it on the **Environment** page.
-4. Click **Apply**. Render builds with `npm ci && npm run build` and starts with `npm start`. It sends traffic only after `GET /api/health` returns `{"ok":true}`.
-5. Open `https://<service>.onrender.com`. Payments are already confirmed through the return URL and the 15 s poller.
-6. Add the webhook:
-   1. Open [developer.paypal.com](https://developer.paypal.com) → Apps & Credentials → **Sandbox** → your app → **Add Webhook**.
-   2. Set the URL to `https://<service>.onrender.com/api/paypal/webhook`.
-   3. Select the events `CHECKOUT.ORDER.APPROVED`, `PAYMENT.CAPTURE.COMPLETED` and `PAYMENT.CAPTURE.DENIED`, then save.
-   4. Copy the **Webhook ID**. In Render, open the service → **Environment**, set `PAYPAL_WEBHOOK_ID` and save. The service redeploys.
-
-   Until `PAYPAL_WEBHOOK_ID` is set, the deployed webhook answers 503 (PayPal retries it), and the poller still confirms payments. Render prompts for secret values only when it creates the Blueprint, so change them later on the **Environment** page.
-7. Open the service → **Shell** and run `npm run seed`. This publishes the demo shop, Marigold Bakehouse, to your sandbox catalog. It prints the shop link, the agent door link and, this one time only, the owner link. Keep the owner link private: everyone else, judges included, signs up.
-8. Any hosted assistant can now use the agent door at `https://<service>.onrender.com/s/marigold-bakehouse/mcp`.
-
-## Tests
+## Testing
 
 ```bash
-npm test               # unit tests (Vitest), no network
-npm run test:sandbox   # real PayPal sandbox calls; needs PAYPAL_CLIENT_ID and PAYPAL_SECRET_KEY
-npm run test:ai        # real Claude on the sample photos; needs ANTHROPIC_API_KEY
-npm run e2e            # Playwright; starts the app on port 3100 (set E2E_PORT to change)
+npm test                        # unit tests (Vitest), no network
 npm run typecheck && npm run lint
+npm run test:sandbox            # real PayPal sandbox calls (needs PAYPAL_CLIENT_ID, PAYPAL_SECRET_KEY)
+npm run test:ai                 # real Claude reading of the sample photos (needs ANTHROPIC_API_KEY)
+npm run e2e                     # Playwright; starts the app on port 3100 (E2E_PORT to change)
 ```
 
-Two Playwright specs are worth knowing by name:
+**End-to-end sandbox payment test** (`e2e/capture.spec.ts`): the whole money path against the real PayPal sandbox, no mocks, about 2 minutes. A new shop's menu is read by Claude and published to the PayPal catalog; an MCP client orders over the agent door; the buyer approves on PayPal; Shelfie captures; the receipt says Paid and PayPal reports the capture COMPLETED; the Claude brief is written; tracking is added; `get_order_status` reads it back. It runs twice: once paid into a seller's account by PayPal login (needs `PAYPAL_SANDBOX_SELLER_EMAIL` and the buyer login), and once on the demo shop paid to your app's account by guest card (needs only the app keys; it reseeds with `--reset`, so give it its own database as below).
 
 ```bash
-# The capture gate: the whole money path against the real PayPal sandbox, no mocks. A new shop is read by
-# Claude and published to the PayPal catalog; an MCP client orders over the agent door; PayPal guest card
-# checkout approves; Shelfie captures; the receipt says Paid; PayPal reports the order COMPLETED; the
-# Claude brief is written; USPS tracking is added at PayPal; get_order_status reads it back. ~2 minutes.
 E2E_PORT=3110 DATABASE_PATH=data/e2e-capture.db npx playwright test e2e/capture.spec.ts
-
-# Every screen at 390 px and 1440 px with an axe (WCAG 2.1 A/AA) check, into data/screenshots/ (gitignored;
-# SCREENSHOTS_DIR picks another folder). No PayPal or Claude calls.
-npm run screenshots
-
-# The same screens against a production build (next build + next start), which avoids dev-mode compile
-# pauses: a fresh e2e database, one run. The judged sets (round 2 onwards) were made this way. The folder is
-# required and is replaced, so pick a new one or a /tmp path.
-npm run screenshots:prod -- /tmp/shelfie-shots
 ```
 
-## Architecture
+## Project structure
 
 ```
-photo --> Claude vision --> review --> PayPal Catalog Products
-                                            |
-AI assistant --MCP--> /s/<slug>/mcp --> orders service --> PayPal Orders v2 (create, approve, capture)
-                                            |                       |
-                               SQLite (cents, CAS state)    return URL / webhook / 15 s poller
-                                            |
-           dashboard <-- brief agent (Agent Toolkit get_order) + tracking (create_shipment_tracking)
+src/
+  app/              Next.js routes: /, /browse, /s/[slug] (shop + MCP door), /shops/[id] (seller app), /api/*
+  components/       UI: landing, browse, shop, dashboard, setup, app shell, ui primitives, motion
+  lib/
+    ai/             Claude: menu extraction, counter photos, order brief agent
+    agent/          In-app buyer console (Claude + MCP client)
+    mcp/            The agent door: MCP server and its four tools
+    paypal/         Typed REST client (OAuth, catalog, orders, webhooks) and Agent Toolkit wrapper
+    orders/         Order state machine, pricing, checkout, poller, receipts
+    catalog/        Setup, publishing, photos, edits, shop deletion
+    db/             SQLite schema and repositories
+    auth/           Accounts, sessions, ownership, recovery keys
+    library/        Example photo library and Pexels search
+    discovery/      JSON-LD, agents.txt, llms.txt
+    services.ts     Composition root
+tests/              Unit tests (plus tests/sandbox and tests/ai-live for network tests)
+e2e/                Playwright specs
+scripts/            Seeding, screenshots, icons, timing measurement
+video/              Demo video pipeline (see video/README.md)
+docs/               Design system, AI tools, deployment, evidence, asset credits
 ```
 
-- One Next.js 16 App Router service (TypeScript). SQLite via `better-sqlite3`; money is integer cents.
-- Orders move through a pure state machine with compare-and-set writes, so the return URL, webhook and poller can race safely.
-- `src/lib/services.ts` is the composition root. `PayPalPort` has a fake for unit tests.
-- Our typed REST client does the money paths with a `PayPal-Request-Id` per call. The Agent Toolkit is the seller-side layer and is never exposed to buying agents.
-- The shop page's cart posts to `POST /api/checkout/<slug>`, which refuses any price field and goes through the same order service as the agent door.
-- Sellers have accounts: passwords hashed with scrypt, server-side sessions (the cookie holds a random token, the database its SHA-256) and a one-time recovery key. A per-shop owner cookie remains only for shops with no account, which are the seeded demo shop and the test harness.
-- Design spec: [docs/superpowers/specs/2026-11-06-shelfie-design.md](docs/superpowers/specs/2026-11-06-shelfie-design.md).
+## AI tools used
 
-## Limitations (hackathon scope)
+All AI in the running app is **Anthropic Claude `claude-sonnet-5-5`** through `@anthropic-ai/sdk`:
 
-- Sellers are paid by their PayPal email (`payee.email_address`), with no onboarding: Shelfie can't confirm the email has a PayPal account until PayPal holds a payment for it (UNILATERAL), can't add tracking or refund on the seller's behalf, and takes no platform fee. The demo shop without `PAYPAL_SANDBOX_SELLER_EMAIL` is paid to the app's own account. Per-seller onboarding (PayPal Partner Referrals) is the path to production; see [Path to scale](#path-to-scale).
-- Guest card checkout works on orders paid to the app's own account (the demo shop) only; the sandbox declines it on an order paid to a seller's account, which is paid by PayPal login.
-- USD only; no refunds or disputes UI; no tax; one flat shipping fee, no per-address rates.
-- Menu edits after launch are limited to sold-out and pause; products are not renamed in PayPal.
-- Sold-out is a toggle, not stock counts. Pickup time is a free-text note.
-- No email or SMS, so nothing verifies a sign-up address and a forgotten password needs the recovery key. Deleting a shop or account (Settings and `/account`, see `/help#delete`) removes it from Shelfie; products already published to the PayPal sandbox catalog stay there. No MCP OAuth, no ACP/UCP adapters.
-- Webhooks need a public URL and are not verified end to end; the 15 s poller covers local runs.
-- Paying the demo shop (the app's own India sandbox account) by PayPal login is unverified; a US buyer paying a US seller's shop by login is verified.
+| Where | What Claude does |
+|---|---|
+| Menu reader | Vision + structured output (`messages.parse` with a zod schema): items, sizes, prices and review flags from 1 to 4 photos. Text in the photo is treated as data, never instructions. |
+| Snap your counter | Vision + structured output: finds menu items in a display-case photo and boxes each one for cropping. |
+| Order brief agent | A tool-running agent that reads PayPal's record of a paid order with the Agent Toolkit (`get_order`, `get_shipment_tracking`) and writes the seller a prep brief. |
+| Buyer assistant | A tool-running agent that is an MCP client of the shop's own agent door over real HTTP, exactly like an outside agent. |
 
-## Path to scale
+Shelfie itself was built with **Claude Code**, which also served as an outside MCP client to verify the agent door. Full details: [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
 
-**Built today (verified in the sandbox):** each order names the seller's PayPal email as its `payee`, so the money goes to the seller, not to Shelfie. **None of the rest is built or verified.** The planned path:
+## PayPal APIs used
 
-- **Seller onboarding:** each seller links their own PayPal account through Partner Referrals (`POST /v2/customer/partner-referrals`), and Shelfie stores their merchant id. Live use needs PayPal to approve Shelfie as a partner. Sellers without a PayPal account could sign up in the same flow.
-- **Orders:** the `payee` becomes that merchant id instead of an email, and a platform fee becomes possible.
-- **Seller-side calls:** tracking and refunds made on a seller's behalf send a `PayPal-Auth-Assertion` header for that merchant.
-- **Webhooks:** events are matched to the merchant they name, instead of one app-wide webhook for one merchant.
-- **Storage:** SQLite on one disk moves to Postgres, so the service can run as more than one instance.
+| API | Used for | Code |
+|---|---|---|
+| OAuth 2.0 (`/v1/oauth2/token`) | Access tokens for every REST call | `src/lib/paypal/client.ts` |
+| Catalog Products (`/v1/catalogs/products`) | Publishing each menu item as a product | `src/lib/paypal/catalog.ts` |
+| Orders v2 (`/v2/checkout/orders`): create, get, capture | Every cart and agent order; the buyer approves on PayPal | `src/lib/paypal/client.ts`, `orders.ts` |
+| Payee (`purchase_units[0].payee.email_address`) | Paying each seller directly | `src/lib/paypal/orders.ts` |
+| Webhooks (`/v1/notifications/verify-webhook-signature`) | Verifying payment events when deployed | `src/lib/paypal/webhooks.ts` |
+| Agent Toolkit: `get_order`, `get_shipment_tracking`, `create_shipment_tracking` | The AI brief agent's reads, and adding tracking | `src/lib/paypal/toolkit.ts` |
 
-## Built with
+## Deployment
 
-PayPal REST APIs and `@paypal/agent-toolkit`; Anthropic Claude `claude-sonnet-5-5` via `@anthropic-ai/sdk`; `@modelcontextprotocol/sdk` (TypeScript); Next.js 16; SQLite. MIT licensed.
+`render.yaml` is a Render Blueprint for one Node web service with a 1 GB persistent disk (SQLite and uploaded photos live there, so it needs a paid instance type). **It has not been deployed yet**: the Blueprint validates against Render's schema and the Render-specific code paths are unit-tested. Step-by-step instructions, the webhook setup and a post-deploy smoke test are in [docs/DEPLOY.md](docs/DEPLOY.md).
+
+## Limitations and roadmap
+
+**Limitations**
+- Sellers are paid by their PayPal email, with no onboarding: Shelfie can't confirm the email has a PayPal account until PayPal holds a payment for it, can't add tracking or refund on the seller's behalf, and takes no platform fee.
+- Guest card checkout works only for the demo shop paid to the app's own account; seller-paid orders are paid by PayPal login.
+- USD only; no refunds or disputes UI; no tax; one flat shipping fee.
+- After launch, menu edits are limited to sold out and pause. Sold out is a toggle, not stock counts.
+- No email or SMS: sign-up addresses aren't verified and a forgotten password needs the recovery key. No MCP OAuth.
+- Webhooks need a public URL and haven't been verified end to end; the 15 s poller covers local runs.
+
+**Roadmap (not built)**
+- Seller onboarding through PayPal Partner Referrals, with the `payee` becoming a merchant id and a platform fee becoming possible.
+- Tracking and refunds on a seller's behalf with a `PayPal-Auth-Assertion` header; webhooks matched per merchant.
+- Postgres instead of SQLite on one disk, so the service can run as more than one instance.
+
+## Contributing and security
+
+Issues and pull requests are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md). Please report security problems privately as described in [SECURITY.md](SECURITY.md), not in a public issue.
+
+## Credits and license
+
+Demo and example photos are from [Pexels](https://www.pexels.com/) under the Pexels License; every photographer is credited in [docs/ASSETS.md](docs/ASSETS.md). The sample menu photos were rendered from our own HTML. The design system is described in [docs/DESIGN.md](docs/DESIGN.md).
+
+Released under the [MIT License](LICENSE).
