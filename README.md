@@ -177,7 +177,14 @@ Required in `.env`: `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` and `ANTHROPIC_API_K
 
 ## Try it
 
-**Live demo: [34-10-26-158.sslip.io](https://34-10-26-158.sslip.io)** (a Google Cloud VM, PayPal sandbox). Six shops are published on [/browse](https://34-10-26-158.sslip.io/browse); sign up to make your own. Each shop is paid straight into its seller's PayPal sandbox account, so pay by logging in with a **US PayPal sandbox Personal account** (create one free under **Testing Tools → Sandbox Accounts** at [developer.paypal.com](https://developer.paypal.com), country United States). Every shop's MCP endpoint is listed in [/agents.txt](https://34-10-26-158.sslip.io/agents.txt).
+**Live demo: [34-10-26-158.sslip.io](https://34-10-26-158.sslip.io)** (a Google Cloud VM, PayPal sandbox). Six shops are published on [/browse](https://34-10-26-158.sslip.io/browse); sign up to make your own. Pay with this **PayPal sandbox buyer account** (sandbox only, fake money):
+
+| | |
+|---|---|
+| Email | `sb-xj9br53723290@personal.example.com` |
+| Password | `d-U;sR9g` |
+
+On PayPal's page, log in with it and click **Complete Purchase**. The same login works for **Log in with PayPal** on [Your orders](https://34-10-26-158.sslip.io/orders). On the demo shop, Marigold Bakehouse, you can also choose **Pay with Debit or Credit Card** and use the test card `4012 0000 3333 0026` (any future expiry, CVV `123`, a US address). You can also make your own sandbox buyer under **Testing Tools → Sandbox Accounts** at [developer.paypal.com](https://developer.paypal.com) (country United States). Every shop's MCP endpoint is listed in [/agents.txt](https://34-10-26-158.sslip.io/agents.txt).
 
 To run it yourself:
 
