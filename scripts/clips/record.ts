@@ -441,7 +441,17 @@ async function sceneHome(display: Display, app: App): Promise<void> {
       const panel = p.locator('[data-home-chat-panel]');
       await panel.waitFor({ state: 'visible', timeout: 15_000 });
       await settled(panel);
-      await hold(4500); // the greeting and the starter chips
+      await hold(2500); // the greeting and the starter chips
+      // Run 18: a starter chip asked (a live turn), so the chat's item cards (photo, name, price) show.
+      const chip = panel.locator('ul[aria-label="Try asking"] button').first();
+      await press(chip, 600);
+      await panel.getByRole('button', { name: 'Start over' }).waitFor({ state: 'visible', timeout: 120_000 });
+      const cards = panel.locator('ul[aria-label="Items from the menu"]').last();
+      if (await cards.count()) {
+        await picturesReady(p, '[data-home-chat-panel]');
+        await settled(cards);
+      } else say('  note: the home chat answered without item cards');
+      await hold(4500);
     }, { lead: 200, tail: 800 }).catch(async (e) => {
       await p.screenshot({ path: path.join(os.tmpdir(), 'shelfie-clips-01b-failed.png') }).catch(() => {});
       throw e;
@@ -481,18 +491,47 @@ async function sceneDoor(display: Display, app: App): Promise<void> {
 /** Items on the demo shop page added with their + (single-option items), then the order panel: total, Approve on PayPal. Never pays. */
 const CART_ITEMS = ['Butter croissant', 'Almond croissant', 'Cardamom bun'];
 
+/**
+ * Run 18: Browse shops first (the six seeded shops; recorded before 02/03 add a second Marigold), the demo shop's card
+ * → its page with the assistant docked → + on three items (each answered by the "{Item} added" toast and the switch's
+ * count) → the switch's **Your order** tab: lines, total, Approve on PayPal (hovered, never pressed) → **Assistant** and
+ * back, so both sides of the switch show.
+ */
 async function sceneCart(display: Display, app: App): Promise<void> {
   const stage = await desktopStage(display, app, 'cart');
   try {
     const p = stage.page;
+    // Unrecorded warm-up: the browse page and the shop page once, so their photos are cached.
     await p.goto(`${app.origin}/s/${DEMO_SLUG}`);
     await p.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' }).waitFor();
+    await p.evaluate(() => localStorage.clear());
+    await picturesReady(p);
+    await p.goto(`${app.origin}/browse`);
+    const card = p.getByRole('link', { name: 'Open shop: Marigold Bakehouse', exact: true }).first();
+    await card.waitFor();
     await fontsReady(p);
     await picturesReady(p);
+    await p.goto('about:blank');
     const addButtons = p.getByRole('button', { name: /^Add .+ to your order$/ });
-    await addButtons.first().waitFor();
     await clip(display, '05b-cart', async () => {
+      await p.goto(`${app.origin}/browse`);
+      await card.waitFor();
+      await fontsReady(p);
+      await picturesReady(p);
+      await settled(p.locator('main').first());
+      await hold(3500); // six shops, the search and the category chips
+      await press(card, 700);
+      await p.waitForURL(new RegExp(`/s/${DEMO_SLUG}`));
+      await p.getByRole('heading', { level: 1, name: 'Marigold Bakehouse' }).waitFor();
+      await fontsReady(p);
+      await picturesReady(p);
       await hold(1500);
+      // The assistant docked beside the menu, so the switch is on screen while items go in.
+      await press(p.getByRole('button', { name: 'Order with an assistant' }).filter({ visible: true }).first(), 500);
+      const dock = p.locator('[data-assistant-dock]');
+      await settled(dock);
+      await hold(1200);
+      await addButtons.first().waitFor();
       const named = [];
       for (const name of CART_ITEMS) {
         const b = p.getByRole('button', { name: `Add ${name} to your order`, exact: true });
@@ -504,18 +543,24 @@ async function sceneCart(display: Display, app: App): Promise<void> {
       await bring(picks[0], 'center', 600);
       for (const b of picks) {
         await press(b, 450);
-        await hold(700);
+        await hold(900); // the toast "{Item} added" and the switch's count
       }
+      await hold(800);
+      const orderTab = dock.getByRole('tab', { name: /^Your order/ });
+      await press(orderTab, 600);
       const panel = p.locator('[data-cart-panel]');
-      if (!(await panel.isVisible())) {
-        await press(p.getByRole('button', { name: /^View order/ }).filter({ visible: true }).first(), 600);
-      }
       await settled(panel);
       await picturesReady(p, '[data-cart-panel]');
       const approve = panel.getByRole('button', { name: /on PayPal$/ });
       await approve.waitFor();
       await approve.hover().catch(() => {});
-      await hold(5000);
+      await hold(3500);
+      await press(dock.getByRole('tab', { name: 'Assistant', exact: true }), 500);
+      await hold(1800);
+      await press(dock.getByRole('tab', { name: /^Your order/ }), 500);
+      await settled(panel);
+      await approve.hover().catch(() => {});
+      await hold(2500);
     });
   } finally {
     await stage.close();
@@ -796,7 +841,17 @@ async function sceneConsole(display: Display, app: App): Promise<void> {
       await input.waitFor();
       await hold(1000);
       await sayToConsole(CONSOLE_ASK);
-      await hold(3500); // the read-back, with the $8 shipping
+      await hold(3000); // the friendly steps ("Checked the menu") and the read-back, with the $8 shipping
+      // Run 18: the steps' quiet Details view (the agent-door calls), opened for a moment and closed again.
+      const details = region.locator('[data-activity] > button[aria-expanded]').last();
+      if (await details.count()) {
+        await bring(details, 'center', 300);
+        await press(details, 500);
+        await settled(region.locator('ol[aria-label="Agent door calls"]').last());
+        await hold(2800);
+        await press(details, 400);
+        await hold(800);
+      }
       // The allergy goes on the order as a note, so the seller's AI brief can flag it (08).
       for (const reply of ['Yes, the almond croissants. Please place it, with a note about my nut allergy.', 'Yes, please place it.', 'Yes, place the order.']) {
         if (await approve.count()) break;
@@ -1110,12 +1165,13 @@ async function sceneArchitecture(display: Display, app: App): Promise<void> {
 /** `extra`: not in the cut (video/project/demo.json), so recorded only when --only names them. */
 const SCENES: { ids: string[]; run: (d: Display, a: App) => Promise<void>; extra?: boolean }[] = [
   { ids: ['01b-home'], run: sceneHome },
+  // Before 02/03: Browse shows the six seeded shops, not also the new Marigold Bakehouse that 03 publishes.
+  { ids: ['05b-cart'], run: sceneCart },
   { ids: ['02a-signup', '02-snap-reading', '03-review-publish'], run: sceneSetup },
   { ids: ['03b-snap-counter'], run: sceneCounter, extra: true },
   { ids: ['04-agent-door'], run: sceneDoor },
   { ids: ['04-counter-card'], run: sceneCard, extra: true },
   { ids: ['05-claude-code-discovery'], run: sceneDiscovery },
-  { ids: ['05b-cart'], run: sceneCart },
   { ids: ['06-console-order', '06b-paypal-complete'], run: sceneConsole },
   { ids: ['07-price-tamper'], run: sceneTamper },
   { ids: ['08-dashboard-brief'], run: sceneDashboard },

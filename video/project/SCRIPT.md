@@ -2,25 +2,25 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from `docs/DEMO.md` ("Facts we may say" or its shot table)._
 
-**Runtime 2:40.2** (160.23 s): 138.58 s of narration (340 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:47.5** (167.53 s): 144.48 s of narration (356 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
 | greeting | 1 | 0:00.0 | 2.69 | 4.03 |
 | problem | 1 | 0:03.6 | 23.54 | 25.20 |
-| home | 1 | 0:28.4 | 6.79 | 8.23 |
-| signup | 2 | 0:36.3 | 6.87 | 7.93 |
-| snap | 2 | 0:44.2 | 7.16 | 8.60 |
-| review | 2 | 0:52.8 | 11.62 | 13.07 |
-| door | 3 | 1:05.9 | 11.31 | 12.57 |
-| discovery | 3 | 1:18.4 | 9.69 | 11.33 |
-| cart | 3 | 1:29.8 | 7.08 | 8.33 |
-| console | 3 | 1:38.1 | 12.02 | 13.47 |
-| paypal | 4 | 1:51.6 | 7.16 | 8.80 |
-| dashboard | 4 | 2:00.4 | 9.56 | 11.00 |
-| tamper | 4 | 2:11.4 | 5.77 | 7.83 |
-| close | 5 | 2:18.8 | 15.31 | 17.27 |
-| end | 6 | 2:35.6 | 2.01 | 4.67 |
+| home | 1 | 0:28.4 | 6.79 | 9.63 |
+| signup | 2 | 0:37.7 | 6.87 | 7.93 |
+| snap | 2 | 0:45.6 | 7.16 | 8.60 |
+| review | 2 | 0:54.2 | 11.62 | 13.07 |
+| door | 3 | 1:07.3 | 11.31 | 12.57 |
+| discovery | 3 | 1:19.8 | 9.69 | 11.33 |
+| cart | 3 | 1:31.2 | 9.82 | 11.07 |
+| console | 3 | 1:42.2 | 15.18 | 16.63 |
+| paypal | 4 | 1:58.9 | 7.16 | 8.80 |
+| dashboard | 4 | 2:07.7 | 9.56 | 11.00 |
+| tamper | 4 | 2:18.7 | 5.77 | 7.83 |
+| close | 5 | 2:26.1 | 15.31 | 17.27 |
+| end | 6 | 2:42.9 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -42,9 +42,9 @@ On-screen text: "47% of US accommodation and food-service businesses with employ
 
 On-screen text: "Shelfie is for sellers with a paper menu and no website." (undefined)
 
-### home (6.79 s voice, 8.24 s scene)
+### home (6.79 s voice, 9.64 s scene)
 
-**Screen:** Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat widget opens in the corner.
+**Screen:** Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat opens in the corner and answers a starter with item cards.
 
 > It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.
 
@@ -82,17 +82,17 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 > Watch Claude Code try it, given only the shop's link. It finds the door by itself, orders two croissants, and hands back a PayPal link.
 
-### cart (7.08 s voice, 8.33 s scene)
+### cart (9.82 s voice, 11.07 s scene)
 
-**Screen:** Laptop: the shop page with photos; + adds items; the cart panel with its total and Pay with PayPal.
+**Screen:** Laptop: Browse shops (six shops), Marigold Bakehouse's page; + adds items (a toast for each), the switch's Your order tab: lines, total, Approve on PayPal; Assistant and back.
 
-> People can shop the page directly, too. Each tap adds to the cart, and checkout goes to PayPal.
+> Buyers can browse every shop on Shelfie. Each tap adds to the order, one switch flips to the assistant, and checkout goes to PayPal.
 
-### console (12.02 s voice, 13.47 s scene)
+### console (15.18 s voice, 16.63 s scene)
 
-**Screen:** Laptop: the shop assistant: the request with a nut allergy, the contains-nuts warning, the confirmation, the order with Approve on PayPal.
+**Screen:** Laptop: the shop assistant: the request with a nut allergy, the friendly steps and their Details, the contains-nuts warning, the confirmation, the order with Approve on PayPal.
 
-> Or shoppers just ask the shop's assistant. This one has a nut allergy. The assistant warns that the almond croissants contain nuts, and orders once they say yes.
+> Or they just ask the assistant. This buyer has a nut allergy. Each step shows in plain words, with the details a tap away. It warns that the almond croissants contain nuts, and orders once they say yes.
 
 ## Beat 4: The buyer approves on PayPal
 

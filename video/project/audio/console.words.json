@@ -1,149 +1,199 @@
 {
-  "text": "Or shoppers just ask the shop's assistant. This one has a nut allergy. The assistant warns that the almond croissants contain nuts, and orders once they say yes.",
+  "text": "Or they just ask the assistant. This buyer has a nut allergy. Each step shows in plain words, with the details a tap away. It warns that the almond croissants contain nuts, and orders once they say yes.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "d841728a29867158",
+  "cacheKey": "718cfd2522c9f48a",
   "timestamps": [
     {
       "text": "Or",
-      "startSec": 0.325,
-      "endSec": 0.588
-    },
-    {
-      "text": "shoppers",
-      "startSec": 0.588,
-      "endSec": 1.15
-    },
-    {
-      "text": "just",
-      "startSec": 1.15,
-      "endSec": 1.413
-    },
-    {
-      "text": "ask",
-      "startSec": 1.413,
-      "endSec": 1.8
-    },
-    {
-      "text": "the",
-      "startSec": 1.8,
-      "endSec": 1.938
-    },
-    {
-      "text": "shop's",
-      "startSec": 1.938,
-      "endSec": 2.3
-    },
-    {
-      "text": "assistant.",
-      "startSec": 2.3,
-      "endSec": 3.45
-    },
-    {
-      "text": "This",
-      "startSec": 3.45,
-      "endSec": 3.7
-    },
-    {
-      "text": "one",
-      "startSec": 3.7,
-      "endSec": 3.925
-    },
-    {
-      "text": "has",
-      "startSec": 3.925,
-      "endSec": 4.125
-    },
-    {
-      "text": "a",
-      "startSec": 4.125,
-      "endSec": 4.263
-    },
-    {
-      "text": "nut",
-      "startSec": 4.263,
-      "endSec": 4.588
-    },
-    {
-      "text": "allergy.",
-      "startSec": 4.588,
-      "endSec": 5.737
-    },
-    {
-      "text": "The",
-      "startSec": 5.737,
-      "endSec": 5.9
-    },
-    {
-      "text": "assistant",
-      "startSec": 5.9,
-      "endSec": 6.513
-    },
-    {
-      "text": "warns",
-      "startSec": 6.513,
-      "endSec": 7.0
-    },
-    {
-      "text": "that",
-      "startSec": 7.0,
-      "endSec": 7.138
-    },
-    {
-      "text": "the",
-      "startSec": 7.138,
-      "endSec": 7.3
-    },
-    {
-      "text": "almond",
-      "startSec": 7.3,
-      "endSec": 7.775
-    },
-    {
-      "text": "croissants",
-      "startSec": 7.775,
-      "endSec": 8.5
-    },
-    {
-      "text": "contain",
-      "startSec": 8.5,
-      "endSec": 8.925
-    },
-    {
-      "text": "nuts,",
-      "startSec": 8.925,
-      "endSec": 9.713
-    },
-    {
-      "text": "and",
-      "startSec": 9.713,
-      "endSec": 9.85
-    },
-    {
-      "text": "orders",
-      "startSec": 9.85,
-      "endSec": 10.275
-    },
-    {
-      "text": "once",
-      "startSec": 10.275,
-      "endSec": 10.575
+      "startSec": 0.3,
+      "endSec": 0.525
     },
     {
       "text": "they",
-      "startSec": 10.575,
-      "endSec": 10.738
+      "startSec": 0.525,
+      "endSec": 0.675
+    },
+    {
+      "text": "just",
+      "startSec": 0.675,
+      "endSec": 0.938
+    },
+    {
+      "text": "ask",
+      "startSec": 0.938,
+      "endSec": 1.275
+    },
+    {
+      "text": "the",
+      "startSec": 1.275,
+      "endSec": 1.425
+    },
+    {
+      "text": "assistant.",
+      "startSec": 1.425,
+      "endSec": 2.487
+    },
+    {
+      "text": "This",
+      "startSec": 2.487,
+      "endSec": 2.763
+    },
+    {
+      "text": "buyer",
+      "startSec": 2.763,
+      "endSec": 3.2
+    },
+    {
+      "text": "has",
+      "startSec": 3.2,
+      "endSec": 3.4
+    },
+    {
+      "text": "a",
+      "startSec": 3.4,
+      "endSec": 3.525
+    },
+    {
+      "text": "nut",
+      "startSec": 3.525,
+      "endSec": 3.812
+    },
+    {
+      "text": "allergy.",
+      "startSec": 3.812,
+      "endSec": 4.938
+    },
+    {
+      "text": "Each",
+      "startSec": 4.938,
+      "endSec": 5.237
+    },
+    {
+      "text": "step",
+      "startSec": 5.237,
+      "endSec": 5.625
+    },
+    {
+      "text": "shows",
+      "startSec": 5.625,
+      "endSec": 6.025
+    },
+    {
+      "text": "in",
+      "startSec": 6.025,
+      "endSec": 6.188
+    },
+    {
+      "text": "plain",
+      "startSec": 6.188,
+      "endSec": 6.55
+    },
+    {
+      "text": "words,",
+      "startSec": 6.55,
+      "endSec": 7.225
+    },
+    {
+      "text": "with",
+      "startSec": 7.225,
+      "endSec": 7.362
+    },
+    {
+      "text": "the",
+      "startSec": 7.362,
+      "endSec": 7.463
+    },
+    {
+      "text": "details",
+      "startSec": 7.463,
+      "endSec": 8.125
+    },
+    {
+      "text": "a",
+      "startSec": 8.125,
+      "endSec": 8.238
+    },
+    {
+      "text": "tap",
+      "startSec": 8.238,
+      "endSec": 8.575
+    },
+    {
+      "text": "away.",
+      "startSec": 8.575,
+      "endSec": 9.6
+    },
+    {
+      "text": "It",
+      "startSec": 9.6,
+      "endSec": 9.8
+    },
+    {
+      "text": "warns",
+      "startSec": 9.8,
+      "endSec": 10.25
+    },
+    {
+      "text": "that",
+      "startSec": 10.25,
+      "endSec": 10.363
+    },
+    {
+      "text": "the",
+      "startSec": 10.363,
+      "endSec": 10.488
+    },
+    {
+      "text": "almond",
+      "startSec": 10.488,
+      "endSec": 10.925
+    },
+    {
+      "text": "croissants",
+      "startSec": 10.925,
+      "endSec": 11.625
+    },
+    {
+      "text": "contain",
+      "startSec": 11.625,
+      "endSec": 12.075
+    },
+    {
+      "text": "nuts,",
+      "startSec": 12.075,
+      "endSec": 12.838
+    },
+    {
+      "text": "and",
+      "startSec": 12.838,
+      "endSec": 13.0
+    },
+    {
+      "text": "orders",
+      "startSec": 13.0,
+      "endSec": 13.425
+    },
+    {
+      "text": "once",
+      "startSec": 13.425,
+      "endSec": 13.7
+    },
+    {
+      "text": "they",
+      "startSec": 13.7,
+      "endSec": 13.912
     },
     {
       "text": "say",
-      "startSec": 10.738,
-      "endSec": 11.0
+      "startSec": 13.912,
+      "endSec": 14.175
     },
     {
       "text": "yes.",
-      "startSec": 11.0,
-      "endSec": 11.875
+      "startSec": 14.175,
+      "endSec": 15.05
     }
   ]
 }

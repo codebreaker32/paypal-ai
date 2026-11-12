@@ -1,99 +1,129 @@
 {
-  "text": "People can shop the page directly, too. Each tap adds to the cart, and checkout goes to PayPal.",
+  "text": "Buyers can browse every shop on Shelfie. Each tap adds to the order, one switch flips to the assistant, and checkout goes to PayPal.",
   "voice": "af_heart",
   "model": "hexgrad/Kokoro-82M",
   "provider": "kokoro",
-  "cacheKey": "86a2817edce526d1",
+  "cacheKey": "5202cfce2cf1adcf",
   "timestamps": [
     {
-      "text": "People",
-      "startSec": 0.3,
-      "endSec": 0.625
+      "text": "Buyers",
+      "startSec": 0.35,
+      "endSec": 0.8
     },
     {
       "text": "can",
-      "startSec": 0.625,
-      "endSec": 0.825
+      "startSec": 0.8,
+      "endSec": 1.0
+    },
+    {
+      "text": "browse",
+      "startSec": 1.0,
+      "endSec": 1.462
+    },
+    {
+      "text": "every",
+      "startSec": 1.462,
+      "endSec": 1.788
     },
     {
       "text": "shop",
-      "startSec": 0.825,
-      "endSec": 1.113
+      "startSec": 1.788,
+      "endSec": 2.062
     },
     {
-      "text": "the",
-      "startSec": 1.113,
-      "endSec": 1.2
+      "text": "on",
+      "startSec": 2.062,
+      "endSec": 2.263
     },
     {
-      "text": "page",
-      "startSec": 1.2,
-      "endSec": 1.575
-    },
-    {
-      "text": "directly,",
-      "startSec": 1.575,
-      "endSec": 2.188
-    },
-    {
-      "text": "too.",
-      "startSec": 2.188,
-      "endSec": 3.163
+      "text": "Shelfie.",
+      "startSec": 2.263,
+      "endSec": 3.462
     },
     {
       "text": "Each",
-      "startSec": 3.163,
-      "endSec": 3.487
+      "startSec": 3.462,
+      "endSec": 3.788
     },
     {
       "text": "tap",
-      "startSec": 3.487,
-      "endSec": 3.812
-    },
-    {
-      "text": "adds",
-      "startSec": 3.812,
+      "startSec": 3.788,
       "endSec": 4.125
     },
     {
-      "text": "to",
+      "text": "adds",
       "startSec": 4.125,
-      "endSec": 4.213
+      "endSec": 4.45
+    },
+    {
+      "text": "to",
+      "startSec": 4.45,
+      "endSec": 4.537
     },
     {
       "text": "the",
-      "startSec": 4.213,
-      "endSec": 4.3
+      "startSec": 4.537,
+      "endSec": 4.675
     },
     {
-      "text": "cart,",
-      "startSec": 4.3,
-      "endSec": 4.9
+      "text": "order,",
+      "startSec": 4.675,
+      "endSec": 5.362
     },
     {
-      "text": "and",
-      "startSec": 4.9,
-      "endSec": 5.037
+      "text": "one",
+      "startSec": 5.362,
+      "endSec": 5.612
     },
     {
-      "text": "checkout",
-      "startSec": 5.037,
-      "endSec": 5.475
+      "text": "switch",
+      "startSec": 5.612,
+      "endSec": 5.963
     },
     {
-      "text": "goes",
-      "startSec": 5.475,
-      "endSec": 5.75
+      "text": "flips",
+      "startSec": 5.963,
+      "endSec": 6.275
     },
     {
       "text": "to",
-      "startSec": 5.75,
-      "endSec": 5.85
+      "startSec": 6.275,
+      "endSec": 6.362
+    },
+    {
+      "text": "the",
+      "startSec": 6.362,
+      "endSec": 6.5
+    },
+    {
+      "text": "assistant,",
+      "startSec": 6.5,
+      "endSec": 7.475
+    },
+    {
+      "text": "and",
+      "startSec": 7.475,
+      "endSec": 7.625
+    },
+    {
+      "text": "checkout",
+      "startSec": 7.625,
+      "endSec": 8.1
+    },
+    {
+      "text": "goes",
+      "startSec": 8.1,
+      "endSec": 8.45
+    },
+    {
+      "text": "to",
+      "startSec": 8.45,
+      "endSec": 8.55
     },
     {
       "text": "PayPal.",
-      "startSec": 5.85,
-      "endSec": 6.95
+      "startSec": 8.55,
+      "endSec": 9.675
     }
   ]
 }
