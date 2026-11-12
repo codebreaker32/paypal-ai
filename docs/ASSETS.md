@@ -294,3 +294,17 @@ A real photograph, chosen over five other Pexels/Unsplash candidates. No brand, 
 | `video/project/assets/paper-menu.jpg` (1920×1080) | Both sheets of the same list, full frame for the demo video | Same photo | Cropped 16:9, gentler CLAHE, JPEG q84 | Unsplash License |
 | `video/project/assets/slides/menu-photo.jpg` (480×640) | The title slide's first chain card | Same photo | `public/landing/paper-menu.webp` re-encoded as JPEG | Unsplash License |
 
+
+## More menu photos for the video's opening scene (`video/project/assets/menus/`)
+
+The problem scene (clip `01-paper-menu.mp4`) cuts through three more real menus before the handwritten price list above, one per line of narration. All three are from Wikimedia Commons under **CC0** (public domain dedication; no attribution required, credited anyway). Cropped, resized to 2400 px on the long side, JPEG q85; in the clip each sits on a blurred copy of itself with a slow zoom, as the price list does.
+
+| File | Shows | Source | Licence |
+|---|---|---|---|
+| `creperie-boards.jpg` | Three handwritten chalk menus (hot drinks, crêpes, galettes) on a café wall | "Menu of Oui Crêperie 2023-06-04" by Andy Li, https://commons.wikimedia.org/wiki/File:Menu_of_Oui_Cr%C3%AAperie_2023-06-04.jpg | CC0 |
+| `paper-sheet.jpg` | A handwritten paper menu pinned to a board (cropped below the shop's sign) | "Menu of Kouzina, Brighton 2023-11-24" by Andy Li, https://commons.wikimedia.org/wiki/File:Menu_of_Kouzina,_Brighton_2023-11-24.jpg | CC0 |
+| `specials-board.jpg` | A street A-board of handwritten daily specials | "Handwritten-italian-marketing-menu" by www.Pixel.la Free Stock Photos, https://commons.wikimedia.org/wiki/File:Handwritten-italian-marketing-menu_(24300027016).jpg | CC0 |
+
+## Music bed
+
+`video/tools/warm-bed.py` synthesises the video's music from scratch with NumPy (electric piano, pad and bass in D major, 80 BPM): no samples, no third-party recording, nothing to license. It is mixed under the narration with ffmpeg's `sidechaincompress`, so it drops whenever the voice speaks, and the mix is normalised to -14 LUFS.

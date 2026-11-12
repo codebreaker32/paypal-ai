@@ -58,3 +58,6 @@ CLAUDE.local.md
 artifacts/
 vm.sh
 .run-complete
+
+# Generated music bed (python3 video/tools/warm-bed.py <seconds> <out.wav>)
+video/project/audio/music/

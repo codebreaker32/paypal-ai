@@ -11,7 +11,7 @@
 ![PayPal Sandbox](https://img.shields.io/badge/PayPal-Sandbox-003087?logo=paypal&logoColor=white)
 ![Claude](https://img.shields.io/badge/Claude-claude--sonnet--5--5-D97757?logo=anthropic&logoColor=white)
 
-**[Watch the demo (under 3 minutes)](https://youtu.be/REPLACE_ME)**
+**[Watch the demo (under 3 minutes)](https://youtu.be/REPLACE_ME)** · **[Try it live](https://34-10-26-158.sslip.io)** · Agent door (MCP): `https://34-10-26-158.sslip.io/s/marigold-bakehouse/mcp`
 
 </div>
 
@@ -174,6 +174,10 @@ Required in `.env`: `PAYPAL_CLIENT_ID`, `PAYPAL_SECRET_KEY` and `ANTHROPIC_API_K
 
 ## Try it
 
+**Live demo: [34-10-26-158.sslip.io](https://34-10-26-158.sslip.io)** (a Google Cloud VM, PayPal sandbox). Six shops are published on [/browse](https://34-10-26-158.sslip.io/browse); sign up to make your own. Each shop is paid straight into its seller's PayPal sandbox account, so pay by logging in with a **US PayPal sandbox Personal account** (create one free under **Testing Tools → Sandbox Accounts** at [developer.paypal.com](https://developer.paypal.com), country United States). Every shop's MCP endpoint is listed in [/agents.txt](https://34-10-26-158.sslip.io/agents.txt).
+
+To run it yourself:
+
 There are no shared logins: accounts live in your own database, and signing up takes any email address (nothing is sent to it) and a password of 15 or more characters.
 
 **Seeded shops.** `npm run seed` (no server needed) publishes **Marigold Bakehouse** and, when `PAYPAL_SANDBOX_SELLER_EMAIL` is set, five more: Tía Lupe's Tacos, Ravi's Bike Repair, Little Ember Coffee, Sunny Side Lemonade and Fern & Wick ([`src/lib/demo/shops.ts`](src/lib/demo/shops.ts)), all six then paid into that account. It prints each shop's link, its agent door and, **the first time only**, an owner link (`/claim/<token>`) that opens the shop's dashboard without signing up. `npm run seed -- --reset` recreates them with new owner links; `-- --cancel-unpaid` cancels orders nobody approved (one caller can hold 3 unpaid orders per shop). The links assume port 3000 (`PORT=<port> npm run seed` otherwise).
@@ -216,7 +220,7 @@ Every live shop has an MCP endpoint: `http://localhost:3000/s/<slug>/mcp` (Strea
 
   Or for one run, without touching your settings: `claude -p "<your order>" --mcp-config docs/evidence/claude-code-mcp.json --strict-mcp-config --allowedTools "mcp__marigold-bakehouse__*"` (that config points at port 3143; edit it for yours). We ran this: Claude Code placed a real sandbox order and got its PayPal link ([transcript](docs/evidence/outside-client-claude-code.md)).
 - **MCP Inspector:** `npx @modelcontextprotocol/inspector`, choose Streamable HTTP and paste the URL. Try `create_order` with an extra `"price": 0.01`: the server rejects it with `INVALID_ARGUMENTS`.
-- **Hosted assistants** need a public HTTPS URL, so [deploy](#deployment) first.
+- **Hosted assistants** (for example Claude → Settings → Connectors → Add custom connector) need a public HTTPS URL: use the live one, `https://34-10-26-158.sslip.io/s/marigold-bakehouse/mcp`, or [deploy](#deployment) your own.
 
 | Tool | What it does |
 |---|---|
@@ -297,6 +301,8 @@ Shelfie itself was built with **Claude Code**, which also served as an outside M
 | Agent Toolkit: `get_order`, `get_shipment_tracking`, `create_shipment_tracking` | The AI brief agent's reads, and adding tracking | `src/lib/paypal/toolkit.ts` |
 
 ## Deployment
+
+**Live:** the demo at [34-10-26-158.sslip.io](https://34-10-26-158.sslip.io) runs on a Google Cloud Compute Engine VM (e2-medium): `npm ci && npm run build`, `npm start` as a systemd service with `APP_URL`, `DATABASE_PATH` and `UPLOADS_DIR` set, behind [Caddy](https://caddyserver.com) for automatic HTTPS. SQLite and uploads sit on the VM's persistent disk.
 
 `render.yaml` is a Render Blueprint for one Node web service with a 1 GB persistent disk (SQLite and uploaded photos live there, so it needs a paid instance type). **It has not been deployed yet**: the Blueprint validates against Render's schema and the Render-specific code paths are unit-tested. Step-by-step instructions, the webhook setup and a post-deploy smoke test are in [docs/DEPLOY.md](docs/DEPLOY.md).
 
