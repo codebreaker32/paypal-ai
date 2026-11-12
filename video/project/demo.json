@@ -95,31 +95,6 @@
       "durationSec": 25.186
     },
     {
-      "id": "home",
-      "kind": "demo",
-      "beat": 1,
-      "video": "clips/01b-home.mp4",
-      "holdSec": 2.0,
-      "screen": "Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat opens in the corner and answers a starter with item cards.",
-      "narration": "It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.",
-      "audio": "audio/home.mp3",
-      "words": "audio/home.words.json",
-      "narrationSec": 6.792,
-      "durationSec": 9.642,
-      "beats": [
-        {
-          "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 0.2
-        },
-        {
-          "atSec": 5.8,
-          "shot": "screen",
-          "videoStartSec": 15.4
-        }
-      ]
-    },
-    {
       "id": "signup",
       "kind": "demo",
       "beat": 2,
@@ -434,6 +409,22 @@
       ]
     },
     {
+      "id": "buyers",
+      "kind": "demo",
+      "beat": 4,
+      "video": "clips/06c-buyers.mp4",
+      "holdSec": 0.8,
+      "chapter": {
+        "step": 3,
+        "of": 3,
+        "title": "Get paid on PayPal"
+      },
+      "screen": "The paid receipt with Keep this receipt (WhatsApp, Text message, Copy link), then Your orders with Log in with PayPal and the paid order.",
+      "narration": "Buyers don't need an account. They can send the receipt to WhatsApp, and log in with PayPal to see every order, on any device.",
+      "audio": "audio/buyers.mp3",
+      "words": "audio/buyers.words.json"
+    },
+    {
       "id": "dashboard",
       "kind": "demo",
       "beat": 4,
@@ -462,49 +453,6 @@
           "videoStartSec": 12.3
         }
       ]
-    },
-    {
-      "id": "tamper",
-      "kind": "demo",
-      "beat": 4,
-      "video": "clips/07-price-tamper.mp4",
-      "holdSec": 1.2,
-      "chapter": {
-        "step": 3,
-        "of": 3,
-        "title": "Get paid on PayPal"
-      },
-      "screen": "Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.",
-      "narration": "Prices stay hers, too. When an AI tries to pay one cent, the shop says no.",
-      "audio": "audio/tamper.mp3",
-      "words": "audio/tamper.words.json",
-      "narrationSec": 5.773,
-      "durationSec": 7.823,
-      "beats": [
-        {
-          "atSec": 0,
-          "shot": "screen",
-          "videoStartSec": 2.5,
-          "playbackRate": 2
-        },
-        {
-          "atSec": 4.2,
-          "shot": "screen",
-          "videoStartSec": 13.0
-        }
-      ]
-    },
-    {
-      "id": "close",
-      "kind": "architecture",
-      "beat": 5,
-      "holdSec": 1,
-      "screen": "Architecture card in the brand: photo → Claude reads it → PayPal catalog → agent door (MCP) → PayPal Orders, paid to the seller → Claude brief via the Agent Toolkit; each node lights as it is spoken.",
-      "narration": "The whole picture: Claude reads the menu and writes the brief. PayPal holds the catalog, takes the payment, and pays the seller. The agent door lets any AI assistant order. A sheet of paper is all Rosa needed.",
-      "audio": "audio/close.mp3",
-      "words": "audio/close.words.json",
-      "narrationSec": 15.308,
-      "durationSec": 17.258
     },
     {
       "id": "end",
@@ -536,17 +484,7 @@
       "ms": 400
     },
     {
-      "after": "home",
-      "type": "fade",
-      "ms": 400
-    },
-    {
-      "after": "tamper",
-      "type": "fade",
-      "ms": 400
-    },
-    {
-      "after": "close",
+      "after": "dashboard",
       "type": "fade",
       "ms": 500
     }
