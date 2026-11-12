@@ -13,7 +13,7 @@ import type { ItemWithVariants, ShopKind, SkippedLine } from '@/lib/domain/types
 import { firstAmountIn, isPriced, parsePriceInput, priceInputValue } from '@/lib/catalog/rules';
 import { useAction } from '@/lib/feedback/use-action';
 import type { OnUpdate } from './IssueCards';
-import { ExampleCaption, ItemPhotoPicker, PhotoError } from './PhotoPicker';
+import { ExampleCaption, ItemPhotoPicker, NoPhotoCaption, PhotoError } from './PhotoPicker';
 import { PRICE_ERROR, PriceInput } from './PriceInput';
 import { SKIP_REASON, bySection } from './review-model';
 
@@ -95,6 +95,7 @@ function ReadyRow({ item, tone, onUpdate, shopId, shopKind, onPhoto, pictures }:
             <StatusText tone="warn">Needs a price</StatusText>
           )}
           <ExampleCaption show={pictureSource(picture) === 'example'} />
+          <NoPhotoCaption show={pictureSource(picture) === 'drawing'} />
         </div>
         {inPayPal ? (
           <StatusText tone="ok">In PayPal</StatusText>
@@ -183,6 +184,7 @@ function InPersonRow({ item, onUpdate, shopId, shopKind, onPhoto, pictures }: { 
         <span className="flex flex-1 flex-col">
           <span className="font-semibold [overflow-wrap:anywhere]">{item.name}</span>
           <ExampleCaption show={pictureSource(picture) === 'example'} />
+          <NoPhotoCaption show={pictureSource(picture) === 'drawing'} />
         </span>
         {!open && (
           <Button variant="ghost" icon={CircleDollarSign} onClick={() => setOpen(true)}>

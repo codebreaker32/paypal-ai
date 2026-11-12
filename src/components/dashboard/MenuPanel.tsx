@@ -8,7 +8,7 @@ import { buttonClasses } from '@/components/ui/button';
 import { FieldError } from '@/components/ui/field';
 import { cx } from '@/components/ui/cx';
 import { Panel, PanelList, PanelRow } from '@/components/ui/panel';
-import { CoverPicker, ExampleCaption, ItemPhotoPicker, PhotoError } from '@/components/setup/PhotoPicker';
+import { CoverPicker, ExampleCaption, ItemPhotoPicker, NoPhotoCaption, PhotoError } from '@/components/setup/PhotoPicker';
 import { itemPictures, pictureOf, pictureSource } from '@/lib/library/picture';
 import { formatUSD } from '@/lib/domain/money';
 import type { ItemWithVariants, ShopKind } from '@/lib/domain/types';
@@ -107,6 +107,7 @@ function MenuRow({
             {soldOut && <StatusText tone="warn">Sold out today</StatusText>}
           </span>
           <ExampleCaption show={pictureSource(picture) === 'example'} />
+          <NoPhotoCaption show={pictureSource(picture) === 'drawing'} />
         </div>
       </div>
       <PhotoError error={photoError} />

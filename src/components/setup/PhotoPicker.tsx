@@ -245,6 +245,19 @@ export function ExampleCaption({ show }: { show: boolean }) {
   );
 }
 
+/**
+ * Under an item that has only a drawing: asks for the seller's photo, so a menu doesn't stay half photos, half
+ * drawings without the seller noticing. The thumbnail beside it is the control.
+ */
+export function NoPhotoCaption({ show }: { show: boolean }) {
+  if (!show) return null;
+  return (
+    <span data-no-photo-caption="" className="type-meta text-note">
+      No photo yet, tap the picture to add yours
+    </span>
+  );
+}
+
 /** The picker's error as its row shows it: the thumbnail itself is too narrow for a sentence. */
 export function PhotoError({ error }: { error: string | null }) {
   if (!error) return null;
