@@ -57,3 +57,14 @@ Each shot runs in a fresh browser; the whole display is grabbed by ffmpeg's x11g
 A clip is moved into place only when its shot worked, so a failed take keeps the previous file. The live capture encodes with x264's fastest preset into a temporary MKV and is re-encoded into the MP4 after each shot, which keeps x11grab at 30 fps on a busy machine; Chromium runs under `nice` for the same reason.
 
 The history of each recorded take is kept on the `dev-notes` branch.
+
+## Recording with the public URL on screen
+
+To show the deployed address (not `localhost`) in clips 04, 05 and 07, the recorder can attach to a local server that answers on the public hostname:
+
+1. Point the hostname at this machine: `echo "127.0.0.1 <host>" | sudo tee -a /etc/hosts`.
+2. Serve it with Caddy's local CA: a Caddyfile with `<host> { tls internal; reverse_proxy 127.0.0.1:3260 }`, then `sudo caddy trust`.
+3. Start the app: `DATABASE_PATH=data/clips/live.db APP_URL=https://<host> NODE_ENV=production npx next start -p 3260`.
+4. Record: `DATABASE_PATH=data/clips/live.db CLIPS_IGNORE_HTTPS_ERRORS=1 NODE_EXTRA_CA_CERTS=<caddy root.crt> npm run clips -- --base-url https://<host> --only 04,05,07`.
+
+Nothing reaches the deployed server: the hostname resolves to this machine for the length of the recording.

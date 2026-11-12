@@ -146,6 +146,8 @@ export async function openStage(
     executablePath: niceChromium(),
     env: { ...process.env, DISPLAY: display.name },
     viewport: null,
+    // CLIPS_IGNORE_HTTPS_ERRORS=1: recording on a public hostname served locally with a local certificate (video/clips/README.md).
+    ignoreHTTPSErrors: process.env.CLIPS_IGNORE_HTTPS_ERRORS === '1',
     locale: 'en-US',
     timezoneId: 'America/Los_Angeles',
     // --window-size is in CSS px (DIPs): at a scale factor of 4/3, 1440x810 fills the 1920x1080 display exactly.
