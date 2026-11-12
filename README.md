@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="public/brand/lockup.svg" alt="Shelfie" width="260">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/brand/lockup-reverse.svg">
+  <img src="public/brand/lockup.svg" alt="Shelfie" width="260">
+</picture>
 
 **Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop that any AI assistant can order from.**
 
