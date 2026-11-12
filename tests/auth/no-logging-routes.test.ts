@@ -11,6 +11,9 @@ const FILES = [
   'src/app/api/auth/login/route.ts',
   'src/app/api/auth/logout/route.ts',
   'src/app/api/auth/recover/route.ts',
+  'src/app/api/auth/google/start/route.ts',
+  'src/app/api/auth/google/callback/route.ts',
+  'src/lib/auth/google.ts',
   'src/app/api/account/recovery-key/route.ts',
   'src/lib/db/repos/payee-changes.ts',
 ];

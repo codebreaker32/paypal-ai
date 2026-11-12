@@ -9,11 +9,13 @@ import { AuthHeading } from './AuthHeading';
 import { AuthSwitch } from './AuthSwitch';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
+import { GoogleSignIn } from './GoogleSignIn';
+import { FieldError } from '@/components/ui/field';
 import { useAuthForm } from './use-auth-form';
 
 const IDS = { email: 'login-email', password: 'current-password' };
 
-export function LoginForm({ next }: { next: string | null }) {
+export function LoginForm({ next, google = false, notice = null }: { next: string | null; google?: boolean; notice?: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { problem, busy, ready, submit, clearProblem } = useAuthForm(IDS);
@@ -34,6 +36,8 @@ export function LoginForm({ next }: { next: string | null }) {
   return (
     <>
       <AuthHeading title="Log in">{next?.startsWith('/shops/') ? 'Log in to open this shop.' : null}</AuthHeading>
+      {notice && <FieldError className="mb-5">{notice}</FieldError>}
+      {google && <GoogleSignIn next={next} />}
       <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         <EmailField
           id={IDS.email}

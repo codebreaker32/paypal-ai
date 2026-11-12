@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { SignupForm } from '@/components/auth/SignupForm';
+import { googleEnabled } from '@/lib/auth/google';
 import { currentAccount, landingPath } from '@/lib/auth/session';
 import { getConfig } from '@/lib/config';
 
@@ -10,5 +11,5 @@ export const metadata: Metadata = { title: 'Create your account · Shelfie' };
 export default async function SignupPage() {
   const account = await currentAccount();
   if (account) redirect(landingPath(account.id));
-  return <SignupForm appUrl={getConfig().appUrl} />;
+  return <SignupForm appUrl={getConfig().appUrl} google={googleEnabled()} />;
 }
