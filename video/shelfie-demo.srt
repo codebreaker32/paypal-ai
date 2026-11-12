@@ -47,193 +47,153 @@ and lodging businesses had no website.
 Shelfie gives them a shop that AI can buy from.
 
 13
-00:00:28,653 --> 00:00:29,953
-It takes three steps.
-
-14
-00:00:29,953 --> 00:00:31,440
-Snap your price list.
-
-15
-00:00:31,440 --> 00:00:33,265
-Let AI shoppers order.
-
-16
-00:00:33,265 --> 00:00:35,583
-Get paid on PayPal.
-
-17
-00:00:37,962 --> 00:00:40,337
+00:00:28,728 --> 00:00:31,103
 Meet Rosa, a home baker.
 
-18
-00:00:40,337 --> 00:00:42,687
+14
+00:00:31,103 --> 00:00:33,453
 She signs up with an email and a password,
 
-19
-00:00:42,687 --> 00:00:44,892
+15
+00:00:33,453 --> 00:00:35,658
 and adds her bakery.
 
-20
-00:00:45,845 --> 00:00:47,595
+16
+00:00:36,612 --> 00:00:38,362
 She snaps her price list.
 
-21
-00:00:47,595 --> 00:00:49,507
+17
+00:00:38,362 --> 00:00:40,274
 Claude, an AI model,
 
-22
-00:00:49,507 --> 00:00:53,125
+18
+00:00:40,274 --> 00:00:43,892
 reads every item and price in under ten seconds.
 
-23
-00:00:54,445 --> 00:00:56,770
+19
+00:00:45,212 --> 00:00:47,537
 Anything unclear becomes a question,
 
-24
-00:00:56,770 --> 00:00:59,520
+20
+00:00:47,537 --> 00:00:50,287
 like this two for seven dollars deal.
 
-25
-00:00:59,520 --> 00:01:02,608
+21
+00:00:50,287 --> 00:00:53,375
 She adds her PayPal email and publishes.
 
-26
-00:01:02,608 --> 00:01:06,175
+22
+00:00:53,375 --> 00:00:56,942
 Each item lands in PayPal's catalog.
 
-27
-00:01:07,512 --> 00:01:10,112
+23
+00:00:58,278 --> 00:01:00,878
 Every shop also gets an agent door:
 
-28
-00:01:10,112 --> 00:01:12,112
+24
+00:01:00,878 --> 00:01:02,878
 one web address where any AI
 
-29
-00:01:12,112 --> 00:01:14,937
+25
+00:01:02,878 --> 00:01:05,703
 assistant can read the menu and order.
 
-30
-00:01:14,937 --> 00:01:18,942
+26
+00:01:05,703 --> 00:01:09,708
 It uses MCP, an open standard.
 
-31
-00:01:20,103 --> 00:01:21,753
+27
+00:01:10,870 --> 00:01:12,520
 Watch Claude Code try it,
 
-32
-00:01:21,753 --> 00:01:23,803
+28
+00:01:12,520 --> 00:01:14,570
 given only the shop's link.
 
-33
-00:01:23,803 --> 00:01:27,203
+29
+00:01:14,570 --> 00:01:17,970
 It finds the door by itself, orders two croissants,
 
-34
-00:01:27,203 --> 00:01:29,883
+30
+00:01:17,970 --> 00:01:20,650
 and hands back a PayPal link.
 
-35
-00:01:31,437 --> 00:01:34,549
+31
+00:01:22,203 --> 00:01:25,315
 Buyers can browse every shop on Shelfie.
 
-36
-00:01:34,549 --> 00:01:37,362
+32
+00:01:25,315 --> 00:01:28,128
 Each tap adds to the order, one switch flips
 
-37
-00:01:37,362 --> 00:01:41,342
+33
+00:01:28,128 --> 00:01:32,108
 to the assistant, and checkout goes to PayPal.
 
-38
-00:01:42,453 --> 00:01:44,640
+34
+00:01:33,220 --> 00:01:35,407
 Or they just ask the assistant.
 
-39
-00:01:44,640 --> 00:01:47,091
+35
+00:01:35,407 --> 00:01:37,858
 This buyer has a nut allergy.
 
-40
-00:01:47,091 --> 00:01:49,378
+36
+00:01:37,858 --> 00:01:40,145
 Each step shows in plain words,
 
-41
-00:01:49,378 --> 00:01:51,753
+37
+00:01:40,145 --> 00:01:42,520
 with the details a tap away.
 
-42
-00:01:51,753 --> 00:01:54,991
+38
+00:01:42,520 --> 00:01:45,758
 It warns that the almond croissants contain nuts,
 
-43
-00:01:54,991 --> 00:01:57,783
+39
+00:01:45,758 --> 00:01:48,550
 and orders once they say yes.
 
-44
-00:01:59,087 --> 00:02:01,200
+40
+00:01:49,853 --> 00:01:51,966
 Payment happens on PayPal.
 
-45
-00:02:01,200 --> 00:02:03,125
+41
+00:01:51,966 --> 00:01:53,891
 The buyer approves, and the money
 
-46
-00:02:03,125 --> 00:02:06,392
+42
+00:01:53,891 --> 00:01:57,158
 lands in Rosa's own PayPal account.
 
-47
-00:02:07,887 --> 00:02:10,437
+43
+00:01:58,703 --> 00:02:00,891
+Buyers don't need an account.
+
+44
+00:02:00,891 --> 00:02:03,165
+They can send the receipt to WhatsApp,
+
+45
+00:02:03,165 --> 00:02:07,883
+and log in with PayPal to see every order, on any device.
+
+46
+00:02:08,987 --> 00:02:11,537
 The order pops up on Rosa's dashboard,
 
-48
-00:02:10,437 --> 00:02:11,912
+47
+00:02:11,537 --> 00:02:13,012
 already paid.
 
-49
-00:02:11,912 --> 00:02:13,937
+48
+00:02:13,012 --> 00:02:15,037
 Claude pulls it from PayPal and writes her
 
-50
-00:02:13,937 --> 00:02:17,592
+49
+00:02:15,037 --> 00:02:18,692
 a short brief, flagging the nut allergy.
 
-51
-00:02:18,887 --> 00:02:20,712
-Prices stay hers, too.
-
-52
-00:02:20,712 --> 00:02:22,737
-When an AI tries to pay one cent,
-
-53
-00:02:22,737 --> 00:02:24,792
-the shop says no.
-
-54
-00:02:26,320 --> 00:02:28,120
-The whole picture: Claude reads
-
-55
-00:02:28,120 --> 00:02:30,257
-the menu and writes the brief.
-
-56
-00:02:30,257 --> 00:02:32,182
-PayPal holds the catalog,
-
-57
-00:02:32,182 --> 00:02:35,032
-takes the payment, and pays the seller.
-
-58
-00:02:35,032 --> 00:02:38,483
-The agent door lets any AI assistant order.
-
-59
-00:02:38,483 --> 00:02:41,775
-A sheet of paper is all Rosa needed.
-
-60
-00:02:43,162 --> 00:02:45,242
+50
+00:02:20,062 --> 00:02:22,142
 Thanks for watching!

@@ -1,0 +1,129 @@
+{
+  "text": "Buyers don't need an account. They can send the receipt to WhatsApp, and log in with PayPal to see every order, on any device.",
+  "voice": "af_heart",
+  "model": "hexgrad/Kokoro-82M",
+  "provider": "kokoro",
+  "cacheKey": "48895c35c5907b6e",
+  "timestamps": [
+    {
+      "text": "Buyers",
+      "startSec": 0.35,
+      "endSec": 0.863
+    },
+    {
+      "text": "don't",
+      "startSec": 0.863,
+      "endSec": 1.15
+    },
+    {
+      "text": "need",
+      "startSec": 1.15,
+      "endSec": 1.363
+    },
+    {
+      "text": "an",
+      "startSec": 1.363,
+      "endSec": 1.45
+    },
+    {
+      "text": "account.",
+      "startSec": 1.45,
+      "endSec": 2.538
+    },
+    {
+      "text": "They",
+      "startSec": 2.538,
+      "endSec": 2.725
+    },
+    {
+      "text": "can",
+      "startSec": 2.725,
+      "endSec": 2.913
+    },
+    {
+      "text": "send",
+      "startSec": 2.913,
+      "endSec": 3.163
+    },
+    {
+      "text": "the",
+      "startSec": 3.163,
+      "endSec": 3.25
+    },
+    {
+      "text": "receipt",
+      "startSec": 3.25,
+      "endSec": 3.725
+    },
+    {
+      "text": "to",
+      "startSec": 3.725,
+      "endSec": 3.85
+    },
+    {
+      "text": "WhatsApp,",
+      "startSec": 3.85,
+      "endSec": 4.812
+    },
+    {
+      "text": "and",
+      "startSec": 4.812,
+      "endSec": 4.95
+    },
+    {
+      "text": "log",
+      "startSec": 4.95,
+      "endSec": 5.287
+    },
+    {
+      "text": "in",
+      "startSec": 5.287,
+      "endSec": 5.475
+    },
+    {
+      "text": "with",
+      "startSec": 5.475,
+      "endSec": 5.65
+    },
+    {
+      "text": "PayPal",
+      "startSec": 5.65,
+      "endSec": 6.225
+    },
+    {
+      "text": "to",
+      "startSec": 6.225,
+      "endSec": 6.35
+    },
+    {
+      "text": "see",
+      "startSec": 6.35,
+      "endSec": 6.6
+    },
+    {
+      "text": "every",
+      "startSec": 6.6,
+      "endSec": 6.95
+    },
+    {
+      "text": "order,",
+      "startSec": 6.95,
+      "endSec": 7.525
+    },
+    {
+      "text": "on",
+      "startSec": 7.525,
+      "endSec": 7.675
+    },
+    {
+      "text": "any",
+      "startSec": 7.675,
+      "endSec": 7.9
+    },
+    {
+      "text": "device.",
+      "startSec": 7.9,
+      "endSec": 8.95
+    }
+  ]
+}

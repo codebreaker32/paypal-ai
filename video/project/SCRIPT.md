@@ -2,25 +2,23 @@
 
 _Generated from `demo.json` by `video/remotion/scripts/script-md.mjs`; do not edit by hand. Voice: Kokoro-82M `af_heart` (lang `a`, speed 0.88). Every spoken claim comes from the demo script in `video/project/demo.json`._
 
-**Runtime 2:47.5** (167.53 s): 144.48 s of narration (356 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 5 transition(s).
+**Runtime 2:24.4** (144.43 s): 125.70 s of narration (310 words), the rest is the 0.45 s breath after each line, per-scene holds for the screen (`holdSec`), the end card and 3 transition(s).
 
 | Scene | Beat | Starts | Narration (s) | Scene (s) |
 |---|---|---|---|---|
 | greeting | 1 | 0:00.0 | 2.69 | 4.03 |
 | problem | 1 | 0:03.6 | 23.54 | 25.20 |
-| home | 1 | 0:28.4 | 6.79 | 9.63 |
-| signup | 2 | 0:37.7 | 6.87 | 7.93 |
-| snap | 2 | 0:45.6 | 7.16 | 8.60 |
-| review | 2 | 0:54.2 | 11.62 | 13.07 |
-| door | 3 | 1:07.3 | 11.31 | 12.57 |
-| discovery | 3 | 1:19.8 | 9.69 | 11.33 |
-| cart | 3 | 1:31.2 | 9.82 | 11.07 |
-| console | 3 | 1:42.2 | 15.18 | 16.63 |
-| paypal | 4 | 1:58.9 | 7.16 | 8.80 |
-| dashboard | 4 | 2:07.7 | 9.56 | 11.00 |
-| tamper | 4 | 2:18.7 | 5.77 | 7.83 |
-| close | 5 | 2:26.1 | 15.31 | 17.27 |
-| end | 6 | 2:42.9 | 2.01 | 4.67 |
+| signup | 2 | 0:28.4 | 6.87 | 7.93 |
+| snap | 2 | 0:36.4 | 7.16 | 8.60 |
+| review | 2 | 0:45.0 | 11.62 | 13.07 |
+| door | 3 | 0:58.0 | 11.31 | 12.57 |
+| discovery | 3 | 1:10.6 | 9.69 | 11.33 |
+| cart | 3 | 1:21.9 | 9.82 | 11.07 |
+| console | 3 | 1:33.0 | 15.18 | 16.63 |
+| paypal | 4 | 1:49.6 | 7.16 | 8.80 |
+| buyers | 4 | 1:58.4 | 9.09 | 10.33 |
+| dashboard | 4 | 2:08.8 | 9.56 | 11.50 |
+| end | 6 | 2:19.8 | 2.01 | 4.67 |
 
 ## Beat 1: The problem: who it's for and why now
 
@@ -41,12 +39,6 @@ Card: **Shelfie**, "Hi there! Welcome to Shelfie."
 On-screen text: "47% of US accommodation and food-service businesses with employees had no website." (US Census Bureau, Annual Survey of Entrepreneurs (data year 2016))
 
 On-screen text: "Shelfie is for sellers with a paper menu and no website." (undefined)
-
-### home (6.79 s voice, 9.64 s scene)
-
-**Screen:** Laptop: Shelfie home page: the hero chain plays (paper menu, the reading, an AI order, PayPal), then the chat opens in the corner and answers a starter with item cards.
-
-> It takes three steps. Snap your price list. Let AI shoppers order. Get paid on PayPal.
 
 ## Beat 2: Snap a paper menu; the shop goes live with photos
 
@@ -102,25 +94,17 @@ On-screen text: "Shelfie is for sellers with a paper menu and no website." (unde
 
 > Payment happens on PayPal. The buyer approves, and the money lands in Rosa's own PayPal account.
 
-### dashboard (9.56 s voice, 11.01 s scene)
+### buyers (9.09 s voice, 10.34 s scene)
+
+**Screen:** The paid receipt with Keep this receipt (WhatsApp, Text message, Copy link), then Your orders with Log in with PayPal and the paid order.
+
+> Buyers don't need an account. They can send the receipt to WhatsApp, and log in with PayPal to see every order, on any device.
+
+### dashboard (9.56 s voice, 11.51 s scene)
 
 **Screen:** Laptop: the dashboard toast for the paid order, the row in To prepare, the AI brief by Claude with the nut-allergy warning.
 
 > The order pops up on Rosa's dashboard, already paid. Claude pulls it from PayPal and writes her a short brief, flagging the nut allergy.
-
-### tamper (5.77 s voice, 7.82 s scene)
-
-**Screen:** Terminal: create_order with a price of 0.01 is refused: prices are set by the shop.
-
-> Prices stay hers, too. When an AI tries to pay one cent, the shop says no.
-
-## Beat 5: The seller's dashboard: paid, the AI brief, tracking
-
-### close (15.31 s voice, 17.26 s scene)
-
-**Screen:** Architecture card in the brand: photo → Claude reads it → PayPal catalog → agent door (MCP) → PayPal Orders, paid to the seller → Claude brief via the Agent Toolkit; each node lights as it is spoken.
-
-> The whole picture: Claude reads the menu and writes the brief. PayPal holds the catalog, takes the payment, and pays the seller. The agent door lets any AI assistant order. A sheet of paper is all Rosa needed.
 
 ## Beat 6: Why it matters, and close
 

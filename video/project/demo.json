@@ -422,7 +422,9 @@
       "screen": "The paid receipt with Keep this receipt (WhatsApp, Text message, Copy link), then Your orders with Log in with PayPal and the paid order.",
       "narration": "Buyers don't need an account. They can send the receipt to WhatsApp, and log in with PayPal to see every order, on any device.",
       "audio": "audio/buyers.mp3",
-      "words": "audio/buyers.words.json"
+      "words": "audio/buyers.words.json",
+      "narrationSec": 9.091,
+      "durationSec": 10.341
     },
     {
       "id": "dashboard",
@@ -440,7 +442,7 @@
       "audio": "audio/dashboard.mp3",
       "words": "audio/dashboard.words.json",
       "narrationSec": 9.561,
-      "durationSec": 11.011,
+      "durationSec": 11.511,
       "beats": [
         {
           "atSec": 0,
