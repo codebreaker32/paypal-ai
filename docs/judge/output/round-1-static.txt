@@ -1,6 +1,0 @@
-
-Generating route types...
-✓ Types generated successfully
-> shelfie@0.1.0 lint
-> eslint
-

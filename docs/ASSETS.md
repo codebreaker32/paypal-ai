@@ -6,7 +6,7 @@ The demo shops in `public/demo/<shop-slug>/` use real food photos from [Pexels](
 
 Every photo below is under the [Pexels License](https://www.pexels.com/license/): free to use for commercial and non-commercial purposes, no attribution required, and modification is allowed. We credit each photographer anyway. The licence does not allow selling unaltered copies or implying endorsement by the people or brands shown, so we picked photos with no visible brand, logo, product label, legible shop sign or identifiable face.
 
-Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped to 1200×900 for items and 2000×900 for covers, JPEG quality 78, progressive; then (run 3, for page weight) scaled to 800×600 for items (quality 74) and 1600×720 for covers (quality 72), mozjpeg, progressive.
+Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped to 1200×900 for items and 2000×900 for covers, JPEG quality 78, progressive; then (for page weight) scaled to 800×600 for items (quality 74) and 1600×720 for covers (quality 72), mozjpeg, progressive.
 
 ## Marigold Bakehouse (marigold-bakehouse, the seeded demo shop)
 
@@ -34,18 +34,18 @@ Used as the display-case photo for "Snap your counter" in the demo clip and the 
 
 ## Other assets
 
-- Item illustrations (`public/illustrations.svg`, 12 drawings) and their contact sheet `docs/judge/evidence/illustrations.png`: drawn for Shelfie in this repository (run 3), no third-party source; same licence as the code.
+- Item illustrations (`public/illustrations.svg`, 12 drawings) and their contact sheet [`docs/evidence/illustrations.png`](evidence/illustrations.png): drawn for Shelfie in this repository, no third-party source; same licence as the code.
 
 - Fonts: Figtree, from Google Fonts via `next/font`, SIL Open Font License.
 
 - **PayPal logo** (`public/brand/paypal/paypal-color.svg`, `paypal-mark-color.svg`; copies for the video in `video/project/assets/paypal/`): PayPal's official artwork, downloaded from PayPal's own CDN for its UI logos, https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-color.svg and https://www.paypalobjects.com/paypal-ui/logos/svg/paypal-mark-color.svg (byte-identical to those URLs, checked 10 Nov 2026). Used unmodified, per PayPal's brand guidelines, only to show PayPal as the payment method (no recolouring, stretching, rotation or effects; clear space kept; at least 60 px wide; colour logo on white only). PayPal and the PayPal logo are trademarks of PayPal, Inc.; their use is not an endorsement of Shelfie by PayPal. Not covered by this repository's licence.
 
-## UI components and motion (run 3)
+## UI components and motion
 
 - **shadcn/ui** (https://ui.shadcn.com, MIT): the component base. Its pattern (`components.json`, `cva` variants, `cn()`) is used, and the primitives in `src/components/ui/` are our own, written onto that pattern in the Storefront tokens. Built with `class-variance-authority` (Apache-2.0), `clsx` (MIT) and `tailwind-merge` (MIT).
 - **motion** (https://motion.dev, formerly Framer Motion, MIT): all animation, through `src/components/motion/`.
 - **lucide-react** (ISC): icons.
-- **Skiper UI** (https://skiper-ui.com): **ideas only; no code, markup, styles or assets copied.** Its free tier names no licence and its terms forbid redistribution (DECISIONS, run 3, session 1). The kinds of interaction we looked at there and then wrote from scratch in our own tokens: a number that rolls to its new value (`CountUp`), a shimmer sweep on loading text and skeletons, a card that lifts on hover and presses on tap (`Pressable`), and a list that rises in one item after another (`Stagger`).
+- **Skiper UI** (https://skiper-ui.com): **ideas only; no code, markup, styles or assets copied.** Its free tier names no licence and its terms forbid redistribution. The kinds of interaction we looked at there and then wrote from scratch in our own tokens: a number that rolls to its new value (`CountUp`), a shimmer sweep on loading text and skeletons, a card that lifts on hover and presses on tap (`Pressable`), and a list that rises in one item after another (`Stagger`).
 
 ## Demo video
 
@@ -77,7 +77,7 @@ Same processing as above (items 800×600 quality 74, cover 1600×720 quality 72,
 
 <!-- ravi credits -->
 
-## Little Ember Coffee, Sunny Side Lemonade and Fern & Wick (seeded shops, run 11)
+## Little Ember Coffee, Sunny Side Lemonade and Fern & Wick (seeded shops)
 
 The item photos in `public/demo/little-ember-coffee/`, `public/demo/sunny-side-lemonade/` and `public/demo/fern-and-wick/` are byte-identical copies of photos from the example photo library below (credits there), stored as the seller's own photos the way Marigold's are (`src/lib/demo/photos.ts`):
 
@@ -95,7 +95,7 @@ The covers are new downloads of three library photos at a larger size (`images.p
 | `sunny-side-lemonade/cover.jpg` | A glass of lemonade with squeezed lemons (library `lemonade-1`) | https://www.pexels.com/photo/a-clear-drinking-glass-with-lemon-juice-12931442/ | [beytlik](https://www.pexels.com/@beytlik/) | Pexels License |
 | `fern-and-wick/cover.jpg` | Lit candles on a dark background (library `candle-2`) | https://www.pexels.com/photo/assorted-candles-glowing-in-the-dark-39853162/ | [Jahra Tasfia Reza](https://www.pexels.com/@jahratreza/) | Pexels License |
 
-## Example photo library (Part A3)
+## Example photo library
 
 Real photos of common item types (`public/library/<id>.webp`, catalogue in `src/lib/library/catalog.ts`), shown as a labelled *example* until the seller adds their own photo. Every photo is under the [Pexels License](https://www.pexels.com/license/) (free to use, no attribution required; credited anyway). Each one was viewed before it went in: we kept only photos with no visible brand, logo, readable label or recognisable face, and dropped ones that did not clearly show the item (rejected: branded tyre sidewalls, a branded brake caliper, a branded kids' trike, engraved spanners, a branded churro basket liner, a glass jar with embossed lettering, labelled soda bottles). `guacamole-1` is a hand crop that leaves out a printed paper liner. Processing (with `sharp`): auto-rotated, metadata stripped, cover-cropped (attention strategy) to 800×600, WebP quality 74.
 
@@ -281,11 +281,11 @@ All under the [Pexels License](https://www.pexels.com/license/), resized and com
 
 ## How it works step images (`public/landing/`)
 
-Our own screenshots of Shelfie, not third-party assets, except step 1: `step-read.webp` is the handwritten price list photo below, alone. Then `step-order.webp` (the home page chat on the demo shop, mocked turns: the plain step "Placed your order · $25.50 · waiting for your PayPal approval" with its Details button, the reply and the pinned order with Approve on PayPal; retaken in run 13 by `HIW_SHOT=1 npx playwright test e2e/home-chat.spec.ts -g "step 2"`, a 520 px viewport at device scale 2, 520×390 CSS px resized to 960×720; the "Order … placed · approve it below" note and the suggestion row are left out of frame) and `step-paid.webp` (the seller's paid order header and its AI brief). Taken with Playwright at device scale 2 and a 500 px viewport on the e2e database (seeded demo shop, labelled fixture orders, fake PayPal ids), cropped to one focal region of about 480 CSS px and saved as 960×720 WebP (q80) with sharp. Food photos inside them are the demo shop's (credited above). No owner links, tokens or emails are in frame.
+Our own screenshots of Shelfie, not third-party assets, except step 1: `step-read.webp` is the handwritten price list photo below, alone. Then `step-order.webp` (the home page chat on the demo shop, mocked turns: the plain step "Placed your order · $25.50 · waiting for your PayPal approval" with its Details button, the reply and the pinned order with Approve on PayPal; retaken by `HIW_SHOT=1 npx playwright test e2e/home-chat.spec.ts -g "step 2"`, a 520 px viewport at device scale 2, 520×390 CSS px resized to 960×720; the "Order … placed · approve it below" note and the suggestion row are left out of frame) and `step-paid.webp` (the seller's paid order header and its AI brief). Taken with Playwright at device scale 2 and a 500 px viewport on the e2e database (seeded demo shop, labelled fixture orders, fake PayPal ids), cropped to one focal region of about 480 CSS px and saved as 960×720 WebP (q80) with sharp. Food photos inside them are the demo shop's (credited above). No owner links, tokens or emails are in frame.
 
 ## Handwritten price list photo (`public/landing/paper-menu.webp`, step 1, video)
 
-A real photograph, chosen in run 8 over five other Pexels/Unsplash candidates (`docs/judge/menu-photo-r8.md`). No brand, logo or face is in frame; the café is not named anywhere in it.
+A real photograph, chosen over five other Pexels/Unsplash candidates. No brand, logo or face is in frame; the café is not named anywhere in it.
 
 | File | Shows | Source | Processing | Licence |
 |---|---|---|---|---|

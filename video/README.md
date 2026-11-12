@@ -6,13 +6,23 @@ Shelfie's demo video (under 3:00, 1920x1080, 30 fps, H.264 + AAC) is built from 
 |---|---|---|
 | The script: scenes, narration, which clip each scene plays, on-screen facts | [`project/demo.json`](project/demo.json) (demoday's manifest schema) | by hand; the transcript with measured lengths is [`project/SCRIPT.md`](project/SCRIPT.md) (generated) |
 | The voice-over: one MP3 and one word-timings file per scene | `project/audio/<scene>.mp3`, `<scene>.words.json` (committed, about 2 MB) | Kokoro-82M on the CPU, [`voice/kokoro_tts.py`](voice/kokoro_tts.py) |
-| The screen clips, one per shot of [`docs/DEMO.md`](../docs/DEMO.md) | `project/clips/*.mp4` (gitignored) | `npm run clips` at the repo root ([`clips/README.md`](clips/README.md)) records into `video/clips/`; the render hard-links each clip it needs from there into `project/clips/` when it is not there yet (an edited clip already in `project/clips/` is kept) |
+| The screen clips, one per scene of [`project/demo.json`](project/demo.json) | `project/clips/*.mp4` (gitignored) | `npm run clips` at the repo root ([`clips/README.md`](clips/README.md)) records into `video/clips/`; the render hard-links each clip it needs from there into `project/clips/` when it is not there yet (an edited clip already in `project/clips/` is kept) |
 
 [`remotion/`](remotion/) composes them: demoday's Remotion template, restyled in the Shelfie brand ([`docs/DESIGN.md`](../docs/DESIGN.md): white page, ink `#111214`, one pomegranate accent `#c21a4b`, Figtree embedded in the bundle, no gradients, glow or glass), with captions burned in from the word timings.
 
 The render step normalises the mix to -14 LUFS integrated with true peak at or below -1 dBTP (two ffmpeg `loudnorm` passes, the video stream copied; `--no-loudnorm` skips it).
 
 Outputs (in `out/`, gitignored): `out/shelfie-demo.mp4`, `out/poster.png`, `out/shelfie-demo.srt`. The SRT is also written to [`shelfie-demo.srt`](shelfie-demo.srt), which is committed.
+
+## Large files
+
+Only the sources live in git: the manifest, the Remotion code, the slide assets and the narration (about 2 MB of MP3s and word timings, each file under 0.5 MB). The heavy media is gitignored and regenerated on demand:
+
+| Not in git | Regenerate with |
+|---|---|
+| Screen clips (`video/clips/*.mp4`, `video/project/clips/`) | `npm run clips` at the repo root |
+| The rendered video and poster (`video/out/`) | `cd video/remotion && npm run render` |
+| The Kokoro model and Python venv (`video/models/`, `video/.venv/`) | the steps under [Setup](#setup) |
 
 ## Setup
 
@@ -59,7 +69,7 @@ A full render takes several minutes; run one render at a time (and never beside 
 
 ## demo.json, what Shelfie adds to demoday's schema
 
-- `screen` on each scene: the shot it plays over (DEMO.md's shot table and the clip). Placeholders and SCRIPT.md show it.
+- `screen` on each scene: the shot it plays over (the clip it plays). Placeholders and SCRIPT.md show it.
 - `beat`: the story beat (1 to 6) it belongs to.
 - `holdSec`: screen time after the line ends, added to `durationSec` by the voice step.
 - `onScreen`: sourced facts or quotes over the footage, `{ text, source, from, to, extraSec }`; `from` / `to` are spoken phrases (matched in the scene's word timings), or give `fromSec` / `toSec`.
@@ -68,7 +78,7 @@ A full render takes several minutes; run one render at a time (and never beside 
 - `poster: { scene, atSec }`: the poster frame (default: the end card, 2 s in).
 - `slide: "title" | "end"` on a card scene picks its slide layout; `burnCaptions: false` keeps a scene's captions out of the picture (they stay in the SRT) where the slide already shows the spoken words; `emphasis` on a card or a `statement` item sets that substring in pomegranate.
 
-## The slide system (run 8)
+## The slide system
 
 Every non-recording frame is drawn in the public site's band language (`docs/DESIGN.md` "The public site"), from shared parts in [`remotion/src/components/slides/kit.jsx`](remotion/src/components/slides/kit.jsx): the site's palette (pomegranate, blush, charcoal, ink), the hero's wave as a band edge, white cards with the ink-tinted lift, arrows that draw out of a clipped slot, the hand-drawn accent marks, the drawn Awning lockup (never "shelfie" set in Figtree) and PayPal's official logo files (`project/assets/paypal/`, unmodified, full colour on white only, 120 px wide or more). Motion is one exponential ease-out (`beat()`), transform and opacity only.
 
@@ -81,6 +91,6 @@ Every non-recording frame is drawn in the public site's band language (`docs/DES
 | Architecture | `scenes/Architecture.jsx`, `kind: "architecture"` | six white cards on blush snaking in two rows (photo, Claude reads it, PayPal catalog, agent door, PayPal orders and payment, Claude brief via the PayPal Agent Toolkit); every card has the same rows (a brand row, the title, one line); unlit cards are dim but their brand row stays hidden until they light, so the PayPal logo is never shown faded; each lights on its spoken phrase (`NODES[].cue`, matched in the word timings), and on "A sheet of paper" the photo card grows while the others step back |
 | End | `Card.jsx`, `slide: "end"` | the lockup, the line with "AI shoppers." in pomegranate, "Thanks for watching!", and a charcoal band: Built with [PayPal logo on a white chip] and Claude |
 
-Every slide shares a 120 px left margin (the chapter bar's lockup and step count sit 96 px in, inside title-safe). The video fades to black over its last 0.5 s. Slide content stays above y = 880 wherever captions burn in (the caption box sits at the bottom); the on-screen layer draws under the captions. Preview stills: `docs/preview/video-title.png`, `video-stat.png`, `video-statement.png`, `video-chapter.png`, `video-architecture.png`, `video-end.png`.
+Every slide shares a 120 px left margin (the chapter bar's lockup and step count sit 96 px in, inside title-safe). The video fades to black over its last 0.5 s. Slide content stays above y = 880 wherever captions burn in (the caption box sits at the bottom); the on-screen layer draws under the captions.
 
 Captions use the "shelfie" style: phrases of at most about 50 characters, split at sentence ends and balanced at commas ([`remotion/src/lib/phrases.js`](remotion/src/lib/phrases.js), shared with the SRT writer), white Figtree 600 at 42 px on a solid ink box, inside the 90% title-safe area.

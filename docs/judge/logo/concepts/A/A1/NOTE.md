@@ -1,2 +1,0 @@
-A1 "Shelf in frame" (geometric, monoline): two viewfinder corners up top, and the frame's bottom edge is a real shelf on two brackets, with a jar and a loaf standing on it; the wordmark is a round-ended monoline with a pomegranate snapshot square for the i's dot.
-Why: it says the whole product in one picture (photograph your shelf and it becomes the shop), keeps the viewfinder equity of the current mark without being a generic app tile, and its line weight sits with Figtree.

@@ -1,6 +1,6 @@
 # Deploying Shelfie to Render
 
-**Status: never deployed.** These are the exact steps for a person to follow. `render.yaml` validates against Render's Blueprint schema, and the Render-specific code paths (the `RENDER_EXTERNAL_URL` fallback, the `CF-Connecting-IP` rate-limit key) are unit-tested, but nothing here has run on Render yet. Mark each step done in `docs/PROGRESS.md` as you verify it.
+**Status: never deployed.** These are the exact steps for a person to follow. `render.yaml` validates against Render's Blueprint schema, and the Render-specific code paths (the `RENDER_EXTERNAL_URL` fallback, the `CF-Connecting-IP` rate-limit key) are unit-tested, but nothing here has run on Render yet.
 
 Time: about 20 minutes, most of it waiting for the first build.
 
@@ -113,8 +113,6 @@ H='-H Content-Type:application/json -H Accept:application/json,text/event-stream
 ## 5. After it passes
 
 - In `README.md`, replace "**Not yet run.**" under **Deploy to Render** with the URL and the date you verified it, and put the URL at the top of the README.
-- In `docs/SUBMISSION.md`, fill in the hosted demo URL.
-- In `docs/PROGRESS.md`, move "The Render deploy" and "Webhooks" from **Unverified** to **Verified** with the date and the order number you paid.
 - `/terms` and `/privacy` are templates, not legal advice. Review them before real sellers sign up.
 
 ## If something goes wrong

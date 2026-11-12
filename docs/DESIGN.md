@@ -1,6 +1,6 @@
 # Shelfie design system: "Storefront"
 
-The tokens live in `src/app/globals.css`, the primitives in `src/components/ui` (shadcn-based, lowercase files) and the motion primitives in `src/components/motion`. Storefront won directions round 2 (`docs/judge/directions-2.md`). This file replaces the retired "Menu board" system (cream paper, serif display, mustard buttons, receipt slips).
+The tokens live in `src/app/globals.css`, the primitives in `src/components/ui` (shadcn-based, lowercase files) and the motion primitives in `src/components/motion`. This file replaces the retired "Menu board" system (cream paper, serif display, mustard buttons, receipt slips).
 
 ## Rationale
 
@@ -16,7 +16,7 @@ Banned (rubric Part C): cream or beige backgrounds, serif display headlines, mus
 
 ## Logo
 
-The "Awning" logo (concept B1 of the logo round, `docs/judge/logo-round.md`, refined once; final files and sheet in `docs/judge/logo/final/`, drawn by `docs/judge/logo/tools-B/build.mjs final`, which also writes the app's `src/components/brand/logo-paths.ts`).
+The "Awning" logo. The final files are in `public/brand/`, and the app draws it from `src/components/brand/logo-paths.ts`; both were generated from hand-set geometry by a script kept on the `dev-notes` branch.
 
 - **Mark:** a pomegranate scalloped shop awning (three equal scallops) over a closed ink instant print, on a 64-unit grid (art 4..60). The print's deep chin (12 units, three times its 4-unit sides and top) is the shop counter, its window the shopfront: one snapshot becomes a shop. A paper gap separates awning and print, so the one-colour mark still reads.
 - **Wordmark:** lowercase "shelfie" drawn as paths (geometric, 23-unit strokes on a 100-unit x-height). Its one custom detail: the f's crossbar runs on over the i as a short shelf, and a small pomegranate print stands above it as the i's dot.
@@ -169,7 +169,7 @@ Item photos are 4:3 crops with the `photo` radius. Thumbnails use `thumb` (10 px
 
 ### The illustrations (`illustrations/ItemIllustration.tsx`, `public/illustrations.svg`)
 
-- **Thirteen drawings**, one per item category (`src/lib/domain/category.ts`): bread (a scored loaf), pastry (a segmented croissant with curved horns), cake (a frosted cake on a stand), coffee (a takeaway cup), tea (a teapot), taco, burrito (half in foil, straight crimp lines), drink (a glass with a straw and lime), dessert (a cone), meal (a plate with a fork: any other dish), bike_part (a bicycle), tool (a wrench crossed with a screwdriver) and goods (a shopping bag). **Variants within a category**, picked from the item's name by `drawingId` (`src/lib/domain/drawing.ts`; the category stays Claude's closed choice): a pastry is a cinnamon swirl bun (bun, roll, cinnamon, cardamom), a fruit tart (tart, pie, galette, quiche, crostata) or a pain au chocolat (chocolate batons at its ends), else the croissant. Contact sheet: `docs/judge/evidence/illustrations.png`.
+- **Thirteen drawings**, one per item category (`src/lib/domain/category.ts`): bread (a scored loaf), pastry (a segmented croissant with curved horns), cake (a frosted cake on a stand), coffee (a takeaway cup), tea (a teapot), taco, burrito (half in foil, straight crimp lines), drink (a glass with a straw and lime), dessert (a cone), meal (a plate with a fork: any other dish), bike_part (a bicycle), tool (a wrench crossed with a screwdriver) and goods (a shopping bag). **Variants within a category**, picked from the item's name by `drawingId` (`src/lib/domain/drawing.ts`; the category stays Claude's closed choice): a pastry is a cinnamon swirl bun (bun, roll, cinnamon, cardamom), a fruit tart (tart, pie, galette, quiche, crostata) or a pain au chocolat (chocolate batons at its ends), else the croissant. Contact sheet: `docs/evidence/illustrations.png`.
 - **Style:** rounded geometric shapes, one ink outline (2.75 units on a 96 x 72 viewBox, round caps and joins), two or three flat fills from the illustration palette (`--ill-*`), and exactly one pomegranate detail (the loaf's scores, the croissant's drizzle, the cherry, the cup's sticker, the teapot's knob, the tomatoes, the salsa, the straw, the saddle, the screwdriver's handle, the bag's sticker, the meal's tomato). Most sit on a short ink shelf line. They read at 44 px and at 224 px.
 - **Category:** Claude picks one per item when it reads the menu (`category` in the extraction schema). Rows without one (older shops, a hand-added item) fall back to `guessCategory`, keyword rules on the name, then the description, then the section; a food shop never gets `tool` or `bike_part` from a keyword; an unmatched item is `meal` in a food shop, `tool` in a services shop, else `goods`.
 - **Cost:** each drawing is a `<symbol>` in one static sheet; a tile is `<svg><use href="/illustrations.svg#bread"/></svg>`, so the paths are downloaded once and cached and never repeated in a page's HTML. The comment in that file must never contain a double hyphen (invalid XML blanks every drawing).
@@ -222,7 +222,7 @@ Cart states: while checkout is in flight the button reads `Opening PayPal…` an
 
 ## The public site (home, help, legal)
 
-Built from the owner's reference image (run 6), and the one place the rules above are relaxed: pomegranate may fill a band and a pill (`Button` variants `brand` and `inverse`), and the page is a stack of bands, not a white page.
+Built from the owner's reference image, and the one place the rules above are relaxed: pomegranate may fill a band and a pill (`Button` variants `brand` and `inverse`), and the page is a stack of bands, not a white page.
 
 - **The header (`BandHeader`):** a 64 px bar (56 px on phones) in the bands' `max-w-site` and gutter; logo 28 px; Browse, How it works, FAQ and Help at 15 px medium ink with a short underline on hover and a full accent underline for the section in view (`aria-current`); Log in as text and a 40 px pomegranate "Add your shop", the header's only filled element. Once the page scrolls it turns translucent near-white with a blur, a hairline and a soft shadow (an opacity cross-fade). Phones: logo, Log in, a compact Add your shop and a menu button whose lines fold into a cross; the menu is a full-width panel with large rows and a full-width Add your shop, scroll-locked, closed by Esc, a link or a press outside, focus moved in and back.
 - **Bands, each a different place:** the sticky near-white header (`BandHeader`), the hero photo with its pomegranate wave, the blush How it works band, the solid pomegranate FAQ with deeper rows, the cocoa photo band, the charcoal footer. Every band uses one padding (`py-band`) and one gutter (`px-band-gutter`) inside `max-w-site`.
