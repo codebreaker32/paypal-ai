@@ -9,6 +9,7 @@ import { AuthHeading } from './AuthHeading';
 import { AuthSwitch } from './AuthSwitch';
 import { AuthProblemText, FormProblem } from './AuthProblemText';
 import { EmailField, PasswordField } from './fields';
+import { GoogleSignIn } from './GoogleSignIn';
 import { RecoveryKeyStep } from './RecoveryKeyStep';
 import { announceSession } from '@/lib/client/started-session';
 import { useAuthForm } from './use-auth-form';
@@ -16,7 +17,7 @@ import { useAuthForm } from './use-auth-form';
 const IDS = { email: 'signup-email', password: 'new-password' };
 const INLINE_LINK = 'press-text font-semibold underline underline-offset-2';
 
-export function SignupForm({ appUrl }: { appUrl: string }) {
+export function SignupForm({ appUrl, google = false }: { appUrl: string; google?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [done, setDone] = useState<KeyAndNext | null>(null);
@@ -40,6 +41,7 @@ export function SignupForm({ appUrl }: { appUrl: string }) {
   return (
     <>
       <AuthHeading title="Create your account" />
+      {google && <GoogleSignIn />}
       <form method="post" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
         <EmailField
           id={IDS.email}
