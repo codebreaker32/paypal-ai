@@ -12,7 +12,7 @@ export interface FooterLink {
   native?: boolean;
 }
 
-const SITE_PAGE = /^\/(browse|help|terms|privacy)?\/?$/;
+const SITE_PAGE = /^\/(browse|help|terms|privacy|orders)?\/?$/;
 const BUYER_PAGE = /^\/(s|o)(\/|$)/;
 
 /** Everything not listed above (log in, sign up, setup, a 404) gets the one-row footer, as the seller's pages do. */

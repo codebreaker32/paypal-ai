@@ -13,7 +13,10 @@ import { clearCartIfPaid } from '@/components/shop/cart';
 import { formatUSD } from '@/lib/domain/money';
 import { keepsPolling, statusView, type Tone, type Tracking } from './receipt-status';
 import './receipt-motion.css';
-import { goingToText, paidToText, type ReceiptOrder } from '@/lib/orders/receipt-types';
+import { RECEIPT_STATUS_LABEL, goingToText, paidToText, type ReceiptOrder } from '@/lib/orders/receipt-types';
+import Link from 'next/link';
+import { KeepReceipt } from './KeepReceipt';
+import { RememberOrder } from './RememberOrder';
 
 const POLL_MS = 3000;
 
@@ -34,16 +37,7 @@ const DOT: Record<Tone, string> = {
 };
 
 /** The status word on the summary panel (the page heading says it in full, so this copy is hidden from screen readers). */
-const SHORT: Record<ReceiptOrder['status'], string> = {
-  awaiting_approval: 'Not paid yet',
-  approved: 'Confirming',
-  payment_pending: 'Pending',
-  paid: 'Paid',
-  fulfilled: 'Paid',
-  failed: 'Not paid',
-  cancelled: 'Cancelled',
-  expired: 'Expired',
-};
+const SHORT = RECEIPT_STATUS_LABEL;
 
 export interface ReceiptProps {
   orderRef: string;
@@ -52,9 +46,13 @@ export interface ReceiptProps {
   /** The order came from the shop page's assistant: offer the way back to it. */
   fromAssistant: boolean;
   tracking: Tracking | null;
+  /** The app's configured public URL, for the receipt link a buyer sends to themselves. */
+  appUrl: string;
+  /** When the order was created (ISO), for "Your orders" on this device. */
+  createdAt: string;
 }
 
-export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, tracking }: ReceiptProps) {
+export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, tracking, appUrl, createdAt }: ReceiptProps) {
   const [order, setOrder] = useState(initial);
   const open = keepsPolling(order);
 
@@ -177,6 +175,17 @@ export function Receipt({ orderRef, initial, pickupNotes, fromAssistant, trackin
           </p>
         </div>
       </Card>
+
+      <KeepReceipt appUrl={appUrl} orderRef={orderRef} shopName={order.shopName} number={order.number} />
+
+      <p className="text-sm">
+        <Link href="/orders" className="press-text font-semibold text-ink underline underline-offset-4 hover:text-accent-ink">
+          All your orders on this device
+        </Link>
+      </p>
+      <RememberOrder
+        order={{ ref: orderRef, shopName: order.shopName, shopSlug: order.shopSlug, total: order.totalCents, createdAt }}
+      />
     </div>
   );
 }

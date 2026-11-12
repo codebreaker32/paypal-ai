@@ -118,7 +118,7 @@ describe('keepsPolling', () => {
 describe('Receipt slip', () => {
   it('says shipping goes to the address the buyer gave PayPal, not to a PayPal account a guest buyer doesn’t have', () => {
     const html = renderToStaticMarkup(
-      createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null }), pickupNotes: PICKUP, fromAssistant: false, tracking: null }),
+      createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null }), pickupNotes: PICKUP, fromAssistant: false, tracking: null, appUrl: 'http://localhost:3000', createdAt: '2026-11-12T10:00:00Z' }),
     );
     expect(html).toContain('Shipping to the address you gave PayPal.');
     expect(html).not.toContain('PayPal account');
@@ -127,7 +127,7 @@ describe('Receipt slip', () => {
   it("says who was paid: the shop's own PayPal account (masked) or Shelfie's demo account", () => {
     const render = (paidTo: ReceiptOrder['paidTo']) =>
       renderToStaticMarkup(
-        createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null, paidTo }), pickupNotes: PICKUP, fromAssistant: false, tracking: null }),
+        createElement(Receipt, { orderRef: 'ord_1', initial: order({ status: 'paid', approvalUrl: null, paidTo }), pickupNotes: PICKUP, fromAssistant: false, tracking: null, appUrl: 'http://localhost:3000', createdAt: '2026-11-12T10:00:00Z' }),
       );
     expect(render({ kind: 'seller', shopName: 'Marigold Bakehouse', maskedEmail: 'r•••@example.com' })).toContain(
       'Paid to Marigold Bakehouse’s own PayPal account (r•••@example.com)',
@@ -148,6 +148,8 @@ describe('Receipt slip', () => {
         pickupNotes: PICKUP,
         fromAssistant: false,
         tracking: null,
+        appUrl: 'http://localhost:3000',
+        createdAt: '2026-11-12T10:00:00Z',
       }),
     );
     expect(html).toContain('Going to Marigold Bakehouse’s own PayPal account (r•••@example.com).');

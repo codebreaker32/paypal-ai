@@ -77,3 +77,22 @@ export const OPEN_RECEIPT_STATUSES: readonly OrderStatus[] = ['awaiting_approval
 
 /** Order references look like `ord_` + lowercase letters and digits; anything else is never looked up or put in a URL. */
 export const ORDER_REF = /^ord_[a-z0-9]{1,64}$/;
+
+/** The short status word: the receipt's summary panel and the "Your orders" list. */
+export const RECEIPT_STATUS_LABEL: Record<OrderStatus, string> = {
+  awaiting_approval: 'Not paid yet',
+  approved: 'Confirming',
+  payment_pending: 'Pending',
+  paid: 'Paid',
+  fulfilled: 'Paid',
+  failed: 'Not paid',
+  cancelled: 'Cancelled',
+  expired: 'Expired',
+};
+
+/** One row of `GET /api/orders/status`: the status only, nothing about the buyer. */
+export interface OrderStatusEntry {
+  ref: string;
+  status: OrderStatus;
+  statusLabel: string;
+}

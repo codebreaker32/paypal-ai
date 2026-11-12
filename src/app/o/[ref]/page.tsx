@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CONSOLE_AGENT_NAME } from '@/lib/agent/buyer-console';
+import { getConfig } from '@/lib/config';
 import { getDb } from '@/lib/db';
 import * as ordersRepo from '@/lib/db/repos/orders';
 import * as shopsRepo from '@/lib/db/repos/shops';
@@ -30,6 +31,8 @@ export default async function ReceiptPage({ params }: PageProps<'/o/[ref]'>) {
         pickupNotes={shop.pickupNotes}
         fromAssistant={row.agentName === CONSOLE_AGENT_NAME}
         tracking={tracking ? { carrier: tracking.carrier, number: tracking.trackingNumber } : null}
+        appUrl={getConfig().appUrl}
+        createdAt={new Date(row.createdAt).toISOString()}
       />
     </div>
   );

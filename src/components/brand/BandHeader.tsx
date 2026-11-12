@@ -16,6 +16,8 @@ const SECTIONS = [
 ] as const;
 const BROWSE = { label: 'Browse', href: '/browse' };
 const HELP = { label: 'Help', href: '/help' };
+/** The receipts this browser has opened (localStorage only; buyers have no accounts). */
+const ORDERS = { label: 'Your orders', href: '/orders' };
 
 const LINK = 'nav-link press-text inline-flex min-h-tap items-center whitespace-nowrap rounded-sm px-3 text-(length:--text-nav) leading-5 font-medium text-ink';
 const CTA = 'nav-hit min-h-10 px-4 text-(length:--text-nav) leading-5';
@@ -130,6 +132,11 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
                 {HELP.label}
               </Link>
             </li>
+            <li>
+              <Link href={ORDERS.href} aria-current={pathname === ORDERS.href ? 'page' : undefined} className={LINK}>
+                {ORDERS.label}
+              </Link>
+            </li>
           </ul>
         </nav>
       </div>
@@ -171,7 +178,7 @@ export function BandHeader({ view }: { view: Extract<HeaderView, { kind: 'public
     </>
   );
 
-  const menuLinks = [BROWSE, ...SECTIONS, HELP, ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }] : [])];
+  const menuLinks = [BROWSE, ...SECTIONS, HELP, ORDERS, ...(dashboardHref ? [{ label: 'Dashboard', href: dashboardHref }] : [])];
 
   return (
     <header
