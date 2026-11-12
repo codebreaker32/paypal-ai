@@ -5,7 +5,6 @@
 **Snap a photo of your price list. Shelfie turns it into a PayPal-backed shop that any AI assistant can order from.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-c21a4b.svg)](LICENSE)
-[![CI](https://github.com/codebreaker32/paypal-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/codebreaker32/paypal-ai/actions/workflows/ci.yml)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![PayPal Sandbox](https://img.shields.io/badge/PayPal-Sandbox-003087?logo=paypal&logoColor=white)
