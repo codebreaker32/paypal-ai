@@ -51,6 +51,8 @@ export const MenuExtractionSchema = z.object({
     pickup_notes: z.string().nullable(),
   }),
   kind: z.enum(['food', 'goods', 'services']),
+  // ISO 4217 code of the printed prices ("USD", "INR", "EUR"), or null when the menu shows no currency at all.
+  currency: z.string().nullable(),
   items: z.array(ItemSchema),
   skipped_lines: z.array(SkippedSchema),
 });
@@ -67,9 +69,11 @@ const LATER_FIELDS = ['category', 'example_photo'] as const;
  */
 function withCategories(raw: unknown): unknown {
   if (!raw || typeof raw !== 'object' || !Array.isArray((raw as { items?: unknown }).items)) return raw;
-  const r = raw as { items: unknown[] };
+  const r = raw as { items: unknown[]; currency?: unknown };
   return {
     ...r,
+    // Readings stored before the currency field: they were all read as US dollars.
+    currency: 'currency' in r ? r.currency : null,
     items: r.items.map((it) => {
       if (!it || typeof it !== 'object') return it;
       const missing = LATER_FIELDS.filter((f) => !(f in it));

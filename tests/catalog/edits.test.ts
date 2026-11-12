@@ -55,7 +55,7 @@ describe('edits', () => {
       expect(errorOf(() => parseShopPatch({ name: '   ' }))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseShopPatch({ shippingFeeCents: 8.5 }))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseShopPatch({ shippingFeeCents: -1 }))?.code).toBe('INVALID_REQUEST');
-      expect(errorOf(() => parseShopPatch({ shippingFeeCents: 100001 }))?.code).toBe('INVALID_REQUEST');
+      expect(errorOf(() => parseShopPatch({ shippingFeeCents: 1_000_001 }))?.code).toBe('INVALID_REQUEST');
     });
 
     it('accepts a $0 shipping fee (free shipping)', () => {
@@ -172,16 +172,16 @@ describe('edits', () => {
       expect(items.byIdForShop(db, other, theirs.id)!.status).toBe('draft');
     });
 
-    it('validates prices as whole cents from 1 cent to $500 (the online order cap)', () => {
+    it('validates prices as whole cents from 1 cent to $10,000 (the price cap)', () => {
       const up = (priceCents: unknown) => ({ updates: [{ itemId: ids['Butter croissant'], variants: [{ label: null, priceCents }] }] });
       expect(errorOf(() => parseItemUpdates(up(0)))?.code).toBe('INVALID_REQUEST');
       expect(parseItemUpdates(up(1)).updates[0].variants![0].priceCents).toBe(1);
       expect(parseItemUpdates(up(null)).updates[0].variants![0].priceCents).toBeNull();
       expect(errorOf(() => parseItemUpdates(up(4.5)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up(-1)))?.code).toBe('INVALID_REQUEST');
-      expect(errorOf(() => parseItemUpdates(up(50_001)))?.code).toBe('INVALID_REQUEST');
+      expect(errorOf(() => parseItemUpdates(up(1_000_001)))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates(up('4.50')))?.code).toBe('INVALID_REQUEST');
-      expect(parseItemUpdates(up(50_000)).updates[0].variants![0].priceCents).toBe(50_000);
+      expect(parseItemUpdates(up(1_000_000)).updates[0].variants![0].priceCents).toBe(1_000_000);
       expect(errorOf(() => parseItemUpdates({ updates: [{ itemId: ids['Butter croissant'], price: 1 }] }))?.code).toBe('INVALID_REQUEST');
       expect(errorOf(() => parseItemUpdates({ updates: [] }))?.code).toBe('INVALID_REQUEST');
     });

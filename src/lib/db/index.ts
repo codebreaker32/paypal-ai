@@ -31,6 +31,8 @@ function addMissingColumns(db: Db): void {
   // Here, not in schema.sql: on an older database the column only exists from the line above.
   db.exec('CREATE INDEX IF NOT EXISTS shops_account ON shops(account_id)');
   db.exec('CREATE UNIQUE INDEX IF NOT EXISTS shops_seed_key ON shops(seed_key) WHERE seed_key IS NOT NULL');
+  // The old $500 default order cap became $10,000; shops still on the old default move up with it.
+  db.exec('UPDATE shops SET order_cap_cents = 1000000 WHERE order_cap_cents = 50000');
 }
 
 const globalForDb = globalThis as unknown as { __shelfieDb?: Db };

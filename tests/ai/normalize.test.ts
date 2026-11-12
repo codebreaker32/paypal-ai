@@ -33,7 +33,7 @@ const byName = (c: DraftCatalog, re: RegExp): DraftItem => {
 
 const base: MenuExtraction = {
   is_menu: true, image_quality: 'good', problems: [], retake_tip: null, warnings: [],
-  shop: { name: 'Shop', about: null, pickup_notes: null }, kind: 'food', items: [], skipped_lines: [],
+  shop: { name: 'Shop', about: null, pickup_notes: null }, kind: 'food', currency: null, items: [], skipped_lines: [],
 };
 function raw(...items: Partial<ExtractedItem>[]): MenuExtraction {
   return {
@@ -110,15 +110,15 @@ describe('other recorded fixtures', () => {
 });
 
 describe('price rules', () => {
-  it('flags price 0 and anything over the $500 online order cap as CHECK, but not 50000', () => {
+  it('flags price 0 and anything over the $10,000 price cap as CHECK, but not 1000000', () => {
     const c = catalog(raw(
       { name: 'Zero', prices: [price(0, '$0')] },
-      { name: 'Wedding cake', prices: [price(65000, '$650')] },
-      { name: 'Edge', prices: [price(50000, '$500')] },
+      { name: 'Wedding cake', prices: [price(1_200_000, '$12000')] },
+      { name: 'Edge', prices: [price(1_000_000, '$10000')] },
     ));
     expect(byName(c, /Zero/).issues).toContain('CHECK');
     expect(byName(c, /Wedding/).issues).toContain('CHECK');
-    expect(byName(c, /Wedding/).issueDetail).toBe('We read $650.00. Online orders go up to $500, so set a lower price or remove it.');
+    expect(byName(c, /Wedding/).issueDetail).toBe('We read $12000.00. Online orders go up to $10000, so set a lower price or remove it.');
     expect(byName(c, /Edge/).issues).toEqual([]);
   });
   it('keeps the first 10 sizes of an item with more, and asks the seller to check', () => {
@@ -300,14 +300,14 @@ describe('seller-facing issue text', () => {
     const c = catalog(raw(
       { name: 'Cardamom bun', price_kind: 'deal', deal_text: '3 for $10', prices: [price(333, '3 for $10')] },
       { name: 'Cardamom bun', prices: [], price_kind: 'missing', page: 2 },
-      { name: 'Gift box', prices: [price(150000, '$1500')] },
+      { name: 'Gift box', prices: [price(1_500_000, '$15000')] },
       { name: 'Gift box', prices: [price(4000, '$40')], page: 2 },
     ));
     expect(c.items.map((i) => [i.issues, i.issueDetail])).toEqual([
       [['CHECK', 'DUPLICATE'], 'Printed as “3 for $10”. We set $3.33 each. Is that right?'],
       [['MISSING_PRICE', 'DUPLICATE'], 'No price on the menu. Add one, or leave it off.'],
-      [['CHECK', 'DUPLICATE'], 'We read $1500.00. Online orders go up to $500, so set a lower price or remove it.'],
-      [['DUPLICATE'], 'Listed twice with different prices: $1500.00 and $40.00.'],
+      [['CHECK', 'DUPLICATE'], 'We read $15000.00. Online orders go up to $10000, so set a lower price or remove it.'],
+      [['DUPLICATE'], 'Listed twice with different prices: $15000.00 and $40.00.'],
     ]);
   });
   it('a plain item has no detail, even with a model note', () => {
@@ -633,5 +633,37 @@ describe('example_photo (Claude’s pick from the example-photo library)', () =>
     expect(p).toMatch(/example_photo/);
     expect(menuSystemPrompt([])).toMatch(/example_photo: always null/);
     expect(MENU_SYSTEM_PROMPT).toBe(menuSystemPrompt());
+  });
+});
+
+describe('menus in another currency', () => {
+  it('converts rupee prices to US cents and says so, with no card per item', () => {
+    const c = catalog({ ...raw(
+      { name: 'Flower keychain', prices: [price(19900, '₹199')] },
+      { name: 'Tote bag', prices: [price(null, 'Rs. 1,299/-')] },
+      { name: 'Badge', prices: [price(4900, '₹49', 'S'), price(9900, '₹99', 'L')] },
+    ), currency: 'INR' });
+    expect(byName(c, /keychain/).variants[0].priceCents).toBe(225);
+    expect(byName(c, /keychain/).issues).toEqual([]);
+    expect(byName(c, /Tote/).variants[0].priceCents).toBe(1468);
+    expect(byName(c, /Badge/).variants.map((v) => v.priceCents)).toEqual([55, 112]);
+    expect(c.converted).toMatchObject({ code: 'INR', symbol: '₹' });
+    expect(c.nonUsd).toBe(false);
+  });
+  it('leaves US-dollar menus (and readings with no currency) as they were', () => {
+    const usd = catalog({ ...raw({ name: 'Loaf', prices: [price(900, '$9')] }), currency: 'USD' });
+    expect(usd.converted).toBeNull();
+    expect(usd.items[0].variants[0].priceCents).toBe(900);
+    expect(catalog(raw({ name: 'Loaf', prices: [price(900, '$9')] })).converted).toBeNull();
+  });
+  it('a currency with no rate keeps the old warning', () => {
+    const c = catalog({ ...raw({ name: 'Thing', prices: [price(500, '5 XYZ')] }), currency: 'XYZ' });
+    expect(c.converted).toBeNull();
+    expect(c.nonUsd).toBe(true);
+  });
+  it('a stored reading from before the currency field still parses, as US dollars', () => {
+    const { currency: _drop, ...old } = raw({ name: 'Loaf' });
+    const parsed = parseStoredReading(old);
+    expect(parsed.success && parsed.data.currency).toBeNull();
   });
 });

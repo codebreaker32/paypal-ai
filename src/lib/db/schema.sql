@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS shops (
   pickup_notes TEXT NOT NULL DEFAULT '',
   shipping_fee_cents INTEGER NOT NULL DEFAULT 0 CHECK (shipping_fee_cents >= 0),
   status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','live','paused')),
-  order_cap_cents INTEGER NOT NULL DEFAULT 50000,
+  order_cap_cents INTEGER NOT NULL DEFAULT 1000000,
   owner_token_hash TEXT NOT NULL,
   menu_photo_paths TEXT NOT NULL DEFAULT '[]',
   created_at TEXT NOT NULL,

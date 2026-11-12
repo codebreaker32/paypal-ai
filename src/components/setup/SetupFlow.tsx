@@ -70,6 +70,7 @@ export function SetupFlow({ view }: { view: FlowView }) {
           skipped={view.skipped}
           warnings={view.warnings}
           nonUsd={view.nonUsd}
+          converted={view.converted}
           recorded={view.recorded}
         />
       );

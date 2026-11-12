@@ -153,9 +153,8 @@ describe('priceOrder', () => {
     const e = orderError(() => priceOrder(db, capped.shop, [{ itemId: loaf, quantity: 2 }], 'shipping'));
     expect(e.code).toBe('ORDER_TOO_LARGE');
     expect(e.message).toContain('25.00');
-    // Default cap is $500.
-    const big = orderError(() => priceOrder(db, s.shop, Array.from({ length: 3 }, () => ({ itemId: s.item['Sourdough loaf'].id, quantity: 20 })), 'pickup'));
-    expect(big.code).toBe('ORDER_TOO_LARGE');
+    // Default cap is $10,000.
+    expect(s.shop.orderCapCents).toBe(1_000_000);
   });
 
   it('refuses orders when the shop is paused or still a draft', () => {

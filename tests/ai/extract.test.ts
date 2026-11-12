@@ -7,7 +7,7 @@ import type { MenuExtraction } from '@/lib/ai/schemas';
 
 const OK: MenuExtraction = {
   is_menu: true, image_quality: 'good', problems: [], retake_tip: null, warnings: [],
-  shop: { name: 'X', about: null, pickup_notes: null }, kind: 'food', items: [], skipped_lines: [],
+  shop: { name: 'X', about: null, pickup_notes: null }, kind: 'food', currency: null, items: [], skipped_lines: [],
 };
 const photo = (s: string) => ({ data: Buffer.from(s), mediaType: 'image/jpeg' as const });
 

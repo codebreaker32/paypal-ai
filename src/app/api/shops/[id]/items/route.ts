@@ -4,7 +4,7 @@
 //   resolveIssues clears every issue; resolveDuplicate clears only DUPLICATE (the item's own question stays).
 //   → 200 { items: ItemWithVariants[] }: the shop's WHOLE menu after the updates, in menu order
 //     (replace your list, or merge by id). All updates apply, or none do.
-//   Prices are integer cents, 0 to 50000 (the $500 online order cap). Items already in PayPal accept only soldOut and
+//   Prices are integer cents, 0 to 1000000 (the $10,000 price cap). Items already in PayPal accept only soldOut and
 //   status 'removed' (409 ITEM_LIVE otherwise).
 // POST /api/shops/[id]/items (owner): { name, section?, priceCents?, sourceText } → 201 { item }
 //   Turns a skipped line into a draft item ("Make it an item" on the review screen).

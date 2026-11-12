@@ -1,3 +1,4 @@
+import type { Conversion } from './currency';
 // Shared domain contracts.
 import type { ItemCategory } from './category';
 
@@ -115,6 +116,8 @@ export interface DraftCatalog {
   needsAttention: number;
   warnings: string[];
   nonUsd: boolean;
+  /** The menu's prices were printed in this currency and converted to US dollars at its approximate rate. */
+  converted?: Conversion | null;
 }
 
 export type UnreadableReason = 'not_a_menu' | 'unreadable' | 'no_items';

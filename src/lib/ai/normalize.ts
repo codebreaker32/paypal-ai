@@ -3,6 +3,7 @@ import { LIBRARY } from '@/lib/library/catalog';
 import type { LibraryPhoto } from '@/lib/library/types';
 import { MAX_PRICE_CENTS, MAX_VARIANTS } from '@/lib/catalog/rules';
 import { formatUSD, parseAmountToCents } from '@/lib/domain/money';
+import { foreignCurrency, toUsdCents, type Conversion, type CurrencyInfo } from '@/lib/domain/currency';
 import type {
   DraftCatalog,
   DraftItem,
@@ -326,6 +327,32 @@ function dedupe(built: Built[]): DraftItem[] {
   return built.filter((b) => seen.get(b.key)!.includes(b)).map((b) => b.item);
 }
 
+/** A printed foreign price as hundredths ("₹199" or "Rs. 1,299/-" to 19900 or 129900), or null. */
+function foreignHundredths(raw: string): number | null {
+  const m = raw.replace(/,(?=\d{3}\b)/g, '').match(/\d+(?:[.,]\d{1,2})?/);
+  if (!m) return null;
+  const n = Number(m[0].replace(',', '.'));
+  return Number.isFinite(n) ? Math.round(n * 100) : null;
+}
+
+/**
+ * An item read in another currency, with every price in US cents. The raw text becomes the plain dollar amount, so
+ * a converted price is not mistaken for a price "printed some other way"; the review step's banner names the
+ * currency and rate instead.
+ */
+function inUsd(it: ExtractedItem, info: CurrencyInfo): ExtractedItem {
+  return {
+    ...it,
+    prices: it.prices.map((p) => {
+      const hundredths = p.amount_cents ?? (it.price_kind === 'fixed' || it.price_kind === 'deal' ? foreignHundredths(p.raw) : null);
+      if (hundredths == null || !Number.isFinite(hundredths)) return p;
+      if (!Number.isInteger(hundredths) || hundredths < 0) return p;
+      const usd = toUsdCents(hundredths, info);
+      return { ...p, amount_cents: usd, raw: (usd / 100).toFixed(2) };
+    }),
+  };
+}
+
 export function normalizeExtraction(raw: MenuExtraction, library: readonly LibraryPhoto[] = LIBRARY): DraftCatalog | UnreadableMenu {
   if (!raw.is_menu) {
     return { unreadable: true, reason: 'not_a_menu', tip: retakeTipFor(['not_a_menu']) };
@@ -341,8 +368,13 @@ export function normalizeExtraction(raw: MenuExtraction, library: readonly Libra
     .filter((s) => s.text !== '');
   const built: Built[] = [];
   const libraryIds = new Set(library.map((p) => p.id));
+  // Prices printed in another currency are converted to US dollars (PayPal checkout here is in USD).
+  const code = raw.currency?.trim().toUpperCase() || 'USD';
+  const foreign = foreignCurrency(code);
+  const converted: Conversion | null = foreign ? { code: foreign.code, symbol: foreign.symbol, name: foreign.name, usd: foreign.usd } : null;
 
-  for (const it of raw.items) {
+  for (const original of raw.items) {
+    const it = foreign ? inUsd(original, foreign) : original;
     if (looksLikeInstruction(it)) {
       const text = clean(it.source_text || it.name || '');
       if (text) skipped.push({ text, page: it.page, reason: 'instruction' });
@@ -374,6 +406,8 @@ export function normalizeExtraction(raw: MenuExtraction, library: readonly Libra
     skipped,
     needsAttention: items.filter((i) => i.status !== 'removed' && i.issues.length > 0).length,
     warnings: sellerWarnings(raw.warnings),
-    nonUsd: raw.problems.includes('non_usd'),
+    // A currency we have no rate for: prices are left for the seller, as before.
+    nonUsd: !converted && (code !== 'USD' || raw.problems.includes('non_usd')),
+    converted,
   };
 }

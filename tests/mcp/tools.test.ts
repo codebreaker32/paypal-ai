@@ -124,7 +124,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
       accepting_orders: true,
       fulfillment: { modes: ['pickup', 'shipping'], pickup_notes: 'Saturday 8–12 at the Mueller farmers market', shipping_fee: '8.00' },
       currency: 'USD',
-      limits: { max_qty_per_line: 20, max_lines: 15, max_order: '500.00' },
+      limits: { max_qty_per_line: 20, max_lines: 15, max_order: '10000.00' },
       how_ordering_works: expect.stringContaining('approval_url'),
       // The demo shop with no PayPal email.
       payments: "Paid to Shelfie's own PayPal account, which collects for this shop.",
@@ -319,6 +319,7 @@ describe('agent door tools (MCP over an in-memory transport)', () => {
     expect(fail(await call(client, 'create_order', { items: [{ item_id: loaf().id, quantity: 0 }], fulfillment: 'pickup' })).code).toBe('QUANTITY_LIMIT');
     const lines = Array.from({ length: 16 }, () => ({ item_id: loaf().id, quantity: 1 }));
     expect(fail(await call(client, 'create_order', { items: lines, fulfillment: 'pickup' })).code).toBe('ORDER_TOO_LARGE');
+    db.prepare('UPDATE shops SET order_cap_cents = 50000 WHERE id = ?').run(s.shop.id);
     const big = fail(await call(client, 'create_order', { items: Array.from({ length: 3 }, () => ({ item_id: loaf().id, quantity: 20 })), fulfillment: 'pickup' }));
     expect(big).toMatchObject({ code: 'ORDER_TOO_LARGE', max_order: '500.00' });
     expect(fail(await call(client, 'create_order', { items: [], fulfillment: 'pickup' })).code).toBe('INVALID_ARGUMENTS');

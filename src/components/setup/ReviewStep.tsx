@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import type { Conversion } from '@/lib/domain/currency';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, CircleAlert, CircleCheck, History, Loader2, RotateCcw, Send, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +33,8 @@ export interface ReviewProps {
   skipped: SkippedLine[];
   warnings: string[];
   nonUsd: boolean;
+  /** The menu was in another currency; its prices were converted to US dollars. */
+  converted?: Conversion | null;
   recorded: boolean;
 }
 
@@ -266,7 +269,7 @@ export function ReviewStep(props: ReviewProps) {
 
           <PhotoStrip shopId={shopId} count={photoCount} className="shrink-0 lg:hidden" />
 
-          {(props.recorded || props.nonUsd) && (
+          {(props.recorded || props.nonUsd || props.converted) && (
             <div className="flex flex-col gap-3">
               {props.recorded && (
                 <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
@@ -274,6 +277,14 @@ export function ReviewStep(props: ReviewProps) {
                     Recorded reading
                   </Badge>
                   This is Claude’s saved reading of the sample photo, made earlier, so there was no wait.
+                </p>
+              )}
+              {props.converted && (
+                <p className="flex items-start gap-2 rounded-md bg-note-soft px-3.5 py-2.5 text-sm text-ink" data-testid="converted-note">
+                  <Icon icon={TriangleAlert} size="sm" className="mt-0.5" />
+                  <span>
+                    <strong>Your menu is in {props.converted.name} ({props.converted.symbol}).</strong> PayPal checkout on Shelfie is in US dollars, so we converted every price at about {props.converted.symbol}1 = ${props.converted.usd < 0.01 ? props.converted.usd.toPrecision(2) : props.converted.usd.toFixed(props.converted.usd < 1 ? 4 : 2)}. Check them before you publish.
+                  </span>
                 </p>
               )}
               {props.nonUsd && (

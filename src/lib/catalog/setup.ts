@@ -2,6 +2,7 @@
 // menu with Claude (or a recorded reading for samples without a key), and work out which step the
 // setup page should show. Route handlers and the page stay thin; this module holds the rules.
 import { isDemoShop } from '@/lib/domain/payee';
+import type { Conversion } from '@/lib/domain/currency';
 import fs from 'node:fs/promises';
 import type { Db } from '@/lib/db';
 import * as shops from '@/lib/db/repos/shops';
@@ -279,6 +280,7 @@ export type SetupView =
       skipped: SkippedLine[];
       warnings: string[];
       nonUsd: boolean;
+      converted: Conversion | null;
       recorded: boolean;
     })
   | (Base & { step: 'live'; shop: Shop });
@@ -326,6 +328,7 @@ export function loadSetupView(db: Db, shop: Shop, now = Date.now()): SetupView {
     skipped: last.skipped,
     warnings: result.warnings,
     nonUsd: result.nonUsd,
+    converted: result.converted ?? null,
     recorded,
   };
 }

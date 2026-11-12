@@ -17,7 +17,7 @@ describe('catalog rules', () => {
     expect(parsePriceInput('.75')).toBe(75);
     expect(parsePriceInput('0.01')).toBe(1);
     expect(parsePriceInput('500')).toBe(50_000);
-    for (const bad of ['', 'abc', '4.555', '500.01', '1000', '-2', '4.5.0', '12 dollars']) expect(parsePriceInput(bad)).toBeNull();
+    for (const bad of ['', 'abc', '4.555', '10000.01', '20000', '-2', '4.5.0', '12 dollars']) expect(parsePriceInput(bad)).toBeNull();
   });
 
   it('turns down a $0 price, which the shop could never sell', () => {
@@ -45,12 +45,12 @@ describe('catalog rules', () => {
     expect(isPublishable(item([], [425], 'removed'))).toBe(false);
   });
 
-  it('never publishes a price the shop cannot sell online ($0, or over the $500 order cap)', () => {
+  it('never publishes a price the shop cannot sell online ($0, or over the $10,000 cap)', () => {
     expect(isPublishable(item([], [MAX_PRICE_CENTS]))).toBe(true);
     expect(isPublishable(item([], [0]))).toBe(false);
     expect(isPublishable(item([], [425, MAX_PRICE_CENTS + 1]))).toBe(false);
     // Such an item asks for a price again, even after "Looks right".
-    expect(cardKindFor(item(['CHECK'], [65_000]))).toBe('price');
+    expect(cardKindFor(item(['CHECK'], [MAX_PRICE_CENTS + 1]))).toBe('price');
   });
 
   it('keeps the highest review price within a new shop’s online order cap', () => {
